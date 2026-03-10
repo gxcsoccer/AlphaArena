@@ -7,14 +7,6 @@ export enum OrderType {
 }
 
 /**
- * Order side
- */
-export enum OrderSide {
-  BUY = 'buy',
-  SELL = 'sell'
-}
-
-/**
  * Order interface
  */
 export interface Order {

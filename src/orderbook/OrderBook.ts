@@ -143,7 +143,13 @@ export class OrderBook {
     }
 
     // 买单：价格越高优先级越高
-    return Math.max(...Array.from(this.bids.keys()));
+    let maxPrice = -Infinity;
+    for (const price of this.bids.keys()) {
+      if (price > maxPrice) {
+        maxPrice = price;
+      }
+    }
+    return maxPrice;
   }
 
   /**
@@ -156,7 +162,13 @@ export class OrderBook {
     }
 
     // 卖单：价格越低优先级越高
-    return Math.min(...Array.from(this.asks.keys()));
+    let minPrice = Infinity;
+    for (const price of this.asks.keys()) {
+      if (price < minPrice) {
+        minPrice = price;
+      }
+    }
+    return minPrice;
   }
 
   /**
@@ -244,7 +256,9 @@ export class OrderBook {
     orders.sort((a, b) => {
       // 价格优先
       if (a.price !== b.price) {
-        return b.price - a.price;  // 价格高的优先
+        // 买单：价格高的优先；卖单：价格低的优先
+        const isBid = a.type === OrderType.BID;
+        return isBid ? b.price - a.price : a.price - b.price;
       }
       // 时间优先
       return a.timestamp - b.timestamp;  // 时间早的优先
