@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "AlphaArena - Algorithmic Trading Platform",
   "main": "dist/index.js",
+  "bin": {
+    "alpha-arena": "./bin/alpha-arena"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "cli": "node bin/alpha-arena"
   },
   "repository": {
     "type": "git",
