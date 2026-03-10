@@ -21,12 +21,12 @@ class MockOrderBook {
     this.bestAskPrice = ask;
   }
 
-  getBestBid() {
-    return { price: this.bestBidPrice, quantity: 100 };
+  getBestBid(): number | null {
+    return this.bestBidPrice;
   }
 
-  getBestAsk() {
-    return { price: this.bestAskPrice, quantity: 100 };
+  getBestAsk(): number | null {
+    return this.bestAskPrice;
   }
 
   setPrices(bid: number, ask: number) {

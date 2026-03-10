@@ -123,8 +123,8 @@ export class SMAStrategy extends Strategy {
     const bestBid = orderBook.getBestBid?.();
     const bestAsk = orderBook.getBestAsk?.();
     
-    if (bestBid && bestAsk) {
-      return (bestBid.price + bestAsk.price) / 2;
+    if (bestBid !== null && bestAsk !== null) {
+      return (bestBid + bestAsk) / 2;
     }
     
     // Fallback to last trade price if available
