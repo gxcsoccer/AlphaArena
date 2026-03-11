@@ -18,6 +18,7 @@ import { PortfoliosDAO } from '../database/portfolios.dao';
 import { Strategy } from '../database/strategies.dao';
 import { Trade } from '../database/trades.dao';
 import { Portfolio } from '../database/portfolios.dao';
+import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy/LeaderboardService';
 
 export interface APIServerConfig {
   port: number;
@@ -38,6 +39,7 @@ export class APIServer extends EventEmitter {
   private strategiesDAO: StrategiesDAO;
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
+  private leaderboardService: LeaderboardService;
   private isRunning: boolean = false;
 
   constructor(config: APIServerConfig) {
@@ -61,6 +63,7 @@ export class APIServer extends EventEmitter {
     this.strategiesDAO = new StrategiesDAO();
     this.tradesDAO = new TradesDAO();
     this.portfoliosDAO = new PortfoliosDAO();
+    this.leaderboardService = new LeaderboardService();
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -117,6 +120,7 @@ export class APIServer extends EventEmitter {
           trades: '/api/trades',
           portfolios: '/api/portfolios',
           stats: '/api/stats',
+          leaderboard: '/api/leaderboard',
         },
         websocket: '/socket.io/',
       });
@@ -196,6 +200,48 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Leaderboard endpoints
+    this.app.get('/api/leaderboard', async (req: Request, res: Response) => {
+      try {
+        const sortBy = (req.query.sortBy as SortCriterion) || 'roi';
+        const entries = await this.leaderboardService.calculateLeaderboard(sortBy);
+        res.json({ success: true, data: entries, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/leaderboard/:strategyId', async (req: Request, res: Response) => {
+      try {
+        const entry = this.leaderboardService.getStrategyRank(req.params.strategyId as string);
+        if (!entry) {
+          return res.status(404).json({ success: false, error: 'Strategy not found in leaderboard' });
+        }
+        res.json({ success: true, data: entry });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.post('/api/leaderboard/refresh', async (req: Request, res: Response) => {
+      try {
+        const sortBy = (req.query.sortBy as SortCriterion) || 'roi';
+        const entries = await this.leaderboardService.calculateLeaderboard(sortBy);
+        res.json({ success: true, data: entries, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/leaderboard/snapshot', async (req: Request, res: Response) => {
+      try {
+        const snapshot = await this.leaderboardService.createSnapshot();
+        res.json({ success: true, data: snapshot });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -267,6 +313,13 @@ export class APIServer extends EventEmitter {
    */
   public broadcastStrategyTick(strategyId: string, data: any): void {
     this.emitEvent('strategy:tick', { strategyId, ...data }, `strategy:${strategyId}`);
+  }
+
+  /**
+   * Broadcast leaderboard update
+   */
+  public broadcastLeaderboardUpdate(entries: LeaderboardEntry[]): void {
+    this.emitEvent('leaderboard:update', entries);
   }
 
   /**
