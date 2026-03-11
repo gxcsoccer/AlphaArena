@@ -6,12 +6,14 @@ export { StrategiesDAO, type Strategy, type StrategyConfig } from './strategies.
 export { TradesDAO, type Trade, type TradeFilters } from './trades.dao';
 export { PortfoliosDAO, type Portfolio, type PortfolioSnapshot } from './portfolios.dao';
 export { PriceHistoryDAO, type PriceHistory, type PricePoint } from './price-history.dao';
+export { LeaderboardDAO, type LeaderboardSnapshotRecord, type LeaderboardEntryRecord } from './leaderboard.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
 import { TradesDAO } from './trades.dao';
 import { PortfoliosDAO } from './portfolios.dao';
 import { PriceHistoryDAO } from './price-history.dao';
+import { LeaderboardDAO } from './leaderboard.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -20,6 +22,7 @@ export class DatabaseManager {
   private _trades: TradesDAO | null = null;
   private _portfolios: PortfoliosDAO | null = null;
   private _priceHistory: PriceHistoryDAO | null = null;
+  private _leaderboard: LeaderboardDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -54,6 +57,13 @@ export class DatabaseManager {
       this._priceHistory = new PriceHistoryDAO();
     }
     return this._priceHistory;
+  }
+
+  get leaderboard(): LeaderboardDAO {
+    if (!this._leaderboard) {
+      this._leaderboard = new LeaderboardDAO();
+    }
+    return this._leaderboard;
   }
 }
 

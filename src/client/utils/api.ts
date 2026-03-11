@@ -55,6 +55,45 @@ export interface Stats {
   sellTrades: number;
 }
 
+export interface StrategyMetrics {
+  strategyId: string;
+  strategyName: string;
+  status: string;
+  totalTrades: number;
+  totalVolume: number;
+  totalPnL: number;
+  roi: number;
+  winRate: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  avgTradeSize: number;
+  profitableTrades: number;
+  losingTrades: number;
+  consecutiveWins: number;
+  consecutiveLosses: number;
+  bestTrade: number;
+  worstTrade: number;
+  calculatedAt: string;
+}
+
+export interface LeaderboardEntry {
+  rank: number;
+  strategyId: string;
+  strategyName: string;
+  status: string;
+  metrics: StrategyMetrics;
+  rankChange: number;
+}
+
+export interface LeaderboardSnapshot {
+  id?: string;
+  timestamp: string;
+  entries: LeaderboardEntry[];
+  totalStrategies: number;
+  totalTrades: number;
+  totalVolume: number;
+}
+
 /**
  * REST API Client
  */
@@ -125,6 +164,35 @@ export const api = {
     const data = await res.json();
     return data.success ? data.data : null;
   },
+
+  // Leaderboard
+  async getLeaderboard(sortBy?: string): Promise<LeaderboardEntry[]> {
+    const params = sortBy ? `?sortBy=${sortBy}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/leaderboard${params}`);
+    const data = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getStrategyRank(strategyId: string): Promise<LeaderboardEntry | null> {
+    const res = await fetch(`${API_BASE_URL}/api/leaderboard/${strategyId}`);
+    const data = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async refreshLeaderboard(sortBy?: string): Promise<LeaderboardEntry[]> {
+    const params = sortBy ? `?sortBy=${sortBy}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/leaderboard/refresh${params}`, {
+      method: 'POST',
+    });
+    const data = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getLeaderboardSnapshot(): Promise<LeaderboardSnapshot | null> {
+    const res = await fetch(`${API_BASE_URL}/api/leaderboard/snapshot`);
+    const data = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**
@@ -172,6 +240,10 @@ export class WebSocketClient {
 
         this.socket.on('strategy:tick', (data: any) => {
           this.emit('strategy:tick', data);
+        });
+
+        this.socket.on('leaderboard:update', (data: any) => {
+          this.emit('leaderboard:update', data);
         });
       }).catch(reject);
     });
