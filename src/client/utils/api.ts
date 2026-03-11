@@ -3,7 +3,36 @@
  * Provides REST API and WebSocket connections
  */
 
+// Get API URL from environment variable or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Get WebSocket URL from environment variable, or derive from API URL
+// Supports VITE_WS_URL for dedicated WS endpoint, or auto-converts HTTP→WS
+const getWebSocketUrl = (): string => {
+  // Check for dedicated WebSocket URL first
+  if (import.meta.env.VITE_WS_URL) {
+    return import.meta.env.VITE_WS_URL;
+  }
+  
+  // Auto-convert HTTP→WS, HTTPS→WSS
+  return API_BASE_URL.replace('http://', 'ws://').replace('https://', 'wss://');
+};
+
+// Detect current environment (development vs production)
+const isDevelopment = (): boolean => {
+  // Vite defines import.meta.env.DEV in development mode
+  if (import.meta.env.DEV) {
+    return true;
+  }
+  
+  // Fallback: check if running on localhost
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    return hostname === 'localhost' || hostname === '127.0.0.1';
+  }
+  
+  return false;
+};
 
 export interface Strategy {
   id: string;
@@ -201,10 +230,18 @@ export const api = {
 export class WebSocketClient {
   private socket: any;
   private listeners: Map<string, Set<Function>> = new Map();
+  private url: string;
 
-  constructor(url: string = API_BASE_URL.replace('http', 'ws')) {
+  constructor(url?: string) {
     this.socket = null;
-    this.url = url;
+    // Use provided URL, or get from environment configuration
+    this.url = url || getWebSocketUrl();
+    
+    // Log connection info in development mode
+    if (isDevelopment()) {
+      console.log('[WebSocket] Using URL:', this.url);
+      console.log('[WebSocket] Environment:', isDevelopment() ? 'Development' : 'Production');
+    }
   }
 
   connect(): Promise<void> {
