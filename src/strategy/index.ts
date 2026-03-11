@@ -7,3 +7,4 @@
 export * from './types';
 export * from './Strategy';
 export * from './SMAStrategy';
+export * from './StrategyManager';
