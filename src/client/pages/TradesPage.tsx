@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Typography, Card, Table, Tag, Select, Space, DatePicker, Row, Col, Button } from 'antd';
+import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid } from '@arco-design/web-react';
+const { Row, Col } = Grid;
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   AreaChart,
   Area,
   XAxis,
@@ -11,21 +12,22 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  BarChart,
+  Bar,
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
-import { Trade } from '../utils/api';
-import type { ColumnsType } from 'antd/es/table';
-import dayjs from 'dayjs';
+import type { TableProps } from '@arco-design/web-react';
+import type { Trade } from '../utils/api';
 
+const { Header, Content } = Layout;
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 
 const TradesPage: React.FC = () => {
   const [symbol, setSymbol] = useState<string | undefined>(undefined);
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
-  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
+  const [dateRange, setDateRange] = useState<[any, any] | null>(null);
 
-  const { trades, loading } = useTrades({ symbol, side }, 500);
+  const { trades, loading } = useTrades({ symbol, side }, 100);
 
   // Prepare chart data
   const tradeDistributionData = trades.reduce((acc: any, trade) => {
@@ -59,14 +61,14 @@ const TradesPage: React.FC = () => {
     }));
 
   // Trade table columns
-  const tradeColumns: ColumnsType<Trade> = [
+  const tradeColumns: TableProps<Trade>['columns'] = [
     {
       title: 'Time',
       dataIndex: 'executedAt',
       key: 'executedAt',
       width: 120,
       render: (text: string) => new Date(text).toLocaleString(),
-      sorter: (a: Trade, b: Trade) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime(),
+      sorter: (a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime(),
     },
     {
       title: 'Strategy ID',
@@ -81,7 +83,7 @@ const TradesPage: React.FC = () => {
       key: 'symbol',
       width: 100,
       filters: Array.from(new Set(trades.map(t => t.symbol))).map(s => ({ text: s, value: s })),
-      onFilter: (value: any, record: Trade) => record.symbol === value,
+      onFilter: (value: any, record) => record.symbol === value,
     },
     {
       title: 'Side',
@@ -90,14 +92,14 @@ const TradesPage: React.FC = () => {
       width: 80,
       render: (side: 'buy' | 'sell') => (
         <Tag color={side === 'buy' ? 'green' : 'red'}>
-          {side.toUpperCase()}
+          {side}
         </Tag>
       ),
       filters: [
         { text: 'Buy', value: 'buy' },
         { text: 'Sell', value: 'sell' },
       ],
-      onFilter: (value: any, record: Trade) => record.side === value,
+      onFilter: (value: any, record) => record.side === value,
     },
     {
       title: 'Price',
@@ -105,14 +107,14 @@ const TradesPage: React.FC = () => {
       key: 'price',
       width: 100,
       render: (price: number) => `$${price.toLocaleString()}`,
-      sorter: (a: Trade, b: Trade) => a.price - b.price,
+      sorter: (a, b) => a.price - b.price,
     },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
       width: 100,
-      sorter: (a: Trade, b: Trade) => a.quantity - b.quantity,
+      sorter: (a, b) => a.quantity - b.quantity,
     },
     {
       title: 'Total',
@@ -120,7 +122,7 @@ const TradesPage: React.FC = () => {
       key: 'total',
       width: 100,
       render: (total: number) => `$${total.toLocaleString()}`,
-      sorter: (a: Trade, b: Trade) => a.total - b.total,
+      sorter: (a, b) => a.total - b.total,
     },
     {
       title: 'Fee',
@@ -134,7 +136,7 @@ const TradesPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
           AlphaArena - Trades
         </Title>
       </Header>
@@ -163,7 +165,7 @@ const TradesPage: React.FC = () => {
               <Select.Option value="buy">Buy</Select.Option>
               <Select.Option value="sell">Sell</Select.Option>
             </Select>
-            <RangePicker
+            <DatePicker.RangePicker
               value={dateRange}
               onChange={(dates) => setDateRange(dates as [any, any] | null)}
             />

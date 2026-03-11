@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Typography, Card, Table, Tag, Row, Col, Statistic, Select } from 'antd';
+import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -16,9 +16,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { usePortfolio, useStrategies, useTrades } from '../hooks/useData';
-import { Portfolio, Trade } from '../utils/api';
-import type { ColumnsType } from 'antd/es/table';
+import type { TableProps } from '@arco-design/web-react';
+import type { Portfolio } from '../utils/api';
 
+const { Row, Col } = Grid;
+const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B'];
@@ -119,7 +121,7 @@ const HoldingsPage: React.FC = () => {
   }, [trades, portfolio?.totalValue]);
 
   // Position table columns
-  const positionColumns: ColumnsType<NonNullable<Portfolio['positions']>[0]> = [
+  const positionColumns: TableProps<NonNullable<Portfolio['positions']>[0]>['columns'] = [
     {
       title: 'Symbol',
       dataIndex: 'symbol',
@@ -161,192 +163,197 @@ const HoldingsPage: React.FC = () => {
   const loading = strategiesLoading || portfolioLoading || tradesLoading;
 
   return (
-    <div>
-      <Title level={2}>Holdings</Title>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
+          AlphaArena - Holdings
+        </Title>
+      </Header>
+      <Content style={{ padding: '24px' }}>
+        {/* Strategy Selector */}
+        <Card style={{ marginBottom: 24 }}>
+          <Select
+            placeholder="Select Strategy"
+            style={{ width: 300 }}
+            allowClear
+            value={selectedStrategyId}
+            onChange={setSelectedStrategyId}
+            loading={strategiesLoading}
+          >
+            {strategies.map(s => (
+              <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>
+            ))}
+          </Select>
+        </Card>
 
-      {/* Strategy Selector */}
-      <Card style={{ marginBottom: 24 }}>
-        <Select
-          placeholder="Select Strategy"
-          style={{ width: 300 }}
-          allowClear
-          value={selectedStrategyId}
-          onChange={setSelectedStrategyId}
-          loading={strategiesLoading}
-        >
-          {strategies.map(s => (
-            <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>
-          ))}
-        </Select>
-      </Card>
+        {/* Portfolio Overview */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={6}>
+            <Card loading={loading}>
+              <Statistic
+                title="Total Value"
+                value={portfolio?.totalValue || 0}
+                prefixText="$"
+                precision={2}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card loading={loading}>
+              <Statistic
+                title="Cash Balance"
+                value={portfolio?.cashBalance || 0}
+                prefixText="$"
+                precision={2}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card loading={loading}>
+              <Statistic
+                title="Realized P&L"
+                value={pnlData.realizedPnL}
+                prefixText="$"
+                precision={2}
+                valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
+              />
+            </Card>
+          </Col>
+          <Col span={6}>
+            <Card loading={loading}>
+              <Statistic
+                title="Win Rate"
+                value={pnlData.winRate}
+                suffixText="%"
+                precision={1}
+              />
+            </Card>
+          </Col>
+        </Row>
 
-      {/* Portfolio Overview */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Total Value"
-              value={portfolio?.totalValue || 0}
-              prefix="$"
-              precision={2}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Cash Balance"
-              value={portfolio?.cashBalance || 0}
-              prefix="$"
-              precision={2}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Realized P&L"
-              value={pnlData.realizedPnL}
-              prefix="$"
-              precision={2}
-              valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card loading={loading}>
-            <Statistic
-              title="Win Rate"
-              value={pnlData.winRate}
-              suffix="%"
-              precision={1}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      {/* Charts */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={12}>
-          <Card title="Asset Allocation" loading={loading}>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={allocationData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine
-                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {allocationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="Equity Curve" loading={loading}>
-            {equityCurveData.length > 0 ? (
+        {/* Charts */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={12}>
+            <Card title="Asset Allocation" loading={loading}>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={equityCurveData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
+                <PieChart>
+                  <Pie
+                    data={allocationData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {allocationData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" name="Portfolio Value ($)" />
-                </LineChart>
+                </PieChart>
               </ResponsiveContainer>
-            ) : (
-              <div style={{ 
-                height: 300, 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                color: '#999'
-              }}>
-                No trade data available
-              </div>
-            )}
-          </Card>
-        </Col>
-      </Row>
+            </Card>
+          </Col>
+          <Col span={12}>
+            <Card title="Equity Curve" loading={loading}>
+              {equityCurveData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={equityCurveData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="value" stroke="#8884d8" name="Portfolio Value ($)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ 
+                  height: 300, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#999'
+                }}>
+                  No trade data available
+                </div>
+              )}
+            </Card>
+          </Col>
+        </Row>
 
-      {/* P&L Analysis */}
-      <Row gutter={16} style={{ marginBottom: 24 }}>
-        <Col span={24}>
-          <Card title="P&L Analysis" loading={loading}>
-            <Row gutter={16}>
-              <Col span={8}>
-                <Statistic
-                  title="Total Cost Basis"
-                  value={pnlData.totalCost}
-                  prefix="$"
-                  precision={2}
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="Total Proceeds"
-                  value={pnlData.totalProceeds}
-                  prefix="$"
-                  precision={2}
-                />
-              </Col>
-              <Col span={8}>
-                <Statistic
-                  title="Net P&L"
-                  value={pnlData.realizedPnL}
-                  prefix="$"
-                  precision={2}
-                  valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
-                />
-              </Col>
-            </Row>
-            <Row gutter={16} style={{ marginTop: 16 }}>
-              <Col span={12}>
-                <Text type="secondary">
-                  Winning Trades: <Text strong style={{ color: '#3f8600' }}>{pnlData.winningTrades}</Text>
-                </Text>
-              </Col>
-              <Col span={12}>
-                <Text type="secondary">
-                  Losing Trades: <Text strong style={{ color: '#cf1322' }}>{pnlData.losingTrades}</Text>
-                </Text>
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-      </Row>
+        {/* P&L Analysis */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={24}>
+            <Card title="P&L Analysis" loading={loading}>
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Statistic
+                    title="Total Cost Basis"
+                    value={pnlData.totalCost}
+                    prefixText="$"
+                    precision={2}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Total Proceeds"
+                    value={pnlData.totalProceeds}
+                    prefixText="$"
+                    precision={2}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="Net P&L"
+                    value={pnlData.realizedPnL}
+                    prefixText="$"
+                    precision={2}
+                    valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
+                  />
+                </Col>
+              </Row>
+              <Row gutter={16} style={{ marginTop: 16 }}>
+                <Col span={12}>
+                  <Text type="secondary">
+                    Winning Trades: <Text strong style={{ color: '#3f8600' }}>{pnlData.winningTrades}</Text>
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text type="secondary">
+                    Losing Trades: <Text strong style={{ color: '#cf1322' }}>{pnlData.losingTrades}</Text>
+                  </Text>
+                </Col>
+              </Row>
+            </Card>
+          </Col>
+        </Row>
 
-      {/* Positions Table */}
-      <Card title="Current Positions" loading={loading}>
-        {portfolio?.positions && portfolio.positions.length > 0 ? (
-          <Table
-            columns={positionColumns}
-            dataSource={portfolio.positions}
-            rowKey="symbol"
-            pagination={false}
-            size="small"
-          />
-        ) : (
-          <div style={{ 
-            padding: 40, 
-            textAlign: 'center', 
-            color: '#999' 
-          }}>
-            No positions held
-          </div>
-        )}
-      </Card>
-    </div>
+        {/* Positions Table */}
+        <Card title="Current Positions" loading={loading}>
+          {portfolio?.positions && portfolio.positions.length > 0 ? (
+            <Table
+              columns={positionColumns}
+              dataSource={portfolio.positions}
+              rowKey="symbol"
+              pagination={false}
+              size="small"
+            />
+          ) : (
+            <div style={{ 
+              padding: 40, 
+              textAlign: 'center', 
+              color: '#999' 
+            }}>
+              No positions held
+            </div>
+          )}
+        </Card>
+      </Content>
+    </Layout>
   );
 };
 

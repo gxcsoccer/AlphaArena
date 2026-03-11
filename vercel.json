@@ -1,7 +1,5 @@
 {
   "outputDirectory": "dist/client",
-  "buildCommand": "npm run build:client",
-  "installCommand": "npm install",
   "framework": "vite",
   "rewrites": [
     {
