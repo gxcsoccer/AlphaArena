@@ -6,14 +6,27 @@
  * Usage:
  *   alpha-arena backtest [options]
  *   alpha-arena run [options]
+ *   alpha-arena realtime [options]
  *   alpha-arena stats
  *   alpha-arena help
  */
 
 const { run } = require('../dist/cli/runner');
+const { main: runRealtime } = require('../dist/cli/realtime-cli');
 
 // Get command line arguments (skip node and script path)
 const args = process.argv.slice(2);
 
-// Run CLI
-run(args);
+// Check if realtime command
+if (args[0] === 'realtime') {
+  // Remove 'realtime' from args and pass to realtime CLI
+  const realtimeArgs = args.slice(1);
+  process.argv = [process.argv[0], process.argv[1], ...realtimeArgs];
+  runRealtime().catch((error) => {
+    console.error('Error:', error);
+    process.exit(1);
+  });
+} else {
+  // Run CLI
+  run(args);
+}

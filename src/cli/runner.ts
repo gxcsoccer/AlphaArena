@@ -141,6 +141,7 @@ Usage: alpha-arena <command> [options]
 Commands:
   backtest    Run backtest simulation
   run         Run real-time trading simulation
+  realtime    Run persistent 7x24 real-time trading engine
   stats       Show statistics from previous run
   help        Show this help message
 
@@ -160,7 +161,11 @@ Examples:
   alpha-arena backtest --strategy sma --capital 100000 --symbol AAPL --duration 30
   alpha-arena backtest -s sma -c 50000 -S GOOGL -d 60 --output results.json
   alpha-arena run --strategy sma --capital 100000 --symbol MSFT
+  alpha-arena realtime --symbols AAPL,GOOGL,MSFT --capital 100000
+  alpha-arena realtime --tick-interval 500 --logging
   alpha-arena help
+
+For realtime command options, run: alpha-arena realtime --help
 `);
 }
 

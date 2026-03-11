@@ -203,7 +203,6 @@ describe('TradingEngine', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
 
-<<<<<<< HEAD
       engine.on('signal:generated', (event: any) => {
         expect(event.data?.strategy).toBe('test-strategy');
         expect(event.data?.signal).toBeDefined();
@@ -372,7 +371,6 @@ describe('TradingEngine', () => {
       const strategy = new RiskyStrategy();
       engine.addStrategy(strategy);
 
-<<<<<<< HEAD
       engine.on('risk:triggered', (event: any) => {
         expect(event.data?.strategy).toBe('risky');
         expect(event.data?.riskType).toBe('position_limit');
