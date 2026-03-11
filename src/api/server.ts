@@ -302,6 +302,19 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    this.app.get('/api/market/kline/:symbol', async (req: Request, res: Response) => {
+      try {
+        const symbol = req.params.symbol as string;
+        const timeframe = req.query.timeframe as string || '1h';
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 1000;
+        
+        const klineData = this.getKLineData(symbol, timeframe, limit);
+        res.json({ success: true, data: klineData, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -504,6 +517,56 @@ export class APIServer extends EventEmitter {
   private getMarketTicker(symbol: string): any | null {
     const tickers = this.getMarketTickers();
     return tickers.find(t => t.symbol === symbol) || null;
+  }
+
+  /**
+   * Get K-line (candlestick) data for a symbol
+   * @param symbol - Trading pair symbol
+   * @param timeframe - Timeframe (1m, 5m, 15m, 1h, 4h, 1d)
+   * @param limit - Number of candles to return
+   */
+  private getKLineData(symbol: string, timeframe: string, limit: number): any[] {
+    // Parse timeframe to milliseconds
+    const timeframeMap: Record<string, number> = {
+      '1m': 60 * 1000,
+      '5m': 5 * 60 * 1000,
+      '15m': 15 * 60 * 1000,
+      '1h': 60 * 60 * 1000,
+      '4h': 4 * 60 * 60 * 1000,
+      '1d': 24 * 60 * 60 * 1000,
+    };
+
+    const interval = timeframeMap[timeframe] || timeframeMap['1h'];
+    const now = Date.now();
+    const startTime = now - (interval * limit);
+
+    // Generate simulated K-line data
+    // In production, this would come from a database or external API
+    const klines: any[] = [];
+    let currentPrice = 50000; // Starting price for BTC
+    
+    for (let time = startTime; time < now; time += interval) {
+      // Simulate price movement (random walk)
+      const change = (Math.random() - 0.5) * currentPrice * 0.02; // ±1% change
+      const open = currentPrice;
+      const close = currentPrice + change;
+      const high = Math.max(open, close) + Math.random() * currentPrice * 0.005;
+      const low = Math.min(open, close) - Math.random() * currentPrice * 0.005;
+      const volume = Math.random() * 100 + 10;
+
+      klines.push({
+        time: Math.floor(time / 1000), // Convert to seconds for lightweight-charts
+        open: parseFloat(open.toFixed(2)),
+        high: parseFloat(high.toFixed(2)),
+        low: parseFloat(low.toFixed(2)),
+        close: parseFloat(close.toFixed(2)),
+        volume: parseFloat(volume.toFixed(4)),
+      });
+
+      currentPrice = close;
+    }
+
+    return klines;
   }
 
   /**

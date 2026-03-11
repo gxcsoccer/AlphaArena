@@ -108,6 +108,15 @@ export interface MarketTicker {
   timestamp: number;
 }
 
+export interface KLineData {
+  time: number; // Unix timestamp in seconds
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
 export interface PriceLevel {
   price: number;
   orders: any[];
@@ -269,6 +278,16 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/api/market/tickers/${symbol}`);
     const data: ApiResponse<MarketTicker> = await res.json();
     return data.success ? data.data : null;
+  },
+
+  async getKLineData(symbol: string, timeframe: string, limit?: number): Promise<KLineData[]> {
+    const params = new URLSearchParams();
+    params.append('timeframe', timeframe);
+    if (limit) params.append('limit', limit.toString());
+    
+    const res = await fetch(`${API_BASE_URL}/api/market/kline/${symbol}?${params}`);
+    const data: ApiResponse<KLineData[]> = await res.json();
+    return data.success ? data.data : [];
   },
 };
 
