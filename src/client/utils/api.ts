@@ -94,6 +94,24 @@ export interface LeaderboardSnapshot {
   totalVolume: number;
 }
 
+export interface PriceLevel {
+  price: number;
+  orders: any[];
+  totalQuantity: number;
+}
+
+export interface OrderBookSnapshot {
+  bids: PriceLevel[];
+  asks: PriceLevel[];
+  timestamp: number;
+}
+
+export interface BestPrices {
+  bestBid: number | null;
+  bestAsk: number | null;
+  spread: number | null;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -212,6 +230,19 @@ export const api = {
     const data: ApiResponse<LeaderboardSnapshot> = await res.json();
     return data.success ? data.data : null;
   },
+
+  async getOrderBook(symbol: string, levels?: number): Promise<OrderBookSnapshot | null> {
+    const params = levels ? `?levels=${levels}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}${params}`);
+    const data: ApiResponse<OrderBookSnapshot> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getBestPrices(symbol: string): Promise<BestPrices | null> {
+    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}/best`);
+    const data: ApiResponse<BestPrices> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**
@@ -271,6 +302,14 @@ export class WebSocketClient {
         this.socket.on('leaderboard:update', (data: any) => {
           this.emit('leaderboard:update', data);
         });
+
+        this.socket.on('orderbook:snapshot', (data: any) => {
+          this.emit('orderbook:snapshot', data);
+        });
+
+        this.socket.on('orderbook:delta', (data: any) => {
+          this.emit('orderbook:delta', data);
+        });
       }).catch((error) => {
         this.connectionPromise = null;
         reject(error);
@@ -294,6 +333,16 @@ export class WebSocketClient {
   unsubscribe(room: string): void {
     if (!this.socket) return;
     this.socket.emit('unsubscribe', room);
+  }
+
+  subscribeOrderBook(symbol: string): void {
+    if (!this.socket) return;
+    this.socket.emit('subscribe:orderbook', symbol);
+  }
+
+  unsubscribeOrderBook(symbol: string): void {
+    if (!this.socket) return;
+    this.socket.emit('unsubscribe:orderbook', symbol);
   }
 
   on(event: string, callback: Function): () => void {

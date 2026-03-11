@@ -19,6 +19,8 @@ import { Strategy } from '../database/strategies.dao';
 import { Trade } from '../database/trades.dao';
 import { Portfolio } from '../database/portfolios.dao';
 import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy/LeaderboardService';
+import { OrderBookService } from '../orderbook/OrderBookService';
+import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 
 export interface APIServerConfig {
   port: number;
@@ -40,6 +42,7 @@ export class APIServer extends EventEmitter {
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
   private leaderboardService: LeaderboardService;
+  private orderBookServices: Map<string, OrderBookService> = new Map();
   private isRunning: boolean = false;
 
   constructor(config: APIServerConfig) {
@@ -68,6 +71,7 @@ export class APIServer extends EventEmitter {
     this.setupMiddleware();
     this.setupRoutes();
     this.setupWebSocket();
+    this.setupOrderBookServices();
   }
 
   /**
@@ -242,6 +246,39 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    this.app.get('/api/orderbook/:symbol', async (req: Request, res: Response) => {
+      try {
+        const symbol = req.params.symbol as string;
+        const levelsQuery = req.query.levels;
+        const levels = levelsQuery && typeof levelsQuery === 'string' ? parseInt(levelsQuery) : undefined;
+        
+        const snapshot = this.getOrderBookSnapshot(symbol, levels);
+        if (!snapshot) {
+          return res.status(404).json({ success: false, error: 'Order book not found for symbol' });
+        }
+        
+        res.json({ success: true, data: snapshot, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/orderbook/:symbol/best', async (req: Request, res: Response) => {
+      try {
+        const symbol = req.params.symbol as string;
+        const service = this.getOrderBookService(symbol);
+        
+        if (!service) {
+          return res.status(404).json({ success: false, error: 'Order book not found for symbol' });
+        }
+        
+        const bestPrices = service.getBestPrices();
+        res.json({ success: true, data: bestPrices, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -276,6 +313,22 @@ export class APIServer extends EventEmitter {
       // Disconnect
       socket.on('disconnect', () => {
         console.log(`[WebSocket] Client disconnected: ${socket.id}`);
+      });
+
+      socket.on('subscribe:orderbook', (symbol: string) => {
+        socket.join(`orderbook:${symbol}`);
+        console.log(`[WebSocket] Client ${socket.id} subscribed to orderbook:${symbol}`);
+        
+        const service = this.orderBookServices.get(symbol);
+        if (service) {
+          const snapshot = service.getSnapshot(20);
+          socket.emit('orderbook:snapshot', snapshot);
+        }
+      });
+
+      socket.on('unsubscribe:orderbook', (symbol: string) => {
+        socket.leave(`orderbook:${symbol}`);
+        console.log(`[WebSocket] Client ${socket.id} unsubscribed from orderbook:${symbol}`);
       });
     });
   }
@@ -320,6 +373,49 @@ export class APIServer extends EventEmitter {
    */
   public broadcastLeaderboardUpdate(entries: LeaderboardEntry[]): void {
     this.emitEvent('leaderboard:update', entries);
+  }
+
+  public broadcastOrderBookSnapshot(symbol: string, snapshot: OrderBookSnapshot): void {
+    this.emitEvent('orderbook:snapshot', snapshot, `orderbook:${symbol}`);
+  }
+
+  public broadcastOrderBookDelta(symbol: string, delta: OrderBookDelta): void {
+    this.emitEvent('orderbook:delta', delta, `orderbook:${symbol}`);
+  }
+
+  private setupOrderBookServices(): void {
+    const symbols = ['BTC/USD', 'ETH/USD', 'BTC/USDT'];
+    
+    symbols.forEach(symbol => {
+      const service = new OrderBookService(symbol);
+      this.orderBookServices.set(symbol, service);
+      
+      service.connect().catch(err => {
+        console.error(`[OrderBook] Failed to connect for ${symbol}:`, err);
+      });
+      
+      service.on('snapshot', (event) => {
+        this.broadcastOrderBookSnapshot(symbol, event.data);
+      });
+      
+      service.on('delta', (event) => {
+        this.broadcastOrderBookDelta(symbol, event.data);
+      });
+      
+      console.log(`[OrderBook] Initialized service for ${symbol}`);
+    });
+  }
+
+  public getOrderBookService(symbol: string): OrderBookService | undefined {
+    return this.orderBookServices.get(symbol);
+  }
+
+  public getOrderBookSnapshot(symbol: string, levels?: number): OrderBookSnapshot | null {
+    const service = this.orderBookServices.get(symbol);
+    if (!service) {
+      return null;
+    }
+    return service.getSnapshot(levels);
   }
 
   /**
