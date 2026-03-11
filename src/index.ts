@@ -1,6 +1,6 @@
 /**
  * AlphaArena - Algorithmic Trading Platform
- * 
+ *
  * Main entry point exporting all modules
  */
 

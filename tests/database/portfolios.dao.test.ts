@@ -16,7 +16,7 @@ describe('PortfoliosDAO', () => {
         baseBalance: 1.5,
         quoteBalance: 10000,
         totalValue: 85000,
-        snapshotAt: new Date()
+        snapshotAt: new Date(),
       });
 
       expect(snapshot.id).toBeDefined();
@@ -34,7 +34,7 @@ describe('PortfoliosDAO', () => {
         quoteCurrency: 'USDT',
         baseBalance: 10,
         quoteBalance: 5000,
-        snapshotAt: new Date()
+        snapshotAt: new Date(),
       });
 
       expect(snapshot.strategyId).toBe('test-strategy-id');
@@ -44,14 +44,14 @@ describe('PortfoliosDAO', () => {
   describe('getLatest', () => {
     it('should retrieve latest snapshot', async () => {
       const now = new Date();
-      
+
       await dao.createSnapshot({
         symbol: 'TEST/USDT',
         baseCurrency: 'TEST',
         quoteCurrency: 'USDT',
         baseBalance: 100,
         quoteBalance: 1000,
-        snapshotAt: new Date(now.getTime() - 10000)
+        snapshotAt: new Date(now.getTime() - 10000),
       });
 
       await dao.createSnapshot({
@@ -60,7 +60,7 @@ describe('PortfoliosDAO', () => {
         quoteCurrency: 'USDT',
         baseBalance: 150,
         quoteBalance: 1500,
-        snapshotAt: now
+        snapshotAt: now,
       });
 
       const retrieved = await dao.getLatest('TEST/USDT');
@@ -78,16 +78,16 @@ describe('PortfoliosDAO', () => {
   describe('getMany', () => {
     it('should filter snapshots by symbol', async () => {
       const snapshots = await dao.getMany({ symbol: 'BTC/USDT', limit: 10 });
-      
+
       expect(Array.isArray(snapshots)).toBe(true);
       if (snapshots.length > 0) {
-        expect(snapshots.every(s => s.symbol === 'BTC/USDT')).toBe(true);
+        expect(snapshots.every((s) => s.symbol === 'BTC/USDT')).toBe(true);
       }
     });
 
     it('should respect limit parameter', async () => {
       const snapshots = await dao.getMany({ limit: 5 });
-      
+
       expect(snapshots.length).toBeLessThanOrEqual(5);
     });
   });
@@ -95,7 +95,7 @@ describe('PortfoliosDAO', () => {
   describe('getHistory', () => {
     it('should get portfolio history for a strategy', async () => {
       const history = await dao.getHistory('test-strategy', 100);
-      
+
       expect(Array.isArray(history)).toBe(true);
     });
   });

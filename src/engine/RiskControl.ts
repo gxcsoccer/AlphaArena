@@ -1,6 +1,6 @@
 /**
  * Risk Control Module - 风险控制模块
- * 
+ *
  * Implements various risk controls:
  * - Position limits
  * - Exposure limits
@@ -30,15 +30,15 @@ class OrderRateLimiter {
    */
   recordOrder(): boolean {
     const now = Date.now();
-    
+
     // Remove old orders outside the window
-    this.orders = this.orders.filter(timestamp => now - timestamp < this.windowMs);
-    
+    this.orders = this.orders.filter((timestamp) => now - timestamp < this.windowMs);
+
     // Check if within limit
     if (this.orders.length >= this.maxOrders) {
       return false;
     }
-    
+
     // Record this order
     this.orders.push(now);
     return true;
@@ -49,7 +49,7 @@ class OrderRateLimiter {
    */
   getOrderCount(): number {
     const now = Date.now();
-    return this.orders.filter(timestamp => now - timestamp < this.windowMs).length;
+    return this.orders.filter((timestamp) => now - timestamp < this.windowMs).length;
   }
 
   /**
@@ -87,10 +87,7 @@ export class RiskControl {
   /**
    * Check if a signal should be approved
    */
-  checkSignal(
-    signal: OrderSignal,
-    portfolio: PortfolioSnapshot
-  ): RiskCheckResult {
+  checkSignal(signal: OrderSignal, portfolio: PortfolioSnapshot): RiskCheckResult {
     if (!this.enabled) {
       return { approved: true };
     }
@@ -128,21 +125,21 @@ export class RiskControl {
       return { approved: true };
     }
 
-    const position = portfolio.positions.find(p => p.symbol === symbol);
-    
+    const position = portfolio.positions.find((p) => p.symbol === symbol);
+
     if (!position || position.quantity === 0) {
       return { approved: true }; // No position, no stop loss check needed
     }
 
     const costBasis = position.averageCost;
     const priceChange = (currentPrice - costBasis) / costBasis;
-    
+
     // Check if price has dropped below stop loss threshold
     if (priceChange < -this.config.stopLossPercent) {
       return {
         approved: false,
         reason: `Stop loss triggered: price dropped ${Math.abs(priceChange * 100).toFixed(2)}% (threshold: ${this.config.stopLossPercent * 100}%)`,
-        riskType: 'stop_loss'
+        riskType: 'stop_loss',
       };
     }
 
@@ -163,11 +160,11 @@ export class RiskControl {
    */
   updateConfig(config: Partial<RiskControlConfig>): void {
     this.config = { ...this.config, ...config };
-    
+
     if (config.maxOrdersPerMinute !== undefined) {
       this.rateLimiter = new OrderRateLimiter(config.maxOrdersPerMinute, 60000);
     }
-    
+
     if (config.enabled !== undefined) {
       this.enabled = config.enabled;
     }
@@ -192,19 +189,16 @@ export class RiskControl {
     return {
       currentOrders: current,
       maxOrders: this.config.maxOrdersPerMinute,
-      remaining: Math.max(0, this.config.maxOrdersPerMinute - current)
+      remaining: Math.max(0, this.config.maxOrdersPerMinute - current),
     };
   }
 
   /**
    * Private: Check position limit
    */
-  private checkPositionLimit(
-    signal: OrderSignal,
-    portfolio: PortfolioSnapshot
-  ): RiskCheckResult {
+  private checkPositionLimit(signal: OrderSignal, portfolio: PortfolioSnapshot): RiskCheckResult {
     if (signal.side === 'buy') {
-      const position = portfolio.positions.find(p => p.symbol === signal.id.split('-')[0]);
+      const position = portfolio.positions.find((p) => p.symbol === signal.id.split('-')[0]);
       const currentQuantity = position ? position.quantity : 0;
       const newQuantity = currentQuantity + signal.quantity;
 
@@ -212,7 +206,7 @@ export class RiskControl {
         return {
           approved: false,
           reason: `Position limit exceeded: ${newQuantity} > ${this.config.maxPositionSize}`,
-          riskType: 'position_limit'
+          riskType: 'position_limit',
         };
       }
     }
@@ -223,10 +217,7 @@ export class RiskControl {
   /**
    * Private: Check total exposure limit
    */
-  private checkExposureLimit(
-    signal: OrderSignal,
-    portfolio: PortfolioSnapshot
-  ): RiskCheckResult {
+  private checkExposureLimit(signal: OrderSignal, portfolio: PortfolioSnapshot): RiskCheckResult {
     if (signal.side === 'buy') {
       const orderValue = signal.price * signal.quantity;
       const newExposure = portfolio.totalValue + orderValue;
@@ -235,7 +226,7 @@ export class RiskControl {
         return {
           approved: false,
           reason: `Total exposure limit exceeded: ${newExposure.toFixed(2)} > ${this.config.maxTotalExposure}`,
-          riskType: 'exposure_limit'
+          riskType: 'exposure_limit',
         };
       }
     }
@@ -248,12 +239,12 @@ export class RiskControl {
    */
   private checkRateLimit(): RiskCheckResult {
     const status = this.getRateLimitStatus();
-    
+
     if (status.remaining <= 0) {
       return {
         approved: false,
         reason: `Order rate limit exceeded: ${status.currentOrders} orders in last minute (max: ${status.maxOrders})`,
-        riskType: 'rate_limit'
+        riskType: 'rate_limit',
       };
     }
 

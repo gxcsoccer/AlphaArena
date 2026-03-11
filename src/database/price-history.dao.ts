@@ -30,19 +30,21 @@ export class PriceHistoryDAO {
    */
   async recordPrice(price: PricePoint): Promise<PriceHistory> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('price_history')
-      .insert([{
-        symbol: price.symbol,
-        price: price.price.toString(),
-        bid: price.bid?.toString() || null,
-        ask: price.ask?.toString() || null,
-        volume_24h: price.volume24h?.toString() || null,
-        high_24h: price.high24h?.toString() || null,
-        low_24h: price.low24h?.toString() || null,
-        timestamp: price.timestamp.toISOString()
-      }])
+      .insert([
+        {
+          symbol: price.symbol,
+          price: price.price.toString(),
+          bid: price.bid?.toString() || null,
+          ask: price.ask?.toString() || null,
+          volume_24h: price.volume24h?.toString() || null,
+          high_24h: price.high24h?.toString() || null,
+          low_24h: price.low24h?.toString() || null,
+          timestamp: price.timestamp.toISOString(),
+        },
+      ])
       .select()
       .single();
 
@@ -56,8 +58,8 @@ export class PriceHistoryDAO {
    */
   async recordPrices(prices: PricePoint[]): Promise<PriceHistory[]> {
     const supabase = getSupabaseClient();
-    
-    const records = prices.map(p => ({
+
+    const records = prices.map((p) => ({
       symbol: p.symbol,
       price: p.price.toString(),
       bid: p.bid?.toString() || null,
@@ -65,13 +67,10 @@ export class PriceHistoryDAO {
       volume_24h: p.volume24h?.toString() || null,
       high_24h: p.high24h?.toString() || null,
       low_24h: p.low24h?.toString() || null,
-      timestamp: p.timestamp.toISOString()
+      timestamp: p.timestamp.toISOString(),
     }));
 
-    const { data, error } = await supabase
-      .from('price_history')
-      .insert(records)
-      .select();
+    const { data, error } = await supabase.from('price_history').insert(records).select();
 
     if (error) throw error;
 
@@ -83,7 +82,7 @@ export class PriceHistoryDAO {
    */
   async getLatest(symbol: string): Promise<PriceHistory | null> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('price_history')
       .select('*')
@@ -101,13 +100,16 @@ export class PriceHistoryDAO {
   /**
    * Get price history for a symbol
    */
-  async getHistory(symbol: string, options: {
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-  } = {}): Promise<PriceHistory[]> {
+  async getHistory(
+    symbol: string,
+    options: {
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    } = {}
+  ): Promise<PriceHistory[]> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('price_history').select('*').eq('symbol', symbol);
 
     if (options.startDate) {
@@ -148,7 +150,10 @@ export class PriceHistoryDAO {
   /**
    * Get price statistics for a period
    */
-  async getStats(symbol: string, days = 7): Promise<{
+  async getStats(
+    symbol: string,
+    days = 7
+  ): Promise<{
     avgPrice: number;
     highPrice: number;
     lowPrice: number;
@@ -164,15 +169,15 @@ export class PriceHistoryDAO {
         avgPrice: 0,
         highPrice: 0,
         lowPrice: 0,
-        volatility: 0
+        volatility: 0,
       };
     }
 
-    const prices = history.map(h => h.price);
+    const prices = history.map((h) => h.price);
     const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
     const highPrice = Math.max(...prices);
     const lowPrice = Math.min(...prices);
-    
+
     // Calculate volatility (standard deviation)
     const variance = prices.reduce((sum, p) => sum + Math.pow(p - avgPrice, 2), 0) / prices.length;
     const volatility = Math.sqrt(variance);
@@ -181,7 +186,7 @@ export class PriceHistoryDAO {
       avgPrice,
       highPrice,
       lowPrice,
-      volatility
+      volatility,
     };
   }
 
@@ -196,7 +201,7 @@ export class PriceHistoryDAO {
       high24h: row.high_24h ? parseFloat(row.high_24h) : null,
       low24h: row.low_24h ? parseFloat(row.low_24h) : null,
       timestamp: new Date(row.timestamp),
-      createdAt: new Date(row.created_at)
+      createdAt: new Date(row.created_at),
     };
   }
 }

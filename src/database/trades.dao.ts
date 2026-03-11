@@ -44,22 +44,24 @@ export class TradesDAO {
     executedAt: Date;
   }): Promise<Trade> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('trades')
-      .insert([{
-        strategy_id: trade.strategyId || null,
-        symbol: trade.symbol,
-        side: trade.side,
-        price: trade.price.toString(),
-        quantity: trade.quantity.toString(),
-        total: trade.total.toString(),
-        fee: (trade.fee || 0).toString(),
-        fee_currency: trade.feeCurrency || null,
-        order_id: trade.orderId || null,
-        trade_id: trade.tradeId || null,
-        executed_at: trade.executedAt.toISOString()
-      }])
+      .insert([
+        {
+          strategy_id: trade.strategyId || null,
+          symbol: trade.symbol,
+          side: trade.side,
+          price: trade.price.toString(),
+          quantity: trade.quantity.toString(),
+          total: trade.total.toString(),
+          fee: (trade.fee || 0).toString(),
+          fee_currency: trade.feeCurrency || null,
+          order_id: trade.orderId || null,
+          trade_id: trade.tradeId || null,
+          executed_at: trade.executedAt.toISOString(),
+        },
+      ])
       .select()
       .single();
 
@@ -73,12 +75,8 @@ export class TradesDAO {
    */
   async getById(id: string): Promise<Trade | null> {
     const supabase = getSupabaseClient();
-    
-    const { data, error } = await supabase
-      .from('trades')
-      .select('*')
-      .eq('id', id)
-      .single();
+
+    const { data, error } = await supabase.from('trades').select('*').eq('id', id).single();
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -91,7 +89,7 @@ export class TradesDAO {
    */
   async getMany(filters: TradeFilters = {}): Promise<Trade[]> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('trades').select('*');
 
     if (filters.strategyId) {
@@ -145,7 +143,7 @@ export class TradesDAO {
    */
   async getTotalVolume(strategyId?: string): Promise<number> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('trades').select('total');
 
     if (strategyId) {
@@ -169,7 +167,7 @@ export class TradesDAO {
     sellCount: number;
   }> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('trades').select('side, total');
 
     if (strategyId) {
@@ -182,9 +180,12 @@ export class TradesDAO {
 
     return {
       totalTrades: data.length,
-      totalVolume: data.reduce((sum: number, trade: { side: string; total: string }) => sum + parseFloat(trade.total), 0),
+      totalVolume: data.reduce(
+        (sum: number, trade: { side: string; total: string }) => sum + parseFloat(trade.total),
+        0
+      ),
       buyCount: data.filter((t: { side: string }) => t.side === 'buy').length,
-      sellCount: data.filter((t: { side: string }) => t.side === 'sell').length
+      sellCount: data.filter((t: { side: string }) => t.side === 'sell').length,
     };
   }
 
@@ -202,7 +203,7 @@ export class TradesDAO {
       orderId: row.order_id,
       tradeId: row.trade_id,
       executedAt: new Date(row.executed_at),
-      createdAt: new Date(row.created_at)
+      createdAt: new Date(row.created_at),
     };
   }
 }

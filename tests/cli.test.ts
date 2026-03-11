@@ -8,7 +8,7 @@ describe('CLI Runner', () => {
   describe('parseArgs', () => {
     it('should return default values when no args provided', () => {
       const args = parseArgs([]);
-      
+
       expect(args.command).toBe('help');
       expect(args.strategy).toBe('sma');
       expect(args.capital).toBe(100000);
@@ -114,12 +114,16 @@ describe('CLI Runner', () => {
     it('should parse multiple flags together', () => {
       const args = parseArgs([
         'backtest',
-        '--strategy', 'sma',
-        '--capital', '50000',
-        '--symbol', 'MSFT',
-        '--duration', '90'
+        '--strategy',
+        'sma',
+        '--capital',
+        '50000',
+        '--symbol',
+        'MSFT',
+        '--duration',
+        '90',
       ]);
-      
+
       expect(args.command).toBe('backtest');
       expect(args.strategy).toBe('sma');
       expect(args.capital).toBe(50000);
@@ -132,24 +136,24 @@ describe('CLI Runner', () => {
     it('should run backtest and return results', () => {
       const args = parseArgs([
         'backtest',
-        '--capital', '100000',
-        '--symbol', 'AAPL',
-        '--duration', '7'
+        '--capital',
+        '100000',
+        '--symbol',
+        'AAPL',
+        '--duration',
+        '7',
       ]);
-      
+
       const result = runBacktest(args);
-      
+
       expect(result).toBeDefined();
       expect(result?.stats.initialCapital).toBe(100000);
       expect(result?.config.symbol).toBe('AAPL');
     });
 
     it('should handle invalid strategy gracefully', () => {
-      const args = parseArgs([
-        'backtest',
-        '--strategy', 'invalid'
-      ]);
-      
+      const args = parseArgs(['backtest', '--strategy', 'invalid']);
+
       const result = runBacktest(args);
       expect(result).toBeNull();
     });
@@ -157,34 +161,26 @@ describe('CLI Runner', () => {
 
   describe('exportResults', () => {
     it('should export results to JSON file', () => {
-      const args = parseArgs([
-        'backtest',
-        '--capital', '100000',
-        '--duration', '1'
-      ]);
-      
+      const args = parseArgs(['backtest', '--capital', '100000', '--duration', '1']);
+
       const result = runBacktest(args);
       if (result) {
         const outputPath = '/tmp/test-results.json';
         exportResults(result, outputPath, 'json');
-        
+
         // File should be created (tested via exportResults function)
         expect(outputPath).toContain('test-results.json');
       }
     });
 
     it('should export results to CSV file', () => {
-      const args = parseArgs([
-        'backtest',
-        '--capital', '100000',
-        '--duration', '1'
-      ]);
-      
+      const args = parseArgs(['backtest', '--capital', '100000', '--duration', '1']);
+
       const result = runBacktest(args);
       if (result) {
         const outputPath = '/tmp/test-results.csv';
         exportResults(result, outputPath, 'csv');
-        
+
         expect(outputPath).toContain('test-results.csv');
       }
     });

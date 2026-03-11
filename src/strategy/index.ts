@@ -1,6 +1,6 @@
 /**
  * Strategy Module
- * 
+ *
  * Provides interfaces and base classes for trading strategies
  */
 

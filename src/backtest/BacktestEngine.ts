@@ -1,6 +1,6 @@
 /**
  * BacktestEngine - 回测引擎
- * 
+ *
  * 负责：
  * - 加载历史数据
  * - 模拟市场运行
@@ -60,8 +60,8 @@ export class BacktestEngine {
           params: {
             shortPeriod: params?.shortPeriod ?? 5,
             longPeriod: params?.longPeriod ?? 20,
-            tradeQuantity: params?.tradeQuantity ?? 10
-          }
+            tradeQuantity: params?.tradeQuantity ?? 10,
+          },
         });
       default:
         throw new Error(`Unknown strategy: ${name}`);
@@ -76,33 +76,33 @@ export class BacktestEngine {
     const data: PriceDataPoint[] = [];
     const tickInterval = this.config.tickInterval ?? 60000; // 1 minute default
     const numTicks = Math.floor((this.config.endTime - this.config.startTime) / tickInterval);
-    
+
     // Generate realistic-looking price data using random walk
     let price = 100; // Starting price
     const volatility = 0.02; // 2% volatility
-    
+
     for (let i = 0; i < numTicks; i++) {
       const timestamp = this.config.startTime + i * tickInterval;
-      
+
       // Random price movement
       const change = (Math.random() - 0.5) * 2 * volatility * price;
       const close = price + change;
       const high = Math.max(price, close) + Math.random() * volatility * price;
       const low = Math.min(price, close) - Math.random() * volatility * price;
       const volume = Math.floor(Math.random() * 10000) + 1000;
-      
+
       data.push({
         timestamp,
         open: price,
         high,
         low,
         close,
-        volume
+        volume,
       });
-      
+
       price = close;
     }
-    
+
     return data;
   }
 
@@ -112,12 +112,12 @@ export class BacktestEngine {
   private updateOrderBook(price: PriceDataPoint): void {
     // Clear existing orders
     this.orderBook.clear();
-    
+
     // Add simulated bid/ask orders around the current price
     const spread = price.close * 0.001; // 0.1% spread
     const bidPrice = price.close - spread;
     const askPrice = price.close + spread;
-    
+
     // Add some liquidity
     for (let i = 0; i < 5; i++) {
       this.orderBook.add({
@@ -125,18 +125,18 @@ export class BacktestEngine {
         type: OrderType.BID,
         price: bidPrice - i * spread,
         quantity: 100 + Math.random() * 900,
-        timestamp: price.timestamp
+        timestamp: price.timestamp,
       });
-      
+
       this.orderBook.add({
         id: `ask-${Date.now()}-${i}`,
         type: OrderType.ASK,
         price: askPrice + i * spread,
         quantity: 100 + Math.random() * 900,
-        timestamp: price.timestamp
+        timestamp: price.timestamp,
       });
     }
-    
+
     this.currentPrice = price.close;
   }
 
@@ -147,7 +147,7 @@ export class BacktestEngine {
     return {
       orderBook: this.orderBook,
       trades: [...this.trades],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -157,7 +157,7 @@ export class BacktestEngine {
   private createStrategyContext(): StrategyContext {
     const marketPrices = new Map([[this.config.symbol, this.currentPrice]]);
     const portfolioSnapshot = this.portfolio.getSnapshot(marketPrices);
-    
+
     return {
       portfolio: portfolioSnapshot,
       clock: Date.now(),
@@ -166,7 +166,7 @@ export class BacktestEngine {
         const position = this.portfolio.getPosition(symbol);
         return position?.quantity ?? 0;
       },
-      getCash: () => this.portfolio.getCash()
+      getCash: () => this.portfolio.getCash(),
     };
   }
 
@@ -175,22 +175,22 @@ export class BacktestEngine {
    */
   run(): BacktestResult {
     this.startTime = Date.now();
-    
+
     // Generate price data
     const priceData = this.generatePriceData();
-    
+
     // Initialize strategy (call protected init via subclass access)
     // We'll skip explicit init call and let onTick handle initialization
-    
+
     // Process each tick
     for (const price of priceData) {
       // Update order book
       this.updateOrderBook(price);
-      
+
       // Get strategy signal
       const context = this.createStrategyContext();
       const signal = this.strategy.onTick(context);
-      
+
       // Execute signal if present
       if (signal) {
         const order: Order = {
@@ -198,41 +198,41 @@ export class BacktestEngine {
           type: signal.side === 'buy' ? OrderType.BID : OrderType.ASK,
           price: signal.price,
           quantity: signal.quantity,
-          timestamp: price.timestamp
+          timestamp: price.timestamp,
         };
-        
+
         const matchResult = this.matchingEngine.submitOrder(order);
-        
+
         // Process trades
         for (const trade of matchResult.trades) {
           const portfolioOrderId = signal.side === 'buy' ? trade.buyOrderId : trade.sellOrderId;
           const result = this.portfolio.onTrade(trade, portfolioOrderId);
-          
+
           this.trades.push({
             ...trade,
             side: signal.side,
-            realizedPnL: result.realizedPnL
+            realizedPnL: result.realizedPnL,
           });
         }
       }
-      
+
       // Record snapshot periodically (every 100 ticks)
       if (priceData.indexOf(price) % 100 === 0) {
         const marketPrices = new Map([[this.config.symbol, price.close]]);
         this.snapshots.push(this.portfolio.getSnapshot(marketPrices));
       }
     }
-    
+
     // Final snapshot
     const finalPrice = priceData.length > 0 ? priceData[priceData.length - 1].close : 100;
     const marketPrices = new Map([[this.config.symbol, finalPrice]]);
     this.snapshots.push(this.portfolio.getSnapshot(marketPrices));
-    
+
     this.endTime = Date.now();
-    
+
     // Calculate statistics
     const stats = this.calculateStats();
-    
+
     return {
       config: this.config,
       stats,
@@ -240,7 +240,7 @@ export class BacktestEngine {
       trades: this.trades,
       startTime: this.startTime,
       endTime: this.endTime,
-      duration: this.endTime - this.startTime
+      duration: this.endTime - this.startTime,
     };
   }
 
@@ -251,40 +251,44 @@ export class BacktestEngine {
     const initialCapital = this.config.capital;
     const finalSnapshot = this.snapshots[this.snapshots.length - 1];
     const finalCapital = finalSnapshot?.totalValue ?? initialCapital;
-    
+
     const totalPnL = finalCapital - initialCapital;
     const totalReturn = (totalPnL / initialCapital) * 100;
-    
+
     // Calculate trade statistics
     const winningTrades = this.trades.filter((t: any) => t.realizedPnL > 0);
     const losingTrades = this.trades.filter((t: any) => t.realizedPnL < 0);
     const totalTrades = this.trades.length;
     const winRate = totalTrades > 0 ? (winningTrades.length / totalTrades) * 100 : 0;
-    
-    const avgWin = winningTrades.length > 0
-      ? winningTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0) / winningTrades.length
-      : 0;
-    
-    const avgLoss = losingTrades.length > 0
-      ? losingTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0) / losingTrades.length
-      : 0;
-    
+
+    const avgWin =
+      winningTrades.length > 0
+        ? winningTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0) /
+          winningTrades.length
+        : 0;
+
+    const avgLoss =
+      losingTrades.length > 0
+        ? losingTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0) / losingTrades.length
+        : 0;
+
     const grossProfit = winningTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0);
-    const grossLoss = Math.abs(losingTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0));
+    const grossLoss = Math.abs(
+      losingTrades.reduce((sum: number, t: any) => sum + t.realizedPnL, 0)
+    );
     const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? Infinity : 0;
-    
+
     // Calculate Sharpe ratio (simplified)
     const sharpeRatio = this.calculateSharpeRatio();
-    
+
     // Calculate maximum drawdown
     const maxDrawdown = this.calculateMaxDrawdown();
-    
+
     // Annualized return (assuming 252 trading days)
     const durationDays = (this.endTime - this.startTime) / (1000 * 60 * 60 * 24);
-    const annualizedReturn = durationDays > 0
-      ? ((1 + totalReturn / 100) ** (365 / durationDays) - 1) * 100
-      : totalReturn;
-    
+    const annualizedReturn =
+      durationDays > 0 ? ((1 + totalReturn / 100) ** (365 / durationDays) - 1) * 100 : totalReturn;
+
     return {
       totalReturn,
       annualizedReturn: isFinite(annualizedReturn) ? annualizedReturn : totalReturn,
@@ -299,7 +303,7 @@ export class BacktestEngine {
       profitFactor,
       initialCapital,
       finalCapital,
-      totalPnL
+      totalPnL,
     };
   }
 
@@ -308,23 +312,24 @@ export class BacktestEngine {
    */
   private calculateSharpeRatio(): number {
     if (this.snapshots.length < 2) return 0;
-    
+
     const returns: number[] = [];
     for (let i = 1; i < this.snapshots.length; i++) {
       const prevValue = this.snapshots[i - 1].totalValue;
       const currValue = this.snapshots[i].totalValue;
       returns.push((currValue - prevValue) / prevValue);
     }
-    
+
     const avgReturn = returns.reduce((sum, r) => sum + r, 0) / returns.length;
-    const variance = returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
+    const variance =
+      returns.reduce((sum, r) => sum + Math.pow(r - avgReturn, 2), 0) / returns.length;
     const stdDev = Math.sqrt(variance);
-    
+
     // Annualize (assuming daily returns, 252 trading days)
     const riskFreeRate = 0.02 / 252; // 2% annual risk-free rate
     const annualizedReturn = avgReturn * 252;
     const annualizedStdDev = stdDev * Math.sqrt(252);
-    
+
     return annualizedStdDev > 0 ? (annualizedReturn - riskFreeRate * 252) / annualizedStdDev : 0;
   }
 
@@ -333,21 +338,21 @@ export class BacktestEngine {
    */
   private calculateMaxDrawdown(): number {
     if (this.snapshots.length === 0) return 0;
-    
+
     let peak = this.snapshots[0].totalValue;
     let maxDrawdown = 0;
-    
+
     for (const snapshot of this.snapshots) {
       if (snapshot.totalValue > peak) {
         peak = snapshot.totalValue;
       }
-      
-      const drawdown = (peak - snapshot.totalValue) / peak * 100;
+
+      const drawdown = ((peak - snapshot.totalValue) / peak) * 100;
       if (drawdown > maxDrawdown) {
         maxDrawdown = drawdown;
       }
     }
-    
+
     return maxDrawdown;
   }
 
@@ -364,16 +369,16 @@ export class BacktestEngine {
    */
   exportToCSV(): string {
     const result = this.run();
-    
+
     // CSV header
     let csv = 'timestamp,cash,totalValue,unrealizedPnL,positions\n';
-    
+
     // CSV rows
     for (const snapshot of result.snapshots) {
       const positionsStr = JSON.stringify(snapshot.positions);
       csv += `${snapshot.timestamp},${snapshot.cash},${snapshot.totalValue},${snapshot.unrealizedPnL},"${positionsStr}"\n`;
     }
-    
+
     return csv;
   }
 }

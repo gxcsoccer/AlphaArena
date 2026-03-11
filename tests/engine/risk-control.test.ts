@@ -8,13 +8,13 @@ import { PortfolioSnapshot } from '../../src/portfolio/types';
 
 describe('RiskControl', () => {
   let riskControl: RiskControl;
-  
+
   const defaultConfig: RiskControlConfig = {
     maxPositionSize: 1000,
     maxTotalExposure: 1000000,
     stopLossPercent: 0.1, // 10%
     maxOrdersPerMinute: 60,
-    enabled: true
+    enabled: true,
   };
 
   const createPortfolioSnapshot = (
@@ -26,7 +26,7 @@ describe('RiskControl', () => {
       positions,
       totalValue: cash + positions.reduce((sum, p) => sum + p.quantity * p.averageCost, 0),
       unrealizedPnL: 0,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   };
 
@@ -57,11 +57,11 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 150,
         quantity: 100,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 500, averageCost: 145 }
+        { symbol: 'AAPL', quantity: 500, averageCost: 145 },
       ]);
 
       const result = riskControl.checkSignal(signal, portfolio);
@@ -74,11 +74,11 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 150,
         quantity: 600,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 500, averageCost: 145 }
+        { symbol: 'AAPL', quantity: 500, averageCost: 145 },
       ]);
 
       const result = riskControl.checkSignal(signal, portfolio);
@@ -92,11 +92,11 @@ describe('RiskControl', () => {
         side: 'sell' as const,
         price: 150,
         quantity: 2000,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 500, averageCost: 145 }
+        { symbol: 'AAPL', quantity: 500, averageCost: 145 },
       ]);
 
       const result = riskControl.checkSignal(signal, portfolio);
@@ -111,7 +111,7 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 150,
         quantity: 100,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000);
@@ -129,7 +129,7 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 950,
         quantity: 1000,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000);
@@ -186,7 +186,7 @@ describe('RiskControl', () => {
 
     it('should approve when price is above stop loss', () => {
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 100, averageCost: 150 }
+        { symbol: 'AAPL', quantity: 100, averageCost: 150 },
       ]);
 
       // Price dropped 5%, but stop loss is 10%
@@ -196,7 +196,7 @@ describe('RiskControl', () => {
 
     it('should trigger stop loss when price drops below threshold', () => {
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 100, averageCost: 150 }
+        { symbol: 'AAPL', quantity: 100, averageCost: 150 },
       ]);
 
       // Price dropped 15%, stop loss is 10%
@@ -216,7 +216,7 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 150,
         quantity: 10000, // Would normally exceed limits
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000);
@@ -233,11 +233,11 @@ describe('RiskControl', () => {
         side: 'buy' as const,
         price: 150,
         quantity: 2000, // Exceeds position limit
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
       const portfolio = createPortfolioSnapshot(100000, [
-        { symbol: 'AAPL', quantity: 500, averageCost: 145 }
+        { symbol: 'AAPL', quantity: 500, averageCost: 145 },
       ]);
 
       const result = riskControl.checkSignal(signal, portfolio);
@@ -249,7 +249,7 @@ describe('RiskControl', () => {
     it('should update configuration', () => {
       riskControl.updateConfig({
         maxPositionSize: 500,
-        stopLossPercent: 0.05
+        stopLossPercent: 0.05,
       });
 
       const config = riskControl.getConfig();
@@ -260,7 +260,7 @@ describe('RiskControl', () => {
     it('should reset rate limiter when maxOrdersPerMinute changes', () => {
       riskControl.recordOrder();
       riskControl.recordOrder();
-      
+
       let status = riskControl.getRateLimitStatus();
       expect(status.remaining).toBe(58);
 

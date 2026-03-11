@@ -31,7 +31,7 @@ describe('Portfolio', () => {
     it('should return position after trade', () => {
       const { trade, portfolioOrderId } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       portfolio.onTrade(trade, portfolioOrderId);
-      
+
       const position = portfolio.getPosition('AAPL');
       expect(position).toBeDefined();
       expect(position!.quantity).toBe(10);
@@ -52,11 +52,23 @@ describe('Portfolio', () => {
 
     it('should update average cost on additional buys', () => {
       // 第一次买入：10 股 @ 150
-      const { trade: trade1, portfolioOrderId: orderId1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
+      const { trade: trade1, portfolioOrderId: orderId1 } = createTrade(
+        'AAPL-1',
+        'AAPL-2',
+        150,
+        10,
+        'buy'
+      );
       portfolio.onTrade(trade1, orderId1);
-      
+
       // 第二次买入：10 股 @ 170
-      const { trade: trade2, portfolioOrderId: orderId2 } = createTrade('AAPL-3', 'AAPL-4', 170, 10, 'buy');
+      const { trade: trade2, portfolioOrderId: orderId2 } = createTrade(
+        'AAPL-3',
+        'AAPL-4',
+        170,
+        10,
+        'buy'
+      );
       const result = portfolio.onTrade(trade2, orderId2);
 
       expect(result.position.quantity).toBe(20);
@@ -68,7 +80,7 @@ describe('Portfolio', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 100, 5, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('AAPL-3', 'AAPL-4', 120, 5, 'buy');
       const { trade: t3, portfolioOrderId: o3 } = createTrade('AAPL-5', 'AAPL-6', 110, 10, 'buy');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
       portfolio.onTrade(t3, o3);
@@ -133,13 +145,13 @@ describe('Portfolio', () => {
     it('should calculate position value with market prices', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('GOOG-1', 'GOOG-2', 100, 5, 'buy');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
 
       const prices = new Map([
         ['AAPL', 160],
-        ['GOOG', 110]
+        ['GOOG', 110],
       ]);
 
       const value = portfolio.getPositionValue(prices);
@@ -148,14 +160,20 @@ describe('Portfolio', () => {
 
     it('should ignore positions without market price', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
-      const { trade: t2, portfolioOrderId: o2 } = createTrade('UNKNOWN-1', 'UNKNOWN-2', 100, 5, 'buy');
-      
+      const { trade: t2, portfolioOrderId: o2 } = createTrade(
+        'UNKNOWN-1',
+        'UNKNOWN-2',
+        100,
+        5,
+        'buy'
+      );
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
 
       const prices = new Map([['AAPL', 160]]);
       const value = portfolio.getPositionValue(prices);
-      
+
       expect(value).toBe(160 * 10); // 只计算 AAPL
     });
 
@@ -173,7 +191,7 @@ describe('Portfolio', () => {
       const prices = new Map([['AAPL', 160]]);
       const totalValue = portfolio.getTotalValue(prices);
 
-      expect(totalValue).toBe((100000 - 150 * 10) + (160 * 10)); // 现金 + 持仓市值
+      expect(totalValue).toBe(100000 - 150 * 10 + 160 * 10); // 现金 + 持仓市值
     });
 
     it('should return cash only for empty positions', () => {
@@ -206,13 +224,13 @@ describe('Portfolio', () => {
     it('should handle multiple positions', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('GOOG-1', 'GOOG-2', 100, 5, 'buy');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
 
       const prices = new Map([
-        ['AAPL', 160],  // +100
-        ['GOOG', 90]    // -50
+        ['AAPL', 160], // +100
+        ['GOOG', 90], // -50
       ]);
 
       const unrealizedPnL = portfolio.getUnrealizedPnL(prices);
@@ -227,7 +245,7 @@ describe('Portfolio', () => {
     it('should ignore positions with zero quantity', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('AAPL-3', 'AAPL-4', 160, 10, 'sell');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
 
@@ -257,7 +275,7 @@ describe('Portfolio', () => {
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('GOOG-1', 'GOOG-2', 100, 5, 'buy');
       const { trade: t3, portfolioOrderId: o3 } = createTrade('MSFT-1', 'MSFT-2', 200, 8, 'buy');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
       portfolio.onTrade(t3, o3);
@@ -272,7 +290,7 @@ describe('Portfolio', () => {
       // 买入多个股票
       const { trade: t1, portfolioOrderId: o1 } = createTrade('AAPL-1', 'AAPL-2', 150, 10, 'buy');
       const { trade: t2, portfolioOrderId: o2 } = createTrade('GOOG-1', 'GOOG-2', 100, 5, 'buy');
-      
+
       portfolio.onTrade(t1, o1);
       portfolio.onTrade(t2, o2);
 
@@ -297,10 +315,16 @@ describe('Portfolio', () => {
     it('should handle very large numbers', () => {
       const largeQuantity = 1000000;
       const largePrice = 10000;
-      
-      const { trade, portfolioOrderId } = createTrade('AAPL-1', 'AAPL-2', largePrice, largeQuantity, 'buy');
+
+      const { trade, portfolioOrderId } = createTrade(
+        'AAPL-1',
+        'AAPL-2',
+        largePrice,
+        largeQuantity,
+        'buy'
+      );
       portfolio.onTrade(trade, portfolioOrderId);
-      
+
       const position = portfolio.getPosition('AAPL');
       expect(position!.quantity).toBe(largeQuantity);
       expect(position!.averageCost).toBe(largePrice);
@@ -321,21 +345,21 @@ function createTrade(
   price: number,
   quantity: number,
   side: 'buy' | 'sell'
-): { trade: Trade, portfolioOrderId: string } {
+): { trade: Trade; portfolioOrderId: string } {
   // buyOrderId and sellOrderId are always the buyer's and seller's IDs respectively
   // The portfolioOrderId is which one belongs to the portfolio
   const portfolioOrderId = side === 'buy' ? buyOrderId : sellOrderId;
-  
+
   return {
     trade: {
       id: `trade-${Date.now()}-${Math.random()}`,
       price,
       quantity,
       timestamp: Date.now(),
-      buyOrderId,  // Always the buyer's order ID
+      buyOrderId, // Always the buyer's order ID
       sellOrderId, // Always the seller's order ID
-      status: TradeStatus.FILLED
+      status: TradeStatus.FILLED,
     },
-    portfolioOrderId
+    portfolioOrderId,
   };
 }

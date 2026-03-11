@@ -1,6 +1,6 @@
 /**
  * SMA Strategy Tests
- * 
+ *
  * Tests for the SMA Crossover Strategy implementation
  */
 
@@ -43,16 +43,16 @@ function createMockContext(orderBook: MockOrderBook): StrategyContext {
       positions: [],
       totalValue: 100000,
       unrealizedPnL: 0,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     },
     clock: Date.now(),
     getMarketData: () => ({
       orderBook: orderBook as any,
       trades: [],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     }),
     getPosition: (_symbol: string) => 0,
-    getCash: () => 100000
+    getCash: () => 100000,
   };
 }
 
@@ -61,10 +61,10 @@ describe('SMAStrategy', () => {
     test('should create strategy with default parameters', () => {
       const config: SMAStrategyConfig = {
         id: 'sma-default',
-        name: 'SMA Default Strategy'
+        name: 'SMA Default Strategy',
       };
       const strategy = new SMAStrategy(config);
-      
+
       expect(strategy).toBeDefined();
       // Strategy should work with defaults even if params are not explicitly set
       // Internal defaults: shortPeriod=5, longPeriod=20, tradeQuantity=10
@@ -77,11 +77,11 @@ describe('SMAStrategy', () => {
         params: {
           shortPeriod: 10,
           longPeriod: 50,
-          tradeQuantity: 25
-        }
+          tradeQuantity: 25,
+        },
       };
       const strategy = new SMAStrategy(config);
-      
+
       expect(strategy.getConfig().params?.shortPeriod).toBe(10);
       expect(strategy.getConfig().params?.longPeriod).toBe(50);
       expect(strategy.getConfig().params?.tradeQuantity).toBe(25);
@@ -93,10 +93,10 @@ describe('SMAStrategy', () => {
         name: 'SMA Invalid Strategy',
         params: {
           shortPeriod: 20,
-          longPeriod: 20
-        }
+          longPeriod: 20,
+        },
       };
-      
+
       expect(() => new SMAStrategy(config)).toThrow('Short period must be less than long period');
     });
 
@@ -106,10 +106,10 @@ describe('SMAStrategy', () => {
         name: 'SMA Negative Strategy',
         params: {
           shortPeriod: -5,
-          longPeriod: 20
-        }
+          longPeriod: 20,
+        },
       };
-      
+
       expect(() => new SMAStrategy(config)).toThrow('SMA periods must be positive');
     });
   });
@@ -125,8 +125,8 @@ describe('SMAStrategy', () => {
         name: 'SMA Test Strategy',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       strategy = new SMAStrategy(config);
       orderBook = new MockOrderBook(100, 102);
@@ -137,12 +137,12 @@ describe('SMAStrategy', () => {
     test('should calculate SMA correctly', () => {
       // Feed prices: 10, 20, 30, 40, 50
       const prices = [10, 20, 30, 40, 50];
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         strategy.onTick(context);
       }
-      
+
       // Short SMA (3 periods): (30 + 40 + 50) / 3 = 40
       // Long SMA (5 periods): (10 + 20 + 30 + 40 + 50) / 5 = 30
       expect(strategy.getShortSMA()).toBeCloseTo(40, 0);
@@ -160,12 +160,12 @@ describe('SMAStrategy', () => {
 
     test('should track price history length', () => {
       expect(strategy.getPriceHistoryLength()).toBe(0);
-      
+
       for (let i = 0; i < 10; i++) {
         orderBook.setPrices(100 + i, 102 + i);
         strategy.onTick(context);
       }
-      
+
       expect(strategy.getPriceHistoryLength()).toBe(10);
     });
   });
@@ -181,8 +181,8 @@ describe('SMAStrategy', () => {
         name: 'SMA Golden Cross Test',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       strategy = new SMAStrategy(config);
       orderBook = new MockOrderBook(100, 102);
@@ -194,10 +194,10 @@ describe('SMAStrategy', () => {
       // Create a scenario where short SMA crosses above long SMA
       // Prices: 10, 10, 10, 10, 10 (both SMAs = 10)
       // Then: 20, 30 (short SMA rises faster)
-      
+
       const prices = [10, 10, 10, 10, 10, 20, 30];
       let goldenCrossSignal: OrderSignal | null = null;
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);
@@ -205,7 +205,7 @@ describe('SMAStrategy', () => {
           goldenCrossSignal = signal;
         }
       }
-      
+
       expect(goldenCrossSignal).not.toBeNull();
       expect(goldenCrossSignal!.side).toBe('buy');
       expect(goldenCrossSignal!.reason).toContain('Golden Cross');
@@ -213,7 +213,7 @@ describe('SMAStrategy', () => {
 
     test('should include confidence and reason in buy signal', () => {
       const prices = [10, 10, 10, 10, 10, 20, 30];
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);
@@ -238,8 +238,8 @@ describe('SMAStrategy', () => {
         name: 'SMA Death Cross Test',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       strategy = new SMAStrategy(config);
       orderBook = new MockOrderBook(100, 102);
@@ -251,10 +251,10 @@ describe('SMAStrategy', () => {
       // Create a scenario where short SMA crosses below long SMA
       // Prices: 30, 30, 30, 30, 30 (both SMAs = 30)
       // Then: 20, 10 (short SMA falls faster)
-      
+
       const prices = [30, 30, 30, 30, 30, 20, 10];
       let deathCrossSignal: OrderSignal | null = null;
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);
@@ -262,7 +262,7 @@ describe('SMAStrategy', () => {
           deathCrossSignal = signal;
         }
       }
-      
+
       expect(deathCrossSignal).not.toBeNull();
       expect(deathCrossSignal!.side).toBe('sell');
       expect(deathCrossSignal!.reason).toContain('Death Cross');
@@ -281,8 +281,8 @@ describe('SMAStrategy', () => {
         params: {
           shortPeriod: 3,
           longPeriod: 5,
-          tradeQuantity: 15
-        }
+          tradeQuantity: 15,
+        },
       };
       strategy = new SMAStrategy(config);
       orderBook = new MockOrderBook(100, 102);
@@ -292,7 +292,7 @@ describe('SMAStrategy', () => {
 
     test('should generate signal with correct quantity', () => {
       const prices = [10, 10, 10, 10, 10, 20, 30];
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);
@@ -305,7 +305,7 @@ describe('SMAStrategy', () => {
 
     test('should generate signal with valid structure', () => {
       const prices = [10, 10, 10, 10, 10, 20, 30];
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);
@@ -332,8 +332,8 @@ describe('SMAStrategy', () => {
         name: 'SMA Reset Test',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       strategy = new SMAStrategy(config);
       orderBook = new MockOrderBook(100, 102);
@@ -347,13 +347,13 @@ describe('SMAStrategy', () => {
         orderBook.setPrices(100 + i, 102 + i);
         strategy.onTick(context);
       }
-      
+
       expect(strategy.getPriceHistoryLength()).toBe(10);
       expect(strategy.getShortSMA()).not.toBeNull();
-      
+
       // Reset
       strategy.reset();
-      
+
       expect(strategy.getPriceHistoryLength()).toBe(0);
       expect(strategy.getShortSMA()).toBeNull();
       expect(strategy.getLongSMA()).toBeNull();
@@ -365,10 +365,10 @@ describe('SMAStrategy', () => {
         orderBook.setPrices(100 + i, 102 + i);
         strategy.onTick(context);
       }
-      
+
       // Reset and start again
       strategy.reset();
-      
+
       // Should not generate signals until long period is reached again
       for (let i = 0; i < 4; i++) {
         orderBook.setPrices(100 + i, 102 + i);
@@ -385,23 +385,23 @@ describe('SMAStrategy', () => {
         name: 'SMA Backtest',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       const strategy = new SMAStrategy(config);
       const orderBook = new MockOrderBook(100, 102);
       const context = createMockContext(orderBook);
-      
+
       // Run multiple backtest cycles
       for (let cycle = 0; cycle < 3; cycle++) {
         strategy.onInit(context);
-        
+
         // Feed prices
         for (let i = 0; i < 10; i++) {
-          orderBook.setPrices(100 + i + (cycle * 10), 102 + i + (cycle * 10));
+          orderBook.setPrices(100 + i + cycle * 10, 102 + i + cycle * 10);
           strategy.onTick(context);
         }
-        
+
         expect(strategy.getPriceHistoryLength()).toBe(10);
         strategy.reset();
       }
@@ -415,11 +415,11 @@ describe('SMAStrategy', () => {
         name: 'SMA Edge Test',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       const strategy = new SMAStrategy(config);
-      
+
       const emptyOrderBook = {};
       const context: StrategyContext = {
         portfolio: {
@@ -427,20 +427,20 @@ describe('SMAStrategy', () => {
           positions: [],
           totalValue: 100000,
           unrealizedPnL: 0,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         },
         clock: Date.now(),
         getMarketData: () => ({
           orderBook: emptyOrderBook as any,
           trades: [],
-          timestamp: Date.now()
+          timestamp: Date.now(),
         }),
         getPosition: (_symbol: string) => 0,
-        getCash: () => 100000
+        getCash: () => 100000,
       };
-      
+
       strategy.onInit(context);
-      
+
       // Should not throw, just return null
       expect(() => strategy.onTick(context)).not.toThrow();
       expect(strategy.onTick(context)).toBeNull();
@@ -452,17 +452,17 @@ describe('SMAStrategy', () => {
         name: 'SMA Rapid Test',
         params: {
           shortPeriod: 3,
-          longPeriod: 5
-        }
+          longPeriod: 5,
+        },
       };
       const strategy = new SMAStrategy(config);
       const orderBook = new MockOrderBook(100, 102);
       const context = createMockContext(orderBook);
       strategy.onInit(context);
-      
+
       // Rapid price changes
       const prices = [100, 50, 150, 25, 200, 10, 250];
-      
+
       for (const price of prices) {
         orderBook.setPrices(price - 1, price + 1);
         const signal = strategy.onTick(context);

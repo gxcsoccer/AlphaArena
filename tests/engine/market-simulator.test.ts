@@ -11,7 +11,7 @@ describe('MarketDataSimulator', () => {
   const initialPrices = new Map([
     ['AAPL', 150],
     ['GOOGL', 2800],
-    ['MSFT', 300]
+    ['MSFT', 300],
   ]);
 
   beforeEach(() => {
@@ -25,7 +25,7 @@ describe('MarketDataSimulator', () => {
   describe('Initialization', () => {
     it('should initialize with provided symbols and prices', () => {
       expect(simulator.isRunning()).toBe(false);
-      symbols.forEach(symbol => {
+      symbols.forEach((symbol) => {
         expect(simulator.getPrice(symbol)).toBeDefined();
       });
     });
@@ -40,7 +40,7 @@ describe('MarketDataSimulator', () => {
     it('should start and stop correctly', (done) => {
       simulator.on('start', () => {
         expect(simulator.isRunning()).toBe(true);
-        
+
         simulator.stop();
         expect(simulator.isRunning()).toBe(false);
         done();
@@ -125,7 +125,7 @@ describe('MarketDataSimulator', () => {
         if (tick.symbol === 'AAPL') {
           const deviation = Math.abs(tick.price - initialPrice) / initialPrice;
           maxDeviation = Math.max(maxDeviation, deviation);
-          
+
           if (maxDeviation > 0) {
             expect(maxDeviation).toBeLessThan(0.5); // Should not deviate more than 50%
             done();
@@ -143,7 +143,7 @@ describe('MarketDataSimulator', () => {
           checked = true;
           const spread = tick.ask - tick.bid;
           const spreadPercent = spread / tick.price;
-          
+
           expect(spread).toBeGreaterThan(0);
           expect(spreadPercent).toBeLessThan(0.01); // Spread should be < 1%
           done();
@@ -187,13 +187,13 @@ describe('MarketDataSimulator', () => {
     it('should show mean reversion over time', (done) => {
       const prices: number[] = [];
       let completed = false;
-      
+
       simulator.on('tick', (tick: MarketTick) => {
         if (completed) return;
-        
+
         if (tick.symbol === 'AAPL') {
           prices.push(tick.price);
-          
+
           if (prices.length >= 20) {
             completed = true;
             const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;

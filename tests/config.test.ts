@@ -13,7 +13,7 @@ describe('Project Configuration', () => {
     it('should not commit real API keys in .env.example', () => {
       const envExamplePath = path.join(rootDir, '.env.example');
       const content = fs.readFileSync(envExamplePath, 'utf-8');
-      
+
       // Check that no real API keys are present
       expect(content).not.toMatch(/sk-[a-zA-Z0-9]+/);
       expect(content).not.toMatch(/api[_-]?key\s*=\s*['"][^'"]+['"]/i);
@@ -30,7 +30,7 @@ describe('Project Configuration', () => {
     it('should have correct Vite configuration', () => {
       const viteConfigPath = path.join(rootDir, 'vite.config.ts');
       const content = fs.readFileSync(viteConfigPath, 'utf-8');
-      
+
       expect(content).toContain('@vitejs/plugin-react');
       expect(content).toContain('react()');
       expect(content).toContain('port: 3000');
@@ -46,7 +46,7 @@ describe('Project Configuration', () => {
     it('should have React plugin configured', () => {
       const eslintConfigPath = path.join(rootDir, 'eslint.config.js');
       const content = fs.readFileSync(eslintConfigPath, 'utf-8');
-      
+
       expect(content).toContain('eslint-plugin-react');
       expect(content).toContain('typescript-eslint');
     });
@@ -62,7 +62,7 @@ describe('Project Configuration', () => {
       const prettierConfigPath = path.join(rootDir, '.prettierrc');
       const content = fs.readFileSync(prettierConfigPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.semi).toBe(true);
       expect(config.singleQuote).toBe(true);
       expect(config.printWidth).toBe(100);
@@ -79,7 +79,7 @@ describe('Project Configuration', () => {
       const vercelConfigPath = path.join(rootDir, 'vercel.json');
       const content = fs.readFileSync(vercelConfigPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.outputDirectory).toBe('dist/client');
       expect(config.buildCommand).toBe('npm run build:client');
       expect(config.framework).toBe('vite');
@@ -91,7 +91,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.scripts['build:client']).toBeDefined();
       expect(config.scripts['dev']).toBeDefined();
       expect(config.scripts['lint']).toBeDefined();
@@ -104,7 +104,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.dependencies['react']).toBeDefined();
       expect(config.dependencies['react-dom']).toBeDefined();
     });
@@ -113,7 +113,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.devDependencies['vite']).toBeDefined();
       expect(config.devDependencies['@vitejs/plugin-react']).toBeDefined();
     });
@@ -122,7 +122,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.dependencies['socket.io-client']).toBeDefined();
     });
 
@@ -130,7 +130,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.dependencies['recharts']).toBeDefined();
     });
 
@@ -138,7 +138,7 @@ describe('Project Configuration', () => {
       const packageJsonPath = path.join(rootDir, 'package.json');
       const content = fs.readFileSync(packageJsonPath, 'utf-8');
       const config = JSON.parse(content);
-      
+
       expect(config.dependencies['antd']).toBeDefined();
     });
   });
