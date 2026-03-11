@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Layout, Typography, Card, Table, Tag, Row, Col, Statistic, Avatar, Progress, Space, Select, Button, Tooltip } from 'antd';
+import { Typography, Card, Table, Tag, Row, Col, Statistic, Avatar, Progress, Space, Select, Button, Tooltip } from 'antd';
 import {
   BarChart,
   Bar,
@@ -24,7 +24,6 @@ import { api, LeaderboardEntry, StrategyMetrics } from '../utils/api';
 import type { ColumnsType } from 'antd/es/table';
 import { ReloadOutlined, TrophyOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
 
-const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 const { Option } = Select;
 
@@ -176,7 +175,7 @@ const LeaderboardPage: React.FC = () => {
           {roi >= 0 ? '+' : ''}{roi.toFixed(2)}%
         </Text>
       ),
-      sorter: (a, b) => a.metrics.roi - b.metrics.roi,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.roi - b.metrics.roi,
       defaultSortOrder: sortBy === 'roi' ? 'descend' : undefined,
     },
     {
@@ -196,7 +195,7 @@ const LeaderboardPage: React.FC = () => {
           {sharpe.toFixed(2)}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.sharpeRatio - b.metrics.sharpeRatio,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.sharpeRatio - b.metrics.sharpeRatio,
     },
     {
       title: (
@@ -214,7 +213,7 @@ const LeaderboardPage: React.FC = () => {
           -{dd.toFixed(2)}%
         </Text>
       ),
-      sorter: (a, b) => a.metrics.maxDrawdown - b.metrics.maxDrawdown,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.maxDrawdown - b.metrics.maxDrawdown,
     },
     {
       title: 'Win Rate',
@@ -228,11 +227,11 @@ const LeaderboardPage: React.FC = () => {
             '0%': '#108ee9',
             '100%': '#87d068',
           }}
-          format={(percent) => `${percent?.toFixed(1)}%`}
+          format={(percent: number | undefined) => `${(percent || 0).toFixed(1)}%`}
           size="small"
         />
       ),
-      sorter: (a, b) => a.metrics.winRate - b.metrics.winRate,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.winRate - b.metrics.winRate,
     },
     {
       title: (
@@ -255,7 +254,7 @@ const LeaderboardPage: React.FC = () => {
           })}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.totalPnL - b.metrics.totalPnL,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalPnL - b.metrics.totalPnL,
     },
     {
       title: (
@@ -271,14 +270,14 @@ const LeaderboardPage: React.FC = () => {
           ${(volume / 1000).toFixed(1)}K
         </Text>
       ),
-      sorter: (a, b) => a.metrics.totalVolume - b.metrics.totalVolume,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalVolume - b.metrics.totalVolume,
     },
     {
       title: 'Total Trades',
       dataIndex: ['metrics', 'totalTrades'],
       key: 'totalTrades',
       width: 90,
-      sorter: (a, b) => a.metrics.totalTrades - b.metrics.totalTrades,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalTrades - b.metrics.totalTrades,
     },
     {
       title: (
@@ -297,19 +296,24 @@ const LeaderboardPage: React.FC = () => {
           })}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.avgTradeSize - b.metrics.avgTradeSize,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.avgTradeSize - b.metrics.avgTradeSize,
     },
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+    <div>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        marginBottom: 24
+      }}>
+        <Title level={2} style={{ margin: 0 }}>
           <TrophyOutlined style={{ marginRight: 8 }} />
           Strategy Leaderboard
         </Title>
         <Space>
-          <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
+          <Text type="secondary">
             {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
           </Text>
           <Select 
@@ -334,174 +338,173 @@ const LeaderboardPage: React.FC = () => {
             Refresh
           </Button>
         </Space>
-      </Header>
-      <Content style={{ padding: '24px' }}>
-        {/* Top Stats */}
-        {summaryStats && (
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Strategies"
-                  value={summaryStats.totalStrategies}
-                  prefix="🎯"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Trades"
-                  value={summaryStats.totalTrades}
-                  prefix="📊"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Volume"
-                  value={summaryStats.totalVolume / 1000}
-                  suffix="K"
-                  prefix="$"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Best ROI"
-                  value={summaryStats.bestRoi}
-                  suffix="%"
-                  precision={2}
-                  valueStyle={{ color: '#3f8600' }}
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Best Sharpe"
-                  value={summaryStats.bestSharpe}
-                  precision={2}
-                  valueStyle={{ color: '#1890ff' }}
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Lowest Drawdown"
-                  value={summaryStats.lowestDrawdown}
-                  suffix="%"
-                  precision={2}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
+      </div>
 
-        {/* Charts */}
+      {/* Top Stats */}
+      {summaryStats && (
         <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
-            <Card title="🏆 Top 10 Strategies by ROI">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={roiComparisonData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="roi" fill="#8884d8" name="ROI %" />
-                </BarChart>
-              </ResponsiveContainer>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Total Strategies"
+                value={summaryStats.totalStrategies}
+                prefix="🎯"
+              />
             </Card>
           </Col>
-          <Col span={12}>
-            <Card title="📈 Performance Radar (Top 5)">
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="strategy" tick={{ fontSize: 11 }} />
-                  <PolarRadiusAxis />
-                  <Radar 
-                    name="Performance" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.6} 
-                  />
-                  <Legend />
-                  <RechartsTooltip />
-                </RadarChart>
-              </ResponsiveContainer>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Total Trades"
+                value={summaryStats.totalTrades}
+                prefix="📊"
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Total Volume"
+                value={summaryStats.totalVolume / 1000}
+                suffix="K"
+                prefix="$"
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Best ROI"
+                value={summaryStats.bestRoi}
+                suffix="%"
+                precision={2}
+                valueStyle={{ color: '#3f8600' }}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Best Sharpe"
+                value={summaryStats.bestSharpe}
+                precision={2}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card loading={loading}>
+              <Statistic
+                title="Lowest Drawdown"
+                value={summaryStats.lowestDrawdown}
+                suffix="%"
+                precision={2}
+                valueStyle={{ color: '#52c41a' }}
+              />
             </Card>
           </Col>
         </Row>
+      )}
 
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={24}>
-            <Card title="📊 ROI Comparison (Top 10)">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={roiComparisonData}>
-                  <defs>
-                    <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fillOpacity={1} 
-                    fill="url(#colorRoi)" 
-                    name="ROI %" 
-                  />
-                  <Line type="monotone" dataKey="pnl" stroke="#82ca9d" name="P&L ($)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-        </Row>
+      {/* Charts */}
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={12}>
+          <Card title="🏆 Top 10 Strategies by ROI">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={roiComparisonData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="roi" fill="#8884d8" name="ROI %" />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card title="📈 Performance Radar (Top 5)">
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="strategy" tick={{ fontSize: 11 }} />
+                <PolarRadiusAxis />
+                <Radar 
+                  name="Performance" 
+                  dataKey="roi" 
+                  stroke="#8884d8" 
+                  fill="#8884d8" 
+                  fillOpacity={0.6} 
+                />
+                <Legend />
+                <RechartsTooltip />
+              </RadarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
 
-        {/* Rankings Table */}
-        <Card 
-          title="🎖️ Full Rankings"
-          extra={
-            <Text type="secondary">
-              Sorted by: <Text strong>{sortBy}</Text>
-            </Text>
-          }
-        >
-          <Table
-            columns={rankingColumns}
-            dataSource={leaderboard}
-            rowKey="strategyId"
-            loading={loading}
-            pagination={false}
-            size="small"
-            scroll={{ x: 1400 }}
-            onChange={(pagination, filters, sorter) => {
-              // Handle table sorting if needed
-            }}
-          />
-        </Card>
+      <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Col span={24}>
+          <Card title="📊 ROI Comparison (Top 10)">
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={roiComparisonData}>
+                <defs>
+                  <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                <YAxis />
+                <RechartsTooltip />
+                <Legend />
+                <Area 
+                  type="monotone" 
+                  dataKey="roi" 
+                  stroke="#8884d8" 
+                  fillOpacity={1} 
+                  fill="url(#colorRoi)" 
+                  name="ROI %" 
+                />
+                <Line type="monotone" dataKey="pnl" stroke="#82ca9d" name="P&L ($)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
 
-        {/* Footer info */}
-        <div style={{ marginTop: 16, textAlign: 'center', color: '#999' }}>
+      {/* Rankings Table */}
+      <Card 
+        title="🎖️ Full Rankings"
+        extra={
           <Text type="secondary">
-            Leaderboard updates automatically every minute. Last updated: {lastUpdated?.toLocaleString() || 'Never'}
+            Sorted by: <Text strong>{sortBy}</Text>
           </Text>
-        </div>
-      </Content>
-    </Layout>
+        }
+      >
+        <Table
+          columns={rankingColumns}
+          dataSource={leaderboard}
+          rowKey="strategyId"
+          loading={loading}
+          pagination={false}
+          size="small"
+          scroll={{ x: 1400 }}
+          onChange={(_pagination, _filters, _sorter) => {
+            // Handle table sorting if needed
+          }}
+        />
+      </Card>
+
+      {/* Footer info */}
+      <div style={{ marginTop: 16, textAlign: 'center', color: '#999' }}>
+        <Text type="secondary">
+          Leaderboard updates automatically every minute. Last updated: {lastUpdated?.toLocaleString() || 'Never'}
+        </Text>
+      </div>
+    </div>
   );
 };
 

@@ -118,7 +118,10 @@ export const useStrategies = () => {
 /**
  * Hook for recent trades with real-time updates
  */
-export const useTrades = (filters?: { strategyId?: string; symbol?: string }, limit: number = 100) => {
+export const useTrades = (
+  filters?: { strategyId?: string; symbol?: string; side?: 'buy' | 'sell' },
+  limit: number = 100
+) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Layout, Menu, theme } from 'antd';
 import {
@@ -16,40 +16,40 @@ import LeaderboardPage from './pages/LeaderboardPage';
 
 const { Header, Sider, Content } = Layout;
 
+const menuItems = [
+  {
+    key: '/dashboard',
+    icon: <DashboardOutlined />,
+    label: 'Dashboard',
+  },
+  {
+    key: '/strategies',
+    icon: <AppstoreOutlined />,
+    label: 'Strategies',
+  },
+  {
+    key: '/trades',
+    icon: <TransactionOutlined />,
+    label: 'Trades',
+  },
+  {
+    key: '/holdings',
+    icon: <WalletOutlined />,
+    label: 'Holdings',
+  },
+  {
+    key: '/leaderboard',
+    icon: <TrophyOutlined />,
+    label: 'Leaderboard',
+  },
+];
+
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
-  const menuItems = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-    },
-    {
-      key: '/strategies',
-      icon: <AppstoreOutlined />,
-      label: 'Strategies',
-    },
-    {
-      key: '/trades',
-      icon: <TransactionOutlined />,
-      label: 'Trades',
-    },
-    {
-      key: '/holdings',
-      icon: <WalletOutlined />,
-      label: 'Holdings',
-    },
-    {
-      key: '/leaderboard',
-      icon: <TrophyOutlined />,
-      label: 'Leaderboard',
-    },
-  ];
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -88,46 +88,11 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route
-        path="/dashboard"
-        element={
-          <MainLayout>
-            <DashboardPage />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/strategies"
-        element={
-          <MainLayout>
-            <StrategiesPage />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/trades"
-        element={
-          <MainLayout>
-            <TradesPage />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/holdings"
-        element={
-          <MainLayout>
-            <HoldingsPage />
-          </MainLayout>
-        }
-      />
-      <Route
-        path="/leaderboard"
-        element={
-          <MainLayout>
-            <LeaderboardPage />
-          </MainLayout>
-        }
-      />
+      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/strategies" element={<StrategiesPage />} />
+      <Route path="/trades" element={<TradesPage />} />
+      <Route path="/holdings" element={<HoldingsPage />} />
+      <Route path="/leaderboard" element={<LeaderboardPage />} />
     </Routes>
   );
 };
@@ -135,7 +100,9 @@ const AppRoutes: React.FC = () => {
 function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <MainLayout>
+        <AppRoutes />
+      </MainLayout>
     </BrowserRouter>
   );
 }

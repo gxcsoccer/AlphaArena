@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker } from 'antd';
+import { Typography, Card, Table, Tag, Select, Space, DatePicker, Row, Col, Button } from 'antd';
 import {
-  LineChart,
-  Line,
+  BarChart,
+  Bar,
   AreaChart,
   Area,
   XAxis,
@@ -11,24 +11,21 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
+import { Trade } from '../utils/api';
 import type { ColumnsType } from 'antd/es/table';
-import type { Trade } from '../utils/api';
 import dayjs from 'dayjs';
 
-const { Header, Content } = Layout;
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
 
 const TradesPage: React.FC = () => {
   const [symbol, setSymbol] = useState<string | undefined>(undefined);
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
-  const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  const [dateRange, setDateRange] = useState<[dayjs.Dayjs, dayjs.Dayjs] | null>(null);
 
-  const { trades, loading } = useTrades({ symbol, side }, 100);
+  const { trades, loading } = useTrades({ symbol, side }, 500);
 
   // Prepare chart data
   const tradeDistributionData = trades.reduce((acc: any, trade) => {
@@ -69,7 +66,7 @@ const TradesPage: React.FC = () => {
       key: 'executedAt',
       width: 120,
       render: (text: string) => new Date(text).toLocaleString(),
-      sorter: (a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime(),
+      sorter: (a: Trade, b: Trade) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime(),
     },
     {
       title: 'Strategy ID',
@@ -84,7 +81,7 @@ const TradesPage: React.FC = () => {
       key: 'symbol',
       width: 100,
       filters: Array.from(new Set(trades.map(t => t.symbol))).map(s => ({ text: s, value: s })),
-      onFilter: (value: any, record) => record.symbol === value,
+      onFilter: (value: any, record: Trade) => record.symbol === value,
     },
     {
       title: 'Side',
@@ -100,7 +97,7 @@ const TradesPage: React.FC = () => {
         { text: 'Buy', value: 'buy' },
         { text: 'Sell', value: 'sell' },
       ],
-      onFilter: (value: any, record) => record.side === value,
+      onFilter: (value: any, record: Trade) => record.side === value,
     },
     {
       title: 'Price',
@@ -108,14 +105,14 @@ const TradesPage: React.FC = () => {
       key: 'price',
       width: 100,
       render: (price: number) => `$${price.toLocaleString()}`,
-      sorter: (a, b) => a.price - b.price,
+      sorter: (a: Trade, b: Trade) => a.price - b.price,
     },
     {
       title: 'Quantity',
       dataIndex: 'quantity',
       key: 'quantity',
       width: 100,
-      sorter: (a, b) => a.quantity - b.quantity,
+      sorter: (a: Trade, b: Trade) => a.quantity - b.quantity,
     },
     {
       title: 'Total',
@@ -123,7 +120,7 @@ const TradesPage: React.FC = () => {
       key: 'total',
       width: 100,
       render: (total: number) => `$${total.toLocaleString()}`,
-      sorter: (a, b) => a.total - b.total,
+      sorter: (a: Trade, b: Trade) => a.total - b.total,
     },
     {
       title: 'Fee',
