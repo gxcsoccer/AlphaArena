@@ -5,6 +5,8 @@
  */
 
 import { Strategy, StrategyConfig, StrategyContext, OrderSignal } from '../../src/strategy';
+import { MarketData } from '../../src/strategy/types';
+import { OrderBook } from '../../src/orderbook';
 
 /**
  * Test strategy implementation

@@ -112,59 +112,63 @@ describe('TradingEngine', () => {
   });
 
   describe('Start/Stop', () => {
-    it('should start and stop correctly', (done) => {
-      engine.on('engine:start', () => {
-        expect(engine.getState()).toBe(EngineState.RUNNING);
-
-        engine.stop();
-        expect(engine.getState()).toBe(EngineState.STOPPED);
-        done();
+    it('should start and stop correctly', async () => {
+      return new Promise<void>((resolve) => {
+        engine.on('engine:start', () => {
+          expect(engine.getState()).toBe(EngineState.RUNNING);
+          engine.stop();
+          expect(engine.getState()).toBe(EngineState.STOPPED);
+          resolve();
+        });
+        engine.start();
       });
-
-      engine.start();
     });
 
-    it('should emit start event with symbols', (done) => {
-      engine.on('engine:start', (data: any) => {
-        expect(data.symbols).toEqual(['AAPL', 'GOOGL']);
-        done();
+    it('should emit start event with symbols', async () => {
+      return new Promise<void>((resolve) => {
+        engine.on('engine:start', (event: any) => {
+          expect(event.data.symbols).toEqual(['AAPL', 'GOOGL']);
+          resolve();
+        });
+        engine.start();
       });
-
-      engine.start();
     });
 
-    it('should emit stop event with stats', (done) => {
-      engine.on('engine:stop', (data: any) => {
-        expect(data.stats).toBeDefined();
-        expect(data.totalTicks).toBeDefined();
-        done();
+    it('should emit stop event with stats', async () => {
+      return new Promise<void>((resolve) => {
+        engine.on('engine:stop', (event: any) => {
+          expect(event.data.stats).toBeDefined();
+          expect(event.data.totalTicks).toBeDefined();
+          resolve();
+        });
+        engine.start();
+        setTimeout(() => engine.stop(), 200);
       });
-
-      engine.start();
-      setTimeout(() => engine.stop(), 200);
     });
   });
 
   describe('Pause/Resume', () => {
-    it('should pause and resume correctly', (done) => {
-      let pauseEmitted = false;
+    it('should pause and resume correctly', async () => {
+      return new Promise<void>((resolve) => {
+        let pauseEmitted = false;
 
-      engine.on('engine:pause', () => {
-        pauseEmitted = true;
-        expect(engine.getState()).toBe(EngineState.PAUSED);
+        engine.on('engine:pause', () => {
+          pauseEmitted = true;
+          expect(engine.getState()).toBe(EngineState.PAUSED);
+        });
+
+        engine.on('engine:resume', () => {
+          expect(pauseEmitted).toBe(true);
+          expect(engine.getState()).toBe(EngineState.RUNNING);
+          resolve();
+        });
+
+        engine.start();
+        setTimeout(() => {
+          engine.pause();
+          setTimeout(() => engine.resume(), 100);
+        }, 150);
       });
-
-      engine.on('engine:resume', () => {
-        expect(pauseEmitted).toBe(true);
-        expect(engine.getState()).toBe(EngineState.RUNNING);
-        done();
-      });
-
-      engine.start();
-      setTimeout(() => {
-        engine.pause();
-        setTimeout(() => engine.resume(), 100);
-      }, 150);
     });
   });
 
@@ -184,105 +188,119 @@ describe('TradingEngine', () => {
       expect(strategy.isInitialized()).toBe(false);
     });
 
-    it('should execute strategy on ticks', (done) => {
-      const strategy = new TestStrategy();
-      engine.addStrategy(strategy);
+    it('should execute strategy on ticks', async () => {
+      return new Promise<void>((resolve) => {
+        const strategy = new TestStrategy();
+        engine.addStrategy(strategy);
 
-      let tickCount = 0;
-      engine.on('engine:tick', () => {
-        tickCount++;
-        if (tickCount >= 10) {
-          expect(strategy.getTickCount()).toBeGreaterThanOrEqual(10);
-          done();
-        }
+        let tickCount = 0;
+        engine.on('engine:tick', () => {
+          tickCount++;
+          if (tickCount >= 10) {
+            expect(strategy.getTickCount()).toBeGreaterThanOrEqual(10);
+            resolve();
+          }
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
 
-    it('should generate signals from strategy', (done) => {
-      const strategy = new TestStrategy();
-      engine.addStrategy(strategy);
+    it('should generate signals from strategy', async () => {
+      return new Promise<void>((resolve) => {
+        const strategy = new TestStrategy();
+        engine.addStrategy(strategy);
 
-      engine.on('signal:generated', (data: any) => {
-        expect(data.strategy).toBe('test-strategy');
-        expect(data.signal).toBeDefined();
-        expect(data.signal.side).toBe('buy');
-        done();
+        engine.on('signal:generated', (event: any) => {
+          expect(event.data.strategy).toBe('test-strategy');
+          expect(event.data.signal).toBeDefined();
+          expect(event.data.signal.side).toBe('buy');
+          resolve();
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
   });
 
   describe('Event Emission', () => {
-    it('should emit tick events', (done) => {
-      let ticks = 0;
+    it('should emit tick events', async () => {
+      return new Promise<void>((resolve) => {
+        let ticks = 0;
 
-      engine.on('engine:tick', () => {
-        ticks++;
-        if (ticks >= 5) {
-          done();
-        }
+        engine.on('engine:tick', () => {
+          ticks++;
+          if (ticks >= 5) {
+            resolve();
+          }
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
 
-    it('should emit signal events', (done) => {
-      const strategy = new TestStrategy();
-      engine.addStrategy(strategy);
+    it('should emit signal events', async () => {
+      return new Promise<void>((resolve) => {
+        const strategy = new TestStrategy();
+        engine.addStrategy(strategy);
 
-      engine.on('signal:generated', (data: any) => {
-        expect(data.signal.id).toBeDefined();
-        done();
+        engine.on('signal:generated', (event: any) => {
+          expect(event.data.signal.id).toBeDefined();
+          resolve();
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
 
-    it('should emit generic event for all events', (done) => {
-      let eventCount = 0;
+    it('should emit generic event for all events', async () => {
+      return new Promise<void>((resolve) => {
+        let eventCount = 0;
 
-      engine.on('event', (event: any) => {
-        eventCount++;
-        expect(event.type).toBeDefined();
-        expect(event.timestamp).toBeDefined();
+        engine.on('event', (event: any) => {
+          eventCount++;
+          expect(event.type).toBeDefined();
+          expect(event.timestamp).toBeDefined();
 
-        if (eventCount >= 3) {
-          done();
-        }
+          if (eventCount >= 3) {
+            resolve();
+          }
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
   });
 
   describe('Statistics Tracking', () => {
-    it('should track tick count', (done) => {
-      engine.start();
+    it('should track tick count', async () => {
+      return new Promise<void>((resolve) => {
+        engine.start();
 
-      setTimeout(() => {
-        engine.stop();
-        const stats = engine.getStats();
-        expect(stats.totalTicks).toBeGreaterThan(0);
-        done();
-      }, 200);
+        setTimeout(() => {
+          engine.stop();
+          const stats = engine.getStats();
+          expect(stats.totalTicks).toBeGreaterThan(0);
+          resolve();
+        }, 200);
+      });
     });
 
-    it('should track signals and orders', (done) => {
-      const strategy = new TestStrategy();
-      engine.addStrategy(strategy);
+    it('should track signals and orders', async () => {
+      return new Promise<void>((resolve) => {
+        const strategy = new TestStrategy();
+        engine.addStrategy(strategy);
 
-      engine.start();
+        engine.start();
 
-      setTimeout(() => {
-        engine.stop();
-        const stats = engine.getStats();
-        expect(stats.totalSignals).toBeGreaterThan(0);
-        expect(stats.totalOrders).toBeGreaterThanOrEqual(0);
-        done();
-      }, 400);
+        setTimeout(() => {
+          engine.stop();
+          const stats = engine.getStats();
+          expect(stats.totalSignals).toBeGreaterThan(0);
+          expect(stats.totalOrders).toBeGreaterThanOrEqual(0);
+          resolve();
+        }, 400);
+      });
     });
   });
 
@@ -292,46 +310,48 @@ describe('TradingEngine', () => {
       expect(portfolio.getCash()).toBe(100000);
     });
 
-    it('should update portfolio on trades', (done) => {
-      // Create a strategy that generates larger signals to ensure trades
-      class AggressiveStrategy extends Strategy {
-        private executed = false;
+    it('should update portfolio on trades', async () => {
+      return new Promise<void>((resolve) => {
+        // Create a strategy that generates larger signals to ensure trades
+        class AggressiveStrategy extends Strategy {
+          private executed = false;
 
-        constructor() {
-          super({ id: 'aggressive', name: 'Aggressive Strategy' });
-        }
-
-        onTick(context: StrategyContext): OrderSignal | null {
-          if (!this.executed && context.getCash() > 10000) {
-            this.executed = true;
-            return {
-              id: `${this.config.id}-${Date.now()}`,
-              side: 'buy',
-              price: 150,
-              quantity: 50,
-              timestamp: Date.now(),
-            };
+          constructor() {
+            super({ id: 'aggressive', name: 'Aggressive Strategy' });
           }
-          return null;
+
+          onTick(context: StrategyContext): OrderSignal | null {
+            if (!this.executed && context.getCash() > 10000) {
+              this.executed = true;
+              return {
+                id: `${this.config.id}-${Date.now()}`,
+                side: 'buy',
+                price: 150,
+                quantity: 50,
+                timestamp: Date.now(),
+              };
+            }
+            return null;
+          }
         }
-      }
 
-      const strategy = new AggressiveStrategy();
-      engine.addStrategy(strategy);
+        const strategy = new AggressiveStrategy();
+        engine.addStrategy(strategy);
 
-      engine.on('trade:executed', () => {
-        // Trade executed
+        engine.on('trade:executed', () => {
+          // Trade executed
+        });
+
+        engine.start();
+
+        setTimeout(() => {
+          engine.stop();
+          // Portfolio should have been updated if trades occurred
+          const portfolio = engine.getPortfolio();
+          expect(portfolio).toBeDefined();
+          resolve();
+        }, 300);
       });
-
-      engine.start();
-
-      setTimeout(() => {
-        engine.stop();
-        // Portfolio should have been updated if trades occurred
-        const portfolio = engine.getPortfolio();
-        expect(portfolio).toBeDefined();
-        done();
-      }, 300);
     });
   });
 
@@ -344,69 +364,73 @@ describe('TradingEngine', () => {
       expect(config.maxPositionSize).toBe(1000);
     });
 
-    it('should reject signals that violate risk limits', (done) => {
-      // Create strategy with very large order
-      class RiskyStrategy extends Strategy {
-        private attempted = false;
+    it('should reject signals that violate risk limits', async () => {
+      return new Promise<void>((resolve) => {
+        // Create strategy with very large order
+        class RiskyStrategy extends Strategy {
+          private attempted = false;
 
-        constructor() {
-          super({ id: 'risky', name: 'Risky Strategy' });
-        }
-
-        onTick(_context: StrategyContext): OrderSignal | null {
-          if (!this.attempted) {
-            this.attempted = true;
-            // Try to exceed position limit
-            return {
-              id: `${this.config.id}-${Date.now()}`,
-              side: 'buy',
-              price: 150,
-              quantity: 2000,
-              timestamp: Date.now(),
-            };
+          constructor() {
+            super({ id: 'risky', name: 'Risky Strategy' });
           }
-          return null;
+
+          onTick(_context: StrategyContext): OrderSignal | null {
+            if (!this.attempted) {
+              this.attempted = true;
+              // Try to exceed position limit
+              return {
+                id: `${this.config.id}-${Date.now()}`,
+                side: 'buy',
+                price: 150,
+                quantity: 2000,
+                timestamp: Date.now(),
+              };
+            }
+            return null;
+          }
         }
-      }
 
-      const strategy = new RiskyStrategy();
-      engine.addStrategy(strategy);
+        const strategy = new RiskyStrategy();
+        engine.addStrategy(strategy);
 
-      engine.on('risk:triggered', (data: any) => {
-        expect(data.strategy).toBe('risky');
-        expect(data.riskType).toBe('position_limit');
-        done();
+        engine.on('risk:triggered', (event: any) => {
+          expect(event.data.strategy).toBe('risky');
+          expect(event.data.riskType).toBe('position_limit');
+          resolve();
+        });
+
+        engine.start();
       });
-
-      engine.start();
     });
   });
 
   describe('Error Handling', () => {
-    it('should emit error events for strategy errors', (done) => {
-      class ErrorStrategy extends Strategy {
-        constructor() {
-          super({ id: 'error-strategy', name: 'Error Strategy' });
+    it('should emit error events for strategy errors', async () => {
+      return new Promise<void>((resolve) => {
+        class ErrorStrategy extends Strategy {
+          constructor() {
+            super({ id: 'error-strategy', name: 'Error Strategy' });
+          }
+
+          onTick(): OrderSignal | null {
+            throw new Error('Test error');
+          }
         }
 
-        onTick(): OrderSignal | null {
-          throw new Error('Test error');
-        }
-      }
+        const strategy = new ErrorStrategy();
+        engine.addStrategy(strategy);
 
-      const strategy = new ErrorStrategy();
-      engine.addStrategy(strategy);
+        let errorReceived = false;
+        engine.on('engine:error', (event: any) => {
+          if (!errorReceived) {
+            errorReceived = true;
+            expect(event.data.error).toContain('Test error');
+            resolve();
+          }
+        });
 
-      let errorReceived = false;
-      engine.on('engine:error', (data: any) => {
-        if (!errorReceived) {
-          errorReceived = true;
-          expect(data.error).toContain('Test error');
-          done();
-        }
+        engine.start();
       });
-
-      engine.start();
     });
   });
 });

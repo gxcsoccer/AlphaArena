@@ -38,13 +38,13 @@ describe('Project Configuration', () => {
   });
 
   describe('ESLint Configuration', () => {
-    it('should have eslint.config.js file', () => {
-      const eslintConfigPath = path.join(rootDir, 'eslint.config.js');
+    it('should have eslint.config.mjs file', () => {
+      const eslintConfigPath = path.join(rootDir, 'eslint.config.mjs');
       expect(fs.existsSync(eslintConfigPath)).toBe(true);
     });
 
     it('should have React plugin configured', () => {
-      const eslintConfigPath = path.join(rootDir, 'eslint.config.js');
+      const eslintConfigPath = path.join(rootDir, 'eslint.config.mjs');
       const content = fs.readFileSync(eslintConfigPath, 'utf-8');
 
       expect(content).toContain('eslint-plugin-react');
