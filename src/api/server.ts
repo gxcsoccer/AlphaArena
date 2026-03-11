@@ -315,6 +315,52 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Orders endpoints
+    this.app.post('/api/orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, side, type, price, quantity } = req.body;
+        
+        // Validate input
+        if (!symbol || !side || !type || !quantity) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required fields: symbol, side, type, quantity' 
+          });
+        }
+
+        if (type === 'limit' && !price) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Price is required for limit orders' 
+          });
+        }
+
+        // Create simulated order (in production, this would go through the matching engine)
+        const order = {
+          id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          symbol,
+          side,
+          type,
+          price: price || 0,
+          quantity,
+          status: 'pending',
+          createdAt: new Date().toISOString(),
+        };
+
+        console.log(`[Order] New ${side} ${type} order: ${quantity} ${symbol} @ ${price || 'market'}`);
+
+        // Simulate order processing delay
+        setTimeout(() => {
+          order.status = 'filled';
+          console.log(`[Order] Order ${order.id} filled`);
+        }, 1000);
+
+        res.json({ success: true, data: order, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
