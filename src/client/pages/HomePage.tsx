@@ -1,20 +1,27 @@
 import React from 'react';
-import { Layout, Typography } from '@arco-design/web-react';
+import { Layout, Typography, Card } from '@arco-design/web-react';
+import TradingPairList from '../components/TradingPairList';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const HomePage: React.FC = () => {
+  const handlePairSelect = (symbol: string) => {
+    console.log('Selected trading pair:', symbol);
+    // TODO: Navigate to trading page or show details
+  };
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
         <Title heading={2} style={{ color: 'white', margin: 0 }}>
-          AlphaArena
+          AlphaArena - 市场行情
         </Title>
       </Header>
-      <Content style={{ padding: '50px' }}>
-        <Title heading={3}>欢迎来到 AlphaArena</Title>
-        <p>算法交易平台 - 实时市场数据与策略回测</p>
+      <Content style={{ padding: '24px' }}>
+        <Card title="交易对列表" style={{ height: 'calc(100vh - 120px)' }}>
+          <TradingPairList onPairSelect={handlePairSelect} />
+        </Card>
       </Content>
     </Layout>
   );

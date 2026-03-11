@@ -94,6 +94,20 @@ export interface LeaderboardSnapshot {
   totalVolume: number;
 }
 
+export interface MarketTicker {
+  symbol: string;
+  price: number;
+  priceChange24h: number;
+  priceChangePercent24h: number;
+  high24h: number;
+  low24h: number;
+  volume24h: number;
+  quoteVolume24h: number;
+  bid: number;
+  ask: number;
+  timestamp: number;
+}
+
 export interface PriceLevel {
   price: number;
   orders: any[];
@@ -241,6 +255,19 @@ export const api = {
   async getBestPrices(symbol: string): Promise<BestPrices | null> {
     const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}/best`);
     const data: ApiResponse<BestPrices> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Market Data
+  async getMarketTickers(): Promise<MarketTicker[]> {
+    const res = await fetch(`${API_BASE_URL}/api/market/tickers`);
+    const data: ApiResponse<MarketTicker[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getMarketTicker(symbol: string): Promise<MarketTicker | null> {
+    const res = await fetch(`${API_BASE_URL}/api/market/tickers/${symbol}`);
+    const data: ApiResponse<MarketTicker> = await res.json();
     return data.success ? data.data : null;
   },
 };

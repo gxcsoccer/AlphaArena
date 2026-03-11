@@ -279,6 +279,29 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Market Data endpoints
+    this.app.get('/api/market/tickers', async (req: Request, res: Response) => {
+      try {
+        const tickers = this.getMarketTickers();
+        res.json({ success: true, data: tickers, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    this.app.get('/api/market/tickers/:symbol', async (req: Request, res: Response) => {
+      try {
+        const symbol = req.params.symbol as string;
+        const ticker = this.getMarketTicker(symbol);
+        if (!ticker) {
+          return res.status(404).json({ success: false, error: 'Ticker not found for symbol' });
+        }
+        res.json({ success: true, data: ticker, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -330,6 +353,23 @@ export class APIServer extends EventEmitter {
         socket.leave(`orderbook:${symbol}`);
         console.log(`[WebSocket] Client ${socket.id} unsubscribed from orderbook:${symbol}`);
       });
+
+      // Subscribe to market data (all tickers)
+      socket.on('subscribe:market', () => {
+        socket.join('market:tickers');
+        console.log(`[WebSocket] Client ${socket.id} subscribed to market:tickers`);
+        
+        // Send initial snapshot
+        const tickers = this.getMarketTickers();
+        tickers.forEach(ticker => {
+          socket.emit('market:tick', ticker);
+        });
+      });
+
+      socket.on('unsubscribe:market', () => {
+        socket.leave('market:tickers');
+        console.log(`[WebSocket] Client ${socket.id} unsubscribed from market:tickers`);
+      });
     });
   }
 
@@ -375,6 +415,13 @@ export class APIServer extends EventEmitter {
     this.emitEvent('leaderboard:update', entries);
   }
 
+  /**
+   * Broadcast market ticker update
+   */
+  public broadcastMarketTick(ticker: any): void {
+    this.emitEvent('market:tick', ticker, 'market:tickers');
+  }
+
   public broadcastOrderBookSnapshot(symbol: string, snapshot: OrderBookSnapshot): void {
     this.emitEvent('orderbook:snapshot', snapshot, `orderbook:${symbol}`);
   }
@@ -416,6 +463,47 @@ export class APIServer extends EventEmitter {
       return null;
     }
     return service.getSnapshot(levels);
+  }
+
+  /**
+   * Get market tickers for all symbols
+   */
+  private getMarketTickers(): any[] {
+    const tickers: any[] = [];
+    
+    this.orderBookServices.forEach((service, symbol) => {
+      const bestPrices = service.getBestPrices();
+      const snapshot = service.getSnapshot(20);
+      
+      // Simulate 24h stats (in real implementation, this would come from historical data)
+      const basePrice = bestPrices.bestBid || bestPrices.bestAsk || 0;
+      const priceChange24h = (Math.random() - 0.5) * basePrice * 0.05; // ±2.5%
+      const priceChangePercent24h = basePrice > 0 ? (priceChange24h / basePrice) * 100 : 0;
+      
+      tickers.push({
+        symbol,
+        price: basePrice,
+        priceChange24h,
+        priceChangePercent24h,
+        high24h: basePrice * (1 + Math.random() * 0.03), // Up to 3% high
+        low24h: basePrice * (1 - Math.random() * 0.03),  // Up to 3% low
+        volume24h: Math.random() * 10000 + 1000, // Random volume
+        quoteVolume24h: basePrice * (Math.random() * 10000 + 1000),
+        bid: bestPrices.bestBid || 0,
+        ask: bestPrices.bestAsk || 0,
+        timestamp: Date.now(),
+      });
+    });
+    
+    return tickers;
+  }
+
+  /**
+   * Get market ticker for a specific symbol
+   */
+  private getMarketTicker(symbol: string): any | null {
+    const tickers = this.getMarketTickers();
+    return tickers.find(t => t.symbol === symbol) || null;
   }
 
   /**
