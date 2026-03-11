@@ -78,6 +78,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## 生产部署
+
+### Sprint 1 生产环境部署
+
+- **部署时间**: 2026-03-12
+- **部署 URL**: https://alphaarena-eight.vercel.app
+- **部署 ID**: 9wCN31rwQrtf5BExj8wSJwdm6xMw
+- **包含 PR**: #30, #32, #33
+
 ## 版本说明
 
 - **[1.0.0]**: Sprint 1 MVP 发布 - 包含完整的交易模拟和回测功能
