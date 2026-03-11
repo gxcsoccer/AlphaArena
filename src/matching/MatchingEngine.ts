@@ -39,7 +39,7 @@ export class MatchingEngine {
     
     // 查找可撮合的订单
     let remainingQuantity = order.quantity;
-    let currentPrice = order.price;
+    const currentPrice = order.price;
 
     // 撮合循环
     while (remainingQuantity > 0) {

@@ -4,7 +4,7 @@
  * Abstract base class for trading strategies
  */
 
-import { OrderSignal, StrategyContext, StrategyLifecycleEvent, StrategyConfig } from './types';
+import { OrderSignal, StrategyContext, StrategyConfig } from './types';
 
 /**
  * Strategy interface - 策略接口
@@ -83,41 +83,41 @@ export abstract class Strategy implements IStrategy {
   /**
    * Initialize strategy - to be implemented by subclasses
    */
-  protected init(context: StrategyContext): void {
+  protected init(__context: StrategyContext): void {
     // Default implementation does nothing
   }
 
   /**
    * Handle tick event - must be implemented by subclasses
    */
-  abstract onTick(context: StrategyContext): OrderSignal | null;
+  abstract onTick(__context: StrategyContext): OrderSignal | null;
 
   /**
    * Handle order filled event
    */
-  onOrderFilled(context: StrategyContext, signal: OrderSignal): void {
-    this.orderFilled(context, signal);
+  onOrderFilled(__context: StrategyContext, __signal: OrderSignal): void {
+    this.orderFilled(__context, __signal);
   }
 
   /**
    * Handle order filled event - can be overridden by subclasses
    */
-  protected orderFilled(context: StrategyContext, signal: OrderSignal): void {
+  protected orderFilled(__context: StrategyContext, __signal: OrderSignal): void {
     // Default implementation does nothing
   }
 
   /**
    * Cleanup strategy
    */
-  onCleanup(context: StrategyContext): void {
+  onCleanup(__context: StrategyContext): void {
     this.initialized = false;
-    this.cleanup(context);
+    this.cleanup(__context);
   }
 
   /**
    * Cleanup strategy - can be overridden by subclasses
    */
-  protected cleanup(context: StrategyContext): void {
+  protected cleanup(__context: StrategyContext): void {
     // Default implementation does nothing
   }
 

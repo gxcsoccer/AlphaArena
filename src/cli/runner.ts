@@ -8,9 +8,9 @@
  */
 
 import { BacktestEngine } from '../backtest/BacktestEngine';
-import { BacktestConfig, BacktestResult, RealtimeConfig } from '../backtest/types';
+import { BacktestConfig, BacktestResult } from '../backtest/types';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { dirname } from 'path';
 
 /**
  * CLI command types

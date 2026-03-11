@@ -2,8 +2,7 @@
  * CLI Runner tests
  */
 
-import { parseArgs, printHelp, runBacktest, exportResults } from '../src/cli/runner';
-import { BacktestConfig } from '../src/backtest/types';
+import { parseArgs, runBacktest } from '../src/cli/runner';
 
 describe('CLI Runner', () => {
   describe('parseArgs', () => {

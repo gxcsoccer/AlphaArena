@@ -1,12 +1,10 @@
 /**
  * Strategy Tests
- * 
+ *
  * Tests for the Strategy interface and base class
  */
 
-import { Strategy, StrategyConfig, StrategyContext, OrderSignal, MarketData } from '../../src/strategy';
-import { OrderBook } from '../../src/orderbook';
-import { Portfolio } from '../../src/portfolio';
+import { Strategy, StrategyConfig, StrategyContext, OrderSignal } from '../../src/strategy';
 
 /**
  * Test strategy implementation
@@ -14,9 +12,9 @@ import { Portfolio } from '../../src/portfolio';
 class TestStrategy extends Strategy {
   private tickCount: number = 0;
 
-  onTick(context: StrategyContext): OrderSignal | null {
+  onTick(_context: StrategyContext): OrderSignal | null {
     this.tickCount++;
-    
+
     // Generate a signal every 3 ticks
     if (this.tickCount % 3 === 0) {
       return this.createSignal('buy', 100, 10, {
@@ -24,7 +22,7 @@ class TestStrategy extends Strategy {
         reason: 'Test signal'
       });
     }
-    
+
     return null;
   }
 
@@ -32,11 +30,11 @@ class TestStrategy extends Strategy {
     return this.tickCount;
   }
 
-  protected init(context: StrategyContext): void {
+  protected init(_context: StrategyContext): void {
     // Initialization logic
   }
 
-  protected orderFilled(context: StrategyContext, signal: OrderSignal): void {
+  protected orderFilled(_context: StrategyContext, _signal: OrderSignal): void {
     // Order filled logic
   }
 }
@@ -44,16 +42,8 @@ class TestStrategy extends Strategy {
 describe('Strategy', () => {
   let strategy: TestStrategy;
   let mockContext: StrategyContext;
-  let mockOrderBook: OrderBook;
-  let mockPortfolio: Portfolio;
 
   beforeEach(() => {
-    // Create mock order book
-    mockOrderBook = new OrderBook();
-    
-    // Create mock portfolio
-    mockPortfolio = new Portfolio(100000);
-    
     // Create mock context
     mockContext = {
       portfolio: {
@@ -65,11 +55,11 @@ describe('Strategy', () => {
       },
       clock: Date.now(),
       getMarketData: () => ({
-        orderBook: mockOrderBook,
+        orderBook: {} as any,
         trades: [],
         timestamp: Date.now()
       }),
-      getPosition: (symbol: string) => 0,
+      getPosition: (_symbol: string) => 0,
       getCash: () => 100000
     };
 
@@ -134,7 +124,7 @@ describe('Strategy', () => {
       strategy.onTick(mockContext);
       strategy.onTick(mockContext);
       const signal = strategy.onTick(mockContext);
-      
+
       expect(signal).not.toBeNull();
       expect(signal!.id).toBeDefined();
       expect(signal!.side).toBe('buy');
@@ -157,21 +147,21 @@ describe('Strategy', () => {
       strategy.onTick(mockContext);
       strategy.onTick(mockContext);
       const signal2 = strategy.onTick(mockContext);
-      
+
       expect(signal1!.id).not.toBe(signal2!.id);
     });
 
     test('should create sell signals', () => {
       class SellStrategy extends Strategy {
-        onTick(context: StrategyContext): OrderSignal | null {
+        onTick(_context: StrategyContext): OrderSignal | null {
           return this.createSignal('sell', 150, 5);
         }
       }
-      
+
       const sellStrategy = new SellStrategy({ id: 'sell', name: 'Sell' });
       sellStrategy.onInit(mockContext);
       const signal = sellStrategy.onTick(mockContext);
-      
+
       expect(signal!.side).toBe('sell');
       expect(signal!.price).toBe(150);
       expect(signal!.quantity).toBe(5);
@@ -184,24 +174,24 @@ describe('Strategy', () => {
       let capturedSignal: OrderSignal | null = null;
 
       class TrackingStrategy extends Strategy {
-        protected orderFilled(context: StrategyContext, signal: OrderSignal): void {
+        protected orderFilled(_context: StrategyContext, signal: OrderSignal): void {
           filledCalled = true;
           capturedSignal = signal;
         }
 
-        onTick(context: StrategyContext): OrderSignal | null {
+        onTick(_context: StrategyContext): OrderSignal | null {
           return this.createSignal('buy', 100, 10);
         }
       }
 
       const trackingStrategy = new TrackingStrategy({ id: 'tracking', name: 'Tracking' });
       trackingStrategy.onInit(mockContext);
-      
+
       const signal = trackingStrategy.onTick(mockContext);
       if (signal) {
         trackingStrategy.onOrderFilled(mockContext, signal);
       }
-      
+
       expect(filledCalled).toBe(true);
       expect(capturedSignal).toBe(signal);
     });
@@ -212,12 +202,12 @@ describe('Strategy', () => {
       class PortfolioStrategy extends Strategy {
         private portfolioValue: number = 0;
 
-        protected init(context: StrategyContext): void {
-          this.portfolioValue = context.portfolio.totalValue;
+        protected init(_context: StrategyContext): void {
+          this.portfolioValue = _context.portfolio.totalValue;
         }
 
-        onTick(context: StrategyContext): OrderSignal | null {
-          if (context.portfolio.cash > 50000) {
+        onTick(_context: StrategyContext): OrderSignal | null {
+          if (_context.portfolio.cash > 50000) {
             return this.createSignal('buy', 100, 10);
           }
           return null;
@@ -227,14 +217,14 @@ describe('Strategy', () => {
       const portfolioStrategy = new PortfolioStrategy({ id: 'portfolio', name: 'Portfolio' });
       portfolioStrategy.onInit(mockContext);
       const signal = portfolioStrategy.onTick(mockContext);
-      
+
       expect(signal).not.toBeNull();
     });
 
     test('should access market data through context', () => {
       class MarketStrategy extends Strategy {
-        onTick(context: StrategyContext): OrderSignal | null {
-          const marketData = context.getMarketData();
+        onTick(_context: StrategyContext): OrderSignal | null {
+          const marketData = _context.getMarketData();
           expect(marketData.orderBook).toBeDefined();
           expect(marketData.trades).toBeDefined();
           expect(marketData.timestamp).toBeDefined();
@@ -258,7 +248,7 @@ describe('OrderSignal', () => {
       quantity: 10,
       timestamp: Date.now()
     };
-    
+
     expect(signal.id).toBeDefined();
     expect(signal.side).toBe('buy');
     expect(signal.price).toBe(100);
@@ -278,7 +268,7 @@ describe('OrderSignal', () => {
       confidence: 0.9,
       reason: 'High confidence signal'
     };
-    
+
     expect(signal.bid).toBe(99);
     expect(signal.ask).toBe(101);
     expect(signal.confidence).toBe(0.9);
@@ -294,7 +284,7 @@ describe('MarketData', () => {
       trades: [],
       timestamp: Date.now()
     };
-    
+
     expect(marketData.orderBook).toBeDefined();
     expect(marketData.trades).toBeDefined();
     expect(marketData.timestamp).toBeDefined();

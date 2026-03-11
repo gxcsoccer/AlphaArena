@@ -6,8 +6,6 @@
 
 import { SMAStrategy, SMAStrategyConfig } from '../../src/strategy/SMAStrategy';
 import { StrategyContext, OrderSignal } from '../../src/strategy';
-import { OrderBook } from '../../src/orderbook';
-import { Portfolio } from '../../src/portfolio';
 
 /**
  * Mock OrderBook for testing
@@ -53,7 +51,7 @@ function createMockContext(orderBook: MockOrderBook): StrategyContext {
       trades: [],
       timestamp: Date.now()
     }),
-    getPosition: (symbol: string) => 0,
+    getPosition: (_symbol: string) => 0,
     getCash: () => 100000
   };
 }
@@ -437,7 +435,7 @@ describe('SMAStrategy', () => {
           trades: [],
           timestamp: Date.now()
         }),
-        getPosition: (symbol: string) => 0,
+        getPosition: (_symbol: string) => 0,
         getCash: () => 100000
       };
       

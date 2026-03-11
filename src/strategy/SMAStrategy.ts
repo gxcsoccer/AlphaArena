@@ -58,7 +58,6 @@ export class SMAStrategy extends Strategy {
   /**
    * Initialize strategy
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   protected init(_context: StrategyContext): void {
     this.priceHistory = [];
     this.lastShortSMA = null;

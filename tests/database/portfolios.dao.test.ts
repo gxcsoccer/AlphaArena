@@ -54,7 +54,7 @@ describe('PortfoliosDAO', () => {
         snapshotAt: new Date(now.getTime() - 10000)
       });
 
-      const latest = await dao.createSnapshot({
+      await dao.createSnapshot({
         symbol: 'TEST/USDT',
         baseCurrency: 'TEST',
         quoteCurrency: 'USDT',
