@@ -2,8 +2,8 @@
  * Order types
  */
 export enum OrderType {
-  BID = 'bid',   // 买单
-  ASK = 'ask'    // 卖单
+  BID = 'bid', // 买单
+  ASK = 'ask', // 卖单
 }
 
 /**
@@ -11,7 +11,7 @@ export enum OrderType {
  */
 export enum OrderSide {
   BUY = 'buy',
-  SELL = 'sell'
+  SELL = 'sell',
 }
 
 /**

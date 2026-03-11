@@ -3,7 +3,7 @@ import { Position, PortfolioSnapshot, PortfolioUpdateResult } from './types';
 
 /**
  * Portfolio - 投资组合管理
- * 
+ *
  * 负责跟踪：
  * - 现金余额
  * - 各股票持仓数量和平均成本
@@ -51,14 +51,14 @@ export class Portfolio {
     // 判断组合是买方还是卖方
     const isBuy = trade.buyOrderId === portfolioOrderId;
     const symbol = this.extractSymbolFromOrderId(portfolioOrderId);
-    
+
     // 获取或创建持仓
     let position = this.positions.get(symbol);
     if (!position) {
       position = {
         symbol,
         quantity: 0,
-        averageCost: 0
+        averageCost: 0,
       };
       this.positions.set(symbol, position);
     }
@@ -70,7 +70,7 @@ export class Portfolio {
       const totalCost = position.quantity * position.averageCost + trade.quantity * trade.price;
       position.quantity += trade.quantity;
       position.averageCost = position.quantity > 0 ? totalCost / position.quantity : 0;
-      
+
       // 扣除现金
       this.cashBalance -= trade.quantity * trade.price;
     } else {
@@ -78,17 +78,17 @@ export class Portfolio {
       const sellQuantity = trade.quantity;
       const costBasis = position.averageCost * sellQuantity;
       const proceeds = trade.price * sellQuantity;
-      
+
       realizedPnL = proceeds - costBasis;
-      
+
       position.quantity -= sellQuantity;
-      
+
       // 如果持仓清零，平均成本也清零
       if (position.quantity <= 0) {
         position.quantity = 0;
         position.averageCost = 0;
       }
-      
+
       // 增加现金
       this.cashBalance += proceeds;
     }
@@ -97,7 +97,7 @@ export class Portfolio {
       position,
       tradeQuantity: trade.quantity,
       tradePrice: trade.price,
-      realizedPnL
+      realizedPnL,
     };
   }
 
@@ -149,7 +149,7 @@ export class Portfolio {
       positions: this.getAllPositions(),
       totalValue: this.getTotalValue(marketPrices),
       unrealizedPnL: this.getUnrealizedPnL(marketPrices),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 

@@ -4,7 +4,7 @@ import { Trade, TradeStatus, OrderWithFill, MatchResult } from './types';
 
 /**
  * MatchingEngine - 订单撮合引擎
- * 
+ *
  * Features:
  * - 基于订单簿进行撮合
  * - 支持市价单 (market order) 和限价单 (limit order)
@@ -31,22 +31,21 @@ export class MatchingEngine {
   submitOrder(order: Order): MatchResult {
     const result: MatchResult = {
       trades: [],
-      remainingOrder: null
+      remainingOrder: null,
     };
 
     // 根据订单类型确定对手方
     const oppositeType = order.type === OrderType.BID ? OrderType.ASK : OrderType.BID;
-    
+
     // 查找可撮合的订单
     let remainingQuantity = order.quantity;
-    let currentPrice = order.price;
+    const currentPrice = order.price;
 
     // 撮合循环
     while (remainingQuantity > 0) {
       // 获取最优对手方价格
-      const bestOppositePrice = oppositeType === OrderType.BID 
-        ? this.orderBook.getBestBid() 
-        : this.orderBook.getBestAsk();
+      const bestOppositePrice =
+        oppositeType === OrderType.BID ? this.orderBook.getBestBid() : this.orderBook.getBestAsk();
 
       if (bestOppositePrice === null) {
         // 没有对手方订单，退出
@@ -57,16 +56,17 @@ export class MatchingEngine {
       // 买单：订单价格 >= 卖单价格
       // 卖单：订单价格 <= 买单价格
       if (order.type === OrderType.BID && currentPrice < bestOppositePrice) {
-        break;  // 买价不够高
+        break; // 买价不够高
       }
       if (order.type === OrderType.ASK && currentPrice > bestOppositePrice) {
-        break;  // 卖价不够低
+        break; // 卖价不够低
       }
 
       // 获取对手方价格层级的订单
-      const oppositeLevels = oppositeType === OrderType.BID 
-        ? this.orderBook.getBidsByPrice(bestOppositePrice)
-        : this.orderBook.getAsksByPrice(bestOppositePrice);
+      const oppositeLevels =
+        oppositeType === OrderType.BID
+          ? this.orderBook.getBidsByPrice(bestOppositePrice)
+          : this.orderBook.getAsksByPrice(bestOppositePrice);
 
       if (!oppositeLevels || oppositeLevels.length === 0) {
         break;
@@ -112,11 +112,12 @@ export class MatchingEngine {
       const remainingOrder: OrderWithFill = {
         order: {
           ...order,
-          quantity: remainingQuantity
+          quantity: remainingQuantity,
         },
         filledQuantity: order.quantity - remainingQuantity,
         remainingQuantity: remainingQuantity,
-        status: remainingQuantity === order.quantity ? TradeStatus.PENDING : TradeStatus.PARTIALLY_FILLED
+        status:
+          remainingQuantity === order.quantity ? TradeStatus.PENDING : TradeStatus.PARTIALLY_FILLED,
       };
 
       // 将剩余订单添加到订单簿
@@ -131,7 +132,7 @@ export class MatchingEngine {
         order,
         filledQuantity: order.quantity,
         remainingQuantity: 0,
-        status: TradeStatus.FILLED
+        status: TradeStatus.FILLED,
       };
       result.remainingOrder = remainingOrder;
     }
@@ -151,7 +152,7 @@ export class MatchingEngine {
       timestamp: Date.now(),
       buyOrderId: buyOrder.id,
       sellOrderId: sellOrder.id,
-      status: TradeStatus.FILLED
+      status: TradeStatus.FILLED,
     };
   }
 
@@ -167,7 +168,7 @@ export class MatchingEngine {
    */
   getTradesByOrderId(orderId: string): Trade[] {
     return this.trades.filter(
-      trade => trade.buyOrderId === orderId || trade.sellOrderId === orderId
+      (trade) => trade.buyOrderId === orderId || trade.sellOrderId === orderId
     );
   }
 
@@ -189,12 +190,12 @@ declare module '../orderbook/OrderBook' {
 }
 
 // 添加方法到 OrderBook 原型
-OrderBook.prototype.getBidsByPrice = function(price: number): Order[] {
+OrderBook.prototype.getBidsByPrice = function (price: number): Order[] {
   const level = (this as any).bids.get(price);
   return level ? [...level.orders] : [];
 };
 
-OrderBook.prototype.getAsksByPrice = function(price: number): Order[] {
+OrderBook.prototype.getAsksByPrice = function (price: number): Order[] {
   const level = (this as any).asks.get(price);
   return level ? [...level.orders] : [];
 };

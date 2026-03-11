@@ -1,6 +1,6 @@
 /**
  * CLI Runner - 命令行运行器
- * 
+ *
  * 提供命令行接口用于：
  * - 运行回测 (backtest)
  * - 实时交易模拟 (run/realtime)
@@ -8,9 +8,9 @@
  */
 
 import { BacktestEngine } from '../backtest/BacktestEngine';
-import { BacktestConfig, BacktestResult, RealtimeConfig } from '../backtest/types';
+import { BacktestConfig, BacktestResult } from '../backtest/types';
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
+import { dirname } from 'path';
 
 /**
  * CLI command types
@@ -49,7 +49,7 @@ export function parseArgs(args: string[]): CLIArgs {
     shortPeriod: 5,
     longPeriod: 20,
     tradeQuantity: 10,
-    format: 'json'
+    format: 'json',
   };
 
   if (args.length === 0) {
@@ -169,29 +169,29 @@ Examples:
  */
 export function printResults(result: BacktestResult): void {
   const { stats, config } = result;
-  
+
   console.log('\n' + '='.repeat(60));
   console.log('BACKTEST RESULTS');
   console.log('='.repeat(60));
-  
+
   console.log('\n📊 Configuration:');
   console.log(`   Strategy:     ${config.strategy}`);
   console.log(`   Symbol:       ${config.symbol}`);
   console.log(`   Capital:      $${config.capital.toLocaleString()}`);
   const durationDays = (config.endTime - config.startTime) / (1000 * 60 * 60 * 24);
   console.log(`   Duration:     ${durationDays.toFixed(1)} days`);
-  
+
   console.log('\n💰 Performance:');
   console.log(`   Initial:      $${stats.initialCapital.toLocaleString()}`);
   console.log(`   Final:        $${stats.finalCapital.toLocaleString()}`);
   console.log(`   Total P&L:    $${stats.totalPnL.toLocaleString()}`);
   console.log(`   Total Return: ${stats.totalReturn.toFixed(2)}%`);
   console.log(`   Ann. Return:  ${stats.annualizedReturn.toFixed(2)}%`);
-  
+
   console.log('\n📈 Risk Metrics:');
   console.log(`   Sharpe Ratio: ${stats.sharpeRatio.toFixed(2)}`);
   console.log(`   Max Drawdown: ${stats.maxDrawdown.toFixed(2)}%`);
-  
+
   console.log('\n📝 Trade Statistics:');
   console.log(`   Total Trades: ${stats.totalTrades}`);
   console.log(`   Winning:      ${stats.winningTrades} (${stats.winRate.toFixed(1)}%)`);
@@ -199,7 +199,7 @@ export function printResults(result: BacktestResult): void {
   console.log(`   Avg Win:      $${stats.avgWin.toFixed(2)}`);
   console.log(`   Avg Loss:     $${stats.avgLoss.toFixed(2)}`);
   console.log(`   Profit Factor: ${stats.profitFactor.toFixed(2)}`);
-  
+
   console.log('\n⏱️  Execution:');
   console.log(`   Duration:     ${result.duration}ms`);
   console.log('='.repeat(60) + '\n');
@@ -214,11 +214,11 @@ export function runBacktest(args: CLIArgs): BacktestResult | null {
   console.log(`   Symbol: ${args.symbol}`);
   console.log(`   Capital: $${args.capital?.toLocaleString()}`);
   console.log(`   Duration: ${args.duration} days\n`);
-  
+
   const durationDays = args.duration ?? 30;
   const endTime = Date.now();
   const startTime = endTime - durationDays * 24 * 60 * 60 * 1000;
-  
+
   const config: BacktestConfig = {
     capital: args.capital ?? 100000,
     symbol: args.symbol ?? 'AAPL',
@@ -228,22 +228,22 @@ export function runBacktest(args: CLIArgs): BacktestResult | null {
     strategyParams: {
       shortPeriod: args.shortPeriod ?? 5,
       longPeriod: args.longPeriod ?? 20,
-      tradeQuantity: args.tradeQuantity ?? 10
-    }
+      tradeQuantity: args.tradeQuantity ?? 10,
+    },
   };
-  
+
   try {
     const engine = new BacktestEngine(config);
     const result = engine.run();
-    
+
     // Print results
     printResults(result);
-    
+
     // Export if output file specified
     if (args.output) {
       exportResults(result, args.output, args.format ?? 'json');
     }
-    
+
     return result;
   } catch (error) {
     console.error('❌ Backtest failed:', error instanceof Error ? error.message : error);
@@ -260,26 +260,30 @@ export function runRealtime(args: CLIArgs): void {
   console.log(`   Symbol: ${args.symbol}`);
   console.log(`   Capital: $${args.capital?.toLocaleString()}`);
   console.log(`   Press Ctrl+C to stop\n`);
-  
+
   // For now, just run a short backtest as simulation
   // In production, this would connect to live data
   const testArgs = { ...args, command: 'backtest' as CLICommand, duration: 1 };
   runBacktest(testArgs);
-  
+
   console.log('ℹ️  Real-time mode is currently in beta. Running short simulation instead.');
 }
 
 /**
  * Export results to file
  */
-export function exportResults(result: BacktestResult, outputPath: string, format: 'json' | 'csv'): void {
+export function exportResults(
+  result: BacktestResult,
+  outputPath: string,
+  format: 'json' | 'csv'
+): void {
   try {
     // Ensure directory exists
     const dir = dirname(outputPath);
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
     }
-    
+
     let content: string;
     if (format === 'csv') {
       // Create CSV from snapshots
@@ -290,7 +294,7 @@ export function exportResults(result: BacktestResult, outputPath: string, format
     } else {
       content = JSON.stringify(result, null, 2);
     }
-    
+
     writeFileSync(outputPath, content, 'utf-8');
     console.log(`✅ Results exported to: ${outputPath}`);
   } catch (error) {
@@ -303,12 +307,12 @@ export function exportResults(result: BacktestResult, outputPath: string, format
  */
 export function run(args: string[]): void {
   const parsedArgs = parseArgs(args);
-  
+
   if (parsedArgs.help || parsedArgs.command === 'help') {
     printHelp();
     return;
   }
-  
+
   switch (parsedArgs.command) {
     case 'backtest':
       runBacktest(parsedArgs);

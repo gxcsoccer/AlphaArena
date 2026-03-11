@@ -15,7 +15,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order);
@@ -32,7 +32,7 @@ describe('OrderBook', () => {
         price: 105,
         quantity: 5,
         timestamp: Date.now(),
-        type: OrderType.ASK
+        type: OrderType.ASK,
       };
 
       orderBook.add(order);
@@ -48,7 +48,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order1);
@@ -58,7 +58,7 @@ describe('OrderBook', () => {
         price: 102,
         quantity: 15,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order2);
@@ -77,7 +77,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order);
@@ -99,7 +99,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order);
@@ -117,7 +117,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order);
@@ -134,7 +134,7 @@ describe('OrderBook', () => {
         price: 100,
         quantity: 10,
         timestamp: Date.now(),
-        type: OrderType.BID
+        type: OrderType.BID,
       };
 
       orderBook.add(order);
@@ -158,9 +158,27 @@ describe('OrderBook', () => {
     });
 
     it('should return highest bid price', () => {
-      orderBook.add({ id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '2', price: 102, quantity: 5, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '3', price: 99, quantity: 15, timestamp: Date.now(), type: OrderType.BID });
+      orderBook.add({
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '2',
+        price: 102,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '3',
+        price: 99,
+        quantity: 15,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
 
       expect(orderBook.getBestBid()).toBe(102);
     });
@@ -172,9 +190,27 @@ describe('OrderBook', () => {
     });
 
     it('should return lowest ask price', () => {
-      orderBook.add({ id: '1', price: 105, quantity: 10, timestamp: Date.now(), type: OrderType.ASK });
-      orderBook.add({ id: '2', price: 103, quantity: 5, timestamp: Date.now(), type: OrderType.ASK });
-      orderBook.add({ id: '3', price: 107, quantity: 15, timestamp: Date.now(), type: OrderType.ASK });
+      orderBook.add({
+        id: '1',
+        price: 105,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
+      orderBook.add({
+        id: '2',
+        price: 103,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
+      orderBook.add({
+        id: '3',
+        price: 107,
+        quantity: 15,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
 
       expect(orderBook.getBestAsk()).toBe(103);
     });
@@ -189,14 +225,38 @@ describe('OrderBook', () => {
     });
 
     it('should calculate correct depth', () => {
-      orderBook.add({ id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '2', price: 102, quantity: 5, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '3', price: 105, quantity: 15, timestamp: Date.now(), type: OrderType.ASK });
-      orderBook.add({ id: '4', price: 107, quantity: 8, timestamp: Date.now(), type: OrderType.ASK });
+      orderBook.add({
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '2',
+        price: 102,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '3',
+        price: 105,
+        quantity: 15,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
+      orderBook.add({
+        id: '4',
+        price: 107,
+        quantity: 8,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
 
       const depth = orderBook.getDepth();
-      expect(depth.bidDepth).toBe(15);  // 10 + 5
-      expect(depth.askDepth).toBe(23);  // 15 + 8
+      expect(depth.bidDepth).toBe(15); // 10 + 5
+      expect(depth.askDepth).toBe(23); // 15 + 8
       expect(depth.totalDepth).toBe(38);
     });
   });
@@ -210,11 +270,41 @@ describe('OrderBook', () => {
     });
 
     it('should return sorted snapshot', () => {
-      orderBook.add({ id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '2', price: 102, quantity: 5, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '3', price: 99, quantity: 15, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '4', price: 105, quantity: 10, timestamp: Date.now(), type: OrderType.ASK });
-      orderBook.add({ id: '5', price: 103, quantity: 5, timestamp: Date.now(), type: OrderType.ASK });
+      orderBook.add({
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '2',
+        price: 102,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '3',
+        price: 99,
+        quantity: 15,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '4',
+        price: 105,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
+      orderBook.add({
+        id: '5',
+        price: 103,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
 
       const snapshot = orderBook.getSnapshot();
 
@@ -235,7 +325,7 @@ describe('OrderBook', () => {
           price: 100 + i,
           quantity: 10,
           timestamp: Date.now(),
-          type: OrderType.BID
+          type: OrderType.BID,
         });
       }
 
@@ -246,8 +336,20 @@ describe('OrderBook', () => {
 
   describe('clear', () => {
     it('should remove all orders', () => {
-      orderBook.add({ id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID });
-      orderBook.add({ id: '2', price: 105, quantity: 5, timestamp: Date.now(), type: OrderType.ASK });
+      orderBook.add({
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      orderBook.add({
+        id: '2',
+        price: 105,
+        quantity: 5,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
 
       orderBook.clear();
 
@@ -264,7 +366,7 @@ describe('OrderBook', () => {
       orderBook.add({ id: '2', price: 101, quantity: 5, timestamp: now + 1, type: OrderType.BID });
 
       const snapshot = orderBook.getSnapshot();
-      expect(snapshot.bids[0].price).toBe(101);  // Higher price first
+      expect(snapshot.bids[0].price).toBe(101); // Higher price first
     });
 
     it('should prioritize earlier time for same price', () => {
@@ -273,7 +375,7 @@ describe('OrderBook', () => {
       orderBook.add({ id: '3', price: 100, quantity: 15, timestamp: 1500, type: OrderType.BID });
 
       const snapshot = orderBook.getSnapshot();
-      expect(snapshot.bids[0].orders[0].id).toBe('1');  // Earliest timestamp
+      expect(snapshot.bids[0].orders[0].id).toBe('1'); // Earliest timestamp
       expect(snapshot.bids[0].orders[1].id).toBe('3');
       expect(snapshot.bids[0].orders[2].id).toBe('2');
     });
@@ -284,7 +386,7 @@ describe('OrderBook', () => {
       orderBook.add({ id: '2', price: 103, quantity: 5, timestamp: now + 1, type: OrderType.ASK });
 
       const snapshot = orderBook.getSnapshot();
-      expect(snapshot.asks[0].price).toBe(103);  // Lower price first
+      expect(snapshot.asks[0].price).toBe(103); // Lower price first
     });
   });
 });

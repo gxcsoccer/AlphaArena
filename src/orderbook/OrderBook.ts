@@ -2,7 +2,7 @@ import { Order, OrderType, PriceLevel, OrderBookSnapshot, OrderBookDepth } from 
 
 /**
  * OrderBook - 高性能模拟订单簿
- * 
+ *
  * Features:
  * - 支持买单 (bid) 和卖单 (ask) 两种订单类型
  * - 订单按价格优先、时间优先排序
@@ -11,9 +11,9 @@ import { Order, OrderType, PriceLevel, OrderBookSnapshot, OrderBookDepth } from 
  * - 支持查询订单簿深度 (order book depth)
  */
 export class OrderBook {
-  private bids: Map<number, PriceLevel>;  // 买单 - 价格映射
-  private asks: Map<number, PriceLevel>;  // 卖单 - 价格映射
-  private orders: Map<string, Order>;     // 订单 ID - 订单映射
+  private bids: Map<number, PriceLevel>; // 买单 - 价格映射
+  private asks: Map<number, PriceLevel>; // 卖单 - 价格映射
+  private orders: Map<string, Order>; // 订单 ID - 订单映射
 
   constructor() {
     this.bids = new Map();
@@ -36,12 +36,12 @@ export class OrderBook {
 
     // 根据订单类型添加到对应的价格层级
     const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
-    
+
     if (!priceLevels.has(order.price)) {
       priceLevels.set(order.price, {
         price: order.price,
         orders: [],
-        totalQuantity: 0
+        totalQuantity: 0,
       });
     }
 
@@ -69,7 +69,7 @@ export class OrderBook {
 
     if (level) {
       // 从价格层级中移除订单
-      const index = level.orders.findIndex(o => o.id === orderId);
+      const index = level.orders.findIndex((o) => o.id === orderId);
       if (index !== -1) {
         level.orders.splice(index, 1);
         level.totalQuantity -= order.quantity;
@@ -105,7 +105,7 @@ export class OrderBook {
         ...order,
         quantity: newQuantity,
         price: newPrice,
-        timestamp: Date.now()  // 更新时间戳
+        timestamp: Date.now(), // 更新时间戳
       };
       this.cancel(orderId);
       this.add(updatedOrder);
@@ -178,7 +178,7 @@ export class OrderBook {
     return {
       bidDepth,
       askDepth,
-      totalDepth: bidDepth + askDepth
+      totalDepth: bidDepth + askDepth,
     };
   }
 
@@ -188,12 +188,15 @@ export class OrderBook {
    * @returns 订单簿快照
    */
   getSnapshot(levels?: number): OrderBookSnapshot {
-    const getSortedLevels = (priceLevels: Map<number, PriceLevel>, isBid: boolean): PriceLevel[] => {
+    const getSortedLevels = (
+      priceLevels: Map<number, PriceLevel>,
+      isBid: boolean
+    ): PriceLevel[] => {
       const sorted = Array.from(priceLevels.values()).sort((a, b) => {
         if (isBid) {
-          return b.price - a.price;  // 买单：价格降序
+          return b.price - a.price; // 买单：价格降序
         } else {
-          return a.price - b.price;  // 卖单：价格升序
+          return a.price - b.price; // 卖单：价格升序
         }
       });
 
@@ -206,7 +209,7 @@ export class OrderBook {
     return {
       bids: getSortedLevels(this.bids, true),
       asks: getSortedLevels(this.asks, false),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -244,10 +247,10 @@ export class OrderBook {
     orders.sort((a, b) => {
       // 价格优先
       if (a.price !== b.price) {
-        return b.price - a.price;  // 价格高的优先
+        return b.price - a.price; // 价格高的优先
       }
       // 时间优先
-      return a.timestamp - b.timestamp;  // 时间早的优先
+      return a.timestamp - b.timestamp; // 时间早的优先
     });
   }
 }
