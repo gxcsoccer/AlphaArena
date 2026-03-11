@@ -7,6 +7,7 @@ import {
   IconSwap,
   IconSafe,
   IconTrophy,
+  IconHome,
 } from '@arco-design/web-react/icon';
 
 // Alias the icons for menu items
@@ -15,6 +16,8 @@ const AppstoreOutlined = IconApps;
 const TransactionOutlined = IconSwap;
 const WalletOutlined = IconSafe;
 const TrophyOutlined = IconTrophy;
+const HomeOutlined = IconHome;
+import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import StrategiesPage from './pages/StrategiesPage';
 import TradesPage from './pages/TradesPage';
@@ -24,6 +27,11 @@ import LeaderboardPage from './pages/LeaderboardPage';
 const { Header, Sider, Content } = Layout;
 
 const menuItems = [
+  {
+    key: '/',
+    icon: <HomeOutlined />,
+    label: '行情',
+  },
   {
     key: '/dashboard',
     icon: <DashboardOutlined />,
@@ -91,7 +99,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/strategies" element={<StrategiesPage />} />
       <Route path="/trades" element={<TradesPage />} />
