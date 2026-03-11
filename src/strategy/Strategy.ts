@@ -1,14 +1,14 @@
 /**
  * Strategy Interface
- * 
+ *
  * Abstract base class for trading strategies
  */
 
-import { OrderSignal, StrategyContext, StrategyLifecycleEvent, StrategyConfig } from './types';
+import { OrderSignal, StrategyContext, StrategyConfig } from './types';
 
 /**
  * Strategy interface - 策略接口
- * 
+ *
  * All trading strategies must implement this interface
  */
 export interface IStrategy {
@@ -19,7 +19,7 @@ export interface IStrategy {
 
   /**
    * Initialize strategy - 策略初始化
-   * 
+   *
    * Called once when the strategy is first loaded
    * @param context - Strategy context
    */
@@ -27,7 +27,7 @@ export interface IStrategy {
 
   /**
    * Handle tick event - 处理行情数据
-   * 
+   *
    * Called on each market data update
    * @param context - Strategy context
    * @returns Order signal or null if no action
@@ -36,7 +36,7 @@ export interface IStrategy {
 
   /**
    * Handle order filled event - 处理成交事件
-   * 
+   *
    * Called when an order is filled
    * @param context - Strategy context
    * @param signal - The original signal that led to this fill
@@ -45,7 +45,7 @@ export interface IStrategy {
 
   /**
    * Cleanup strategy - 策略清理
-   * 
+   *
    * Called when the strategy is being shut down
    * @param context - Strategy context
    */
@@ -54,7 +54,7 @@ export interface IStrategy {
 
 /**
  * Abstract strategy base class - 策略抽象基类
- * 
+ *
  * Provides common functionality for all strategies
  */
 export abstract class Strategy implements IStrategy {
@@ -83,41 +83,41 @@ export abstract class Strategy implements IStrategy {
   /**
    * Initialize strategy - to be implemented by subclasses
    */
-  protected init(context: StrategyContext): void {
+  protected init(__context: StrategyContext): void {
     // Default implementation does nothing
   }
 
   /**
    * Handle tick event - must be implemented by subclasses
    */
-  abstract onTick(context: StrategyContext): OrderSignal | null;
+  abstract onTick(__context: StrategyContext): OrderSignal | null;
 
   /**
    * Handle order filled event
    */
-  onOrderFilled(context: StrategyContext, signal: OrderSignal): void {
-    this.orderFilled(context, signal);
+  onOrderFilled(__context: StrategyContext, __signal: OrderSignal): void {
+    this.orderFilled(__context, __signal);
   }
 
   /**
    * Handle order filled event - can be overridden by subclasses
    */
-  protected orderFilled(context: StrategyContext, signal: OrderSignal): void {
+  protected orderFilled(__context: StrategyContext, __signal: OrderSignal): void {
     // Default implementation does nothing
   }
 
   /**
    * Cleanup strategy
    */
-  onCleanup(context: StrategyContext): void {
+  onCleanup(__context: StrategyContext): void {
     this.initialized = false;
-    this.cleanup(context);
+    this.cleanup(__context);
   }
 
   /**
    * Cleanup strategy - can be overridden by subclasses
    */
-  protected cleanup(context: StrategyContext): void {
+  protected cleanup(__context: StrategyContext): void {
     // Default implementation does nothing
   }
 

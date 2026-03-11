@@ -4,7 +4,7 @@
 export interface Position {
   symbol: string;
   quantity: number;
-  averageCost: number;  // 平均成本
+  averageCost: number; // 平均成本
 }
 
 /**
@@ -25,5 +25,5 @@ export interface PortfolioUpdateResult {
   position: Position;
   tradeQuantity: number;
   tradePrice: number;
-  realizedPnL: number;  // 已实现盈亏（卖出时产生）
+  realizedPnL: number; // 已实现盈亏（卖出时产生）
 }
