@@ -36,6 +36,8 @@
     "@eslint/js": "^10.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.4.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.4",
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
@@ -49,6 +51,7 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.0",
     "antd": "^6.3.2",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
