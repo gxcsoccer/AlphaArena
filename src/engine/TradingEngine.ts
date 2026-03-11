@@ -88,8 +88,6 @@ export class TradingEngine extends EventEmitter {
     
     // Setup market simulator event listeners
     this.marketSimulator.on('tick', (tick) => this.handleMarketTick(tick));
-    this.marketSimulator.on('start', () => this.emit('engine:start', { timestamp: Date.now() }));
-    this.marketSimulator.on('stop', () => this.emit('engine:stop', { timestamp: Date.now() }));
   }
 
   /**
