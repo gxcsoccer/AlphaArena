@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Row, Col } from 'antd';
+import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid } from '@arco-design/web-react';
+const { Row, Col } = Grid;
 import {
   LineChart,
   Line,
@@ -15,13 +16,11 @@ import {
   Bar,
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
-import type { ColumnsType } from 'antd/es/table';
+import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
-import dayjs from 'dayjs';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
-const { RangePicker } = DatePicker;
 
 const TradesPage: React.FC = () => {
   const [symbol, setSymbol] = useState<string | undefined>(undefined);
@@ -62,7 +61,7 @@ const TradesPage: React.FC = () => {
     }));
 
   // Trade table columns
-  const tradeColumns: ColumnsType<Trade> = [
+  const tradeColumns: TableProps<Trade>['columns'] = [
     {
       title: 'Time',
       dataIndex: 'executedAt',
@@ -93,7 +92,7 @@ const TradesPage: React.FC = () => {
       width: 80,
       render: (side: 'buy' | 'sell') => (
         <Tag color={side === 'buy' ? 'green' : 'red'}>
-          {side.toUpperCase()}
+          {side}
         </Tag>
       ),
       filters: [
@@ -137,7 +136,7 @@ const TradesPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
           AlphaArena - Trades
         </Title>
       </Header>
@@ -166,7 +165,7 @@ const TradesPage: React.FC = () => {
               <Select.Option value="buy">Buy</Select.Option>
               <Select.Option value="sell">Sell</Select.Option>
             </Select>
-            <RangePicker
+            <DatePicker.RangePicker
               value={dateRange}
               onChange={(dates) => setDateRange(dates as [any, any] | null)}
             />

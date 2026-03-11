@@ -1,7 +1,9 @@
 {
-  "current": 1,
-  "startDate": "2026-03-10",
-  "endDate": "2026-03-11",
-  "milestone": null,
-  "status": "planning"
+  "current": 2,
+  "startDate": "2026-03-12",
+  "endDate": "2026-03-19",
+  "milestone": 3,
+  "status": "planning",
+  "acceptanceReport": null,
+  "acceptanceDate": null
 }

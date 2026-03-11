@@ -1,5 +1,6 @@
 import React from 'react';
-import { Layout, Typography, Card, Row, Col, Statistic, Table, Tag, Space, Button } from 'antd';
+import { Layout, Typography, Card, Statistic, Table, Tag, Space, Button, Grid } from '@arco-design/web-react';
+const { Row, Col } = Grid;
 import {
   LineChart,
   Line,
@@ -16,11 +17,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
-import type { ColumnsType } from 'antd/es/table';
+import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
 const { Header, Content } = Layout;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -46,7 +47,7 @@ const DashboardPage: React.FC = () => {
   }));
 
   // Trade table columns
-  const tradeColumns: ColumnsType<Trade> = [
+  const tradeColumns: TableProps<Trade>['columns'] = [
     {
       title: 'Time',
       dataIndex: 'executedAt',
@@ -76,7 +77,7 @@ const DashboardPage: React.FC = () => {
       key: 'side',
       render: (side: 'buy' | 'sell') => (
         <Tag color={side === 'buy' ? 'green' : 'red'}>
-          {side.toUpperCase()}
+          {side}
         </Tag>
       ),
       width: 80,
@@ -104,7 +105,7 @@ const DashboardPage: React.FC = () => {
   ];
 
   // Strategy table columns
-  const strategyColumns: ColumnsType<Strategy> = [
+  const strategyColumns: TableProps<Strategy>['columns'] = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -127,7 +128,7 @@ const DashboardPage: React.FC = () => {
           paused: 'orange',
           stopped: 'red',
         };
-        return <Tag color={colorMap[status] || 'default'}>{status.toUpperCase()}</Tag>;
+        return <Tag color={colorMap[status] || 'gray'}>{status}</Tag>;
       },
       width: 100,
     },
@@ -157,7 +158,7 @@ const DashboardPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
           AlphaArena - Dashboard
         </Title>
       </Header>
@@ -169,7 +170,7 @@ const DashboardPage: React.FC = () => {
               <Statistic
                 title="Total Strategies"
                 value={stats?.totalStrategies || 0}
-                suffix={`(${stats?.activeStrategies || 0} active)`}
+                suffixText={`(${stats?.activeStrategies || 0} active)`}
               />
             </Card>
           </Col>
@@ -186,7 +187,7 @@ const DashboardPage: React.FC = () => {
               <Statistic
                 title="Total Volume"
                 value={stats?.totalVolume ? (stats.totalVolume / 1000).toFixed(1) + 'K' : '0'}
-                prefix="$"
+                prefixText="$"
               />
             </Card>
           </Col>

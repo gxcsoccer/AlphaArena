@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Layout, Menu, theme } from 'antd';
+import { Layout, Menu } from '@arco-design/web-react';
 import {
-  DashboardOutlined,
-  AppstoreOutlined,
-  TransactionOutlined,
-  WalletOutlined,
-  TrophyOutlined,
-} from '@ant-design/icons';
+  IconDashboard,
+  IconApps,
+  IconSwap,
+  IconSafe,
+  IconTrophy,
+} from '@arco-design/web-react/icon';
 import DashboardPage from './pages/DashboardPage';
 import StrategiesPage from './pages/StrategiesPage';
 import TradesPage from './pages/TradesPage';
@@ -19,35 +19,32 @@ const { Header, Sider, Content } = Layout;
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const {
-    token: { colorBgContainer, borderRadiusLG },
-  } = theme.useToken();
 
   const menuItems = [
     {
       key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
+      icon: <IconDashboard />,
+      title: 'Dashboard',
     },
     {
       key: '/strategies',
-      icon: <AppstoreOutlined />,
-      label: 'Strategies',
+      icon: <IconApps />,
+      title: 'Strategies',
     },
     {
       key: '/trades',
-      icon: <TransactionOutlined />,
-      label: 'Trades',
+      icon: <IconSwap />,
+      title: 'Trades',
     },
     {
       key: '/holdings',
-      icon: <WalletOutlined />,
-      label: 'Holdings',
+      icon: <IconSafe />,
+      title: 'Holdings',
     },
     {
       key: '/leaderboard',
-      icon: <TrophyOutlined />,
-      label: 'Leaderboard',
+      icon: <IconTrophy />,
+      title: 'Leaderboard',
     },
   ];
 
@@ -64,15 +61,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: '0 16px', background: colorBgContainer }}>
+        <Header style={{ padding: '0 16px', background: 'var(--color-bg-2)' }}>
           <h2 style={{ margin: 0, lineHeight: '64px' }}>AlphaArena</h2>
         </Header>
         <Content
           style={{
             margin: 16,
             padding: 24,
-            background: colorBgContainer,
-            borderRadius: borderRadiusLG,
+            background: 'var(--color-bg-2)',
+            borderRadius: 4,
             minHeight: 280,
             overflow: 'auto',
           }}
