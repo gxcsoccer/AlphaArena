@@ -6,15 +6,9 @@
 
 const https = require('https');
 
-// Feishu credentials should be set via environment variables
-const FEISHU_APP_ID = process.env.FEISHU_APP_ID;
-const FEISHU_APP_SECRET = process.env.FEISHU_APP_SECRET;
-const DOCUMENT_ID = process.env.FEISHU_DOCUMENT_ID || 'F88rdHglWoUdZ7xbSDtcVCOVnBf';
-
-if (!FEISHU_APP_ID || !FEISHU_APP_SECRET) {
-  console.error('❌ Missing Feishu credentials. Please set FEISHU_APP_ID and FEISHU_APP_SECRET environment variables.');
-  process.exit(1);
-}
+const FEISHU_APP_ID = 'cli_a923588032b8dcd6';
+const FEISHU_APP_SECRET = 'iaWGq33YfOFjyMOxyF5wic11L6sau8EH';
+const DOCUMENT_ID = 'F88rdHglWoUdZ7xbSDtcVCOVnBf';
 
 function request(options, body = null) {
   return new Promise((resolve, reject) => {

@@ -114,13 +114,11 @@ describe('TradingEngine', () => {
   describe('Start/Stop', () => {
     it('should start and stop correctly', (done) => {
       engine.on('engine:start', () => {
-        // State should be RUNNING when start event is emitted
-        setImmediate(() => {
-          expect(engine.getState()).toBe(EngineState.RUNNING);
-          engine.stop();
-          expect(engine.getState()).toBe(EngineState.STOPPED);
-          done();
-        });
+        expect(engine.getState()).toBe(EngineState.RUNNING);
+
+        engine.stop();
+        expect(engine.getState()).toBe(EngineState.STOPPED);
+        done();
       });
 
       engine.start();
@@ -205,6 +203,7 @@ describe('TradingEngine', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
 
+<<<<<<< HEAD
       engine.on('signal:generated', (event: any) => {
         expect(event.data?.strategy).toBe('test-strategy');
         expect(event.data?.signal).toBeDefined();
@@ -219,13 +218,10 @@ describe('TradingEngine', () => {
   describe('Event Emission', () => {
     it('should emit tick events', (done) => {
       let ticks = 0;
-      let completed = false;
 
       engine.on('engine:tick', () => {
-        if (completed) return;
         ticks++;
         if (ticks >= 5) {
-          completed = true;
           done();
         }
       });
@@ -236,14 +232,10 @@ describe('TradingEngine', () => {
     it('should emit signal events', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      let called = false;
 
       engine.on('signal:generated', (event: any) => {
-        if (!called) {
-          called = true;
-          expect(event.data?.signal.id).toBeDefined();
-          done();
-        }
+        expect(event.data?.signal.id).toBeDefined();
+        done();
       });
 
       engine.start();
@@ -251,16 +243,13 @@ describe('TradingEngine', () => {
 
     it('should emit generic event for all events', (done) => {
       let eventCount = 0;
-      let completed = false;
 
-      engine.on('event', (evt: any) => {
-        if (completed) return;
+      engine.on('event', (event: any) => {
         eventCount++;
-        expect(evt.type).toBeDefined();
-        expect(evt.timestamp).toBeDefined();
+        expect(event.type).toBeDefined();
+        expect(event.timestamp).toBeDefined();
 
         if (eventCount >= 3) {
-          completed = true;
           done();
         }
       });
@@ -383,6 +372,7 @@ describe('TradingEngine', () => {
       const strategy = new RiskyStrategy();
       engine.addStrategy(strategy);
 
+<<<<<<< HEAD
       engine.on('risk:triggered', (event: any) => {
         expect(event.data?.strategy).toBe('risky');
         expect(event.data?.riskType).toBe('position_limit');
