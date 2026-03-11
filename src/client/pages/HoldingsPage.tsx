@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Row, Col, Statistic, Select } from 'antd';
+import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid } from '@arco-design/web-react';
+const { Row, Col } = Grid;
 import {
   LineChart,
   Line,
@@ -16,7 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { usePortfolio, useStrategies, useTrades } from '../hooks/useData';
-import type { ColumnsType } from 'antd/es/table';
+import type { TableProps } from '@arco-design/web-react';
 import type { Portfolio } from '../utils/api';
 
 const { Header, Content } = Layout;
@@ -86,7 +87,7 @@ const HoldingsPage: React.FC = () => {
     }, []);
 
   // Position table columns
-  const positionColumns: ColumnsType<NonNullable<Portfolio['positions']>[0]> = [
+  const positionColumns: TableProps<NonNullable<Portfolio['positions']>[0]>['columns'] = [
     {
       title: 'Symbol',
       dataIndex: 'symbol',
@@ -128,7 +129,7 @@ const HoldingsPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
           AlphaArena - Holdings
         </Title>
       </Header>
@@ -155,7 +156,7 @@ const HoldingsPage: React.FC = () => {
               <Statistic
                 title="Total Value"
                 value={portfolio?.totalValue || 0}
-                prefix="$"
+                prefixText="$"
                 precision={2}
               />
             </Card>
@@ -165,7 +166,7 @@ const HoldingsPage: React.FC = () => {
               <Statistic
                 title="Cash Balance"
                 value={portfolio?.cashBalance || 0}
-                prefix="$"
+                prefixText="$"
                 precision={2}
               />
             </Card>
@@ -175,7 +176,7 @@ const HoldingsPage: React.FC = () => {
               <Statistic
                 title="Realized P&L"
                 value={pnlData.realizedPnL}
-                prefix="$"
+                prefixText="$"
                 precision={2}
                 valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
               />
@@ -186,7 +187,7 @@ const HoldingsPage: React.FC = () => {
               <Statistic
                 title="Win Rate"
                 value={pnlData.winRate}
-                suffix="%"
+                suffixText="%"
                 precision={1}
               />
             </Card>
@@ -244,7 +245,7 @@ const HoldingsPage: React.FC = () => {
                   <Statistic
                     title="Total Cost Basis"
                     value={pnlData.totalCost}
-                    prefix="$"
+                    prefixText="$"
                     precision={2}
                   />
                 </Col>
@@ -252,7 +253,7 @@ const HoldingsPage: React.FC = () => {
                   <Statistic
                     title="Total Proceeds"
                     value={pnlData.totalProceeds}
-                    prefix="$"
+                    prefixText="$"
                     precision={2}
                   />
                 </Col>
@@ -260,7 +261,7 @@ const HoldingsPage: React.FC = () => {
                   <Statistic
                     title="Net P&L"
                     value={pnlData.realizedPnL}
-                    prefix="$"
+                    prefixText="$"
                     precision={2}
                     valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
                   />

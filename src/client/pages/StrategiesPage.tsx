@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Switch, Drawer } from 'antd';
+import { Layout, Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Switch, Drawer } from '@arco-design/web-react';
 import { useStrategies } from '../hooks/useData';
-import type { ColumnsType } from 'antd/es/table';
+import type { TableProps } from '@arco-design/web-react';
 import type { Strategy } from '../utils/api';
 
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
-const { TextArea } = Input;
 
 interface StrategyFormValues {
   name: string;
@@ -67,7 +66,7 @@ const StrategiesPage: React.FC = () => {
     }
   };
 
-  const strategyColumns: ColumnsType<Strategy> = [
+  const strategyColumns: TableProps<Strategy>['columns'] = [
     {
       title: 'Name',
       dataIndex: 'name',
@@ -94,7 +93,7 @@ const StrategiesPage: React.FC = () => {
           paused: 'orange',
           stopped: 'red',
         };
-        return <Tag color={colorMap[status] || 'default'}>{status.toUpperCase()}</Tag>;
+        return <Tag color={colorMap[status] || 'gray'}>{status}</Tag>;
       },
     },
     {
@@ -137,7 +136,7 @@ const StrategiesPage: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Header>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
+        <Title heading={2} style={{ color: 'white', margin: 0 }}>
           AlphaArena - Strategies
         </Title>
       </Header>
@@ -163,9 +162,9 @@ const StrategiesPage: React.FC = () => {
       {/* Strategy Details Drawer */}
       <Drawer
         title="Strategy Details"
-        placement="right"
+        placement="end"
         width={600}
-        open={drawerVisible}
+        visible={drawerVisible}
         onClose={handleCloseDrawer}
       >
         {selectedStrategy && (
@@ -181,7 +180,7 @@ const StrategiesPage: React.FC = () => {
             <div>
               <Text strong>Status: </Text>
               <Tag color={selectedStrategy.status === 'active' ? 'green' : 'red'}>
-                {selectedStrategy.status.toUpperCase()}
+                {selectedStrategy.status}
               </Tag>
             </div>
             <div>
@@ -209,7 +208,7 @@ const StrategiesPage: React.FC = () => {
       {/* Edit Strategy Modal */}
       <Modal
         title="Edit Strategy"
-        open={modalVisible}
+        visible={modalVisible}
         onOk={() => form.submit()}
         onCancel={() => setModalVisible(false)}
       >
@@ -222,7 +221,7 @@ const StrategiesPage: React.FC = () => {
             <Input />
           </Form.Item>
           <Form.Item name="description" label="Description">
-            <TextArea rows={3} />
+            <Input.Textarea rows={3} />
           </Form.Item>
           <Form.Item
             name="symbol"
@@ -243,7 +242,7 @@ const StrategiesPage: React.FC = () => {
             </Select>
           </Form.Item>
           <Form.Item name="config" label="Configuration (JSON)">
-            <TextArea rows={6} />
+            <Input.Textarea rows={6} />
           </Form.Item>
         </Form>
       </Modal>
