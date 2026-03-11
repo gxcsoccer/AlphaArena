@@ -1,0 +1,95 @@
+# Render Deployment Configuration
+# https://render.com/docs/infrastructure-config
+
+services:
+  # Main Web Service
+  - type: web
+    name: alphaarena
+    env: node
+    region: oregon
+    plan: starter
+    branch: main
+    
+    # Build configuration
+    buildCommand: npm install && npm run build && npm run build:client
+    
+    # Start command
+    startCommand: node dist/index.js
+    
+    # Environment variables
+    envVars:
+      # Required
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: LLM_API_KEY
+        sync: false
+      - key: API_BASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      
+      # Optional
+      - key: LLM_MODEL
+        value: gpt-4
+      - key: LLM_TEMPERATURE
+        value: 0.7
+      - key: LLM_MAX_TOKENS
+        value: 1000
+      - key: LLM_DAILY_BUDGET
+        value: "10"
+      - key: LOG_LEVEL
+        value: info
+      - key: PORT
+        value: "3001"
+    
+    # Health check
+    healthCheckPath: /api/health
+    healthCheckTimeout: 30
+    
+    # Auto-deploy
+    autoDeploy: true
+    
+    # Disk (optional, for persistent storage)
+    # disk:
+    #   name: alphaarena-data
+    #   mountPath: /app/data
+    #   sizeGB: 1
+    
+    # Domains (optional)
+    # domains:
+    #   - alphaarena.onrender.com
+    
+    # SSL/TLS
+    ssl: true
+    
+    # Docker (optional, if using Dockerfile)
+    # dockerfilePath: ./Dockerfile
+    
+    # Num instances (for scaling)
+    # numInstances: 1
+
+  # Optional: Background Worker for scheduled tasks
+  # - type: worker
+  #   name: alphaarena-worker
+  #   env: node
+  #   region: oregon
+  #   plan: starter
+  #   branch: main
+  #   buildCommand: npm install && npm run build
+  #   startCommand: node dist/worker.js
+  #   envVars:
+  #     - key: SUPABASE_URL
+  #       sync: false
+  #     - key: SUPABASE_ANON_KEY
+  #       sync: false
+
+# Notes:
+# 1. Add Supabase and LLM API keys via Render dashboard
+# 2. Enable auto-deploy for continuous deployment
+# 3. Monitor logs in Render dashboard
+# 4. Set up alerts for downtime notifications
+# 5. Consider upgrading plan for production workloads

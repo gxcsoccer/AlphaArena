@@ -1,0 +1,86 @@
+# Railway Deployment Configuration
+# https://docs.railway.app/guides/configure
+
+# Service name
+name: AlphaArena
+
+# Build configuration
+build:
+  # Build command
+  command: npm run build && npm run build:client
+  
+  # Node.js version
+  nodeVersion: 18
+  
+  # Install command
+  installCommand: npm install
+
+# Deploy configuration
+deploy:
+  # Start command
+  startCommand: node dist/index.js
+  
+  # Healthcheck path
+  healthcheckPath: /api/health
+  
+  # Healthcheck timeout (seconds)
+  healthcheckTimeout: 30
+  
+  # Restart policy
+  restartPolicy: on-failure
+  
+  # Maximum restarts
+  restartMaxAttempts: 3
+
+# Environment variables
+# Add these in Railway dashboard or via CLI:
+# railway variables set KEY=value
+
+# Required variables:
+# - SUPABASE_URL
+# - SUPABASE_ANON_KEY
+# - LLM_API_KEY (if using LLM strategies)
+# - API_BASE_URL
+# - SESSION_SECRET
+
+# Optional variables:
+# - LLM_MODEL
+# - LLM_TEMPERATURE
+# - LLM_MAX_TOKENS
+# - LLM_DAILY_BUDGET
+# - PORT (Railway sets this automatically)
+# - LOG_LEVEL
+
+# Networking
+networking:
+  # Public networking
+  public: true
+  
+  # Port (Railway auto-assigns if not specified)
+  port: 3001
+
+# Storage (optional, for persistent data)
+# storage:
+#   - mountPath: /app/data
+#     size: 1GB
+
+# Domains (optional)
+# domains:
+#   - alphaarena.example.com
+
+# Auto-deploy settings
+autoDeploy:
+  # Deploy on git push
+  enabled: true
+  
+  # Branch to deploy
+  branch: main
+
+# Alerts (optional)
+# alerts:
+#   - type: cpu
+#     threshold: 80
+#     period: 5m
+#   - type: memory
+#     threshold: 90
+#     period: 5m
