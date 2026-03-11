@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { WebSocketClient, api, Strategy, Trade, Portfolio, Stats } from '../utils/api';
+import { WebSocketClient, api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot } from '../utils/api';
 
 /**
  * Hook for WebSocket connection management
@@ -118,7 +118,10 @@ export const useStrategies = () => {
 /**
  * Hook for recent trades with real-time updates
  */
-export const useTrades = (filters?: { strategyId?: string; symbol?: string }, limit: number = 100) => {
+export const useTrades = (
+  filters?: { strategyId?: string; symbol?: string; side?: 'buy' | 'sell' },
+  limit: number = 100
+) => {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -202,4 +205,54 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
   }, [connected, on, strategyId]);
 
   return { portfolio, loading, error, refresh: fetchPortfolio };
+};
+
+export const useOrderBook = (symbol: string, levels: number = 20) => {
+  const [orderBook, setOrderBook] = useState<OrderBookSnapshot | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { connected, subscribe, on } = useWebSocket();
+
+  const fetchOrderBook = useCallback(async () => {
+    try {
+      const data = await api.getOrderBook(symbol, levels);
+      setOrderBook(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [symbol, levels]);
+
+  useEffect(() => {
+    fetchOrderBook();
+  }, [fetchOrderBook]);
+
+  useEffect(() => {
+    if (!connected || !symbol) return;
+
+    subscribeOrderBook(symbol);
+
+    const handleSnapshot = (data: OrderBookSnapshot) => {
+      setOrderBook(data);
+      setLoading(false);
+    };
+
+    const handleDelta = (delta: OrderBookSnapshot) => {
+      setOrderBook(prev => {
+        if (!prev || !delta) return prev;
+        return { ...delta };
+      });
+    };
+
+    on('orderbook:snapshot', handleSnapshot);
+    on('orderbook:delta', handleDelta);
+
+    return () => {
+      unsubscribeOrderBook(symbol);
+    };
+  }, [connected, symbol, subscribe, on]);
+
+  return { orderBook, loading, error, refresh: fetchOrderBook };
 };

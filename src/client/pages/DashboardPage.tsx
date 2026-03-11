@@ -28,7 +28,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 const DashboardPage: React.FC = () => {
   const { stats, loading: statsLoading } = useStats();
   const { strategies, loading: strategiesLoading } = useStrategies();
-  const { trades, loading: tradesLoading } = useTrades({ limit: 10 });
+  const { trades, loading: tradesLoading } = useTrades(undefined, 10);
 
   // Prepare chart data
   const strategyStatusData = strategies.reduce((acc: any, strategy) => {
@@ -216,7 +216,7 @@ const DashboardPage: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"

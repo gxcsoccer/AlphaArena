@@ -51,3 +51,33 @@ export interface OrderBookDepth {
   askDepth: number;
   totalDepth: number;
 }
+
+/**
+ * Order book incremental update
+ */
+export interface OrderBookUpdate {
+  action: 'add' | 'cancel' | 'modify';
+  order?: Order;
+  orderId?: string;
+  price?: number;
+  newQuantity?: number;
+  timestamp: number;
+}
+
+/**
+ * Order book delta for incremental updates
+ */
+export interface OrderBookDelta {
+  bids: PriceLevel[];
+  asks: PriceLevel[];
+  timestamp: number;
+  isSnapshot: boolean;
+}
+
+/**
+ * Order book event types
+ */
+export type OrderBookEvent =
+  | { type: 'snapshot'; data: OrderBookSnapshot }
+  | { type: 'delta'; data: OrderBookDelta }
+  | { type: 'update'; data: OrderBookUpdate };

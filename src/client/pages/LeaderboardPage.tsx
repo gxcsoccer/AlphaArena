@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { useStrategies, useTrades } from '../hooks/useData';
 import { api, LeaderboardEntry, StrategyMetrics } from '../utils/api';
-import type { TableProps } from '@arco-design/web-react';
+import type { TableProps, TableColumnProps } from '@arco-design/web-react';
 import { IconRefresh, IconTrophy, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon';
 
 const { Header, Content } = Layout;
@@ -107,7 +107,7 @@ const LeaderboardPage: React.FC = () => {
   }));
 
   // Ranking table columns
-  const rankingColumns: ColumnsType<LeaderboardEntry> = [
+  const rankingColumns: TableColumnProps<LeaderboardEntry>[] = [
     {
       title: 'Rank',
       key: 'rank',
@@ -176,7 +176,7 @@ const LeaderboardPage: React.FC = () => {
           {roi >= 0 ? '+' : ''}{roi.toFixed(2)}%
         </Text>
       ),
-      sorter: (a, b) => a.metrics.roi - b.metrics.roi,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.roi - b.metrics.roi,
       defaultSortOrder: sortBy === 'roi' ? 'descend' : undefined,
     },
     {
@@ -196,7 +196,7 @@ const LeaderboardPage: React.FC = () => {
           {sharpe.toFixed(2)}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.sharpeRatio - b.metrics.sharpeRatio,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.sharpeRatio - b.metrics.sharpeRatio,
     },
     {
       title: (
@@ -214,7 +214,7 @@ const LeaderboardPage: React.FC = () => {
           -{dd.toFixed(2)}%
         </Text>
       ),
-      sorter: (a, b) => a.metrics.maxDrawdown - b.metrics.maxDrawdown,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.maxDrawdown - b.metrics.maxDrawdown,
     },
     {
       title: 'Win Rate',
@@ -232,7 +232,7 @@ const LeaderboardPage: React.FC = () => {
           size="small"
         />
       ),
-      sorter: (a, b) => a.metrics.winRate - b.metrics.winRate,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.winRate - b.metrics.winRate,
     },
     {
       title: (
@@ -255,7 +255,7 @@ const LeaderboardPage: React.FC = () => {
           })}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.totalPnL - b.metrics.totalPnL,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalPnL - b.metrics.totalPnL,
     },
     {
       title: (
@@ -271,14 +271,14 @@ const LeaderboardPage: React.FC = () => {
           ${(volume / 1000).toFixed(1)}K
         </Text>
       ),
-      sorter: (a, b) => a.metrics.totalVolume - b.metrics.totalVolume,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalVolume - b.metrics.totalVolume,
     },
     {
       title: 'Total Trades',
       dataIndex: ['metrics', 'totalTrades'],
       key: 'totalTrades',
       width: 90,
-      sorter: (a, b) => a.metrics.totalTrades - b.metrics.totalTrades,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.totalTrades - b.metrics.totalTrades,
     },
     {
       title: (
@@ -297,7 +297,7 @@ const LeaderboardPage: React.FC = () => {
           })}
         </Text>
       ),
-      sorter: (a, b) => a.metrics.avgTradeSize - b.metrics.avgTradeSize,
+      sorter: (a: LeaderboardEntry, b: LeaderboardEntry) => a.metrics.avgTradeSize - b.metrics.avgTradeSize,
     },
   ];
 

@@ -1,5 +1,5 @@
 import { OrderBook } from '../src/orderbook/OrderBook';
-import { Order, OrderType } from '../src/orderbook/types';
+import { Order, OrderType, OrderBookDelta } from '../src/orderbook/types';
 
 describe('OrderBook', () => {
   let orderBook: OrderBook;
@@ -387,6 +387,207 @@ describe('OrderBook', () => {
 
       const snapshot = orderBook.getSnapshot();
       expect(snapshot.asks[0].price).toBe(103); // Lower price first
+    });
+  });
+
+  describe('Event Emission', () => {
+    it('should emit delta event on add', (done) => {
+      const order: Order = {
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      };
+
+      orderBook.on('update', (event) => {
+        if (event.type === 'delta') {
+          expect(event.data.bids.length).toBeGreaterThan(0);
+          expect(event.data.isSnapshot).toBe(false);
+          done();
+        }
+      });
+
+      orderBook.add(order);
+    });
+
+    it('should emit update event on add', (done) => {
+      const order: Order = {
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      };
+
+      orderBook.on('update', (event) => {
+        if (event.type === 'update' && event.data.action === 'add') {
+          expect(event.data.order?.id).toBe('1');
+          expect(event.data.order?.price).toBe(100);
+          done();
+        }
+      });
+
+      orderBook.add(order);
+    });
+
+    it('should emit update event on cancel', (done) => {
+      const order: Order = {
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      };
+
+      orderBook.add(order);
+
+      orderBook.on('update', (event) => {
+        if (event.type === 'update' && event.data.action === 'cancel') {
+          expect(event.data.orderId).toBe('1');
+          done();
+        }
+      });
+
+      orderBook.cancel('1');
+    });
+
+    it('should emit update event on modify', (done) => {
+      const order: Order = {
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      };
+
+      orderBook.add(order);
+
+      orderBook.on('update', (event) => {
+        if (event.type === 'update' && event.data.action === 'modify') {
+          expect(event.data.order?.quantity).toBe(20);
+          done();
+        }
+      });
+
+      orderBook.modify('1', 20);
+    });
+  });
+
+  describe('Delta Application', () => {
+    it('should apply snapshot delta', () => {
+      const orders: Order[] = [
+        { id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID },
+        { id: '2', price: 105, quantity: 10, timestamp: Date.now(), type: OrderType.ASK },
+      ];
+
+      const delta: OrderBookDelta = {
+        bids: [
+          { price: 100, orders: [orders[0]], totalQuantity: 10 },
+        ],
+        asks: [
+          { price: 105, orders: [orders[1]], totalQuantity: 10 },
+        ],
+        timestamp: Date.now(),
+        isSnapshot: true,
+      };
+
+      orderBook.applyDelta(delta);
+
+      expect(orderBook.getOrderCount()).toBe(2);
+      expect(orderBook.getBestBid()).toBe(100);
+      expect(orderBook.getBestAsk()).toBe(105);
+    });
+  });
+
+  describe('Performance', () => {
+    it('should handle 100+ updates per second', () => {
+      const startTime = Date.now();
+      const updates = 1000;
+
+      for (let i = 0; i < updates; i++) {
+        orderBook.add({
+          id: `order-${i}`,
+          price: 100 + (i % 10),
+          quantity: 10,
+          timestamp: Date.now(),
+          type: i % 2 === 0 ? OrderType.BID : OrderType.ASK,
+        });
+      }
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+      const updatesPerSecond = (updates / duration) * 1000;
+
+      expect(duration).toBeLessThan(5000); // Should complete in less than 5 seconds
+      expect(updatesPerSecond).toBeGreaterThan(100); // Should handle at least 100 updates/sec
+    });
+
+    it('should maintain reasonable memory usage for 1000 levels', () => {
+      for (let i = 0; i < 1000; i++) {
+        orderBook.add({
+          id: `bid-${i}`,
+          price: 100 - i * 0.01,
+          quantity: 10,
+          timestamp: Date.now(),
+          type: OrderType.BID,
+        });
+        orderBook.add({
+          id: `ask-${i}`,
+          price: 105 + i * 0.01,
+          quantity: 10,
+          timestamp: Date.now(),
+          type: OrderType.ASK,
+        });
+      }
+
+      const snapshot = orderBook.getSnapshot();
+      expect(snapshot.bids.length).toBe(1000);
+      expect(snapshot.asks.length).toBe(1000);
+
+      const orderCount = orderBook.getOrderCount();
+      expect(orderCount).toBe(2000);
+    });
+  });
+
+  describe('Sequence Number', () => {
+    it('should increment sequence number on each operation', () => {
+      expect(orderBook.getSequenceNumber()).toBe(0);
+
+      orderBook.add({
+        id: '1',
+        price: 100,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.BID,
+      });
+      expect(orderBook.getSequenceNumber()).toBeGreaterThan(0);
+
+      const prevSeq = orderBook.getSequenceNumber();
+      orderBook.add({
+        id: '2',
+        price: 105,
+        quantity: 10,
+        timestamp: Date.now(),
+        type: OrderType.ASK,
+      });
+      expect(orderBook.getSequenceNumber()).toBeGreaterThan(prevSeq);
+    });
+  });
+
+  describe('Batch Operations', () => {
+    it('should batch add orders', () => {
+      const orders: Order[] = [
+        { id: '1', price: 100, quantity: 10, timestamp: Date.now(), type: OrderType.BID },
+        { id: '2', price: 101, quantity: 10, timestamp: Date.now(), type: OrderType.BID },
+        { id: '3', price: 105, quantity: 10, timestamp: Date.now(), type: OrderType.ASK },
+      ];
+
+      orderBook.batchAdd(orders);
+
+      expect(orderBook.getOrderCount()).toBe(3);
+      expect(orderBook.getBestBid()).toBe(101);
+      expect(orderBook.getBestAsk()).toBe(105);
     });
   });
 });

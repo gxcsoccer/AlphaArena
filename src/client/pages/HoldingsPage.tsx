@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid } from '@arco-design/web-react';
-const { Row, Col } = Grid;
 import {
   LineChart,
   Line,
@@ -20,13 +19,23 @@ import { usePortfolio, useStrategies, useTrades } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 import type { Portfolio } from '../utils/api';
 
+const { Row, Col } = Grid;
 const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B'];
 
+interface PnLData {
+  realizedPnL: number;
+  totalCost: number;
+  totalProceeds: number;
+  winRate: number;
+  winningTrades: number;
+  losingTrades: number;
+}
+
 const HoldingsPage: React.FC = () => {
-  const { strategies } = useStrategies();
+  const { strategies, loading: strategiesLoading } = useStrategies();
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(
     strategies.length > 0 ? strategies[0].id : undefined
   );
@@ -38,11 +47,22 @@ const HoldingsPage: React.FC = () => {
     }
   }, [strategies, selectedStrategyId]);
 
-  const { portfolio, loading } = usePortfolio(selectedStrategyId);
-  const { trades } = useTrades({ strategyId: selectedStrategyId }, 100);
+  const { portfolio, loading: portfolioLoading } = usePortfolio(selectedStrategyId);
+  const { trades, loading: tradesLoading } = useTrades({ strategyId: selectedStrategyId }, 500);
 
   // Calculate P&L from trades
-  const calculatePnL = () => {
+  const pnlData: PnLData = useMemo(() => {
+    if (trades.length === 0) {
+      return {
+        realizedPnL: 0,
+        totalCost: 0,
+        totalProceeds: 0,
+        winRate: 0,
+        winningTrades: 0,
+        losingTrades: 0,
+      };
+    }
+
     const buys = trades.filter(t => t.side === 'buy');
     const sells = trades.filter(t => t.side === 'sell');
 
@@ -50,41 +70,55 @@ const HoldingsPage: React.FC = () => {
     const totalProceeds = sells.reduce((sum, t) => sum + t.total, 0);
     const realizedPnL = totalProceeds - totalCost;
 
+    // Simple win rate calculation based on profitable sells
+    // This is a simplified model - real P&L would track cost basis per unit
+    const avgBuyPrice = buys.length > 0 ? totalCost / buys.reduce((sum, t) => sum + t.quantity, 0) : 0;
+    const winningSells = sells.filter(s => s.price > avgBuyPrice);
+    const losingSells = sells.filter(s => s.price <= avgBuyPrice);
+
     return {
       realizedPnL,
       totalCost,
       totalProceeds,
-      winRate: sells.length > 0 ? (sells.filter(s => s.total > buys.find(b => b.id === s.sellOrderId)?.total || 0).length / sells.length) * 100 : 0,
+      winRate: sells.length > 0 ? (winningSells.length / sells.length) * 100 : 0,
+      winningTrades: winningSells.length,
+      losingTrades: losingSells.length,
     };
-  };
-
-  const pnlData = calculatePnL();
+  }, [trades]);
 
   // Prepare asset allocation data
-  const allocationData = portfolio?.positions.map((pos, index) => ({
-    name: pos.symbol,
-    value: pos.quantity * pos.averageCost,
-  })) || [];
+  const allocationData = useMemo(() => {
+    const data = portfolio?.positions.map((pos) => ({
+      name: pos.symbol,
+      value: pos.quantity * pos.averageCost,
+    })) || [];
 
-  if (portfolio?.cashBalance) {
-    allocationData.push({
-      name: 'Cash',
-      value: portfolio.cashBalance,
-    });
-  }
+    if (portfolio?.cashBalance) {
+      data.push({
+        name: 'Cash',
+        value: portfolio.cashBalance,
+      });
+    }
+
+    return data;
+  }, [portfolio]);
 
   // Prepare equity curve data (simulated from trades)
-  const equityCurveData = trades
-    .sort((a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime())
-    .reduce((acc: any[], trade, index) => {
-      const prevValue = acc.length > 0 ? acc[acc.length - 1].value : (portfolio?.totalValue || 0);
-      const newValue = trade.side === 'buy' ? prevValue - trade.total : prevValue + trade.total;
-      acc.push({
-        time: new Date(trade.executedAt).toLocaleDateString(),
-        value: newValue,
-      });
-      return acc;
-    }, []);
+  const equityCurveData = useMemo(() => {
+    if (trades.length === 0) return [];
+
+    return trades
+      .sort((a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime())
+      .reduce((acc: Array<{ time: string; value: number }>, trade) => {
+        const prevValue = acc.length > 0 ? acc[acc.length - 1].value : (portfolio?.totalValue || 0);
+        const newValue = trade.side === 'buy' ? prevValue - trade.total : prevValue + trade.total;
+        acc.push({
+          time: new Date(trade.executedAt).toLocaleDateString(),
+          value: Math.max(0, newValue), // Prevent negative values
+        });
+        return acc;
+      }, []);
+  }, [trades, portfolio?.totalValue]);
 
   // Position table columns
   const positionColumns: TableProps<NonNullable<Portfolio['positions']>[0]>['columns'] = [
@@ -118,13 +152,15 @@ const HoldingsPage: React.FC = () => {
       title: 'Allocation',
       key: 'allocation',
       width: 100,
-      render: (_: any, record) => {
+      render: (_: any, record: NonNullable<Portfolio['positions']>[0]) => {
         const total = allocationData.reduce((sum, item) => sum + item.value, 0);
         const percentage = total > 0 ? ((record.quantity * record.averageCost) / total) * 100 : 0;
         return `${percentage.toFixed(1)}%`;
       },
     },
   ];
+
+  const loading = strategiesLoading || portfolioLoading || tradesLoading;
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -142,6 +178,7 @@ const HoldingsPage: React.FC = () => {
             allowClear
             value={selectedStrategyId}
             onChange={setSelectedStrategyId}
+            loading={strategiesLoading}
           >
             {strategies.map(s => (
               <Select.Option key={s.id} value={s.id}>{s.name}</Select.Option>
@@ -205,7 +242,7 @@ const HoldingsPage: React.FC = () => {
                     cx="50%"
                     cy="50%"
                     labelLine
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
@@ -222,16 +259,28 @@ const HoldingsPage: React.FC = () => {
           </Col>
           <Col span={12}>
             <Card title="Equity Curve" loading={loading}>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={equityCurveData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="value" stroke="#8884d8" name="Portfolio Value ($)" />
-                </LineChart>
-              </ResponsiveContainer>
+              {equityCurveData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={equityCurveData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="time" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line type="monotone" dataKey="value" stroke="#8884d8" name="Portfolio Value ($)" />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ 
+                  height: 300, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#999'
+                }}>
+                  No trade data available
+                </div>
+              )}
             </Card>
           </Col>
         </Row>
@@ -267,19 +316,41 @@ const HoldingsPage: React.FC = () => {
                   />
                 </Col>
               </Row>
+              <Row gutter={16} style={{ marginTop: 16 }}>
+                <Col span={12}>
+                  <Text type="secondary">
+                    Winning Trades: <Text strong style={{ color: '#3f8600' }}>{pnlData.winningTrades}</Text>
+                  </Text>
+                </Col>
+                <Col span={12}>
+                  <Text type="secondary">
+                    Losing Trades: <Text strong style={{ color: '#cf1322' }}>{pnlData.losingTrades}</Text>
+                  </Text>
+                </Col>
+              </Row>
             </Card>
           </Col>
         </Row>
 
         {/* Positions Table */}
         <Card title="Current Positions" loading={loading}>
-          <Table
-            columns={positionColumns}
-            dataSource={portfolio?.positions || []}
-            rowKey="symbol"
-            pagination={false}
-            size="small"
-          />
+          {portfolio?.positions && portfolio.positions.length > 0 ? (
+            <Table
+              columns={positionColumns}
+              dataSource={portfolio.positions}
+              rowKey="symbol"
+              pagination={false}
+              size="small"
+            />
+          ) : (
+            <div style={{ 
+              padding: 40, 
+              textAlign: 'center', 
+              color: '#999' 
+            }}>
+              No positions held
+            </div>
+          )}
         </Card>
       </Content>
     </Layout>

@@ -1,4 +1,14 @@
-import { Order, OrderType, PriceLevel, OrderBookSnapshot, OrderBookDepth } from './types';
+import { EventEmitter } from 'events';
+import {
+  Order,
+  OrderType,
+  PriceLevel,
+  OrderBookSnapshot,
+  OrderBookDepth,
+  OrderBookUpdate,
+  OrderBookDelta,
+  OrderBookEvent,
+} from './types';
 
 /**
  * OrderBook - 高性能模拟订单簿
@@ -9,16 +19,35 @@ import { Order, OrderType, PriceLevel, OrderBookSnapshot, OrderBookDepth } from 
  * - 支持订单的添加、取消、修改操作
  * - 支持查询最优买卖价 (best bid/ask)
  * - 支持查询订单簿深度 (order book depth)
+ * - 支持增量更新和快照
+ * - 支持事件发射用于 WebSocket 广播
  */
-export class OrderBook {
+export class OrderBook extends EventEmitter {
   private bids: Map<number, PriceLevel>; // 买单 - 价格映射
   private asks: Map<number, PriceLevel>; // 卖单 - 价格映射
   private orders: Map<string, Order>; // 订单 ID - 订单映射
+  private sequenceNumber: number; // 用于增量更新的序列号
 
   constructor() {
+    super();
     this.bids = new Map();
     this.asks = new Map();
     this.orders = new Map();
+    this.sequenceNumber = 0;
+  }
+
+  /**
+   * 获取并递增序列号
+   */
+  private getNextSequence(): number {
+    return ++this.sequenceNumber;
+  }
+
+  /**
+   * 发射订单簿事件
+   */
+  private emitEvent(event: OrderBookEvent): void {
+    this.emit('update', event);
   }
 
   /**
@@ -36,6 +65,7 @@ export class OrderBook {
 
     // 根据订单类型添加到对应的价格层级
     const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
+    const isNewPriceLevel = !priceLevels.has(order.price);
 
     if (!priceLevels.has(order.price)) {
       priceLevels.set(order.price, {
@@ -51,6 +81,34 @@ export class OrderBook {
 
     // 排序：价格优先，时间优先
     this.sortOrders(level.orders);
+
+    // 递增序列号
+    this.getNextSequence();
+
+    // 发射增量更新事件
+    const delta: OrderBookDelta = {
+      bids: isNewPriceLevel ? this.getSortedLevels(this.bids, true, 1) : [],
+      asks: isNewPriceLevel ? this.getSortedLevels(this.asks, false, 1) : [],
+      timestamp: Date.now(),
+      isSnapshot: false,
+    };
+
+    // 只包含变化的价格层级
+    if (order.type === OrderType.BID) {
+      delta.bids = [level];
+    } else {
+      delta.asks = [level];
+    }
+
+    this.emitEvent({ type: 'delta', data: delta });
+
+    // 同时发射详细更新事件
+    const update: OrderBookUpdate = {
+      action: 'add',
+      order,
+      timestamp: Date.now(),
+    };
+    this.emitEvent({ type: 'update', data: update });
   }
 
   /**
@@ -66,6 +124,7 @@ export class OrderBook {
 
     const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
     const level = priceLevels.get(order.price);
+    const isLastOrderAtLevel = level ? level.orders.length === 1 : false;
 
     if (level) {
       // 从价格层级中移除订单
@@ -83,6 +142,28 @@ export class OrderBook {
 
     // 从订单映射中删除
     this.orders.delete(orderId);
+
+    // 递增序列号
+    this.getNextSequence();
+
+    // 发射增量更新事件
+    const delta: OrderBookDelta = {
+      bids: order.type === OrderType.BID ? (isLastOrderAtLevel ? [level!] : []) : [],
+      asks: order.type === OrderType.ASK ? (isLastOrderAtLevel ? [level!] : []) : [],
+      timestamp: Date.now(),
+      isSnapshot: false,
+    };
+
+    this.emitEvent({ type: 'delta', data: delta });
+
+    // 发射详细更新事件
+    const update: OrderBookUpdate = {
+      action: 'cancel',
+      orderId,
+      timestamp: Date.now(),
+    };
+    this.emitEvent({ type: 'update', data: update });
+
     return true;
   }
 
@@ -98,6 +179,9 @@ export class OrderBook {
     if (!order) {
       return false;
     }
+
+    const oldPrice = order.price;
+    const oldQuantity = order.quantity;
 
     // 如果价格改变，先取消再添加
     if (newPrice !== undefined && newPrice !== order.price) {
@@ -129,6 +213,26 @@ export class OrderBook {
     if (level) {
       this.sortOrders(level.orders);
     }
+
+    // 递增序列号
+    this.getNextSequence();
+
+    // 发射增量更新事件
+    const delta: OrderBookDelta = {
+      bids: order.type === OrderType.BID ? [level!] : [],
+      asks: order.type === OrderType.ASK ? [level!] : [],
+      timestamp: Date.now(),
+      isSnapshot: false,
+    };
+    this.emitEvent({ type: 'delta', data: delta });
+
+    // 发射详细更新事件
+    const update: OrderBookUpdate = {
+      action: 'modify',
+      order: { ...order },
+      timestamp: Date.now(),
+    };
+    this.emitEvent({ type: 'update', data: update });
 
     return true;
   }
@@ -188,27 +292,9 @@ export class OrderBook {
    * @returns 订单簿快照
    */
   getSnapshot(levels?: number): OrderBookSnapshot {
-    const getSortedLevels = (
-      priceLevels: Map<number, PriceLevel>,
-      isBid: boolean
-    ): PriceLevel[] => {
-      const sorted = Array.from(priceLevels.values()).sort((a, b) => {
-        if (isBid) {
-          return b.price - a.price; // 买单：价格降序
-        } else {
-          return a.price - b.price; // 卖单：价格升序
-        }
-      });
-
-      if (levels !== undefined) {
-        return sorted.slice(0, levels);
-      }
-      return sorted;
-    };
-
     return {
-      bids: getSortedLevels(this.bids, true),
-      asks: getSortedLevels(this.asks, false),
+      bids: this.getSortedLevels(this.bids, true, levels),
+      asks: this.getSortedLevels(this.asks, false, levels),
       timestamp: Date.now(),
     };
   }
@@ -252,5 +338,99 @@ export class OrderBook {
       // 时间优先
       return a.timestamp - b.timestamp; // 时间早的优先
     });
+  }
+
+  /**
+   * 获取排序后的价格层级
+   * @param priceLevels 价格层级 Map
+   * @param isBid 是否为买单
+   * @param levels 限制返回的层级数量
+   */
+  private getSortedLevels(
+    priceLevels: Map<number, PriceLevel>,
+    isBid: boolean,
+    levels?: number
+  ): PriceLevel[] {
+    const sorted = Array.from(priceLevels.values()).sort((a, b) => {
+      if (isBid) {
+        return b.price - a.price; // 买单：价格降序
+      } else {
+        return a.price - b.price; // 卖单：价格升序
+      }
+    });
+
+    if (levels !== undefined) {
+      return sorted.slice(0, levels);
+    }
+    return sorted;
+  }
+
+  /**
+   * 应用增量更新
+   * @param delta 增量数据
+   */
+  applyDelta(delta: OrderBookDelta): void {
+    // 清空现有数据并应用快照
+    if (delta.isSnapshot) {
+      this.bids.clear();
+      this.asks.clear();
+      this.orders.clear();
+
+      // 应用买单
+      for (const level of delta.bids) {
+        for (const order of level.orders) {
+          this.orders.set(order.id, order);
+        }
+        this.bids.set(level.price, level);
+      }
+
+      // 应用卖单
+      for (const level of delta.asks) {
+        for (const order of level.orders) {
+          this.orders.set(order.id, order);
+        }
+        this.asks.set(level.price, level);
+      }
+
+      this.emitEvent({
+        type: 'snapshot',
+        data: {
+          bids: delta.bids,
+          asks: delta.asks,
+          timestamp: delta.timestamp,
+        },
+      });
+    }
+  }
+
+  /**
+   * 批量添加订单（用于快照初始化）
+   * @param orders 订单列表
+   */
+  batchAdd(orders: Order[]): void {
+    for (const order of orders) {
+      this.add(order);
+    }
+  }
+
+  /**
+   * 获取所有买单价格层级
+   */
+  getAllBids(): PriceLevel[] {
+    return this.getSortedLevels(this.bids, true);
+  }
+
+  /**
+   * 获取所有卖单价格层级
+   */
+  getAllAsks(): PriceLevel[] {
+    return this.getSortedLevels(this.asks, false);
+  }
+
+  /**
+   * 获取序列号
+   */
+  getSequenceNumber(): number {
+    return this.sequenceNumber;
   }
 }

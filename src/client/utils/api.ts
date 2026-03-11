@@ -94,6 +94,30 @@ export interface LeaderboardSnapshot {
   totalVolume: number;
 }
 
+export interface PriceLevel {
+  price: number;
+  orders: any[];
+  totalQuantity: number;
+}
+
+export interface OrderBookSnapshot {
+  bids: PriceLevel[];
+  asks: PriceLevel[];
+  timestamp: number;
+}
+
+export interface BestPrices {
+  bestBid: number | null;
+  bestAsk: number | null;
+  spread: number | null;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  error?: string;
+}
+
 /**
  * REST API Client
  */
@@ -101,19 +125,32 @@ export const api = {
   // Health check
   async health(): Promise<{ status: string; timestamp: number }> {
     const res = await fetch(`${API_BASE_URL}/health`);
+    if (!res.ok) {
+      throw new Error(`Health check failed: ${res.status}`);
+    }
     return res.json();
   },
 
   // Strategies
   async getStrategies(): Promise<Strategy[]> {
     const res = await fetch(`${API_BASE_URL}/api/strategies`);
-    const data = await res.json();
+    const data: ApiResponse<Strategy[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getStrategy(id: string): Promise<Strategy | null> {
     const res = await fetch(`${API_BASE_URL}/api/strategies/${id}`);
-    const data = await res.json();
+    const data: ApiResponse<Strategy> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async createStrategy(strategy: Omit<Strategy, 'id' | 'createdAt' | 'updatedAt'>): Promise<Strategy | null> {
+    const res = await fetch(`${API_BASE_URL}/api/strategies`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(strategy),
+    });
+    const data: ApiResponse<Strategy> = await res.json();
     return data.success ? data.data : null;
   },
 
@@ -123,7 +160,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
-    const data = await res.json();
+    const data: ApiResponse<Strategy> = await res.json();
     return data.success ? data.data : null;
   },
 
@@ -143,7 +180,7 @@ export const api = {
     if (filters?.offset) params.append('offset', filters.offset.toString());
 
     const res = await fetch(`${API_BASE_URL}/api/trades?${params}`);
-    const data = await res.json();
+    const data: ApiResponse<Trade[]> = await res.json();
     return data.success ? data.data : [];
   },
 
@@ -154,14 +191,14 @@ export const api = {
     if (symbol) params.append('symbol', symbol);
 
     const res = await fetch(`${API_BASE_URL}/api/portfolios?${params}`);
-    const data = await res.json();
+    const data: ApiResponse<Portfolio> = await res.json();
     return data.success ? data.data : null;
   },
 
   // Stats
   async getStats(): Promise<Stats | null> {
     const res = await fetch(`${API_BASE_URL}/api/stats`);
-    const data = await res.json();
+    const data: ApiResponse<Stats> = await res.json();
     return data.success ? data.data : null;
   },
 
@@ -169,13 +206,13 @@ export const api = {
   async getLeaderboard(sortBy?: string): Promise<LeaderboardEntry[]> {
     const params = sortBy ? `?sortBy=${sortBy}` : '';
     const res = await fetch(`${API_BASE_URL}/api/leaderboard${params}`);
-    const data = await res.json();
+    const data: ApiResponse<LeaderboardEntry[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getStrategyRank(strategyId: string): Promise<LeaderboardEntry | null> {
     const res = await fetch(`${API_BASE_URL}/api/leaderboard/${strategyId}`);
-    const data = await res.json();
+    const data: ApiResponse<LeaderboardEntry> = await res.json();
     return data.success ? data.data : null;
   },
 
@@ -184,13 +221,26 @@ export const api = {
     const res = await fetch(`${API_BASE_URL}/api/leaderboard/refresh${params}`, {
       method: 'POST',
     });
-    const data = await res.json();
+    const data: ApiResponse<LeaderboardEntry[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getLeaderboardSnapshot(): Promise<LeaderboardSnapshot | null> {
     const res = await fetch(`${API_BASE_URL}/api/leaderboard/snapshot`);
-    const data = await res.json();
+    const data: ApiResponse<LeaderboardSnapshot> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getOrderBook(symbol: string, levels?: number): Promise<OrderBookSnapshot | null> {
+    const params = levels ? `?levels=${levels}` : '';
+    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}${params}`);
+    const data: ApiResponse<OrderBookSnapshot> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getBestPrices(symbol: string): Promise<BestPrices | null> {
+    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}/best`);
+    const data: ApiResponse<BestPrices> = await res.json();
     return data.success ? data.data : null;
   },
 };
@@ -200,15 +250,21 @@ export const api = {
  */
 export class WebSocketClient {
   private socket: any;
+  private url: string;
   private listeners: Map<string, Set<Function>> = new Map();
+  private connectionPromise: Promise<void> | null = null;
 
   constructor(url: string = API_BASE_URL.replace('http', 'ws')) {
-    this.socket = null;
     this.url = url;
+    this.socket = null;
   }
 
   connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    if (this.connectionPromise) {
+      return this.connectionPromise;
+    }
+
+    this.connectionPromise = new Promise((resolve, reject) => {
       // Dynamic import for socket.io-client
       import('socket.io-client').then(({ io }) => {
         this.socket = io(this.url, {
@@ -226,6 +282,7 @@ export class WebSocketClient {
 
         this.socket.on('connect_error', (error: any) => {
           console.error('[WebSocket] Connection error:', error);
+          this.connectionPromise = null;
           reject(error);
         });
 
@@ -245,11 +302,26 @@ export class WebSocketClient {
         this.socket.on('leaderboard:update', (data: any) => {
           this.emit('leaderboard:update', data);
         });
-      }).catch(reject);
+
+        this.socket.on('orderbook:snapshot', (data: any) => {
+          this.emit('orderbook:snapshot', data);
+        });
+
+        this.socket.on('orderbook:delta', (data: any) => {
+          this.emit('orderbook:delta', data);
+        });
+      }).catch((error) => {
+        this.connectionPromise = null;
+        reject(error);
+      });
     });
+
+    return this.connectionPromise;
   }
 
   subscribe(strategyId?: string, symbol?: string): void {
+    if (!this.socket) return;
+    
     if (strategyId) {
       this.socket.emit('subscribe:strategy', strategyId);
     }
@@ -259,14 +331,30 @@ export class WebSocketClient {
   }
 
   unsubscribe(room: string): void {
+    if (!this.socket) return;
     this.socket.emit('unsubscribe', room);
   }
 
-  on(event: string, callback: Function): void {
+  subscribeOrderBook(symbol: string): void {
+    if (!this.socket) return;
+    this.socket.emit('subscribe:orderbook', symbol);
+  }
+
+  unsubscribeOrderBook(symbol: string): void {
+    if (!this.socket) return;
+    this.socket.emit('unsubscribe:orderbook', symbol);
+  }
+
+  on(event: string, callback: Function): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event)!.add(callback);
+
+    // Return unsubscribe function
+    return () => {
+      this.listeners.get(event)?.delete(callback);
+    };
   }
 
   off(event: string, callback: Function): void {
@@ -274,13 +362,21 @@ export class WebSocketClient {
   }
 
   private emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach(callback => callback(data));
+    this.listeners.get(event)?.forEach(callback => {
+      try {
+        callback(data);
+      } catch (error) {
+        console.error(`[WebSocket] Error in listener for event "${event}":`, error);
+      }
+    });
   }
 
   disconnect(): void {
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
+      this.connectionPromise = null;
+      this.listeners.clear();
     }
   }
 }
