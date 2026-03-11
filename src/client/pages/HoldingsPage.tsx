@@ -26,7 +26,16 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B'
 
 const HoldingsPage: React.FC = () => {
   const { strategies } = useStrategies();
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(undefined);
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(
+    strategies.length > 0 ? strategies[0].id : undefined
+  );
+
+  // Update selected strategy when strategies are loaded
+  React.useEffect(() => {
+    if (strategies.length > 0 && !selectedStrategyId) {
+      setSelectedStrategyId(strategies[0].id);
+    }
+  }, [strategies, selectedStrategyId]);
 
   const { portfolio, loading } = usePortfolio(selectedStrategyId);
   const { trades } = useTrades({ strategyId: selectedStrategyId }, 100);
