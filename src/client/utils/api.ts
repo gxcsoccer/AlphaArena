@@ -289,6 +289,23 @@ export const api = {
     const data: ApiResponse<KLineData[]> = await res.json();
     return data.success ? data.data : [];
   },
+
+  // Orders
+  async createOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    type: 'limit' | 'market';
+    price?: number;
+    quantity: number;
+  }): Promise<any | null> {
+    const res = await fetch(`${API_BASE_URL}/api/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**
