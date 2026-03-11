@@ -34,10 +34,12 @@ interface PnLData {
 
 const HoldingsPage: React.FC = () => {
   const { strategies, loading: strategiesLoading } = useStrategies();
-  const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(undefined);
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(
+    strategies.length > 0 ? strategies[0].id : undefined
+  );
 
-  // Auto-select first strategy when strategies are loaded
-  useEffect(() => {
+  // Update selected strategy when strategies are loaded
+  React.useEffect(() => {
     if (strategies.length > 0 && !selectedStrategyId) {
       setSelectedStrategyId(strategies[0].id);
     }
