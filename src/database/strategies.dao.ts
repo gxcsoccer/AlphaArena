@@ -26,16 +26,18 @@ export class StrategiesDAO {
     config?: StrategyConfig
   ): Promise<Strategy> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
-      .insert([{
-        name,
-        symbol,
-        description: description || null,
-        config: config || {},
-        status: 'active'
-      }])
+      .insert([
+        {
+          name,
+          symbol,
+          description: description || null,
+          config: config || {},
+          status: 'active',
+        },
+      ])
       .select()
       .single();
 
@@ -49,12 +51,8 @@ export class StrategiesDAO {
    */
   async getById(id: string): Promise<Strategy | null> {
     const supabase = getSupabaseClient();
-    
-    const { data, error } = await supabase
-      .from('strategies')
-      .select('*')
-      .eq('id', id)
-      .single();
+
+    const { data, error } = await supabase.from('strategies').select('*').eq('id', id).single();
 
     if (error && error.code !== 'PGRST116') throw error;
     if (!data) return null;
@@ -67,7 +65,7 @@ export class StrategiesDAO {
    */
   async getActive(): Promise<Strategy[]> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
       .select('*')
@@ -84,7 +82,7 @@ export class StrategiesDAO {
    */
   async getAll(): Promise<Strategy[]> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
       .select('*')
@@ -100,7 +98,7 @@ export class StrategiesDAO {
    */
   async updateStatus(id: string, status: 'active' | 'paused' | 'stopped'): Promise<Strategy> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
       .update([{ status, updated_at: new Date().toISOString() }])
@@ -118,7 +116,7 @@ export class StrategiesDAO {
    */
   async updateConfig(id: string, config: StrategyConfig): Promise<Strategy> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('strategies')
       .update([{ config, updated_at: new Date().toISOString() }])
@@ -136,11 +134,8 @@ export class StrategiesDAO {
    */
   async delete(id: string): Promise<void> {
     const supabase = getSupabaseClient();
-    
-    const { error } = await supabase
-      .from('strategies')
-      .delete()
-      .eq('id', id);
+
+    const { error } = await supabase.from('strategies').delete().eq('id', id);
 
     if (error) throw error;
   }
@@ -154,7 +149,7 @@ export class StrategiesDAO {
       status: row.status,
       config: row.config,
       createdAt: new Date(row.created_at),
-      updatedAt: new Date(row.updated_at)
+      updatedAt: new Date(row.updated_at),
     };
   }
 }

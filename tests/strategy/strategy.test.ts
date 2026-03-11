@@ -19,7 +19,7 @@ class TestStrategy extends Strategy {
     if (this.tickCount % 3 === 0) {
       return this.createSignal('buy', 100, 10, {
         confidence: 0.8,
-        reason: 'Test signal'
+        reason: 'Test signal',
       });
     }
 
@@ -51,22 +51,22 @@ describe('Strategy', () => {
         positions: [],
         totalValue: 100000,
         unrealizedPnL: 0,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       },
       clock: Date.now(),
       getMarketData: () => ({
         orderBook: {} as any,
         trades: [],
-        timestamp: Date.now()
+        timestamp: Date.now(),
       }),
       getPosition: (_symbol: string) => 0,
-      getCash: () => 100000
+      getCash: () => 100000,
     };
 
     // Create test strategy
     const config: StrategyConfig = {
       id: 'test-strategy',
-      name: 'Test Strategy'
+      name: 'Test Strategy',
     };
     strategy = new TestStrategy(config);
   });
@@ -106,8 +106,8 @@ describe('Strategy', () => {
         name: 'Custom Strategy',
         params: {
           windowSize: 20,
-          threshold: 0.5
-        }
+          threshold: 0.5,
+        },
       };
       const customStrategy = new TestStrategy(config);
       expect(customStrategy.getConfig().params?.windowSize).toBe(20);
@@ -246,7 +246,7 @@ describe('OrderSignal', () => {
       side: 'buy',
       price: 100,
       quantity: 10,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     expect(signal.id).toBeDefined();
@@ -266,7 +266,7 @@ describe('OrderSignal', () => {
       quantity: 5,
       timestamp: Date.now(),
       confidence: 0.9,
-      reason: 'High confidence signal'
+      reason: 'High confidence signal',
     };
 
     expect(signal.bid).toBe(99);
@@ -282,7 +282,7 @@ describe('MarketData', () => {
     const marketData: MarketData = {
       orderBook,
       trades: [],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     expect(marketData.orderBook).toBeDefined();

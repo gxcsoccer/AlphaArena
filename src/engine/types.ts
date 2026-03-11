@@ -37,13 +37,13 @@ export enum EngineState {
   STOPPED = 'stopped',
   RUNNING = 'running',
   PAUSED = 'paused',
-  ERROR = 'error'
+  ERROR = 'error',
 }
 
 /**
  * Engine event types - 引擎事件类型
  */
-export type EngineEventType = 
+export type EngineEventType =
   | 'engine:start'
   | 'engine:stop'
   | 'engine:pause'

@@ -24,7 +24,7 @@ class TestStrategy extends Strategy {
 
   onTick(context: StrategyContext): OrderSignal | null {
     this.tickCount++;
-    
+
     // Generate a buy signal every 5 ticks
     if (this.tickCount % 5 === 0 && context.getCash() > 1000) {
       const signal: OrderSignal = {
@@ -33,12 +33,12 @@ class TestStrategy extends Strategy {
         price: 150,
         quantity: 10,
         timestamp: Date.now(),
-        reason: `Tick ${this.tickCount}`
+        reason: `Tick ${this.tickCount}`,
       };
       this.signalsGenerated.push(signal);
       return signal;
     }
-    
+
     return null;
   }
 
@@ -66,16 +66,16 @@ class TestStrategy extends Strategy {
 
 describe('TradingEngine', () => {
   let engine: TradingEngine;
-  
+
   const engineConfig: EngineConfig = {
     tickInterval: 50, // Fast ticks for testing
     symbols: ['AAPL', 'GOOGL'],
     initialPrices: new Map([
       ['AAPL', 150],
-      ['GOOGL', 2800]
+      ['GOOGL', 2800],
     ]),
     volatility: 0.01,
-    enableLogging: false
+    enableLogging: false,
   };
 
   const riskConfig: RiskControlConfig = {
@@ -83,7 +83,7 @@ describe('TradingEngine', () => {
     maxTotalExposure: 1000000,
     stopLossPercent: 0.1,
     maxOrdersPerMinute: 100,
-    enabled: true
+    enabled: true,
   };
 
   beforeEach(() => {
@@ -115,7 +115,7 @@ describe('TradingEngine', () => {
     it('should start and stop correctly', (done) => {
       engine.on('engine:start', () => {
         expect(engine.getState()).toBe(EngineState.RUNNING);
-        
+
         engine.stop();
         expect(engine.getState()).toBe(EngineState.STOPPED);
         done();
@@ -172,7 +172,7 @@ describe('TradingEngine', () => {
     it('should add and initialize strategy', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      
+
       expect(strategy.isInitialized()).toBe(true);
     });
 
@@ -180,14 +180,14 @@ describe('TradingEngine', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
       engine.removeStrategy('test-strategy');
-      
+
       expect(strategy.isInitialized()).toBe(false);
     });
 
     it('should execute strategy on ticks', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      
+
       let tickCount = 0;
       engine.on('engine:tick', () => {
         tickCount++;
@@ -203,7 +203,7 @@ describe('TradingEngine', () => {
     it('should generate signals from strategy', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      
+
       engine.on('signal:generated', (data: any) => {
         expect(data.strategy).toBe('test-strategy');
         expect(data.signal).toBeDefined();
@@ -218,7 +218,7 @@ describe('TradingEngine', () => {
   describe('Event Emission', () => {
     it('should emit tick events', (done) => {
       let ticks = 0;
-      
+
       engine.on('engine:tick', () => {
         ticks++;
         if (ticks >= 5) {
@@ -232,7 +232,7 @@ describe('TradingEngine', () => {
     it('should emit signal events', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      
+
       engine.on('signal:generated', (data: any) => {
         expect(data.signal.id).toBeDefined();
         done();
@@ -243,12 +243,12 @@ describe('TradingEngine', () => {
 
     it('should emit generic event for all events', (done) => {
       let eventCount = 0;
-      
+
       engine.on('event', (event: any) => {
         eventCount++;
         expect(event.type).toBeDefined();
         expect(event.timestamp).toBeDefined();
-        
+
         if (eventCount >= 3) {
           done();
         }
@@ -261,7 +261,7 @@ describe('TradingEngine', () => {
   describe('Statistics Tracking', () => {
     it('should track tick count', (done) => {
       engine.start();
-      
+
       setTimeout(() => {
         engine.stop();
         const stats = engine.getStats();
@@ -273,9 +273,9 @@ describe('TradingEngine', () => {
     it('should track signals and orders', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
-      
+
       engine.start();
-      
+
       setTimeout(() => {
         engine.stop();
         const stats = engine.getStats();
@@ -296,7 +296,7 @@ describe('TradingEngine', () => {
       // Create a strategy that generates larger signals to ensure trades
       class AggressiveStrategy extends Strategy {
         private executed = false;
-        
+
         constructor() {
           super({ id: 'aggressive', name: 'Aggressive Strategy' });
         }
@@ -309,7 +309,7 @@ describe('TradingEngine', () => {
               side: 'buy',
               price: 150,
               quantity: 50,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             };
           }
           return null;
@@ -318,13 +318,13 @@ describe('TradingEngine', () => {
 
       const strategy = new AggressiveStrategy();
       engine.addStrategy(strategy);
-      
+
       engine.on('trade:executed', () => {
         // Trade executed
       });
 
       engine.start();
-      
+
       setTimeout(() => {
         engine.stop();
         // Portfolio should have been updated if trades occurred
@@ -339,7 +339,7 @@ describe('TradingEngine', () => {
     it('should integrate with risk control', () => {
       const riskControl = engine.getRiskControl();
       expect(riskControl).toBeDefined();
-      
+
       const config = riskControl.getConfig();
       expect(config.maxPositionSize).toBe(1000);
     });
@@ -348,7 +348,7 @@ describe('TradingEngine', () => {
       // Create strategy with very large order
       class RiskyStrategy extends Strategy {
         private attempted = false;
-        
+
         constructor() {
           super({ id: 'risky', name: 'Risky Strategy' });
         }
@@ -362,7 +362,7 @@ describe('TradingEngine', () => {
               side: 'buy',
               price: 150,
               quantity: 2000,
-              timestamp: Date.now()
+              timestamp: Date.now(),
             };
           }
           return null;
@@ -371,7 +371,7 @@ describe('TradingEngine', () => {
 
       const strategy = new RiskyStrategy();
       engine.addStrategy(strategy);
-      
+
       engine.on('risk:triggered', (data: any) => {
         expect(data.strategy).toBe('risky');
         expect(data.riskType).toBe('position_limit');
@@ -396,7 +396,7 @@ describe('TradingEngine', () => {
 
       const strategy = new ErrorStrategy();
       engine.addStrategy(strategy);
-      
+
       let errorReceived = false;
       engine.on('engine:error', (data: any) => {
         if (!errorReceived) {

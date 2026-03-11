@@ -1,6 +1,6 @@
 /**
  * Real-time Trading Engine - 实时交易引擎
- * 
+ *
  * Main engine that coordinates:
  * - Market data simulation
  * - Strategy execution
@@ -27,7 +27,7 @@ import {
   EngineEvent,
   EngineEventType,
   RiskControlConfig,
-  TradingStats
+  TradingStats,
 } from './types';
 
 /**
@@ -36,7 +36,7 @@ import {
 export class TradingEngine extends EventEmitter {
   private config: EngineConfig;
   private state: EngineState = EngineState.STOPPED;
-  
+
   // Core components
   private marketSimulator: MarketDataSimulator;
   private orderBook: OrderBook;
@@ -44,33 +44,29 @@ export class TradingEngine extends EventEmitter {
   private portfolio: Portfolio;
   private riskControl: RiskControl;
   private tradesDAO: TradesDAO;
-  
+
   // Strategies
   private strategies: IStrategy[] = [];
   private strategyContexts: Map<string, StrategyContext> = new Map();
-  
+
   // State
   private tickCount: number = 0;
   private startTime?: number;
   private tickTimer?: NodeJS.Timeout;
   private orderCounter: number = 0;
-  
+
   // Statistics
   private stats: TradingStats = {
     totalTicks: 0,
     totalSignals: 0,
     totalOrders: 0,
-    totalTrades: 0
+    totalTrades: 0,
   };
 
-  constructor(
-    config: EngineConfig,
-    riskConfig: RiskControlConfig,
-    initialCash: number = 100000
-  ) {
+  constructor(config: EngineConfig, riskConfig: RiskControlConfig, initialCash: number = 100000) {
     super();
     this.config = config;
-    
+
     // Initialize market simulator
     this.marketSimulator = new MarketDataSimulator(
       config.symbols,
@@ -78,14 +74,14 @@ export class TradingEngine extends EventEmitter {
       config.volatility,
       config.tickInterval
     );
-    
+
     // Initialize core components
     this.orderBook = new OrderBook();
     this.matchingEngine = new MatchingEngine(this.orderBook);
     this.portfolio = new Portfolio(initialCash);
     this.riskControl = new RiskControl(riskConfig);
     this.tradesDAO = new TradesDAO();
-    
+
     // Setup market simulator event listeners
     this.marketSimulator.on('tick', (tick) => this.handleMarketTick(tick));
     this.marketSimulator.on('start', () => this.emit('engine:start', { timestamp: Date.now() }));
@@ -97,12 +93,12 @@ export class TradingEngine extends EventEmitter {
    */
   addStrategy(strategy: IStrategy): void {
     this.strategies.push(strategy);
-    
+
     // Initialize strategy
     const context = this.createStrategyContext(strategy.getConfig().id);
     this.strategyContexts.set(strategy.getConfig().id, context);
     strategy.onInit(context);
-    
+
     this.emitEvent('engine:tick', { strategy: strategy.getConfig().id, action: 'initialized' });
   }
 
@@ -110,7 +106,7 @@ export class TradingEngine extends EventEmitter {
    * Remove a strategy from the engine
    */
   removeStrategy(strategyId: string): void {
-    const index = this.strategies.findIndex(s => s.getConfig().id === strategyId);
+    const index = this.strategies.findIndex((s) => s.getConfig().id === strategyId);
     if (index !== -1) {
       const strategy = this.strategies[index];
       const context = this.strategyContexts.get(strategyId);
@@ -119,7 +115,7 @@ export class TradingEngine extends EventEmitter {
       }
       this.strategies.splice(index, 1);
       this.strategyContexts.delete(strategyId);
-      
+
       this.emitEvent('engine:tick', { strategy: strategyId, action: 'removed' });
     }
   }
@@ -135,13 +131,13 @@ export class TradingEngine extends EventEmitter {
     this.state = EngineState.RUNNING;
     this.startTime = Date.now();
     this.tickCount = 0;
-    
+
     // Start market simulator
     this.marketSimulator.start();
-    
-    this.emitEvent('engine:start', { 
+
+    this.emitEvent('engine:start', {
       timestamp: Date.now(),
-      symbols: this.config.symbols 
+      symbols: this.config.symbols,
     });
   }
 
@@ -154,7 +150,7 @@ export class TradingEngine extends EventEmitter {
     }
 
     // Cleanup strategies
-    this.strategies.forEach(strategy => {
+    this.strategies.forEach((strategy) => {
       const context = this.strategyContexts.get(strategy.getConfig().id);
       if (context) {
         strategy.onCleanup(context);
@@ -163,13 +159,13 @@ export class TradingEngine extends EventEmitter {
 
     // Stop market simulator
     this.marketSimulator.stop();
-    
+
     this.state = EngineState.STOPPED;
-    
-    this.emitEvent('engine:stop', { 
+
+    this.emitEvent('engine:stop', {
       timestamp: Date.now(),
       totalTicks: this.tickCount,
-      stats: this.getStats()
+      stats: this.getStats(),
     });
   }
 
@@ -183,7 +179,7 @@ export class TradingEngine extends EventEmitter {
 
     this.marketSimulator.pause();
     this.state = EngineState.PAUSED;
-    
+
     this.emitEvent('engine:pause', { timestamp: Date.now() });
   }
 
@@ -197,7 +193,7 @@ export class TradingEngine extends EventEmitter {
 
     this.marketSimulator.resume();
     this.state = EngineState.RUNNING;
-    
+
     this.emitEvent('engine:resume', { timestamp: Date.now() });
   }
 
@@ -215,7 +211,7 @@ export class TradingEngine extends EventEmitter {
     return {
       ...this.stats,
       startTime: this.startTime,
-      endTime: this.state === EngineState.STOPPED ? Date.now() : undefined
+      endTime: this.state === EngineState.STOPPED ? Date.now() : undefined,
     };
   }
 
@@ -246,13 +242,13 @@ export class TradingEngine extends EventEmitter {
   private handleMarketTick(tick: any): void {
     this.tickCount++;
     this.stats.totalTicks++;
-    
+
     if (this.config.enableLogging && this.tickCount % 10 === 0) {
       console.log(`[Engine] Tick ${this.tickCount}: ${tick.symbol} @ ${tick.price.toFixed(2)}`);
     }
 
     // Execute each strategy
-    this.strategies.forEach(strategy => {
+    this.strategies.forEach((strategy) => {
       try {
         const context = this.strategyContexts.get(strategy.getConfig().id);
         if (!context) return;
@@ -260,36 +256,38 @@ export class TradingEngine extends EventEmitter {
         // Update context with latest market data
         const marketData = this.createMarketData(tick);
         (context as any).getMarketData = () => marketData;
-        (context as any).portfolio = this.portfolio.getSnapshot(this.marketSimulator.getAllPrices());
+        (context as any).portfolio = this.portfolio.getSnapshot(
+          this.marketSimulator.getAllPrices()
+        );
         (context as any).clock = Date.now();
 
         // Get signal from strategy
         const signal = strategy.onTick(context);
-        
+
         if (signal) {
           this.stats.totalSignals++;
-          this.emitEvent('signal:generated', { 
-            strategy: strategy.getConfig().id, 
-            signal 
+          this.emitEvent('signal:generated', {
+            strategy: strategy.getConfig().id,
+            signal,
           });
-          
+
           // Execute signal
           this.executeSignal(signal, strategy.getConfig().id);
         }
       } catch (error) {
         console.error(`[Engine] Strategy ${strategy.getConfig().id} error:`, error);
-        this.emitEvent('engine:error', { 
-          strategy: strategy.getConfig().id, 
-          error: error instanceof Error ? error.message : String(error) 
+        this.emitEvent('engine:error', {
+          strategy: strategy.getConfig().id,
+          error: error instanceof Error ? error.message : String(error),
         });
       }
     });
 
     // Emit tick event
-    this.emitEvent('engine:tick', { 
-      tick: this.tickCount, 
-      symbol: tick.symbol, 
-      price: tick.price 
+    this.emitEvent('engine:tick', {
+      tick: this.tickCount,
+      symbol: tick.symbol,
+      price: tick.price,
     });
   }
 
@@ -300,15 +298,15 @@ export class TradingEngine extends EventEmitter {
     // Risk check
     const portfolioSnapshot = this.portfolio.getSnapshot(this.marketSimulator.getAllPrices());
     const riskResult = this.riskControl.checkSignal(signal, portfolioSnapshot);
-    
+
     if (!riskResult.approved) {
       this.emitEvent('risk:triggered', {
         signal,
         strategy: strategyId,
         reason: riskResult.reason,
-        riskType: riskResult.riskType
+        riskType: riskResult.riskType,
       });
-      
+
       if (this.config.enableLogging) {
         console.log(`[Risk] Signal rejected: ${riskResult.reason}`);
       }
@@ -318,24 +316,24 @@ export class TradingEngine extends EventEmitter {
     // Create order
     const orderType = signal.side === 'buy' ? OrderType.BID : OrderType.ASK;
     const orderId = `${signal.id.split('-')[0]}-${this.orderCounter++}`;
-    
+
     const order: Order = {
       id: orderId,
       type: orderType,
       price: signal.price,
       quantity: signal.quantity,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     // Submit order to matching engine
     const result = this.matchingEngine.submitOrder(order);
-    
+
     this.stats.totalOrders++;
     this.emitEvent('order:submitted', { order, strategy: strategyId });
 
     // Process trades
     if (result.trades.length > 0) {
-      result.trades.forEach(trade => {
+      result.trades.forEach((trade) => {
         this.processTrade(trade, strategyId);
       });
     }
@@ -343,7 +341,9 @@ export class TradingEngine extends EventEmitter {
     // Handle remaining order
     if (result.remainingOrder) {
       if (this.config.enableLogging) {
-        console.log(`[Order] ${result.remainingOrder.status}: ${result.remainingOrder.filledQuantity}/${order.quantity} filled`);
+        console.log(
+          `[Order] ${result.remainingOrder.status}: ${result.remainingOrder.filledQuantity}/${order.quantity} filled`
+        );
       }
     }
   }
@@ -355,15 +355,15 @@ export class TradingEngine extends EventEmitter {
     // Determine which side belongs to our strategy
     const isBuyer = trade.buyOrderId.startsWith(strategyId.split('-')[0]);
     const portfolioOrderId = isBuyer ? trade.buyOrderId : trade.sellOrderId;
-    
+
     // Update portfolio
     const result = this.portfolio.onTrade(trade, portfolioOrderId);
-    
+
     this.stats.totalTrades++;
-    this.emitEvent('trade:executed', { 
-      trade, 
+    this.emitEvent('trade:executed', {
+      trade,
       strategy: strategyId,
-      portfolioUpdate: result 
+      portfolioUpdate: result,
     });
 
     // Save to database
@@ -378,17 +378,17 @@ export class TradingEngine extends EventEmitter {
         fee: 0,
         orderId: portfolioOrderId,
         tradeId: trade.id,
-        executedAt: new Date(trade.timestamp)
+        executedAt: new Date(trade.timestamp),
       });
-      
+
       if (this.config.enableLogging) {
         console.log(`[Trade] Saved: ${trade.id} @ ${trade.price.toFixed(2)} x ${trade.quantity}`);
       }
     } catch (error) {
       console.error('[Trade] Failed to save to database:', error);
-      this.emitEvent('engine:error', { 
-        component: 'database', 
-        error: error instanceof Error ? error.message : String(error) 
+      this.emitEvent('engine:error', {
+        component: 'database',
+        error: error instanceof Error ? error.message : String(error),
       });
     }
   }
@@ -405,9 +405,9 @@ export class TradingEngine extends EventEmitter {
         const position = this.portfolio.getPosition(symbol);
         return position ? position.quantity : 0;
       },
-      getCash: () => this.portfolio.getCash()
+      getCash: () => this.portfolio.getCash(),
     };
-    
+
     return context;
   }
 
@@ -418,7 +418,7 @@ export class TradingEngine extends EventEmitter {
     return {
       orderBook: this.orderBook,
       trades: this.matchingEngine.getTrades(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -429,9 +429,9 @@ export class TradingEngine extends EventEmitter {
     const event: EngineEvent = {
       type,
       timestamp: Date.now(),
-      data
+      data,
     };
-    
+
     this.emit(type, event);
     this.emit('event', event); // Generic event listener
   }

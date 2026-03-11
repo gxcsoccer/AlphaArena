@@ -1,6 +1,6 @@
 /**
  * Market Data Simulator - 市场数据模拟器
- * 
+ *
  * Generates realistic real-time market data for testing and simulation.
  * Uses random walk with mean reversion to simulate price movements.
  */
@@ -33,7 +33,7 @@ export class MarketDataSimulator extends EventEmitter {
     this.tickInterval = tickInterval;
 
     // Validate initial prices
-    symbols.forEach(symbol => {
+    symbols.forEach((symbol) => {
       if (!this.prices.has(symbol)) {
         this.prices.set(symbol, 100); // Default price
       }
@@ -50,10 +50,10 @@ export class MarketDataSimulator extends EventEmitter {
 
     this.running = true;
     this.tickCount = 0;
-    
+
     this.emit('start', {
       timestamp: Date.now(),
-      symbols: this.symbols
+      symbols: this.symbols,
     });
 
     // Start tick loop
@@ -69,7 +69,7 @@ export class MarketDataSimulator extends EventEmitter {
     }
 
     this.running = false;
-    
+
     if (this.tickTimer) {
       clearInterval(this.tickTimer);
       this.tickTimer = undefined;
@@ -77,7 +77,7 @@ export class MarketDataSimulator extends EventEmitter {
 
     this.emit('stop', {
       timestamp: Date.now(),
-      totalTicks: this.tickCount
+      totalTicks: this.tickCount,
     });
   }
 
@@ -89,9 +89,9 @@ export class MarketDataSimulator extends EventEmitter {
       clearInterval(this.tickTimer);
       this.tickTimer = undefined;
     }
-    
+
     this.emit('pause', {
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -104,9 +104,9 @@ export class MarketDataSimulator extends EventEmitter {
     }
 
     this.tickTimer = setInterval(() => this.tick(), this.tickInterval);
-    
+
     this.emit('resume', {
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -151,10 +151,10 @@ export class MarketDataSimulator extends EventEmitter {
     const ticks: MarketTick[] = [];
 
     // Generate tick for each symbol
-    this.symbols.forEach(symbol => {
+    this.symbols.forEach((symbol) => {
       const currentPrice = this.prices.get(symbol) || 100;
       const newPrice = this.simulatePriceMovement(currentPrice);
-      
+
       // Update price
       this.prices.set(symbol, newPrice);
 
@@ -172,11 +172,11 @@ export class MarketDataSimulator extends EventEmitter {
         bid,
         ask,
         volume,
-        timestamp
+        timestamp,
       };
 
       ticks.push(tick);
-      
+
       // Emit individual symbol tick
       this.emit('tick', tick);
       this.emit(`tick:${symbol}`, tick);
@@ -193,11 +193,11 @@ export class MarketDataSimulator extends EventEmitter {
   private simulatePriceMovement(currentPrice: number): number {
     // Random component (geometric Brownian motion)
     const randomShock = (Math.random() - 0.5) * 2 * this.volatility;
-    
+
     // Mean reversion component (pull towards initial price)
     const initialPrice = 100;
-    const meanReversion = 0.001 * (initialPrice - currentPrice) / initialPrice;
-    
+    const meanReversion = (0.001 * (initialPrice - currentPrice)) / initialPrice;
+
     // Combine both components
     const change = currentPrice * (randomShock + meanReversion);
     const newPrice = currentPrice + change;
@@ -218,7 +218,7 @@ export class MarketDataSimulator extends EventEmitter {
    */
   setTickInterval(interval: number): void {
     this.tickInterval = Math.max(100, interval); // Minimum 100ms
-    
+
     // Restart timer if running
     if (this.running && this.tickTimer) {
       clearInterval(this.tickTimer);

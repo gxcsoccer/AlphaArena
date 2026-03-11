@@ -15,7 +15,7 @@ import { PriceHistoryDAO } from './price-history.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
-  
+
   private _strategies: StrategiesDAO | null = null;
   private _trades: TradesDAO | null = null;
   private _portfolios: PortfoliosDAO | null = null;

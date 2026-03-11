@@ -9,12 +9,9 @@ describe('StrategiesDAO', () => {
 
   describe('create', () => {
     it('should create a new strategy', async () => {
-      const strategy = await dao.create(
-        'Test Strategy',
-        'BTC/USDT',
-        'A test trading strategy',
-        { threshold: 0.5 }
-      );
+      const strategy = await dao.create('Test Strategy', 'BTC/USDT', 'A test trading strategy', {
+        threshold: 0.5,
+      });
 
       expect(strategy.id).toBeDefined();
       expect(strategy.name).toBe('Test Strategy');
@@ -61,13 +58,13 @@ describe('StrategiesDAO', () => {
       const active1 = await dao.create('Active 1', 'BTC/USDT');
       const active2 = await dao.create('Active 2', 'ETH/USDT');
       const paused = await dao.create('Paused', 'XRP/USDT');
-      
+
       await dao.updateStatus(paused.id, 'paused');
 
       const activeStrategies = await dao.getActive();
-      
+
       expect(activeStrategies.length).toBeGreaterThanOrEqual(2);
-      expect(activeStrategies.every(s => s.status === 'active')).toBe(true);
+      expect(activeStrategies.every((s) => s.status === 'active')).toBe(true);
 
       await dao.delete(active1.id);
       await dao.delete(active2.id);
@@ -78,9 +75,9 @@ describe('StrategiesDAO', () => {
   describe('updateStatus', () => {
     it('should update strategy status', async () => {
       const strategy = await dao.create('Status Test', 'BTC/USDT');
-      
+
       const updated = await dao.updateStatus(strategy.id, 'paused');
-      
+
       expect(updated.status).toBe('paused');
 
       const stopped = await dao.updateStatus(strategy.id, 'stopped');
@@ -93,15 +90,15 @@ describe('StrategiesDAO', () => {
   describe('updateConfig', () => {
     it('should update strategy config', async () => {
       const strategy = await dao.create('Config Test', 'BTC/USDT');
-      
+
       const updated = await dao.updateConfig(strategy.id, {
         threshold: 0.8,
-        maxTrades: 10
+        maxTrades: 10,
       });
-      
+
       expect(updated.config).toEqual({
         threshold: 0.8,
-        maxTrades: 10
+        maxTrades: 10,
       });
 
       await dao.delete(strategy.id);

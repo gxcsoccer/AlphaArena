@@ -15,8 +15,8 @@ describe('BacktestEngine', () => {
     strategyParams: {
       shortPeriod: 5,
       longPeriod: 20,
-      tradeQuantity: 10
-    }
+      tradeQuantity: 10,
+    },
   };
 
   describe('constructor', () => {
@@ -28,9 +28,9 @@ describe('BacktestEngine', () => {
     it('should throw error for unknown strategy', () => {
       const invalidConfig: BacktestConfig = {
         ...defaultConfig,
-        strategy: 'unknown'
+        strategy: 'unknown',
       };
-      
+
       expect(() => new BacktestEngine(invalidConfig)).toThrow('Unknown strategy: unknown');
     });
   });
@@ -39,7 +39,7 @@ describe('BacktestEngine', () => {
     it('should run backtest and return results', () => {
       const engine = new BacktestEngine(defaultConfig);
       const result = engine.run();
-      
+
       expect(result).toBeDefined();
       expect(result.config).toEqual(defaultConfig);
       expect(result.stats).toBeDefined();
@@ -54,21 +54,21 @@ describe('BacktestEngine', () => {
     it('should calculate correct initial capital', () => {
       const config: BacktestConfig = {
         ...defaultConfig,
-        capital: 50000
+        capital: 50000,
       };
       const engine = new BacktestEngine(config);
       const result = engine.run();
-      
+
       expect(result.stats.initialCapital).toBe(50000);
     });
 
     it('should generate snapshots during backtest', () => {
       const engine = new BacktestEngine(defaultConfig);
       const result = engine.run();
-      
+
       // Should have at least initial and final snapshots
       expect(result.snapshots.length).toBeGreaterThanOrEqual(2);
-      
+
       // Snapshots should be in chronological order
       for (let i = 1; i < result.snapshots.length; i++) {
         expect(result.snapshots[i].timestamp).toBeGreaterThanOrEqual(
@@ -81,7 +81,7 @@ describe('BacktestEngine', () => {
       const engine = new BacktestEngine(defaultConfig);
       const result = engine.run();
       const stats = result.stats;
-      
+
       expect(stats.totalReturn).toBeDefined();
       expect(stats.sharpeRatio).toBeDefined();
       expect(stats.maxDrawdown).toBeDefined();
@@ -97,10 +97,10 @@ describe('BacktestEngine', () => {
     it('should export results as JSON string', () => {
       const engine = new BacktestEngine(defaultConfig);
       const json = engine.exportToJSON();
-      
+
       expect(json).toBeDefined();
       expect(typeof json).toBe('string');
-      
+
       // Should be valid JSON
       const parsed = JSON.parse(json);
       expect(parsed.config).toBeDefined();
@@ -112,7 +112,7 @@ describe('BacktestEngine', () => {
     it('should export results as CSV string', () => {
       const engine = new BacktestEngine(defaultConfig);
       const csv = engine.exportToCSV();
-      
+
       expect(csv).toBeDefined();
       expect(typeof csv).toBe('string');
       expect(csv).toContain('timestamp,cash,totalValue,unrealizedPnL,positions');
@@ -125,9 +125,9 @@ describe('BacktestEngine', () => {
         { ...defaultConfig, strategy: 'sma' },
         { ...defaultConfig, strategy: 'SMA' },
         { ...defaultConfig, strategy: 'SMACrossover' },
-        { ...defaultConfig, strategy: 'smacrossover' }
+        { ...defaultConfig, strategy: 'smacrossover' },
       ];
-      
+
       for (const config of configs) {
         const engine = new BacktestEngine(config);
         const result = engine.run();
@@ -140,30 +140,30 @@ describe('BacktestEngine', () => {
   describe('different parameters', () => {
     it('should work with different capital amounts', () => {
       const capitals = [10000, 50000, 100000, 1000000];
-      
+
       for (const capital of capitals) {
         const config: BacktestConfig = {
           ...defaultConfig,
-          capital
+          capital,
         };
         const engine = new BacktestEngine(config);
         const result = engine.run();
-        
+
         expect(result.stats.initialCapital).toBe(capital);
       }
     });
 
     it('should work with different symbols', () => {
       const symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA'];
-      
+
       for (const symbol of symbols) {
         const config: BacktestConfig = {
           ...defaultConfig,
-          symbol
+          symbol,
         };
         const engine = new BacktestEngine(config);
         const result = engine.run();
-        
+
         expect(result.config.symbol).toBe(symbol);
       }
     });
@@ -172,21 +172,21 @@ describe('BacktestEngine', () => {
       const params = [
         { shortPeriod: 3, longPeriod: 10 },
         { shortPeriod: 10, longPeriod: 50 },
-        { shortPeriod: 20, longPeriod: 100 }
+        { shortPeriod: 20, longPeriod: 100 },
       ];
-      
+
       for (const param of params) {
         const config: BacktestConfig = {
           ...defaultConfig,
           strategyParams: {
             ...defaultConfig.strategyParams,
             shortPeriod: param.shortPeriod,
-            longPeriod: param.longPeriod
-          }
+            longPeriod: param.longPeriod,
+          },
         };
         const engine = new BacktestEngine(config);
         const result = engine.run();
-        
+
         expect(result).toBeDefined();
       }
     });
@@ -197,12 +197,12 @@ describe('BacktestEngine', () => {
       const config: BacktestConfig = {
         ...defaultConfig,
         startTime: Date.now() - 1000, // 1 second
-        endTime: Date.now()
+        endTime: Date.now(),
       };
-      
+
       const engine = new BacktestEngine(config);
       const result = engine.run();
-      
+
       expect(result).toBeDefined();
       expect(result.stats).toBeDefined();
     });
@@ -210,12 +210,12 @@ describe('BacktestEngine', () => {
     it('should handle large capital', () => {
       const config: BacktestConfig = {
         ...defaultConfig,
-        capital: 10000000 // 10 million
+        capital: 10000000, // 10 million
       };
-      
+
       const engine = new BacktestEngine(config);
       const result = engine.run();
-      
+
       expect(result.stats.initialCapital).toBe(10000000);
       expect(result.stats.finalCapital).toBeGreaterThan(0);
     });

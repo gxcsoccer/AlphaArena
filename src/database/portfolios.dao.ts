@@ -30,19 +30,21 @@ export class PortfoliosDAO {
    */
   async createSnapshot(snapshot: PortfolioSnapshot): Promise<Portfolio> {
     const supabase = getSupabaseClient();
-    
+
     const { data, error } = await supabase
       .from('portfolios')
-      .insert([{
-        strategy_id: snapshot.strategyId || null,
-        symbol: snapshot.symbol,
-        base_currency: snapshot.baseCurrency,
-        quote_currency: snapshot.quoteCurrency,
-        base_balance: snapshot.baseBalance.toString(),
-        quote_balance: snapshot.quoteBalance.toString(),
-        total_value: snapshot.totalValue?.toString() || null,
-        snapshot_at: snapshot.snapshotAt.toISOString()
-      }])
+      .insert([
+        {
+          strategy_id: snapshot.strategyId || null,
+          symbol: snapshot.symbol,
+          base_currency: snapshot.baseCurrency,
+          quote_currency: snapshot.quoteCurrency,
+          base_balance: snapshot.baseBalance.toString(),
+          quote_balance: snapshot.quoteBalance.toString(),
+          total_value: snapshot.totalValue?.toString() || null,
+          snapshot_at: snapshot.snapshotAt.toISOString(),
+        },
+      ])
       .select()
       .single();
 
@@ -56,7 +58,7 @@ export class PortfoliosDAO {
    */
   async getLatest(strategyId?: string, symbol?: string): Promise<Portfolio | null> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('portfolios').select('*');
 
     if (strategyId) {
@@ -80,15 +82,17 @@ export class PortfoliosDAO {
   /**
    * Get portfolio snapshots with filters
    */
-  async getMany(filters: {
-    strategyId?: string;
-    symbol?: string;
-    startDate?: Date;
-    endDate?: Date;
-    limit?: number;
-  } = {}): Promise<Portfolio[]> {
+  async getMany(
+    filters: {
+      strategyId?: string;
+      symbol?: string;
+      startDate?: Date;
+      endDate?: Date;
+      limit?: number;
+    } = {}
+  ): Promise<Portfolio[]> {
     const supabase = getSupabaseClient();
-    
+
     let query = supabase.from('portfolios').select('*');
 
     if (filters.strategyId) {
@@ -127,22 +131,27 @@ export class PortfoliosDAO {
   /**
    * Get portfolio value over time
    */
-  async getValueHistory(strategyId: string, days = 7): Promise<{
-    timestamp: Date;
-    totalValue: number;
-  }[]> {
+  async getValueHistory(
+    strategyId: string,
+    days = 7
+  ): Promise<
+    {
+      timestamp: Date;
+      totalValue: number;
+    }[]
+  > {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
     const snapshots = await this.getMany({
       strategyId,
       startDate,
-      limit: days * 24 // Assume hourly snapshots
+      limit: days * 24, // Assume hourly snapshots
     });
 
-    return snapshots.map(s => ({
+    return snapshots.map((s) => ({
       timestamp: s.snapshotAt,
-      totalValue: s.totalValue || 0
+      totalValue: s.totalValue || 0,
     }));
   }
 
@@ -157,7 +166,7 @@ export class PortfoliosDAO {
       quoteBalance: parseFloat(row.quote_balance),
       totalValue: row.total_value ? parseFloat(row.total_value) : null,
       snapshotAt: new Date(row.snapshot_at),
-      createdAt: new Date(row.created_at)
+      createdAt: new Date(row.created_at),
     };
   }
 }

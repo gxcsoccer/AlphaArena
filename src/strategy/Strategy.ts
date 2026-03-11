@@ -1,6 +1,6 @@
 /**
  * Strategy Interface
- * 
+ *
  * Abstract base class for trading strategies
  */
 
@@ -8,7 +8,7 @@ import { OrderSignal, StrategyContext, StrategyConfig } from './types';
 
 /**
  * Strategy interface - 策略接口
- * 
+ *
  * All trading strategies must implement this interface
  */
 export interface IStrategy {
@@ -19,7 +19,7 @@ export interface IStrategy {
 
   /**
    * Initialize strategy - 策略初始化
-   * 
+   *
    * Called once when the strategy is first loaded
    * @param context - Strategy context
    */
@@ -27,7 +27,7 @@ export interface IStrategy {
 
   /**
    * Handle tick event - 处理行情数据
-   * 
+   *
    * Called on each market data update
    * @param context - Strategy context
    * @returns Order signal or null if no action
@@ -36,7 +36,7 @@ export interface IStrategy {
 
   /**
    * Handle order filled event - 处理成交事件
-   * 
+   *
    * Called when an order is filled
    * @param context - Strategy context
    * @param signal - The original signal that led to this fill
@@ -45,7 +45,7 @@ export interface IStrategy {
 
   /**
    * Cleanup strategy - 策略清理
-   * 
+   *
    * Called when the strategy is being shut down
    * @param context - Strategy context
    */
@@ -54,7 +54,7 @@ export interface IStrategy {
 
 /**
  * Abstract strategy base class - 策略抽象基类
- * 
+ *
  * Provides common functionality for all strategies
  */
 export abstract class Strategy implements IStrategy {

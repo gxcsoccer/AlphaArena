@@ -1,6 +1,6 @@
 /**
  * SMA Crossover Strategy
- * 
+ *
  * A simple moving average crossover strategy that generates buy signals
  * when the short-term SMA crosses above the long-term SMA (golden cross),
  * and sell signals when the short-term SMA crosses below the long-term SMA (death cross).
@@ -25,7 +25,7 @@ export interface SMAStrategyConfig extends StrategyConfig {
 
 /**
  * SMA Crossover Strategy - SMA 交叉策略
- * 
+ *
  * Implements a simple moving average crossover strategy:
  * - Golden Cross (金叉): Short SMA crosses above Long SMA → Buy signal
  * - Death Cross (死叉): Short SMA crosses below Long SMA → Sell signal
@@ -40,12 +40,12 @@ export class SMAStrategy extends Strategy {
 
   constructor(config: SMAStrategyConfig) {
     super(config);
-    
+
     // Default parameters
     this.shortPeriod = config.params?.shortPeriod ?? 5;
     this.longPeriod = config.params?.longPeriod ?? 20;
     this.tradeQuantity = config.params?.tradeQuantity ?? 10;
-    
+
     // Validate parameters
     if (this.shortPeriod >= this.longPeriod) {
       throw new Error('Short period must be less than long period');
@@ -69,49 +69,49 @@ export class SMAStrategy extends Strategy {
    */
   onTick(context: StrategyContext): OrderSignal | null {
     const marketData = context.getMarketData();
-    
+
     // Get the mid price from order book
     const midPrice = this.getMidPrice(marketData.orderBook);
     if (midPrice === null) {
       return null;
     }
-    
+
     // Add price to history
     this.priceHistory.push(midPrice);
-    
+
     // Need enough data points for long period SMA
     if (this.priceHistory.length < this.longPeriod) {
       return null;
     }
-    
+
     // Calculate current SMAs
     const currentShortSMA = this.calculateSMA(this.shortPeriod);
     const currentLongSMA = this.calculateSMA(this.longPeriod);
-    
+
     // Generate signal based on crossover
     let signal: OrderSignal | null = null;
-    
+
     if (this.lastShortSMA !== null && this.lastLongSMA !== null) {
       // Golden Cross: Short SMA crosses above Long SMA
       if (this.lastShortSMA <= this.lastLongSMA && currentShortSMA > currentLongSMA) {
         signal = this.createSignal('buy', midPrice, this.tradeQuantity, {
           confidence: 0.7,
-          reason: `Golden Cross: SMA(${this.shortPeriod})=${currentShortSMA.toFixed(2)} > SMA(${this.longPeriod})=${currentLongSMA.toFixed(2)}`
+          reason: `Golden Cross: SMA(${this.shortPeriod})=${currentShortSMA.toFixed(2)} > SMA(${this.longPeriod})=${currentLongSMA.toFixed(2)}`,
         });
       }
       // Death Cross: Short SMA crosses below Long SMA
       else if (this.lastShortSMA >= this.lastLongSMA && currentShortSMA < currentLongSMA) {
         signal = this.createSignal('sell', midPrice, this.tradeQuantity, {
           confidence: 0.7,
-          reason: `Death Cross: SMA(${this.shortPeriod})=${currentShortSMA.toFixed(2)} < SMA(${this.longPeriod})=${currentLongSMA.toFixed(2)}`
+          reason: `Death Cross: SMA(${this.shortPeriod})=${currentShortSMA.toFixed(2)} < SMA(${this.longPeriod})=${currentLongSMA.toFixed(2)}`,
         });
       }
     }
-    
+
     // Update last SMAs for next tick
     this.lastShortSMA = currentShortSMA;
     this.lastLongSMA = currentLongSMA;
-    
+
     return signal;
   }
 
@@ -122,11 +122,11 @@ export class SMAStrategy extends Strategy {
     // Try to get best bid and ask
     const bestBid = orderBook.getBestBid?.();
     const bestAsk = orderBook.getBestAsk?.();
-    
+
     if (bestBid !== null && bestAsk !== null) {
       return (bestBid + bestAsk) / 2;
     }
-    
+
     // Fallback to last trade price if available
     return null;
   }
@@ -137,7 +137,7 @@ export class SMAStrategy extends Strategy {
   private calculateSMA(period: number): number {
     const start = this.priceHistory.length - period;
     const prices = this.priceHistory.slice(start);
-    
+
     const sum = prices.reduce((acc, price) => acc + price, 0);
     return sum / period;
   }

@@ -4,9 +4,9 @@ import { Order } from '../orderbook/types';
  * Trade status
  */
 export enum TradeStatus {
-  FILLED = 'filled',           // 完全成交
-  PARTIALLY_FILLED = 'partially_filled',  // 部分成交
-  PENDING = 'pending'          // 待成交
+  FILLED = 'filled', // 完全成交
+  PARTIALLY_FILLED = 'partially_filled', // 部分成交
+  PENDING = 'pending', // 待成交
 }
 
 /**
@@ -37,5 +37,5 @@ export interface OrderWithFill {
  */
 export interface MatchResult {
   trades: Trade[];
-  remainingOrder: OrderWithFill | null;  // 未完全成交的订单
+  remainingOrder: OrderWithFill | null; // 未完全成交的订单
 }
