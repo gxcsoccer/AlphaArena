@@ -8,8 +8,14 @@
 
 const https = require('https');
 
-const FEISHU_APP_ID = 'cli_a923588032b8dcd6';
-const FEISHU_APP_SECRET = 'iaWGq33YfOFjyMOxyF5wic11L6sau8EH';
+// Feishu credentials should be set via environment variables
+const FEISHU_APP_ID = process.env.FEISHU_APP_ID;
+const FEISHU_APP_SECRET = process.env.FEISHU_APP_SECRET;
+
+if (!FEISHU_APP_ID || !FEISHU_APP_SECRET) {
+  console.error('❌ Missing Feishu credentials. Please set FEISHU_APP_ID and FEISHU_APP_SECRET environment variables.');
+  process.exit(1);
+}
 
 // Sprint 1 content in markdown
 const DOCUMENT_TITLE = 'Sprint 1 每日报告 - 2026-03-11';
