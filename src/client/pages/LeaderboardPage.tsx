@@ -1,5 +1,15 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Layout, Typography, Card, Table, Tag, Row, Col, Statistic, Avatar, Progress, Space, Select, Button, Tooltip } from 'antd';
+import { Typography, Card, Table, Tag, Grid, Statistic, Avatar, Progress, Space, Select, Button, Tooltip, Divider } from '@arco-design/web-react';
+const { Row, Col } = Grid;
+import {
+  IconDashboard,
+  IconRefresh,
+  IconTrophy,
+  IconArrowRise,
+  IconArrowFall,
+  IconThunderbolt,
+  IconStar,
+} from '@arco-design/web-react/icon';
 import {
   BarChart,
   Bar,
@@ -16,17 +26,13 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  AreaChart,
-  Area,
 } from 'recharts';
 import { useStrategies, useTrades } from '../hooks/useData';
 import { api, LeaderboardEntry, StrategyMetrics } from '../utils/api';
-import type { ColumnsType } from 'antd/es/table';
-import { ReloadOutlined, TrophyOutlined, RiseOutlined, FallOutlined } from '@ant-design/icons';
+import type { TableProps } from '@arco-design/web-react';
 
-const { Header, Content } = Layout;
 const { Title, Text } = Typography;
-const { Option } = Select;
+const Option = Select.Option;
 
 const LeaderboardPage: React.FC = () => {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -50,7 +56,7 @@ const LeaderboardPage: React.FC = () => {
 
   useEffect(() => {
     fetchLeaderboard();
-    const interval = setInterval(fetchLeaderboard, 60000); // Auto-refresh every minute
+    const interval = setInterval(fetchLeaderboard, 60000);
     return () => clearInterval(interval);
   }, [sortBy]);
 
@@ -64,7 +70,6 @@ const LeaderboardPage: React.FC = () => {
     const avgRoi = leaderboard.reduce((sum, e) => sum + e.metrics.roi, 0) / totalStrategies;
     const bestRoi = Math.max(...leaderboard.map(e => e.metrics.roi));
     const bestSharpe = Math.max(...leaderboard.map(e => e.metrics.sharpeRatio));
-    const lowestDrawdown = Math.min(...leaderboard.map(e => e.metrics.maxDrawdown));
 
     return {
       totalStrategies,
@@ -73,7 +78,6 @@ const LeaderboardPage: React.FC = () => {
       avgRoi,
       bestRoi,
       bestSharpe,
-      lowestDrawdown,
     };
   }, [leaderboard]);
 
@@ -82,61 +86,50 @@ const LeaderboardPage: React.FC = () => {
     name: entry.strategyName,
     rank: entry.rank,
     roi: entry.metrics.roi,
-    sharpeRatio: entry.metrics.sharpeRatio,
   }));
 
   const radarData = leaderboard.slice(0, 5).map(entry => ({
     strategy: entry.strategyName,
-    roi: Math.abs(entry.metrics.roi) / 10, // Normalize
-    sharpeRatio: entry.metrics.sharpeRatio / 5, // Normalize
+    roi: Math.abs(entry.metrics.roi) / 10,
+    sharpeRatio: entry.metrics.sharpeRatio / 5,
     winRate: entry.metrics.winRate,
-    volume: entry.metrics.totalVolume / 10000, // Normalize
-    trades: entry.metrics.totalTrades / 5, // Normalize
+    volume: entry.metrics.totalVolume / 10000,
+    trades: entry.metrics.totalTrades / 5,
   }));
 
-  const roiComparisonData = leaderboard.slice(0, 10).map(entry => ({
-    name: entry.strategyName,
-    roi: entry.metrics.roi,
-    pnl: entry.metrics.totalPnL,
-  }));
-
-  const rankHistoryData = leaderboard.map((entry, index) => ({
-    name: entry.strategyName,
-    currentRank: entry.rank,
-    previousRank: entry.rank - entry.rankChange,
-  }));
+  // Get medal based on rank
+  const getRankStyling = (rank: number) => {
+    if (rank === 1) return { medal: '🥇', badge: '1st', color: '#f7ba1e' };
+    if (rank === 2) return { medal: '🥈', badge: '2nd', color: '#c9cdd4' };
+    if (rank === 3) return { medal: '🥉', badge: '3rd', color: '#cd7f32' };
+    return { medal: `#${rank}`, badge: null, color: '#165dff' };
+  };
 
   // Ranking table columns
-  const rankingColumns: ColumnsType<LeaderboardEntry> = [
+  const rankingColumns: TableProps['columns'] = [
     {
       title: 'Rank',
       key: 'rank',
       width: 100,
+      fixed: 'left',
       render: (_: any, record: LeaderboardEntry) => {
         const rank = record.rank;
-        const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+        const styling = getRankStyling(rank);
         const rankChange = record.rankChange;
         
         return (
           <Space>
             <Avatar 
-              style={{ 
-                backgroundColor: rank <= 3 ? '#f56a00' : '#87d068',
-                marginRight: 4,
-              }}
+              size={40}
+              style={{ backgroundColor: styling.color }}
             >
-              {medal}
+              {styling.medal}
             </Avatar>
-            {rankChange > 0 && (
-              <Tooltip title={`Moved up ${rankChange} positions`}>
-                <RiseOutlined style={{ color: '#3f8600', fontSize: 16 }} />
-              </Tooltip>
-            )}
-            {rankChange < 0 && (
-              <Tooltip title={`Dropped ${Math.abs(rankChange)} positions`}>
-                <FallOutlined style={{ color: '#cf1322', fontSize: 16 }} />
-              </Tooltip>
-            )}
+            <div style={{ minWidth: 30 }}>
+              {rankChange > 0 && <IconArrowRise style={{ color: '#00b42a' }} />}
+              {rankChange < 0 && <IconArrowFall style={{ color: '#f53f3f' }} />}
+              {rankChange === 0 && <Text type="secondary">-</Text>}
+            </div>
           </Space>
         );
       },
@@ -146,71 +139,55 @@ const LeaderboardPage: React.FC = () => {
       dataIndex: 'strategyName',
       key: 'strategyName',
       width: 200,
+      fixed: 'left',
       render: (name: string, record: LeaderboardEntry) => (
         <Space>
-          <Text strong>{name}</Text>
-          <Tag color={
-            record.status === 'active' ? 'green' :
-            record.status === 'paused' ? 'orange' : 'red'
-          }>
-            {record.status.toUpperCase()}
-          </Tag>
+          <Avatar 
+            size={40}
+            style={{ backgroundColor: '#165dff' }}
+          >
+            <IconThunderbolt />
+          </Avatar>
+          <div>
+            <div style={{ fontWeight: 600 }}>{name}</div>
+            <Tag color={record.status === 'active' ? 'green' : record.status === 'paused' ? 'orange' : 'arcoblue'}>
+              {record.status}
+            </Tag>
+          </div>
         </Space>
       ),
     },
     {
-      title: (
-        <Tooltip title="Return on Investment">
-          <span>ROI %</span>
-        </Tooltip>
-      ),
+      title: 'ROI %',
       dataIndex: ['metrics', 'roi'],
       key: 'roi',
       width: 100,
       render: (roi: number) => (
-        <Text style={{ 
-          color: roi >= 0 ? '#3f8600' : '#cf1322', 
-          fontWeight: 'bold',
-          fontSize: 14,
-        }}>
+        <Text strong style={{ color: roi >= 0 ? '#00b42a' : '#f53f3f' }}>
           {roi >= 0 ? '+' : ''}{roi.toFixed(2)}%
         </Text>
       ),
       sorter: (a, b) => a.metrics.roi - b.metrics.roi,
-      defaultSortOrder: sortBy === 'roi' ? 'descend' : undefined,
     },
     {
-      title: (
-        <Tooltip title="Sharpe Ratio (risk-adjusted return)">
-          <span>Sharpe</span>
-        </Tooltip>
-      ),
+      title: 'Sharpe',
       dataIndex: ['metrics', 'sharpeRatio'],
       key: 'sharpeRatio',
       width: 90,
       render: (sharpe: number) => (
-        <Text style={{ 
-          color: sharpe >= 1 ? '#3f8600' : sharpe >= 0 ? '#faad14' : '#cf1322',
-          fontWeight: sharpe >= 1 ? 'bold' : 'normal',
-        }}>
+        <Text style={{ color: sharpe >= 2 ? '#00b42a' : sharpe >= 1 ? '#165dff' : '#ff7d00' }}>
           {sharpe.toFixed(2)}
         </Text>
       ),
       sorter: (a, b) => a.metrics.sharpeRatio - b.metrics.sharpeRatio,
     },
     {
-      title: (
-        <Tooltip title="Maximum Drawdown (largest peak-to-trough decline)">
-          <span>Max DD %</span>
-        </Tooltip>
-      ),
+      title: 'Max DD %',
       dataIndex: ['metrics', 'maxDrawdown'],
       key: 'maxDrawdown',
       width: 100,
       render: (dd: number) => (
-        <Text style={{ 
-          color: dd <= 10 ? '#3f8600' : dd <= 20 ? '#faad14' : '#cf1322',
-        }}>
+        <Text style={{ color: dd <= 10 ? '#00b42a' : dd <= 20 ? '#ff7d00' : '#f53f3f' }}>
           -{dd.toFixed(2)}%
         </Text>
       ),
@@ -224,284 +201,201 @@ const LeaderboardPage: React.FC = () => {
       render: (rate: number) => (
         <Progress
           percent={rate}
-          strokeColor={{
-            '0%': '#108ee9',
-            '100%': '#87d068',
-          }}
-          format={(percent) => `${percent?.toFixed(1)}%`}
+          strokeColor={rate >= 70 ? '#00b42a' : rate >= 50 ? '#165dff' : '#f53f3f'}
           size="small"
+          format={(percent) => `${percent?.toFixed(1)}%`}
         />
       ),
       sorter: (a, b) => a.metrics.winRate - b.metrics.winRate,
     },
     {
-      title: (
-        <Tooltip title="Total Profit and Loss">
-          <span>Total P&L</span>
-        </Tooltip>
-      ),
+      title: 'Total P&L',
       dataIndex: ['metrics', 'totalPnL'],
       key: 'totalPnL',
       width: 120,
       render: (pnl: number) => (
-        <Text style={{ 
-          color: pnl >= 0 ? '#3f8600' : '#cf1322', 
-          fontWeight: 'bold',
-          fontFamily: 'monospace',
-        }}>
-          ${pnl.toLocaleString(undefined, { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-          })}
+        <Text strong style={{ color: pnl >= 0 ? '#00b42a' : '#f53f3f', fontFamily: 'monospace' }}>
+          ${pnl.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </Text>
       ),
       sorter: (a, b) => a.metrics.totalPnL - b.metrics.totalPnL,
     },
     {
-      title: (
-        <Tooltip title="Total Trading Volume">
-          <span>Volume</span>
-        </Tooltip>
-      ),
+      title: 'Volume',
       dataIndex: ['metrics', 'totalVolume'],
       key: 'totalVolume',
       width: 100,
       render: (volume: number) => (
-        <Text>
+        <Text style={{ fontFamily: 'monospace' }}>
           ${(volume / 1000).toFixed(1)}K
         </Text>
       ),
       sorter: (a, b) => a.metrics.totalVolume - b.metrics.totalVolume,
     },
     {
-      title: 'Total Trades',
+      title: 'Trades',
       dataIndex: ['metrics', 'totalTrades'],
       key: 'totalTrades',
       width: 90,
+      render: (trades: number) => trades,
       sorter: (a, b) => a.metrics.totalTrades - b.metrics.totalTrades,
-    },
-    {
-      title: (
-        <Tooltip title="Average Trade Size">
-          <span>Avg Trade</span>
-        </Tooltip>
-      ),
-      dataIndex: ['metrics', 'avgTradeSize'],
-      key: 'avgTradeSize',
-      width: 100,
-      render: (size: number) => (
-        <Text>
-          ${size.toLocaleString(undefined, { 
-            minimumFractionDigits: 2, 
-            maximumFractionDigits: 2 
-          })}
-        </Text>
-      ),
-      sorter: (a, b) => a.metrics.avgTradeSize - b.metrics.avgTradeSize,
     },
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title level={2} style={{ color: 'white', margin: 0 }}>
-          <TrophyOutlined style={{ marginRight: 8 }} />
-          Strategy Leaderboard
-        </Title>
+    <div className="fade-in">
+      {/* Page Header */}
+      <div style={{ marginBottom: 24 }}>
         <Space>
-          <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
-            {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
-          </Text>
-          <Select 
-            value={sortBy} 
-            onChange={setSortBy}
-            style={{ width: 150 }}
-            size="large"
+          <Avatar 
+            size={40}
+            style={{ backgroundColor: '#f7ba1e' }}
           >
-            <Option value="roi">ROI</Option>
-            <Option value="sharpeRatio">Sharpe Ratio</Option>
-            <Option value="maxDrawdown">Max Drawdown</Option>
-            <Option value="totalPnL">Total P&L</Option>
-            <Option value="winRate">Win Rate</Option>
-            <Option value="totalVolume">Volume</Option>
-          </Select>
-          <Button 
-            type="primary" 
-            icon={<ReloadOutlined />} 
-            onClick={fetchLeaderboard}
-            loading={loading}
-          >
-            Refresh
-          </Button>
+            <IconTrophy />
+          </Avatar>
+          <div>
+            <Title heading={4} style={{ margin: 0 }}>
+              Strategy Leaderboard
+            </Title>
+            <Text type="secondary">Real-time ranking of trading strategies</Text>
+          </div>
         </Space>
-      </Header>
-      <Content style={{ padding: '24px' }}>
-        {/* Top Stats */}
-        {summaryStats && (
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Strategies"
-                  value={summaryStats.totalStrategies}
-                  prefix="🎯"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Trades"
-                  value={summaryStats.totalTrades}
-                  prefix="📊"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Total Volume"
-                  value={summaryStats.totalVolume / 1000}
-                  suffix="K"
-                  prefix="$"
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Best ROI"
-                  value={summaryStats.bestRoi}
-                  suffix="%"
-                  precision={2}
-                  valueStyle={{ color: '#3f8600' }}
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Best Sharpe"
-                  value={summaryStats.bestSharpe}
-                  precision={2}
-                  valueStyle={{ color: '#1890ff' }}
-                />
-              </Card>
-            </Col>
-            <Col span={4}>
-              <Card loading={loading}>
-                <Statistic
-                  title="Lowest Drawdown"
-                  value={summaryStats.lowestDrawdown}
-                  suffix="%"
-                  precision={2}
-                  valueStyle={{ color: '#52c41a' }}
-                />
-              </Card>
-            </Col>
-          </Row>
-        )}
-
-        {/* Charts */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
-            <Card title="🏆 Top 10 Strategies by ROI">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={roiComparisonData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Bar dataKey="roi" fill="#8884d8" name="ROI %" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-          <Col span={12}>
-            <Card title="📈 Performance Radar (Top 5)">
-              <ResponsiveContainer width="100%" height={300}>
-                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="strategy" tick={{ fontSize: 11 }} />
-                  <PolarRadiusAxis />
-                  <Radar 
-                    name="Performance" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.6} 
-                  />
-                  <Legend />
-                  <RechartsTooltip />
-                </RadarChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-        </Row>
-
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={24}>
-            <Card title="📊 ROI Comparison (Top 10)">
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={roiComparisonData}>
-                  <defs>
-                    <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fillOpacity={1} 
-                    fill="url(#colorRoi)" 
-                    name="ROI %" 
-                  />
-                  <Line type="monotone" dataKey="pnl" stroke="#82ca9d" name="P&L ($)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Rankings Table */}
-        <Card 
-          title="🎖️ Full Rankings"
-          extra={
-            <Text type="secondary">
-              Sorted by: <Text strong>{sortBy}</Text>
+        
+        <div style={{ float: 'right' }}>
+          <Space>
+            <Text type="secondary" style={{ fontSize: 13 }}>
+              <IconRefresh /> {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
             </Text>
-          }
-        >
-          <Table
-            columns={rankingColumns}
-            dataSource={leaderboard}
-            rowKey="strategyId"
-            loading={loading}
-            pagination={false}
-            size="small"
-            scroll={{ x: 1400 }}
-            onChange={(pagination, filters, sorter) => {
-              // Handle table sorting if needed
-            }}
-          />
-        </Card>
-
-        {/* Footer info */}
-        <div style={{ marginTop: 16, textAlign: 'center', color: '#999' }}>
-          <Text type="secondary">
-            Leaderboard updates automatically every minute. Last updated: {lastUpdated?.toLocaleString() || 'Never'}
-          </Text>
+            <Select 
+              value={sortBy} 
+              onChange={setSortBy}
+              style={{ width: 160 }}
+            >
+              <Option value="roi">ROI</Option>
+              <Option value="sharpeRatio">Sharpe Ratio</Option>
+              <Option value="maxDrawdown">Max Drawdown</Option>
+              <Option value="totalPnL">Total P&L</Option>
+              <Option value="winRate">Win Rate</Option>
+              <Option value="totalVolume">Volume</Option>
+            </Select>
+            <Button 
+              type="primary" 
+              icon={<IconRefresh />} 
+              onClick={fetchLeaderboard}
+              loading={loading}
+            >
+              Refresh
+            </Button>
+          </Space>
         </div>
-      </Content>
-    </Layout>
+      </div>
+
+      {/* Summary Stats */}
+      {summaryStats && (
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Total Strategies" 
+                value={summaryStats.totalStrategies}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Best ROI" 
+                value={summaryStats.bestRoi}
+                precision={2}
+                suffix="%"
+                valueStyle={{ color: '#00b42a' }}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Best Sharpe" 
+                value={summaryStats.bestSharpe}
+                precision={2}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Total Trades" 
+                value={summaryStats.totalTrades}
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Total Volume" 
+                value={(summaryStats.totalVolume / 1000).toFixed(1)}
+                suffix="K"
+                prefix="$"
+              />
+            </Card>
+          </Col>
+          <Col span={4}>
+            <Card>
+              <Statistic 
+                title="Avg ROI" 
+                value={summaryStats.avgRoi}
+                precision={2}
+                suffix="%"
+              />
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* Main Leaderboard Table */}
+      <Card title="Strategy Rankings" style={{ marginBottom: 24 }}>
+        <Table
+          columns={rankingColumns}
+          dataSource={leaderboard}
+          rowKey="strategyId"
+          pagination={{ pageSize: 20 }}
+          scroll={{ x: 1200 }}
+          size="small"
+        />
+      </Card>
+
+      {/* Charts */}
+      <Row gutter={16}>
+        <Col span={12}>
+          <Card title="Top 10 Performance">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={rankingChartData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="name" stroke="#8c8c8c" />
+                <YAxis stroke="#8c8c8c" />
+                <RechartsTooltip />
+                <Legend />
+                <Bar dataKey="roi" name="ROI %" fill="#165dff" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+        <Col span={12}>
+          <Card title="Strategy Comparison (Top 5)">
+            <ResponsiveContainer width="100%" height={300}>
+              <RadarChart data={radarData}>
+                <PolarGrid />
+                <PolarAngleAxis dataKey="strategy" />
+                <PolarRadiusAxis />
+                <Radar name="Performance" dataKey="roi" stroke="#165dff" fill="#165dff" fillOpacity={0.3} />
+                <Legend />
+                <RechartsTooltip />
+              </RadarChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
+    </div>
   );
 };
 
