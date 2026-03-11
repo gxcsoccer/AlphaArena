@@ -17,6 +17,6 @@
     "jsx": "react-jsx",
     "types": ["jest", "@testing-library/jest-dom"]
   },
-  "include": ["src/client/**/*", "tests/client/**/*"],
+  "include": ["src/client/**/*"],
   "exclude": ["node_modules"]
 }
