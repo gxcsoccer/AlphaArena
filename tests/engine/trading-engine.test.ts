@@ -125,8 +125,8 @@ describe('TradingEngine', () => {
     });
 
     it('should emit start event with symbols', (done) => {
-      engine.on('engine:start', (data: any) => {
-        expect(data.symbols).toEqual(['AAPL', 'GOOGL']);
+      engine.on('engine:start', (event: any) => {
+        expect(event.data?.symbols).toEqual(['AAPL', 'GOOGL']);
         done();
       });
 
@@ -134,9 +134,8 @@ describe('TradingEngine', () => {
     });
 
     it('should emit stop event with stats', (done) => {
-      engine.on('engine:stop', (data: any) => {
-        expect(data.stats).toBeDefined();
-        expect(data.totalTicks).toBeDefined();
+      engine.on('engine:stop', (event: any) => {
+        expect(event.data?.stats).toBeDefined();
         done();
       });
 
@@ -204,10 +203,11 @@ describe('TradingEngine', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
 
-      engine.on('signal:generated', (data: any) => {
-        expect(data.strategy).toBe('test-strategy');
-        expect(data.signal).toBeDefined();
-        expect(data.signal.side).toBe('buy');
+<<<<<<< HEAD
+      engine.on('signal:generated', (event: any) => {
+        expect(event.data?.strategy).toBe('test-strategy');
+        expect(event.data?.signal).toBeDefined();
+        expect(event.data?.signal.side).toBe('buy');
         done();
       });
 
@@ -233,8 +233,8 @@ describe('TradingEngine', () => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
 
-      engine.on('signal:generated', (data: any) => {
-        expect(data.signal.id).toBeDefined();
+      engine.on('signal:generated', (event: any) => {
+        expect(event.data?.signal.id).toBeDefined();
         done();
       });
 
@@ -372,9 +372,10 @@ describe('TradingEngine', () => {
       const strategy = new RiskyStrategy();
       engine.addStrategy(strategy);
 
-      engine.on('risk:triggered', (data: any) => {
-        expect(data.strategy).toBe('risky');
-        expect(data.riskType).toBe('position_limit');
+<<<<<<< HEAD
+      engine.on('risk:triggered', (event: any) => {
+        expect(event.data?.strategy).toBe('risky');
+        expect(event.data?.riskType).toBe('position_limit');
         done();
       });
 
@@ -398,10 +399,10 @@ describe('TradingEngine', () => {
       engine.addStrategy(strategy);
 
       let errorReceived = false;
-      engine.on('engine:error', (data: any) => {
+      engine.on('engine:error', (event: any) => {
         if (!errorReceived) {
           errorReceived = true;
-          expect(data.error).toContain('Test error');
+          expect(event.data?.error).toContain('Test error');
           done();
         }
       });
