@@ -1,9 +1,81 @@
 /**
  * API Client for AlphaArena Backend
  * Provides REST API and WebSocket connections
+ * 
+ * Note: API endpoints are mapped to Supabase Edge Functions when using Supabase:
+ * - /api/strategies → get-strategies
+ * - /api/trades → get-trades
+ * - etc.
  */
 
+// Use environment variables for API and WebSocket URLs
+// Falls back to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const WS_BASE_URL = import.meta.env.VITE_WS_URL || API_BASE_URL.replace('http', 'ws');
+
+// Check if using Supabase Edge Functions (URL contains /functions/v1)
+const IS_SUPABASE_FUNCTIONS = API_BASE_URL.includes('/functions/v1');
+
+// Supabase API Key (required for Edge Functions)
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Map API endpoints to Supabase Function names
+const FUNCTION_MAP: Record<string, string> = {
+  '/api/strategies': 'get-strategies',
+  '/api/trades': 'get-trades',
+  '/api/portfolios': 'get-portfolios',
+  '/api/stats': 'get-stats',
+  '/api/leaderboard': 'get-leaderboard',
+  '/api/orderbook': 'get-orderbook',
+  '/api/market/tickers': 'get-market-tickers',
+  '/api/market/kline': 'get-market-tickers', // Use same function
+};
+
+// Helper to map API paths to Supabase function names
+function mapToFunction(path: string): string {
+  if (!IS_SUPABASE_FUNCTIONS) {
+    return path;
+  }
+
+  // Check for mapped endpoints
+  for (const [apiPath, functionName] of Object.entries(FUNCTION_MAP)) {
+    if (path.startsWith(apiPath)) {
+      const remaining = path.slice(apiPath.length);
+      return functionName + remaining;
+    }
+  }
+
+  // Handle special cases
+  if (path === '/api/leaderboard/refresh') return 'refresh-leaderboard';
+  if (path === '/api/leaderboard/snapshot') return 'get-leaderboard-snapshot';
+  if (path.startsWith('/api/leaderboard/')) return 'get-strategy-rank' + path.replace('/api/leaderboard', '');
+  if (path.startsWith('/api/strategies') && path.includes('/')) {
+    // Individual strategy operations
+    if (path.includes('POST') || path.includes('PATCH')) {
+      // Will be handled by method-specific logic
+    }
+  }
+
+  // Default: remove /api/ prefix
+  return path.replace('/api/', '');
+}
+
+// Unified fetch wrapper that handles Supabase function mapping
+async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+  const endpoint = mapToFunction(path);
+  const url = `${API_BASE_URL}/${endpoint}`;
+  
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...(IS_SUPABASE_FUNCTIONS && SUPABASE_ANON_KEY ? {
+      'apikey': SUPABASE_ANON_KEY,
+      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+    } : {}),
+    ...(options?.headers || {}),
+  };
+  
+  return fetch(url, { ...options, headers });
+}
 
 export interface Strategy {
   id: string;
@@ -109,7 +181,7 @@ export interface MarketTicker {
 }
 
 export interface KLineData {
-  time: number; // Unix timestamp in seconds
+  time: number;
   open: number;
   high: number;
   low: number;
@@ -145,30 +217,29 @@ export interface ApiResponse<T> {
  * REST API Client
  */
 export const api = {
-  // Health check
   async health(): Promise<{ status: string; timestamp: number }> {
-    const res = await fetch(`${API_BASE_URL}/health`);
-    if (!res.ok) {
-      throw new Error(`Health check failed: ${res.status}`);
+    if (IS_SUPABASE_FUNCTIONS) {
+      return { status: 'ok', timestamp: Date.now() };
     }
+    const res = await apiFetch('/health');
+    if (!res.ok) throw new Error(`Health check failed: ${res.status}`);
     return res.json();
   },
 
-  // Strategies
   async getStrategies(): Promise<Strategy[]> {
-    const res = await fetch(`${API_BASE_URL}/api/strategies`);
+    const res = await apiFetch('/api/strategies');
     const data: ApiResponse<Strategy[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getStrategy(id: string): Promise<Strategy | null> {
-    const res = await fetch(`${API_BASE_URL}/api/strategies/${id}`);
+    const res = await apiFetch(`/api/strategies/${id}`);
     const data: ApiResponse<Strategy> = await res.json();
     return data.success ? data.data : null;
   },
 
   async createStrategy(strategy: Omit<Strategy, 'id' | 'createdAt' | 'updatedAt'>): Promise<Strategy | null> {
-    const res = await fetch(`${API_BASE_URL}/api/strategies`, {
+    const res = await apiFetch('/functions/v1/create-strategy', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(strategy),
@@ -178,7 +249,7 @@ export const api = {
   },
 
   async updateStrategy(id: string, updates: Partial<Strategy>): Promise<Strategy | null> {
-    const res = await fetch(`${API_BASE_URL}/api/strategies/${id}`, {
+    const res = await apiFetch(`/functions/v1/update-strategy/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
@@ -187,7 +258,6 @@ export const api = {
     return data.success ? data.data : null;
   },
 
-  // Trades
   async getTrades(filters?: {
     strategyId?: string;
     symbol?: string;
@@ -201,47 +271,42 @@ export const api = {
     if (filters?.side) params.append('side', filters.side);
     if (filters?.limit) params.append('limit', filters.limit.toString());
     if (filters?.offset) params.append('offset', filters.offset.toString());
-
-    const res = await fetch(`${API_BASE_URL}/api/trades?${params}`);
+    const res = await apiFetch(`/api/trades?${params}`);
     const data: ApiResponse<Trade[]> = await res.json();
     return data.success ? data.data : [];
   },
 
-  // Portfolios
   async getPortfolio(strategyId?: string, symbol?: string): Promise<Portfolio | null> {
     const params = new URLSearchParams();
     if (strategyId) params.append('strategyId', strategyId);
     if (symbol) params.append('symbol', symbol);
-
-    const res = await fetch(`${API_BASE_URL}/api/portfolios?${params}`);
+    const res = await apiFetch(`/api/portfolios?${params}`);
     const data: ApiResponse<Portfolio> = await res.json();
     return data.success ? data.data : null;
   },
 
-  // Stats
   async getStats(): Promise<Stats | null> {
-    const res = await fetch(`${API_BASE_URL}/api/stats`);
+    const res = await apiFetch('/api/stats');
     const data: ApiResponse<Stats> = await res.json();
     return data.success ? data.data : null;
   },
 
-  // Leaderboard
   async getLeaderboard(sortBy?: string): Promise<LeaderboardEntry[]> {
     const params = sortBy ? `?sortBy=${sortBy}` : '';
-    const res = await fetch(`${API_BASE_URL}/api/leaderboard${params}`);
+    const res = await apiFetch(`/api/leaderboard${params}`);
     const data: ApiResponse<LeaderboardEntry[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getStrategyRank(strategyId: string): Promise<LeaderboardEntry | null> {
-    const res = await fetch(`${API_BASE_URL}/api/leaderboard/${strategyId}`);
+    const res = await apiFetch(`/api/leaderboard/${strategyId}`);
     const data: ApiResponse<LeaderboardEntry> = await res.json();
     return data.success ? data.data : null;
   },
 
   async refreshLeaderboard(sortBy?: string): Promise<LeaderboardEntry[]> {
     const params = sortBy ? `?sortBy=${sortBy}` : '';
-    const res = await fetch(`${API_BASE_URL}/api/leaderboard/refresh${params}`, {
+    const res = await apiFetch(`/functions/v1/refresh-leaderboard${params}`, {
       method: 'POST',
     });
     const data: ApiResponse<LeaderboardEntry[]> = await res.json();
@@ -249,33 +314,32 @@ export const api = {
   },
 
   async getLeaderboardSnapshot(): Promise<LeaderboardSnapshot | null> {
-    const res = await fetch(`${API_BASE_URL}/api/leaderboard/snapshot`);
+    const res = await apiFetch('/functions/v1/get-leaderboard-snapshot');
     const data: ApiResponse<LeaderboardSnapshot> = await res.json();
     return data.success ? data.data : null;
   },
 
   async getOrderBook(symbol: string, levels?: number): Promise<OrderBookSnapshot | null> {
     const params = levels ? `?levels=${levels}` : '';
-    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}${params}`);
+    const res = await apiFetch(`/api/orderbook/${symbol}${params}`);
     const data: ApiResponse<OrderBookSnapshot> = await res.json();
     return data.success ? data.data : null;
   },
 
   async getBestPrices(symbol: string): Promise<BestPrices | null> {
-    const res = await fetch(`${API_BASE_URL}/api/orderbook/${symbol}/best`);
+    const res = await apiFetch(`/api/orderbook/${symbol}/best`);
     const data: ApiResponse<BestPrices> = await res.json();
     return data.success ? data.data : null;
   },
 
-  // Market Data
   async getMarketTickers(): Promise<MarketTicker[]> {
-    const res = await fetch(`${API_BASE_URL}/api/market/tickers`);
+    const res = await apiFetch('/api/market/tickers');
     const data: ApiResponse<MarketTicker[]> = await res.json();
     return data.success ? data.data : [];
   },
 
   async getMarketTicker(symbol: string): Promise<MarketTicker | null> {
-    const res = await fetch(`${API_BASE_URL}/api/market/tickers/${symbol}`);
+    const res = await apiFetch(`/api/market/tickers/${symbol}`);
     const data: ApiResponse<MarketTicker> = await res.json();
     return data.success ? data.data : null;
   },
@@ -284,13 +348,11 @@ export const api = {
     const params = new URLSearchParams();
     params.append('timeframe', timeframe);
     if (limit) params.append('limit', limit.toString());
-    
-    const res = await fetch(`${API_BASE_URL}/api/market/kline/${symbol}?${params}`);
+    const res = await apiFetch(`/api/market/kline/${symbol}?${params}`);
     const data: ApiResponse<KLineData[]> = await res.json();
     return data.success ? data.data : [];
   },
 
-  // Orders
   async createOrder(order: {
     symbol: string;
     side: 'buy' | 'sell';
@@ -298,7 +360,7 @@ export const api = {
     price?: number;
     quantity: number;
   }): Promise<any | null> {
-    const res = await fetch(`${API_BASE_URL}/api/orders`, {
+    const res = await apiFetch('/functions/v1/create-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(order),
@@ -310,6 +372,12 @@ export const api = {
 
 /**
  * WebSocket Client
+ * Note: Supabase does not support custom WebSocket servers.
+ * This client uses Socket.IO which requires a Node.js server.
+ * Options:
+ * 1. Keep Railway for WebSocket only
+ * 2. Migrate to Supabase Realtime (requires code changes)
+ * 3. Use polling instead of WebSocket
  */
 export class WebSocketClient {
   private socket: any;
@@ -317,18 +385,15 @@ export class WebSocketClient {
   private listeners: Map<string, Set<Function>> = new Map();
   private connectionPromise: Promise<void> | null = null;
 
-  constructor(url: string = API_BASE_URL.replace('http', 'ws')) {
+  constructor(url: string = WS_BASE_URL) {
     this.url = url;
     this.socket = null;
   }
 
   connect(): Promise<void> {
-    if (this.connectionPromise) {
-      return this.connectionPromise;
-    }
+    if (this.connectionPromise) return this.connectionPromise;
 
     this.connectionPromise = new Promise((resolve, reject) => {
-      // Dynamic import for socket.io-client
       import('socket.io-client').then(({ io }) => {
         this.socket = io(this.url, {
           transports: ['websocket', 'polling'],
@@ -349,30 +414,12 @@ export class WebSocketClient {
           reject(error);
         });
 
-        // Setup event listeners
-        this.socket.on('trade:new', (data: any) => {
-          this.emit('trade:new', data);
-        });
-
-        this.socket.on('portfolio:update', (data: any) => {
-          this.emit('portfolio:update', data);
-        });
-
-        this.socket.on('strategy:tick', (data: any) => {
-          this.emit('strategy:tick', data);
-        });
-
-        this.socket.on('leaderboard:update', (data: any) => {
-          this.emit('leaderboard:update', data);
-        });
-
-        this.socket.on('orderbook:snapshot', (data: any) => {
-          this.emit('orderbook:snapshot', data);
-        });
-
-        this.socket.on('orderbook:delta', (data: any) => {
-          this.emit('orderbook:delta', data);
-        });
+        this.socket.on('trade:new', (data: any) => this.emit('trade:new', data));
+        this.socket.on('portfolio:update', (data: any) => this.emit('portfolio:update', data));
+        this.socket.on('strategy:tick', (data: any) => this.emit('strategy:tick', data));
+        this.socket.on('leaderboard:update', (data: any) => this.emit('leaderboard:update', data));
+        this.socket.on('orderbook:snapshot', (data: any) => this.emit('orderbook:snapshot', data));
+        this.socket.on('orderbook:delta', (data: any) => this.emit('orderbook:delta', data));
       }).catch((error) => {
         this.connectionPromise = null;
         reject(error);
@@ -384,13 +431,8 @@ export class WebSocketClient {
 
   subscribe(strategyId?: string, symbol?: string): void {
     if (!this.socket) return;
-    
-    if (strategyId) {
-      this.socket.emit('subscribe:strategy', strategyId);
-    }
-    if (symbol) {
-      this.socket.emit('subscribe:symbol', symbol);
-    }
+    if (strategyId) this.socket.emit('subscribe:strategy', strategyId);
+    if (symbol) this.socket.emit('subscribe:symbol', symbol);
   }
 
   unsubscribe(room: string): void {
@@ -409,15 +451,9 @@ export class WebSocketClient {
   }
 
   on(event: string, callback: Function): () => void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
-    }
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
     this.listeners.get(event)!.add(callback);
-
-    // Return unsubscribe function
-    return () => {
-      this.listeners.get(event)?.delete(callback);
-    };
+    return () => this.listeners.get(event)?.delete(callback);
   }
 
   off(event: string, callback: Function): void {
@@ -425,7 +461,7 @@ export class WebSocketClient {
   }
 
   private emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach(callback => {
+    this.listeners.get(event)?.forEach((callback) => {
       try {
         callback(data);
       } catch (error) {
