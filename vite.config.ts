@@ -26,5 +26,13 @@ export default defineConfig({
   build: {
     outDir: 'dist/client',
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'arco-design': ['@arco-design/web-react'],
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
   },
 });
