@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, UTCTimestamp } from 'lightweight-charts';
+import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, UTCTimestamp, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import { Card, Radio, Spin, Empty, Typography } from '@arco-design/web-react';
 import { useKLineData } from '../hooks/useKLineData';
+import ErrorBoundary from './ErrorBoundary';
 
 const { Text } = Typography;
 
@@ -31,7 +32,7 @@ const TIMEFRAME_LABELS: Record<TimeFrame, string> = {
   '1d': '1 天',
 };
 
-const KLineChart: React.FC<KLineChartProps> = ({
+const KLineChartInner: React.FC<KLineChartProps> = ({
   symbol = 'BTC/USD',
   height = 500,
   showVolume = true,
@@ -47,97 +48,107 @@ const KLineChart: React.FC<KLineChartProps> = ({
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
-    const chart = createChart(chartContainerRef.current, {
-      width: chartContainerRef.current.clientWidth,
-      height: height,
-      layout: {
-        background: { type: 'solid', color: '#1a1a1a' },
-        textColor: '#d1d4dc',
-      },
-      grid: {
-        vertLines: { color: '#2B2B43' },
-        horzLines: { color: '#2B2B43' },
-      },
-      crosshair: {
-        mode: 1, // MagnetMode
-      },
-      timeScale: {
-        borderColor: '#2B2B43',
-        timeVisible: true,
-        secondsVisible: false,
-      },
-    });
-
-    chartRef.current = chart;
-
-    // Create candlestick series
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: '#26a69a',
-      downColor: '#ef5350',
-      borderVisible: false,
-      wickUpColor: '#26a69a',
-      wickDownColor: '#ef5350',
-    });
-
-    candleSeriesRef.current = candleSeries;
-
-    // Create volume series (overlay at bottom)
-    if (showVolume) {
-      const volumeSeries = chart.addHistogramSeries({
-        color: '#26a69a',
-        priceFormat: {
-          type: 'volume',
+    try {
+      const chart = createChart(chartContainerRef.current, {
+        width: chartContainerRef.current.clientWidth,
+        height: height,
+        layout: {
+          background: { type: 'solid', color: '#1a1a1a' },
+          textColor: '#d1d4dc',
         },
-        priceScaleId: '', // Overlay on main chart
-        scaleMargins: {
-          top: 0.8, // Push to bottom
-          bottom: 0,
+        grid: {
+          vertLines: { color: '#2B2B43' },
+          horzLines: { color: '#2B2B43' },
+        },
+        crosshair: {
+          mode: 1, // MagnetMode
+        },
+        timeScale: {
+          borderColor: '#2B2B43',
+          timeVisible: true,
+          secondsVisible: false,
         },
       });
 
-      volumeSeriesRef.current = volumeSeries;
-    }
+      chartRef.current = chart;
 
-    // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({
-          width: chartContainerRef.current.clientWidth,
+      // Create candlestick series - lightweight-charts v5.x API
+      const candleSeries = chart.addSeries(CandlestickSeries, {
+        upColor: '#26a69a',
+        downColor: '#ef5350',
+        borderVisible: false,
+        wickUpColor: '#26a69a',
+        wickDownColor: '#ef5350',
+      });
+
+      candleSeriesRef.current = candleSeries;
+
+      // Create volume series (overlay at bottom)
+      if (showVolume) {
+        const volumeSeries = chart.addSeries(HistogramSeries, {
+          color: '#26a69a',
+          priceFormat: {
+            type: 'volume',
+          },
+          priceScaleId: '', // Overlay on main chart
+          scaleMargins: {
+            top: 0.8, // Push to bottom
+            bottom: 0,
+          },
         });
+
+        volumeSeriesRef.current = volumeSeries;
       }
-    };
 
-    window.addEventListener('resize', handleResize);
+      // Handle resize
+      const handleResize = () => {
+        if (chartContainerRef.current && chartRef.current) {
+          chartRef.current.applyOptions({
+            width: chartContainerRef.current.clientWidth,
+          });
+        }
+      };
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      chart.remove();
-    };
+      window.addEventListener('resize', handleResize);
+
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        chart.remove();
+      };
+    } catch (err: any) {
+      console.error('[KLineChart] Failed to initialize chart:', err);
+      throw err; // Re-throw to be caught by ErrorBoundary
+    }
   }, [height, showVolume]);
 
   // Update data when timeframe or symbol changes
   useEffect(() => {
     if (!candleSeriesRef.current || !klineData) return;
 
-    // Convert KLineDataPoint to CandlestickData
-    const candleData: CandlestickData<Time>[] = klineData.map(point => ({
-      time: point.time as UTCTimestamp,
-      open: point.open,
-      high: point.high,
-      low: point.low,
-      close: point.close,
-    }));
-
-    candleSeriesRef.current.setData(candleData);
-
-    // Update volume data
-    if (volumeSeriesRef.current && showVolume) {
-      const volumeData = klineData.map(point => ({
+    try {
+      // Convert KLineDataPoint to CandlestickData
+      const candleData: CandlestickData<Time>[] = klineData.map(point => ({
         time: point.time as UTCTimestamp,
-        value: point.volume,
-        color: point.close >= point.open ? '#26a69a80' : '#ef535080',
+        open: point.open,
+        high: point.high,
+        low: point.low,
+        close: point.close,
       }));
-      volumeSeriesRef.current.setData(volumeData);
+
+      candleSeriesRef.current.setData(candleData);
+
+      // Update volume data
+      if (volumeSeriesRef.current && showVolume) {
+        const volumeData = klineData.map(point => ({
+          time: point.time as UTCTimestamp,
+          value: point.volume,
+          color: point.close >= point.open ? '#26a69a80' : '#ef535080',
+        }));
+        volumeSeriesRef.current.setData(volumeData);
+      }
+    } catch (err: any) {
+      console.error('[KLineChart] Failed to update chart data:', err);
+      throw err; // Re-throw to be caught by ErrorBoundary
     }
   }, [klineData, showVolume]);
 
@@ -179,6 +190,15 @@ const KLineChart: React.FC<KLineChartProps> = ({
         </div>
       </Spin>
     </Card>
+  );
+};
+
+// Wrap with ErrorBoundary for component-level error handling
+const KLineChart: React.FC<KLineChartProps> = (props) => {
+  return (
+    <ErrorBoundary>
+      <KLineChartInner {...props} />
+    </ErrorBoundary>
   );
 };
 

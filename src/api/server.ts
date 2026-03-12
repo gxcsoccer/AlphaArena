@@ -29,6 +29,15 @@ export interface APIServerConfig {
   authToken?: string;
 }
 
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://alphaarena-production.up.railway.app', // Backend itself
+  'https://*.vercel.app', // Vercel preview deployments
+  'https://alpha-arena-*.vercel.app', // Vercel production deployments
+  'http://localhost:3000', // Local development
+  'http://localhost:5173', // Vite dev server
+];
+
 /**
  * API Server Class
  * Combines Express REST API with Socket.IO WebSocket
@@ -49,7 +58,7 @@ export class APIServer extends EventEmitter {
     super();
     this.config = {
       port: config.port || 3001,
-      corsOrigin: config.corsOrigin || '*',
+      corsOrigin: config.corsOrigin || ALLOWED_ORIGINS,
       enableAuth: config.enableAuth || false,
       authToken: config.authToken,
     };
