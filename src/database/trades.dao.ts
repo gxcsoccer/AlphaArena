@@ -189,6 +189,54 @@ export class TradesDAO {
     };
   }
 
+  /**
+   * Export trades to CSV format
+   * @param filters - Filters to apply to the export
+   * @returns CSV string with trade data
+   */
+  async exportToCSV(filters: TradeFilters = {}): Promise<string> {
+    // Get all trades with filters (no limit for export)
+    const trades = await this.getMany({ ...filters, limit: undefined });
+
+    // CSV header
+    const headers = [
+      'Timestamp',
+      'Symbol',
+      'Side',
+      'Price',
+      'Quantity',
+      'Total',
+      'Fee',
+      'Fee Currency',
+      'Strategy ID',
+      'Order ID',
+      'Trade ID',
+    ];
+
+    // CSV rows
+    const rows = trades.map(trade => [
+      trade.executedAt.toISOString(),
+      trade.symbol,
+      trade.side,
+      trade.price.toFixed(8),
+      trade.quantity.toFixed(8),
+      trade.total.toFixed(8),
+      trade.fee.toFixed(8),
+      trade.feeCurrency || '',
+      trade.strategyId || '',
+      trade.orderId || '',
+      trade.tradeId || '',
+    ]);
+
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(',')),
+    ].join('\n');
+
+    return csvContent;
+  }
+
   private mapToTrade(row: any): Trade {
     return {
       id: row.id,
