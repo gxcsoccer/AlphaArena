@@ -20,14 +20,18 @@ import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabas
 // Supabase configuration - will be set from environment variables at runtime
 // In Vite: import.meta.env.VITE_SUPABASE_URL
 // In Jest: process.env.VITE_SUPABASE_URL
-// Using import.meta.env for Vite (it will be replaced at build time)
+// Using globalThis to access import.meta safely (avoids TS error with CommonJS)
 declare const process: { env: Record<string, string> } | undefined;
 
 const getEnv = (key: string, fallback: string): string => {
-  // Vite uses import.meta.env
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
-    return (import.meta as any).env[key] || fallback;
-  }
+  // Try Vite's import.meta.env first (using globalThis to avoid TS error)
+  try {
+    const metaEnv = (globalThis as any).importMeta?.env;
+    if (metaEnv && metaEnv[key]) {
+      return metaEnv[key];
+    }
+  } catch {}
+  
   // Fallback for Node.js environments (Jest, etc.)
   if (typeof process !== 'undefined' && process.env) {
     return process.env[key] || fallback;
