@@ -424,6 +424,20 @@ export class APIServer extends EventEmitter {
 
   /**
    * Broadcast trade event via Supabase Realtime
+   * 
+   * Channel Subscription Strategy:
+   * - Global trade channel ('trade:global'): All clients interested in any trade can subscribe
+   * - Symbol-specific ticker channel ('ticker:{symbol}'): Clients interested in specific symbols subscribe here
+   * 
+   * This dual-broadcast approach allows clients to choose their subscription strategy:
+   * - Subscribe to 'trade:global' to receive all trades (high volume)
+   * - Subscribe to 'ticker:{symbol}' to receive trades and market ticks for specific symbols (targeted)
+   * 
+   * Note: The same trade data is broadcast to both channels, but with different event types:
+   * - 'trade:global' receives event 'new' with full trade data
+   * - 'ticker:{symbol}' receives event 'tick' with trade wrapped as market tick
+   * 
+   * This is intentional and not a duplicate - it supports different client subscription patterns.
    */
   public async broadcastTrade(trade: Trade): Promise<void> {
     if (!this.realtime) {
@@ -431,10 +445,10 @@ export class APIServer extends EventEmitter {
       return;
     }
     
-    // Broadcast to global trade channel
+    // Broadcast to global trade channel (for clients subscribed to all trades)
     await this.realtime.broadcastTrade('global', trade);
     
-    // Broadcast to symbol-specific channel
+    // Broadcast to symbol-specific channel (for clients interested in this symbol only)
     if (trade.symbol) {
       await this.realtime.broadcastMarketTick(trade.symbol, {
         type: 'trade',
