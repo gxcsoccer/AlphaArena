@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo, memo } from 'react';
 import { Card, Typography, Table, Tag } from '@arco-design/web-react';
 import { useOrderBook } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
@@ -19,22 +19,23 @@ interface OrderBookProps {
   onPriceClick?: (price: number, type: 'bid' | 'ask') => void;
 }
 
-const OrderBook: React.FC<OrderBookProps> = ({
+const OrderBook: React.FC<OrderBookProps> = memo(({
   symbol,
   levels = 20,
   onPriceClick,
 }) => {
   const { orderBook, loading, error } = useOrderBook(symbol, levels);
 
-  // Prepare data for display
-  const prepareData = useCallback((): OrderBookRow[] => {
+  // Memoize prepared data to avoid recalculation on every render
+  const preparedData = useMemo((): OrderBookRow[] => {
     if (!orderBook) return [];
 
     const rows: OrderBookRow[] = [];
 
     // Add asks (sell orders) - sorted by price ascending (lowest first)
     const asks = [...(orderBook.asks || [])].sort((a, b) => a.price - b.price);
-    asks.forEach((level) => {
+    for (let i = 0; i < asks.length; i++) {
+      const level = asks[i];
       rows.push({
         key: `ask-${level.price}`,
         price: level.price,
@@ -42,11 +43,12 @@ const OrderBook: React.FC<OrderBookProps> = ({
         total: level.price * level.totalQuantity,
         type: 'ask',
       });
-    });
+    }
 
     // Add bids (buy orders) - sorted by price descending (highest first)
     const bids = [...(orderBook.bids || [])].sort((a, b) => b.price - a.price);
-    bids.forEach((level) => {
+    for (let i = 0; i < bids.length; i++) {
+      const level = bids[i];
       rows.push({
         key: `bid-${level.price}`,
         price: level.price,
@@ -54,7 +56,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
         total: level.price * level.totalQuantity,
         type: 'bid',
       });
-    });
+    }
 
     return rows;
   }, [orderBook]);
@@ -67,8 +69,8 @@ const OrderBook: React.FC<OrderBookProps> = ({
     [onPriceClick]
   );
 
-  // Table columns
-  const columns: TableProps<OrderBookRow>['columns'] = [
+  // Memoize table columns to avoid recreation on every render
+  const columns = useMemo<TableProps<OrderBookRow>['columns']>(() => [
     {
       title: '价格',
       dataIndex: 'price',
@@ -102,16 +104,30 @@ const OrderBook: React.FC<OrderBookProps> = ({
       render: (total: number) =>
         `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
     },
-  ];
+  ], [handlePriceClick]);
 
-  // Calculate spread and mid price
-  const spreadInfo = React.useMemo(() => {
-    if (!orderBook || !orderBook.bids?.length || !orderBook.asks?.length) {
+  // Calculate spread and mid price - optimized to avoid unnecessary calculations
+  const spreadInfo = useMemo(() => {
+    if (!orderBook?.bids?.length || !orderBook?.asks?.length) {
       return null;
     }
 
-    const bestBid = Math.max(...orderBook.bids.map((b) => b.price));
-    const bestAsk = Math.min(...orderBook.asks.map((a) => a.price));
+    // Find best bid/ask without creating intermediate arrays
+    let bestBid = -Infinity;
+    let bestAsk = Infinity;
+    
+    for (let i = 0; i < orderBook.bids.length; i++) {
+      if (orderBook.bids[i].price > bestBid) {
+        bestBid = orderBook.bids[i].price;
+      }
+    }
+    
+    for (let i = 0; i < orderBook.asks.length; i++) {
+      if (orderBook.asks[i].price < bestAsk) {
+        bestAsk = orderBook.asks[i].price;
+      }
+    }
+    
     const spread = bestAsk - bestBid;
     const midPrice = (bestBid + bestAsk) / 2;
 
@@ -142,7 +158,7 @@ const OrderBook: React.FC<OrderBookProps> = ({
       {!loading && !error && orderBook && (
         <Table
           columns={columns}
-          data={prepareData()}
+          data={preparedData}
           rowKey="key"
           pagination={false}
           size="small"
@@ -155,6 +171,6 @@ const OrderBook: React.FC<OrderBookProps> = ({
       )}
     </Card>
   );
-};
+});
 
 export default OrderBook;
