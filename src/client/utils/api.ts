@@ -8,16 +8,18 @@
  * - etc.
  */
 
-// Use environment variables for API and WebSocket URLs
-// Falls back to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || API_BASE_URL.replace('http', 'ws');
+import { validateConfig } from './config';
+
+// Use validated configuration
+const config = validateConfig();
+const API_BASE_URL = config.apiUrl;
+const WS_BASE_URL = config.wsUrl;
 
 // Check if using Supabase Edge Functions (URL contains /functions/v1)
 const IS_SUPABASE_FUNCTIONS = API_BASE_URL.includes('/functions/v1');
 
 // Supabase API Key (required for Edge Functions)
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const SUPABASE_ANON_KEY = config.supabaseAnonKey;
 
 // Map API endpoints to Supabase Function names
 const FUNCTION_MAP: Record<string, string> = {
