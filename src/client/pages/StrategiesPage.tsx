@@ -20,7 +20,19 @@ const StrategiesPage: React.FC = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [form] = Form.useForm();
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const handleViewDetails = (strategy: Strategy) => {
     setSelectedStrategy(strategy);
@@ -140,22 +152,26 @@ const StrategiesPage: React.FC = () => {
           AlphaArena - Strategies
         </Title>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: isMobile ? 12 : 24 }}>
         <Card
           title="Strategy Management"
           extra={
-            <Button type="primary" onClick={refresh}>
-              Refresh
+            <Button type="primary" onClick={refresh} size={isMobile ? 'default' : 'default'}>
+              {isMobile ? '刷新' : 'Refresh'}
             </Button>
           }
+          bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
         >
-          <Table
-            columns={strategyColumns}
-            dataSource={strategies}
-            rowKey="id"
-            loading={loading}
-            pagination={{ pageSize: 20 }}
-          />
+          <div className={isMobile ? 'mobile-table-container' : ''}>
+            <Table
+              columns={strategyColumns}
+              dataSource={strategies}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 20 }}
+              scroll={isMobile ? { x: 1000 } : undefined}
+            />
+          </div>
         </Card>
       </Content>
 
@@ -163,7 +179,7 @@ const StrategiesPage: React.FC = () => {
       <Drawer
         title="Strategy Details"
         placement="end"
-        width={600}
+        width={isMobile ? '100%' : 600}
         visible={drawerVisible}
         onClose={handleCloseDrawer}
       >
@@ -197,7 +213,15 @@ const StrategiesPage: React.FC = () => {
             </div>
             <div>
               <Text strong>Configuration: </Text>
-              <pre style={{ background: '#f5f5f5', padding: 12, borderRadius: 4 }}>
+              <pre
+                style={{
+                  background: '#f5f5f5',
+                  padding: 12,
+                  borderRadius: 4,
+                  overflowX: 'auto',
+                  fontSize: isMobile ? 12 : 14,
+                }}
+              >
                 {JSON.stringify(selectedStrategy.config, null, 2)}
               </pre>
             </div>
@@ -211,6 +235,7 @@ const StrategiesPage: React.FC = () => {
         visible={modalVisible}
         onOk={() => form.submit()}
         onCancel={() => setModalVisible(false)}
+        width={isMobile ? '95%' : 600}
       >
         <Form form={form} layout="vertical" onFinish={handleSave}>
           <Form.Item

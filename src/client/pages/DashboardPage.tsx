@@ -29,6 +29,18 @@ const DashboardPage: React.FC = () => {
   const { stats, loading: statsLoading } = useStats();
   const { strategies, loading: strategiesLoading } = useStrategies();
   const { trades, loading: tradesLoading } = useTrades(undefined, 10);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Prepare chart data
   const strategyStatusData = strategies.reduce((acc: any, strategy) => {
@@ -162,10 +174,10 @@ const DashboardPage: React.FC = () => {
           AlphaArena - Dashboard
         </Title>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Stats Overview */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={6}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={statsLoading}>
               <Statistic
                 title="Total Strategies"
@@ -174,7 +186,7 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={statsLoading}>
               <Statistic
                 title="Total Trades"
@@ -182,7 +194,7 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={statsLoading}>
               <Statistic
                 title="Total Volume"
@@ -191,7 +203,7 @@ const DashboardPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={statsLoading}>
               <Statistic
                 title="Buy/Sell Ratio"
@@ -206,10 +218,10 @@ const DashboardPage: React.FC = () => {
         </Row>
 
         {/* Charts */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={24} md={12}>
             <Card title="Strategy Status Distribution" loading={strategiesLoading}>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <PieChart>
                   <Pie
                     data={pieData}
@@ -231,12 +243,12 @@ const DashboardPage: React.FC = () => {
               </ResponsiveContainer>
             </Card>
           </Col>
-          <Col span={12}>
+          <Col xs={24} md={12}>
             <Card title="Trading Volume by Strategy" loading={strategiesLoading}>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <BarChart data={tradeVolumeData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
+                  <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -247,32 +259,46 @@ const DashboardPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Recent Trades */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        {/* Recent Trades - Scrollable on mobile */}
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
-            <Card title="Recent Trades" loading={tradesLoading}>
-              <Table
-                columns={tradeColumns}
-                dataSource={trades}
-                rowKey="id"
-                pagination={false}
-                size="small"
-              />
+            <Card
+              title="Recent Trades"
+              loading={tradesLoading}
+              bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+            >
+              <div className={isMobile ? 'mobile-table-container' : ''}>
+                <Table
+                  columns={tradeColumns}
+                  dataSource={trades}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  scroll={isMobile ? { x: 800 } : undefined}
+                />
+              </div>
             </Card>
           </Col>
         </Row>
 
-        {/* Active Strategies */}
-        <Row gutter={16}>
+        {/* Active Strategies - Scrollable on mobile */}
+        <Row gutter={isMobile ? 8 : 16}>
           <Col span={24}>
-            <Card title="Active Strategies" loading={strategiesLoading}>
-              <Table
-                columns={strategyColumns}
-                dataSource={strategies}
-                rowKey="id"
-                pagination={false}
-                size="small"
-              />
+            <Card
+              title="Active Strategies"
+              loading={strategiesLoading}
+              bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+            >
+              <div className={isMobile ? 'mobile-table-container' : ''}>
+                <Table
+                  columns={strategyColumns}
+                  dataSource={strategies}
+                  rowKey="id"
+                  pagination={false}
+                  size="small"
+                  scroll={isMobile ? { x: 1000 } : undefined}
+                />
+              </div>
             </Card>
           </Col>
         </Row>

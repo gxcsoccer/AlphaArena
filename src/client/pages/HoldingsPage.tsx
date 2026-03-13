@@ -40,6 +40,18 @@ const HoldingsPage: React.FC = () => {
     strategies.length > 0 ? strategies[0].id : undefined
   );
   const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | 'all'>('1w');
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Update selected strategy when strategies are loaded
   React.useEffect(() => {
@@ -169,12 +181,12 @@ const HoldingsPage: React.FC = () => {
           AlphaArena - Holdings
         </Title>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Strategy Selector */}
-        <Card style={{ marginBottom: 24 }}>
+        <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Select
             placeholder="Select Strategy"
-            style={{ width: 300 }}
+            style={{ width: isMobile ? '100%' : 300 }}
             allowClear
             value={selectedStrategyId}
             onChange={setSelectedStrategyId}
@@ -187,8 +199,8 @@ const HoldingsPage: React.FC = () => {
         </Card>
 
         {/* Portfolio Overview */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={6}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={loading}>
               <Statistic
                 title="Total Value"
@@ -198,7 +210,7 @@ const HoldingsPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={loading}>
               <Statistic
                 title="Cash Balance"
@@ -208,7 +220,7 @@ const HoldingsPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={loading}>
               <Statistic
                 title="Realized P&L"
@@ -219,7 +231,7 @@ const HoldingsPage: React.FC = () => {
               />
             </Card>
           </Col>
-          <Col span={6}>
+          <Col xs={12} sm={12} md={6}>
             <Card loading={loading}>
               <Statistic
                 title="Win Rate"
@@ -232,10 +244,10 @@ const HoldingsPage: React.FC = () => {
         </Row>
 
         {/* Charts */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={24} md={12}>
             <Card title="Asset Allocation" loading={loading}>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <PieChart>
                   <Pie
                     data={allocationData}
@@ -257,10 +269,10 @@ const HoldingsPage: React.FC = () => {
               </ResponsiveContainer>
             </Card>
           </Col>
-          <Col span={12}>
+          <Col xs={24} md={12}>
             <Card
               title={
-                <Space>
+                <Space direction={isMobile ? 'vertical' : 'horizontal'}>
                   <span>Equity Curve</span>
                   <Radio.Group
                     value={timeRange}
@@ -279,46 +291,48 @@ const HoldingsPage: React.FC = () => {
               loading={loading || historyLoading}
             >
               {equityCurveData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <AreaChart data={equityCurveData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="time" 
-                      tick={{ fontSize: 12 }}
+                    <XAxis
+                      dataKey="time"
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
                       tickFormatter={(value) => {
                         const date = new Date(value);
-                        return timeRange === '1d' 
+                        return timeRange === '1d'
                           ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                           : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
                       }}
                     />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
+                    <YAxis
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
                       tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`, 'Portfolio Value']}
                       labelFormatter={(label) => `Time: ${label}`}
                     />
                     <Legend />
-                    <Area 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="#8884d8" 
-                      fill="#8884d8" 
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#8884d8"
+                      fill="#8884d8"
                       fillOpacity={0.3}
                       name="Portfolio Value"
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div style={{ 
-                  height: 300, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: '#999'
-                }}>
+                <div
+                  style={{
+                    height: isMobile ? 250 : 300,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#999',
+                  }}
+                >
                   No portfolio data available
                 </div>
               )}
@@ -327,11 +341,11 @@ const HoldingsPage: React.FC = () => {
         </Row>
 
         {/* P&L Analysis */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
             <Card title="P&L Analysis" loading={loading}>
-              <Row gutter={16}>
-                <Col span={8}>
+              <Row gutter={isMobile ? 8 : 16}>
+                <Col xs={24} sm={8}>
                   <Statistic
                     title="Total Cost Basis"
                     value={pnlData.totalCost}
@@ -339,7 +353,7 @@ const HoldingsPage: React.FC = () => {
                     precision={2}
                   />
                 </Col>
-                <Col span={8}>
+                <Col xs={24} sm={8}>
                   <Statistic
                     title="Total Proceeds"
                     value={pnlData.totalProceeds}
@@ -347,7 +361,7 @@ const HoldingsPage: React.FC = () => {
                     precision={2}
                   />
                 </Col>
-                <Col span={8}>
+                <Col xs={24} sm={8}>
                   <Statistic
                     title="Net P&L"
                     value={pnlData.realizedPnL}
@@ -357,15 +371,21 @@ const HoldingsPage: React.FC = () => {
                   />
                 </Col>
               </Row>
-              <Row gutter={16} style={{ marginTop: 16 }}>
+              <Row gutter={isMobile ? 8 : 16} style={{ marginTop: 16 }}>
                 <Col span={12}>
                   <Text type="secondary">
-                    Winning Trades: <Text strong style={{ color: '#3f8600' }}>{pnlData.winningTrades}</Text>
+                    Winning Trades:{' '}
+                    <Text strong style={{ color: '#3f8600' }}>
+                      {pnlData.winningTrades}
+                    </Text>
                   </Text>
                 </Col>
                 <Col span={12}>
                   <Text type="secondary">
-                    Losing Trades: <Text strong style={{ color: '#cf1322' }}>{pnlData.losingTrades}</Text>
+                    Losing Trades:{' '}
+                    <Text strong style={{ color: '#cf1322' }}>
+                      {pnlData.losingTrades}
+                    </Text>
                   </Text>
                 </Col>
               </Row>
@@ -374,56 +394,58 @@ const HoldingsPage: React.FC = () => {
         </Row>
 
         {/* P&L History Chart */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
             <Card title="P&L History" loading={loading || historyLoading}>
               {pnlHistory.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
+                <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                   <LineChart data={pnlHistory}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="timestamp" 
-                      tick={{ fontSize: 12 }}
+                    <XAxis
+                      dataKey="timestamp"
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
                       tickFormatter={(value) => {
                         const date = new Date(value);
-                        return timeRange === '1d' 
+                        return timeRange === '1d'
                           ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                           : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
                       }}
                     />
-                    <YAxis 
-                      tick={{ fontSize: 12 }}
+                    <YAxis
+                      tick={{ fontSize: isMobile ? 10 : 12 }}
                       tickFormatter={(value) => `$${value.toLocaleString()}`}
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => [`$${value.toLocaleString()}`]}
                       labelFormatter={(label) => `Time: ${new Date(label).toLocaleString()}`}
                     />
                     <Legend />
-                    <Line 
-                      type="monotone" 
-                      dataKey="realizedPnL" 
-                      stroke="#3f8600" 
+                    <Line
+                      type="monotone"
+                      dataKey="realizedPnL"
+                      stroke="#3f8600"
                       name="Realized P&L"
                       dot={false}
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="unrealizedPnL" 
-                      stroke="#1890ff" 
+                    <Line
+                      type="monotone"
+                      dataKey="unrealizedPnL"
+                      stroke="#1890ff"
                       name="Unrealized P&L"
                       dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div style={{ 
-                  height: 300, 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center',
-                  color: '#999'
-                }}>
+                <div
+                  style={{
+                    height: isMobile ? 250 : 300,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#999',
+                  }}
+                >
                   No P&L history available
                 </div>
               )}
@@ -431,22 +453,31 @@ const HoldingsPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Positions Table */}
-        <Card title="Current Positions" loading={loading}>
+        {/* Positions Table - Scrollable on mobile */}
+        <Card
+          title="Current Positions"
+          loading={loading}
+          bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+        >
           {portfolio?.positions && portfolio.positions.length > 0 ? (
-            <Table
-              columns={positionColumns}
-              dataSource={portfolio.positions}
-              rowKey="symbol"
-              pagination={false}
-              size="small"
-            />
+            <div className={isMobile ? 'mobile-table-container' : ''}>
+              <Table
+                columns={positionColumns}
+                dataSource={portfolio.positions}
+                rowKey="symbol"
+                pagination={false}
+                size="small"
+                scroll={isMobile ? { x: 600 } : undefined}
+              />
+            </div>
           ) : (
-            <div style={{ 
-              padding: 40, 
-              textAlign: 'center', 
-              color: '#999' 
-            }}>
+            <div
+              style={{
+                padding: 40,
+                textAlign: 'center',
+                color: '#999',
+              }}
+            >
               No positions held
             </div>
           )}

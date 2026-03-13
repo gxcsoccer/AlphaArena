@@ -25,6 +25,18 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
   onPriceClick,
 }) => {
   const { orderBook, loading, error } = useOrderBook(symbol, levels);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Memoize prepared data to avoid recalculation on every render
   const preparedData = useMemo((): OrderBookRow[] => {
@@ -138,16 +150,17 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     <Card
       title={`${symbol} 订单簿`}
       size="small"
-      style={{ height: '100%' }}
+      style={isMobile ? {} : { height: '100%' }}
       bodyStyle={{
         padding: '0',
-        height: 'calc(100% - 57px)',
-        overflow: 'hidden',
+        height: isMobile ? 'auto' : 'calc(100% - 57px)',
+        overflow: isMobile ? 'auto' : 'hidden',
+        maxHeight: isMobile ? 400 : 'calc(100% - 57px)',
       }}
       extra={
         spreadInfo && (
           <Text type="secondary" size="small">
-            价差：${spreadInfo.spread.toFixed(2)} | 
+            价差：${spreadInfo.spread.toFixed(2)} |{' '}
             中间价：${spreadInfo.midPrice.toFixed(2)}
           </Text>
         )
@@ -163,7 +176,8 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
           pagination={false}
           size="small"
           border={false}
-          style={{ fontSize: '12px' }}
+          style={{ fontSize: isMobile ? 11 : 12 }}
+          scroll={isMobile ? { x: 300 } : undefined}
         />
       )}
       {!loading && !error && !orderBook && (
