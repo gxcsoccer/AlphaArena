@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { api, WebSocketClient } from '../utils/api';
+import { api, RealtimeClient } from '../utils/api';
 import type { TradingPair } from '../components/TradingPairList';
+import { getRealtimeClient } from '../utils/realtime';
 
 /**
  * Hook for real-time market data (ticker data for all trading pairs)
@@ -9,8 +10,9 @@ export const useMarketData = (refreshInterval: number = 3000) => {
   const [marketData, setMarketData] = useState<TradingPair[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { connected, subscribe, on } = useWebSocket();
+  const realtimeClientRef = useRef<RealtimeClient | null>(null);
   const lastUpdateRef = useRef<Map<string, number>>(new Map());
+  const unsubscribeRef = useRef<(() => void)[]>([]);
 
   // Fetch initial market data
   const fetchMarketData = useCallback(async () => {
@@ -38,41 +40,48 @@ export const useMarketData = (refreshInterval: number = 3000) => {
     return () => clearInterval(interval);
   }, [fetchMarketData, refreshInterval]);
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates via Supabase Realtime
   useEffect(() => {
-    if (!connected) return;
+    const client = getRealtimeClient();
+    realtimeClientRef.current = client;
 
-    // Subscribe to all symbols
-    subscribe();
+    // Listen for market tick updates on multiple symbol channels
+    const commonSymbols = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT'];
+    
+    const unsubscribeFunctions: (() => void)[] = [];
 
-    // Listen for market tick updates
-    const handleMarketTick = (data: any) => {
-      if (!data || !data.symbol) return;
+    commonSymbols.forEach(symbol => {
+      const unsubscribe = client.onMarketTick(symbol, (data: any) => {
+        if (!data || !data.symbol) return;
 
-      setMarketData(prev => {
-        const index = prev.findIndex(p => p.symbol === data.symbol);
-        if (index === -1) {
-          // New trading pair
-          return [...prev, transformMarketTickToTradingPair(data)];
-        }
-        // Update existing pair
-        const updated = [...prev];
-        updated[index] = {
-          ...updated[index],
-          ...transformMarketTickToTradingPair(data),
-        };
-        return updated;
+        setMarketData(prev => {
+          const index = prev.findIndex(p => p.symbol === data.symbol);
+          if (index === -1) {
+            // New trading pair
+            return [...prev, transformMarketTickToTradingPair(data)];
+          }
+          // Update existing pair
+          const updated = [...prev];
+          updated[index] = {
+            ...updated[index],
+            ...transformMarketTickToTradingPair(data),
+          };
+          return updated;
+        });
+
+        lastUpdateRef.current.set(data.symbol, Date.now());
       });
 
-      lastUpdateRef.current.set(data.symbol, Date.now());
-    };
+      unsubscribeFunctions.push(unsubscribe);
+    });
 
-    on('market:tick', handleMarketTick);
+    unsubscribeRef.current = unsubscribeFunctions;
 
     return () => {
-      // Cleanup handled by useWebSocket
+      // Cleanup all subscriptions
+      unsubscribeFunctions.forEach(unsub => unsub());
     };
-  }, [connected, subscribe, on]);
+  }, []);
 
   return { marketData, loading, error, refresh: fetchMarketData };
 };
@@ -100,39 +109,5 @@ function transformMarketTickToTradingPair(tick: any): TradingPair {
     timestamp: tick.timestamp || Date.now(),
   };
 }
-
-/**
- * Simplified WebSocket hook for market data
- */
-const useWebSocket = () => {
-  const [connected, setConnected] = useState(false);
-  const wsClientRef = useRef<WebSocketClient | null>(null);
-
-  useEffect(() => {
-    const client = new WebSocketClient();
-
-    client.connect()
-      .then(() => setConnected(true))
-      .catch((err) => console.error('[useMarketData WebSocket] Connection failed:', err));
-
-    wsClientRef.current = client;
-
-    return () => {
-      client.disconnect();
-      setConnected(false);
-    };
-  }, []);
-
-  const subscribe = useCallback(() => {
-    // Subscribe to market data room
-    wsClientRef.current?.socket?.emit('subscribe:market');
-  }, []);
-
-  const on = useCallback((event: string, callback: Function) => {
-    wsClientRef.current?.on(event, callback);
-  }, []);
-
-  return { connected, subscribe, on };
-};
 
 export default useMarketData;

@@ -374,111 +374,97 @@ export const api = {
 };
 
 /**
- * WebSocket Client
- * Note: Supabase does not support custom WebSocket servers.
- * This client uses Socket.IO which requires a Node.js server.
- * Options:
- * 1. Keep Railway for WebSocket only
- * 2. Migrate to Supabase Realtime (requires code changes)
- * 3. Use polling instead of WebSocket
+ * Supabase Realtime Client Wrapper
+ * 
+ * Replaces Socket.IO with Supabase Realtime for real-time updates.
+ * This is a thin wrapper around the RealtimeClient from ./realtime
+ * for backward compatibility with existing code.
+ * 
+ * For new code, use getRealtimeClient() from ./realtime directly.
  */
-export class WebSocketClient {
-  private socket: any;
-  private url: string;
-  private listeners: Map<string, Set<Function>> = new Map();
+import { getRealtimeClient as getRealtimeClientInternal } from './realtime';
+
+export class RealtimeClient {
+  private client: ReturnType<typeof getRealtimeClientInternal>;
   private connectionPromise: Promise<void> | null = null;
 
-  constructor(url: string = WS_BASE_URL) {
-    this.url = url;
-    this.socket = null;
+  constructor() {
+    this.client = getRealtimeClientInternal();
   }
 
-  connect(): Promise<void> {
+  async connect(): Promise<void> {
     if (this.connectionPromise) return this.connectionPromise;
-
-    this.connectionPromise = new Promise((resolve, reject) => {
-      import('socket.io-client').then(({ io }) => {
-        this.socket = io(this.url, {
-          transports: ['websocket', 'polling'],
-        });
-
-        this.socket.on('connect', () => {
-          console.log('[WebSocket] Connected');
-          resolve();
-        });
-
-        this.socket.on('disconnect', () => {
-          console.log('[WebSocket] Disconnected');
-        });
-
-        this.socket.on('connect_error', (error: any) => {
-          console.error('[WebSocket] Connection error:', error);
-          this.connectionPromise = null;
-          reject(error);
-        });
-
-        this.socket.on('trade:new', (data: any) => this.emit('trade:new', data));
-        this.socket.on('portfolio:update', (data: any) => this.emit('portfolio:update', data));
-        this.socket.on('strategy:tick', (data: any) => this.emit('strategy:tick', data));
-        this.socket.on('leaderboard:update', (data: any) => this.emit('leaderboard:update', data));
-        this.socket.on('orderbook:snapshot', (data: any) => this.emit('orderbook:snapshot', data));
-        this.socket.on('orderbook:delta', (data: any) => this.emit('orderbook:delta', data));
-      }).catch((error) => {
-        this.connectionPromise = null;
-        reject(error);
-      });
-    });
-
+    this.connectionPromise = Promise.resolve();
+    console.log('[Realtime] Client initialized');
     return this.connectionPromise;
   }
 
-  subscribe(strategyId?: string, symbol?: string): void {
-    if (!this.socket) return;
-    if (strategyId) this.socket.emit('subscribe:strategy', strategyId);
-    if (symbol) this.socket.emit('subscribe:symbol', symbol);
+  async subscribe(strategyId?: string, symbol?: string): Promise<void> {
+    if (strategyId) {
+      await this.client.subscribe(`strategy:${strategyId}`);
+    }
+    if (symbol) {
+      await this.client.subscribe(`ticker:${symbol}`);
+    }
   }
 
-  unsubscribe(room: string): void {
-    if (!this.socket) return;
-    this.socket.emit('unsubscribe', room);
+  async subscribeOrderBook(symbol: string): Promise<void> {
+    await this.client.subscribeOrderBook(symbol);
   }
 
-  subscribeOrderBook(symbol: string): void {
-    if (!this.socket) return;
-    this.socket.emit('subscribe:orderbook', symbol);
+  async unsubscribe(topic: string): Promise<void> {
+    await this.client.unsubscribe(topic);
   }
 
-  unsubscribeOrderBook(symbol: string): void {
-    if (!this.socket) return;
-    this.socket.emit('unsubscribe:orderbook', symbol);
+  async unsubscribeOrderBook(symbol: string): Promise<void> {
+    await this.client.unsubscribe(`orderbook:${symbol}`);
   }
 
   on(event: string, callback: Function): () => void {
-    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
-    this.listeners.get(event)!.add(callback);
-    return () => this.listeners.get(event)?.delete(callback);
+    // Map legacy Socket.IO events to Supabase Realtime channels
+    const [channelType, ...eventParts] = event.split(':');
+    const eventName = eventParts.join(':');
+
+    switch (channelType) {
+      case 'orderbook':
+        return this.client.on(`orderbook:${eventName}`, event, callback as any);
+      case 'market':
+        return this.client.on(`ticker:${eventName}`, event, callback as any);
+      case 'trade':
+        return this.client.on('trade:global', event, callback as any);
+      case 'portfolio':
+        return this.client.on('trade:global', event, callback as any);
+      case 'strategy':
+        return this.client.on(`strategy:${eventName}`, event, callback as any);
+      case 'leaderboard':
+        return this.client.on('leaderboard:global', event, callback as any);
+      default:
+        console.warn(`[Realtime] Unknown event type: ${event}`);
+        return () => {};
+    }
   }
 
   off(event: string, callback: Function): void {
-    this.listeners.get(event)?.delete(callback);
-  }
-
-  private emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach((callback) => {
-      try {
-        callback(data);
-      } catch (error) {
-        console.error(`[WebSocket] Error in listener for event "${event}":`, error);
-      }
-    });
+    console.warn('[Realtime] off() is deprecated - use the unsubscribe function from on()');
   }
 
   disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.connectionPromise = null;
-      this.listeners.clear();
-    }
+    this.client.disconnect();
+    this.connectionPromise = null;
+  }
+
+  getConnectionStatus(): 'disconnected' | 'connecting' | 'connected' | 'reconnecting' {
+    return this.client.getConnectionStatus();
+  }
+}
+
+/**
+ * @deprecated Use RealtimeClient instead
+ * Legacy WebSocketClient for backward compatibility
+ */
+export class WebSocketClient extends RealtimeClient {
+  constructor() {
+    super();
+    console.warn('[WebSocketClient] WebSocketClient is deprecated. Use RealtimeClient instead.');
   }
 }
