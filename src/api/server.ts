@@ -32,11 +32,39 @@ export interface APIServerConfig {
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
   'https://alphaarena-production.up.railway.app', // Backend itself
-  'https://*.vercel.app', // Vercel preview deployments
-  'https://alpha-arena-*.vercel.app', // Vercel production deployments
+  'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Current Vercel preview
+  'https://alphaarena.vercel.app', // Vercel production
+  'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Vercel preview deployments
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Vite dev server
 ];
+
+/**
+ * CORS origin validator function
+ * Supports wildcard matching for *.vercel.app domains
+ */
+function corsOriginValidator(origin: string | undefined, allowedOrigins: string[]): boolean {
+  if (!origin) return false;
+  
+  // Check exact matches
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Support wildcard matching for *.vercel.app
+  if (allowedOrigins.includes('https://*.vercel.app')) {
+    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  // Support wildcard matching for alpha-arena-*.vercel.app
+  if (allowedOrigins.includes('https://alpha-arena-*.vercel.app')) {
+    if (origin.match(/^https:\/\/alpha-arena-[a-zA-Z0-9-]+\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
 
 /**
  * API Server Class
@@ -87,9 +115,17 @@ export class APIServer extends EventEmitter {
    * Setup Express middleware
    */
   private setupMiddleware(): void {
-    // CORS
+    // CORS with origin validation function
+    const corsOrigin = this.config.corsOrigin || ALLOWED_ORIGINS;
     this.app.use(cors({
-      origin: this.config.corsOrigin,
+      origin: (origin, callback) => {
+        if (corsOriginValidator(origin, Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin])) {
+          callback(null, true);
+        } else {
+          console.log(`[CORS] Blocked origin: ${origin}`);
+          callback(null, false);
+        }
+      },
       credentials: true,
     }));
 

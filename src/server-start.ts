@@ -16,6 +16,8 @@ const server = new APIServer({
   port: PORT,
   corsOrigin: [
     'https://alphaarena-production.up.railway.app',
+    'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app',
+    'https://alphaarena.vercel.app',
     'https://*.vercel.app',
     'https://alpha-arena-*.vercel.app',
     'http://localhost:3000',
