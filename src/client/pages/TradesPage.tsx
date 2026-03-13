@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid } from '@arco-design/web-react';
+import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
   LineChart,
@@ -16,6 +16,7 @@ import {
   Bar,
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
+import { api } from '../utils/api';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
@@ -27,6 +28,7 @@ const TradesPage: React.FC = () => {
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
@@ -40,6 +42,40 @@ const TradesPage: React.FC = () => {
   }, []);
 
   const { trades, loading } = useTrades({ symbol, side }, 100);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      
+      const filters: any = {
+        symbol,
+        side,
+      };
+      
+      if (dateRange) {
+        filters.startDate = dateRange[0]?.toDate ? dateRange[0].toDate() : dateRange[0];
+        filters.endDate = dateRange[1]?.toDate ? dateRange[1].toDate() : dateRange[1];
+      }
+      
+      const blob = await api.exportTrades(filters);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trades-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      Message.success('Export successful!');
+    } catch (error: any) {
+      Message.error(`Export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Prepare chart data
   const tradeDistributionData = trades.reduce((acc: any, trade) => {
@@ -182,6 +218,13 @@ const TradesPage: React.FC = () => {
               onChange={(dates) => setDateRange(dates as [any, any] | null)}
               style={{ width: isMobile ? '100%' : 'auto' }}
             />
+            <Button 
+              type="primary" 
+              loading={exporting}
+              onClick={handleExport}
+            >
+              Export CSV
+            </Button>
           </Space>
         </Card>
 
