@@ -298,6 +298,23 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Portfolio PnL history endpoint
+    this.app.get('/api/portfolios/history', async (req: Request, res: Response) => {
+      try {
+        const strategyId = req.query.strategyId as string;
+        const timeRange = (req.query.timeRange as '1d' | '1w' | '1m' | 'all') || '1w';
+
+        if (!strategyId) {
+          return res.status(400).json({ success: false, error: 'strategyId is required' });
+        }
+
+        const history = await this.portfoliosDAO.getPnLHistory(strategyId, timeRange);
+        res.json({ success: true, data: history });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // Stats endpoint
     this.app.get('/api/stats', async (req: Request, res: Response) => {
       try {

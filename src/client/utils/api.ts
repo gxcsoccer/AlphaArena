@@ -288,6 +288,30 @@ export const api = {
     return data.success ? data.data : null;
   },
 
+  async getPortfolioHistory(
+    strategyId: string,
+    timeRange: '1d' | '1w' | '1m' | 'all' = '1w'
+  ): Promise<
+    Array<{
+      timestamp: Date;
+      totalValue: number;
+      realizedPnL: number;
+      unrealizedPnL: number;
+    }>
+  > {
+    const params = new URLSearchParams();
+    params.append('strategyId', strategyId);
+    params.append('timeRange', timeRange);
+    const res = await apiFetch(`/api/portfolios/history?${params}`);
+    const data: ApiResponse<Array<{ timestamp: string; totalValue: number; realizedPnL: number; unrealizedPnL: number }>> = await res.json();
+    return data.success 
+      ? data.data.map(item => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        }))
+      : [];
+  },
+
   async getStats(): Promise<Stats | null> {
     const res = await apiFetch('/api/stats');
     const data: ApiResponse<Stats> = await res.json();
