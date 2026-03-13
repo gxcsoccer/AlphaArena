@@ -41,7 +41,19 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   const [activeTab, setActiveTab] = useState<OrderSide>('buy');
   const [orderType, setOrderType] = useState<OrderType>('limit');
   const [loading, setLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const formRef = React.useRef<FormInstance>(null);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const { orderBook } = useOrderBook(symbol, 20);
   const { portfolio } = usePortfolio(undefined, symbol);
@@ -166,6 +178,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         onChange={(key) => setActiveTab(key as OrderSide)}
         type="rounded"
         style={{ marginBottom: 16 }}
+        size={isMobile ? 'default' : 'default'}
       >
         <TabPane key="buy" title="买入" />
         <TabPane key="sell" title="卖出" />
@@ -181,6 +194,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
               { label: '限价单', value: 'limit' },
               { label: '市价单', value: 'market' },
             ]}
+            direction={isMobile ? 'vertical' : 'horizontal'}
           />
         </Form.Item>
 
@@ -197,6 +211,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
               min={0}
               style={{ width: '100%' }}
               addonAfter={quoteCurrency}
+              size={isMobile ? 'large' : 'default'}
             />
           </Form.Item>
         )}
@@ -213,34 +228,70 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
             min={0}
             style={{ width: '100%' }}
             addonAfter={baseCurrency}
+            size={isMobile ? 'large' : 'default'}
           />
         </Form.Item>
 
-        {/* Quick Quantity Buttons */}
+        {/* Quick Quantity Buttons - Wrap on mobile */}
         <Form.Item label="快捷数量">
-          <Space size="small">
-            <Button size="mini" onClick={() => handleQuickQuantity(0.25)}>25%</Button>
-            <Button size="mini" onClick={() => handleQuickQuantity(0.5)}>50%</Button>
-            <Button size="mini" onClick={() => handleQuickQuantity(0.75)}>75%</Button>
-            <Button size="mini" onClick={() => handleQuickQuantity(1)}>100%</Button>
+          <Space
+            size={isMobile ? 'small' : 'small'}
+            wrap
+            direction={isMobile ? 'vertical' : 'horizontal'}
+          >
+            <Button
+              size={isMobile ? 'default' : 'mini'}
+              onClick={() => handleQuickQuantity(0.25)}
+              style={{ minWidth: isMobile ? '100%' : 'auto' }}
+            >
+              25%
+            </Button>
+            <Button
+              size={isMobile ? 'default' : 'mini'}
+              onClick={() => handleQuickQuantity(0.5)}
+              style={{ minWidth: isMobile ? '100%' : 'auto' }}
+            >
+              50%
+            </Button>
+            <Button
+              size={isMobile ? 'default' : 'mini'}
+              onClick={() => handleQuickQuantity(0.75)}
+              style={{ minWidth: isMobile ? '100%' : 'auto' }}
+            >
+              75%
+            </Button>
+            <Button
+              size={isMobile ? 'default' : 'mini'}
+              onClick={() => handleQuickQuantity(1)}
+              style={{ minWidth: isMobile ? '100%' : 'auto' }}
+            >
+              100%
+            </Button>
           </Space>
         </Form.Item>
 
         {/* Total */}
         <Form.Item label="总计">
           <Text bold>
-            ${calculateTotal(formRef.current?.getFieldValue('price'), formRef.current?.getFieldValue('quantity') || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            $
+            {calculateTotal(
+              formRef.current?.getFieldValue('price'),
+              formRef.current?.getFieldValue('quantity') || 0
+            ).toLocaleString(undefined, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
           </Text>
         </Form.Item>
 
         {/* Balance Info */}
         <Divider style={{ margin: '12px 0' }} />
         <Space direction="vertical" size="small" style={{ width: '100%' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <Text type="secondary">可用 {quoteCurrency}:</Text>
             <Text>${availableBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Text>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
             <Text type="secondary">可用 {baseCurrency}:</Text>
             <Text>{baseBalance.toFixed(4)}</Text>
           </div>
@@ -249,7 +300,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         {/* Submit Button */}
         <Button
           type="primary"
-          size="large"
+          size={isMobile ? 'large' : 'large'}
           long
           loading={loading}
           onClick={handleSubmit}
@@ -257,6 +308,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
             marginTop: 16,
             background: activeTab === 'buy' ? '#00b42a' : '#f53f3f',
             borderColor: activeTab === 'buy' ? '#00b42a' : '#f53f3f',
+            minHeight: 48,
           }}
         >
           {activeTab === 'buy' ? '买入' : '卖出'} {baseCurrency}

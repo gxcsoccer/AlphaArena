@@ -1,6 +1,6 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Layout, Menu, Spin } from '@arco-design/web-react';
+import { Layout, Menu, Spin, Drawer, Button } from '@arco-design/web-react';
 import {
   IconDashboard,
   IconApps,
@@ -8,6 +8,8 @@ import {
   IconSafe,
   IconTrophy,
   IconHome,
+  IconMenuFold,
+  IconMenuUnfold,
 } from '@arco-design/web-react/icon';
 
 // Alias the icons for menu items
@@ -71,27 +73,97 @@ const menuItems = [
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setMobileMenuVisible(false);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleMenuClick = ({ key }: { key: string }) => {
+    navigate(key);
+    if (isMobile) {
+      setMobileMenuVisible(false);
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setMobileMenuVisible(!mobileMenuVisible);
+  };
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider collapsible>
-        <div style={{ height: 32, margin: 16, background: 'rgba(255, 255, 255, 0.2)', borderRadius: 4 }} />
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[location.pathname]}
-          items={menuItems}
-          onClick={({ key }) => navigate(key)}
-        />
-      </Sider>
+      {/* Desktop Sider */}
+      {!isMobile && (
+        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+          <div
+            style={{
+              height: 32,
+              margin: 16,
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: 4,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontSize: collapsed ? 0 : 14,
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {!collapsed && 'AlphaArena'}
+          </div>
+          <Menu
+            theme="dark"
+            mode="inline"
+            selectedKeys={[location.pathname]}
+            items={menuItems}
+            onClick={handleMenuClick}
+          />
+        </Sider>
+      )}
+
       <Layout>
-        <Header style={{ padding: '0 16px', background: 'var(--color-bg-2)' }}>
-          <h2 style={{ margin: 0, lineHeight: '64px' }}>AlphaArena</h2>
+        <Header
+          style={{
+            padding: '0 16px',
+            background: 'var(--color-bg-2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {/* Mobile menu button */}
+            {isMobile && (
+              <Button
+                type="text"
+                icon={mobileMenuVisible ? <IconMenuFold /> : <IconMenuUnfold />}
+                onClick={toggleMobileMenu}
+                style={{ fontSize: 20, padding: 8 }}
+              />
+            )}
+            <h2 style={{ margin: 0, lineHeight: '64px', fontSize: isMobile ? 18 : 20 }}>
+              AlphaArena
+            </h2>
+          </div>
         </Header>
         <Content
           style={{
-            margin: 16,
-            padding: 24,
+            margin: isMobile ? 8 : 16,
+            padding: isMobile ? 12 : 24,
             background: 'var(--color-bg-2)',
             borderRadius: 4,
             minHeight: 280,
@@ -101,6 +173,25 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           {children}
         </Content>
       </Layout>
+
+      {/* Mobile Drawer Menu */}
+      <Drawer
+        title="导航"
+        placement="left"
+        visible={mobileMenuVisible}
+        onClose={() => setMobileMenuVisible(false)}
+        width={280}
+        bodyStyle={{ padding: 0 }}
+      >
+        <Menu
+          theme="light"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={menuItems}
+          onClick={handleMenuClick}
+          style={{ border: 'none' }}
+        />
+      </Drawer>
     </Layout>
   );
 };
