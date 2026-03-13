@@ -155,6 +155,58 @@ export class PortfoliosDAO {
     }));
   }
 
+  /**
+   * Get portfolio PnL history with time range support
+   * @param strategyId - Strategy ID
+   * @param timeRange - Time range: '1d' | '1w' | '1m' | 'all'
+   */
+  async getPnLHistory(
+    strategyId: string,
+    timeRange: '1d' | '1w' | '1m' | 'all' = '1w'
+  ): Promise<
+    {
+      timestamp: Date;
+      totalValue: number;
+      realizedPnL: number;
+      unrealizedPnL: number;
+    }[]
+  > {
+    const now = new Date();
+    let startDate: Date;
+
+    switch (timeRange) {
+      case '1d':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '1w':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '1m':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case 'all':
+        // Use a very old date to get all history
+        startDate = new Date(2000, 0, 1);
+        break;
+    }
+
+    const snapshots = await this.getMany({
+      strategyId,
+      startDate,
+      limit: timeRange === 'all' ? 1000 : timeRange === '1m' ? 720 : timeRange === '1w' ? 168 : 24,
+    });
+
+    // Reverse to get chronological order
+    snapshots.reverse();
+
+    return snapshots.map((s) => ({
+      timestamp: s.snapshotAt,
+      totalValue: s.totalValue || 0,
+      realizedPnL: 0, // Will be calculated from trades
+      unrealizedPnL: 0, // Will be calculated from positions
+    }));
+  }
+
   private mapToPortfolio(row: any): Portfolio {
     return {
       id: row.id,

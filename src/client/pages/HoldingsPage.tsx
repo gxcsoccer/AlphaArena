@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid } from '@arco-design/web-react';
+import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -15,7 +15,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { usePortfolio, useStrategies, useTrades } from '../hooks/useData';
+import { usePortfolio, useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 import type { Portfolio } from '../utils/api';
 
@@ -39,6 +39,7 @@ const HoldingsPage: React.FC = () => {
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(
     strategies.length > 0 ? strategies[0].id : undefined
   );
+  const [timeRange, setTimeRange] = useState<'1d' | '1w' | '1m' | 'all'>('1w');
 
   // Update selected strategy when strategies are loaded
   React.useEffect(() => {
@@ -49,6 +50,10 @@ const HoldingsPage: React.FC = () => {
 
   const { portfolio, loading: portfolioLoading } = usePortfolio(selectedStrategyId);
   const { trades, loading: tradesLoading } = useTrades({ strategyId: selectedStrategyId }, 500);
+  const { history: pnlHistory, loading: historyLoading } = usePortfolioHistory(
+    selectedStrategyId,
+    timeRange
+  );
 
   // Calculate P&L from trades
   const pnlData: PnLData = useMemo(() => {
@@ -103,22 +108,17 @@ const HoldingsPage: React.FC = () => {
     return data;
   }, [portfolio]);
 
-  // Prepare equity curve data (simulated from trades)
+  // Prepare equity curve data from PnL history
   const equityCurveData = useMemo(() => {
-    if (trades.length === 0) return [];
+    if (pnlHistory.length === 0) return [];
 
-    return trades
-      .sort((a, b) => new Date(a.executedAt).getTime() - new Date(b.executedAt).getTime())
-      .reduce((acc: Array<{ time: string; value: number }>, trade) => {
-        const prevValue = acc.length > 0 ? acc[acc.length - 1].value : (portfolio?.totalValue || 0);
-        const newValue = trade.side === 'buy' ? prevValue - trade.total : prevValue + trade.total;
-        acc.push({
-          time: new Date(trade.executedAt).toLocaleDateString(),
-          value: Math.max(0, newValue), // Prevent negative values
-        });
-        return acc;
-      }, []);
-  }, [trades, portfolio?.totalValue]);
+    return pnlHistory.map((item) => ({
+      time: new Date(item.timestamp).toLocaleString(),
+      value: item.totalValue,
+      realizedPnL: item.realizedPnL,
+      unrealizedPnL: item.unrealizedPnL,
+    }));
+  }, [pnlHistory]);
 
   // Position table columns
   const positionColumns: TableProps<NonNullable<Portfolio['positions']>[0]>['columns'] = [
@@ -258,17 +258,58 @@ const HoldingsPage: React.FC = () => {
             </Card>
           </Col>
           <Col span={12}>
-            <Card title="Equity Curve" loading={loading}>
+            <Card
+              title={
+                <Space>
+                  <span>Equity Curve</span>
+                  <Radio.Group
+                    value={timeRange}
+                    onChange={(value) => setTimeRange(value)}
+                    options={[
+                      { label: '1D', value: '1d' },
+                      { label: '1W', value: '1w' },
+                      { label: '1M', value: '1m' },
+                      { label: 'All', value: 'all' },
+                    ]}
+                    optionType="button"
+                    size="small"
+                  />
+                </Space>
+              }
+              loading={loading || historyLoading}
+            >
               {equityCurveData.length > 0 ? (
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={equityCurveData}>
+                  <AreaChart data={equityCurveData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="time" />
-                    <YAxis />
-                    <Tooltip />
+                    <XAxis 
+                      dataKey="time" 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return timeRange === '1d' 
+                          ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                      }}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => [`$${value.toLocaleString()}`, 'Portfolio Value']}
+                      labelFormatter={(label) => `Time: ${label}`}
+                    />
                     <Legend />
-                    <Line type="monotone" dataKey="value" stroke="#8884d8" name="Portfolio Value ($)" />
-                  </LineChart>
+                    <Area 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#8884d8" 
+                      fill="#8884d8" 
+                      fillOpacity={0.3}
+                      name="Portfolio Value"
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               ) : (
                 <div style={{ 
@@ -278,7 +319,7 @@ const HoldingsPage: React.FC = () => {
                   justifyContent: 'center',
                   color: '#999'
                 }}>
-                  No trade data available
+                  No portfolio data available
                 </div>
               )}
             </Card>
@@ -328,6 +369,64 @@ const HoldingsPage: React.FC = () => {
                   </Text>
                 </Col>
               </Row>
+            </Card>
+          </Col>
+        </Row>
+
+        {/* P&L History Chart */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={24}>
+            <Card title="P&L History" loading={loading || historyLoading}>
+              {pnlHistory.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={pnlHistory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="timestamp" 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => {
+                        const date = new Date(value);
+                        return timeRange === '1d' 
+                          ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                          : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+                      }}
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(value) => `$${value.toLocaleString()}`}
+                    />
+                    <Tooltip 
+                      formatter={(value: number) => [`$${value.toLocaleString()}`]}
+                      labelFormatter={(label) => `Time: ${new Date(label).toLocaleString()}`}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="realizedPnL" 
+                      stroke="#3f8600" 
+                      name="Realized P&L"
+                      dot={false}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="unrealizedPnL" 
+                      stroke="#1890ff" 
+                      name="Unrealized P&L"
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div style={{ 
+                  height: 300, 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center',
+                  color: '#999'
+                }}>
+                  No P&L history available
+                </div>
+              )}
             </Card>
           </Col>
         </Row>
