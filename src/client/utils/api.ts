@@ -281,6 +281,24 @@ export const api = {
     return data.success ? data.data : [];
   },
 
+  async exportTrades(filters?: {
+    strategyId?: string;
+    symbol?: string;
+    side?: 'buy' | 'sell';
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<Blob> {
+    const params = new URLSearchParams();
+    if (filters?.strategyId) params.append('strategyId', filters.strategyId);
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.side) params.append('side', filters.side);
+    if (filters?.startDate) params.append('startDate', filters.startDate.toISOString());
+    if (filters?.endDate) params.append('endDate', filters.endDate.toISOString());
+    const res = await apiFetch(`/api/trades/export?${params}`);
+    if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+    return res.blob();
+  },
+
   async getPortfolio(strategyId?: string, symbol?: string): Promise<Portfolio | null> {
     const params = new URLSearchParams();
     if (strategyId) params.append('strategyId', strategyId);

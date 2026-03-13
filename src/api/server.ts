@@ -286,6 +286,32 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Export trades endpoint (CSV)
+    this.app.get('/api/trades/export', async (req: Request, res: Response) => {
+      try {
+        const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+        const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+        
+        const filters = {
+          strategyId: req.query.strategyId as string | undefined,
+          symbol: req.query.symbol as string | undefined,
+          side: req.query.side as 'buy' | 'sell' | undefined,
+          startDate,
+          endDate,
+        };
+
+        const csv = await this.tradesDAO.exportToCSV(filters);
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=trades-export.csv');
+        
+        res.send(csv);
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // Portfolios endpoints
     this.app.get('/api/portfolios', async (req: Request, res: Response) => {
       try {
