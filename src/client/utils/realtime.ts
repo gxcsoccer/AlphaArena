@@ -17,9 +17,12 @@
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 
-// Supabase configuration from environment variables
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://plnylmnckssnfpwznpwf.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Supabase configuration - will be set from environment variables at runtime
+// In Vite: import.meta.env.VITE_SUPABASE_URL
+// In Jest: process.env.VITE_SUPABASE_URL
+// Using process.env for compatibility (Vite will transform these at build time)
+const SUPABASE_URL = (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_URL : undefined) || 'https://plnylmnckssnfpwznpwf.supabase.co';
+const SUPABASE_ANON_KEY = (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_ANON_KEY : undefined) || '';
 
 // Reconnection settings
 const RECONNECT_DELAY = 1000; // 1 second
@@ -58,7 +61,7 @@ export interface PresenceState {
 export class RealtimeClient {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();
-  private listeners: Map<string, Map<string, Set<Function>>> = new Map();
+  private listeners: Map<string, Array<{ callback: Function; handler: Function }>> = new Map();
   private connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' = 'disconnected';
   private reconnectDelay: number = RECONNECT_DELAY;
   private reconnectTimer: NodeJS.Timeout | null = null;
@@ -212,24 +215,25 @@ export class RealtimeClient {
       }
     };
 
-    // Register the listener
-    channel.on('broadcast', handler);
+    // Register the listener - use type assertion to handle API differences
+    (channel as any).on('broadcast', handler);
 
     // Store listener for cleanup
     const listenerKey = `${topic}:${event}`;
     if (!this.listeners.has(listenerKey)) {
-      this.listeners.set(listenerKey, new Map());
+      this.listeners.set(listenerKey, []);
     }
     const eventListeners = this.listeners.get(listenerKey)!;
-    if (!eventListeners.has(callback)) {
-      eventListeners.set(callback, new Set([handler]));
-    }
+    eventListeners.push({ callback, handler });
 
     // Return unsubscribe function
     return () => {
-      channel.off('broadcast', handler);
-      eventListeners.delete(callback);
-      if (eventListeners.size === 0) {
+      (channel as any).off('broadcast', handler);
+      const index = eventListeners.findIndex(l => l.callback === callback);
+      if (index !== -1) {
+        eventListeners.splice(index, 1);
+      }
+      if (eventListeners.length === 0) {
         this.listeners.delete(listenerKey);
       }
     };
@@ -332,14 +336,15 @@ export class RealtimeClient {
       callback(state);
     };
 
-    channel.on('presence', { event: 'sync' }, presenceHandler);
-    channel.on('presence', { event: 'join' }, presenceHandler);
-    channel.on('presence', { event: 'leave' }, presenceHandler);
+    // Use type assertion to handle API differences
+    (channel as any).on('presence', { event: 'sync' }, presenceHandler);
+    (channel as any).on('presence', { event: 'join' }, presenceHandler);
+    (channel as any).on('presence', { event: 'leave' }, presenceHandler);
 
     return () => {
-      channel.off('presence', { event: 'sync' }, presenceHandler);
-      channel.off('presence', { event: 'join' }, presenceHandler);
-      channel.off('presence', { event: 'leave' }, presenceHandler);
+      (channel as any).off('presence', { event: 'sync' }, presenceHandler);
+      (channel as any).off('presence', { event: 'join' }, presenceHandler);
+      (channel as any).off('presence', { event: 'leave' }, presenceHandler);
     };
   }
 
@@ -379,12 +384,12 @@ export class RealtimeClient {
   /**
    * Disconnect and cleanup
    */
-  public disconnect(): void {
+  public async disconnect(): Promise<void> {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-    this.unsubscribeAll();
+    await this.unsubscribeAll();
   }
 
   /**
