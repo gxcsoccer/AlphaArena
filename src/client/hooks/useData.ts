@@ -244,6 +244,49 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
   return { portfolio, loading, error, refresh: fetchPortfolio };
 };
 
+/**
+ * Hook for portfolio PnL history with time range support
+ */
+export const usePortfolioHistory = (
+  strategyId: string | undefined,
+  timeRange: '1d' | '1w' | '1m' | 'all' = '1w'
+) => {
+  const [history, setHistory] = useState<
+    Array<{
+      timestamp: Date;
+      totalValue: number;
+      realizedPnL: number;
+      unrealizedPnL: number;
+    }>
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchHistory = useCallback(async () => {
+    if (!strategyId) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await api.getPortfolioHistory(strategyId, timeRange);
+      setHistory(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [strategyId, timeRange]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  return { history, loading, error, refresh: fetchHistory };
+};
+
 export const useOrderBook = (symbol: string, levels: number = 20) => {
   const [orderBook, setOrderBook] = useState<OrderBookSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
