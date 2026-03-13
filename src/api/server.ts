@@ -1,15 +1,14 @@
 /**
  * AlphaArena API Server
  *
- * Express.js + Socket.IO backend server providing:
+ * Express.js + Supabase Realtime backend server providing:
  * - REST API endpoints for data access
- * - WebSocket real-time event streaming
+ * - Supabase Realtime for real-time event broadcasting
  * - CORS support for frontend integration
  */
 
 import express, { Express, Request, Response } from 'express';
 import { createServer, Server as HTTPServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import { StrategiesDAO } from '../database/strategies.dao';
@@ -21,12 +20,15 @@ import { Portfolio } from '../database/portfolios.dao';
 import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy/LeaderboardService';
 import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
+import { SupabaseRealtimeService } from './SupabaseRealtimeService';
 
 export interface APIServerConfig {
   port: number;
   corsOrigin?: string | string[];
   enableAuth?: boolean;
   authToken?: string;
+  supabaseUrl?: string;
+  supabaseAnonKey?: string;
 }
 
 // Allowed origins for CORS
@@ -68,13 +70,13 @@ function corsOriginValidator(origin: string | undefined, allowedOrigins: string[
 
 /**
  * API Server Class
- * Combines Express REST API with Socket.IO WebSocket
+ * Combines Express REST API with Supabase Realtime broadcasting
  */
 export class APIServer extends EventEmitter {
   private config: APIServerConfig;
   private app: Express;
   private httpServer: HTTPServer;
-  private io: SocketIOServer;
+  private realtime: SupabaseRealtimeService;
   private strategiesDAO: StrategiesDAO;
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
@@ -89,16 +91,25 @@ export class APIServer extends EventEmitter {
       corsOrigin: config.corsOrigin || ALLOWED_ORIGINS,
       enableAuth: config.enableAuth || false,
       authToken: config.authToken,
+      supabaseUrl: config.supabaseUrl || process.env.SUPABASE_URL || '',
+      supabaseAnonKey: config.supabaseAnonKey || process.env.SUPABASE_ANON_KEY || '',
     };
 
     this.app = express();
     this.httpServer = createServer(this.app);
-    this.io = new SocketIOServer(this.httpServer, {
-      cors: {
-        origin: this.config.corsOrigin,
-        methods: ['GET', 'POST'],
-      },
-    });
+    
+    // Initialize Supabase Realtime service
+    if (this.config.supabaseUrl && this.config.supabaseAnonKey) {
+      this.realtime = new SupabaseRealtimeService(
+        this.config.supabaseUrl,
+        this.config.supabaseAnonKey
+      );
+      console.log('[Realtime] Initialized Supabase Realtime service');
+    } else {
+      console.warn('[Realtime] Supabase credentials not provided, realtime features disabled');
+      // Create a dummy service for testing
+      this.realtime = null as any;
+    }
 
     this.strategiesDAO = new StrategiesDAO();
     this.tradesDAO = new TradesDAO();
@@ -107,7 +118,6 @@ export class APIServer extends EventEmitter {
 
     this.setupMiddleware();
     this.setupRoutes();
-    this.setupWebSocket();
     this.setupOrderBookServices();
   }
 
@@ -171,7 +181,7 @@ export class APIServer extends EventEmitter {
           stats: '/api/stats',
           leaderboard: '/api/leaderboard',
         },
-        websocket: '/socket.io/',
+        realtime: 'Supabase Realtime',
       });
     });
 
@@ -413,125 +423,91 @@ export class APIServer extends EventEmitter {
   }
 
   /**
-   * Setup WebSocket event handlers
+   * Broadcast trade event via Supabase Realtime
    */
-  private setupWebSocket(): void {
-    this.io.on('connection', (socket) => {
-      console.log(`[WebSocket] Client connected: ${socket.id}`);
-
-      // Subscribe to strategy ticks
-      socket.on('subscribe:strategy', (strategyId: string) => {
-        socket.join(`strategy:${strategyId}`);
-        console.log(`[WebSocket] Client ${socket.id} subscribed to strategy:${strategyId}`);
-      });
-
-      // Subscribe to symbol updates
-      socket.on('subscribe:symbol', (symbol: string) => {
-        socket.join(`symbol:${symbol}`);
-        console.log(`[WebSocket] Client ${socket.id} subscribed to symbol:${symbol}`);
-      });
-
-      // Unsubscribe
-      socket.on('unsubscribe', (room: string) => {
-        socket.leave(room);
-        console.log(`[WebSocket] Client ${socket.id} unsubscribed from ${room}`);
-      });
-
-      // Disconnect
-      socket.on('disconnect', () => {
-        console.log(`[WebSocket] Client disconnected: ${socket.id}`);
-      });
-
-      socket.on('subscribe:orderbook', (symbol: string) => {
-        socket.join(`orderbook:${symbol}`);
-        console.log(`[WebSocket] Client ${socket.id} subscribed to orderbook:${symbol}`);
-        
-        const service = this.orderBookServices.get(symbol);
-        if (service) {
-          const snapshot = service.getSnapshot(20);
-          socket.emit('orderbook:snapshot', snapshot);
-        }
-      });
-
-      socket.on('unsubscribe:orderbook', (symbol: string) => {
-        socket.leave(`orderbook:${symbol}`);
-        console.log(`[WebSocket] Client ${socket.id} unsubscribed from orderbook:${symbol}`);
-      });
-
-      // Subscribe to market data (all tickers)
-      socket.on('subscribe:market', () => {
-        socket.join('market:tickers');
-        console.log(`[WebSocket] Client ${socket.id} subscribed to market:tickers`);
-        
-        // Send initial snapshot
-        const tickers = this.getMarketTickers();
-        tickers.forEach(ticker => {
-          socket.emit('market:tick', ticker);
-        });
-      });
-
-      socket.on('unsubscribe:market', () => {
-        socket.leave('market:tickers');
-        console.log(`[WebSocket] Client ${socket.id} unsubscribed from market:tickers`);
-      });
-    });
-  }
-
-  /**
-   * Emit event to WebSocket clients
-   */
-  public emitEvent(event: string, data: any, room?: string): void {
-    if (room) {
-      this.io.to(room).emit(event, data);
-    } else {
-      this.io.emit(event, data);
+  public async broadcastTrade(trade: Trade): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping trade broadcast');
+      return;
     }
-  }
-
-  /**
-   * Broadcast trade event
-   */
-  public broadcastTrade(trade: Trade): void {
-    this.emitEvent('trade:new', trade);
+    
+    // Broadcast to global trade channel
+    await this.realtime.broadcastTrade('global', trade);
+    
+    // Broadcast to symbol-specific channel
     if (trade.symbol) {
-      this.emitEvent('trade:new', trade, `symbol:${trade.symbol}`);
+      await this.realtime.broadcastMarketTick(trade.symbol, {
+        type: 'trade',
+        data: trade,
+        timestamp: Date.now(),
+      });
     }
   }
 
   /**
-   * Broadcast portfolio update
+   * Broadcast portfolio update via Supabase Realtime
    */
-  public broadcastPortfolioUpdate(portfolio: Portfolio): void {
-    this.emitEvent('portfolio:update', portfolio);
+  public async broadcastPortfolioUpdate(portfolio: Portfolio): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping portfolio broadcast');
+      return;
+    }
+    await this.realtime.broadcastPortfolioUpdate('global', portfolio);
   }
 
   /**
-   * Broadcast strategy tick
+   * Broadcast strategy tick via Supabase Realtime
    */
-  public broadcastStrategyTick(strategyId: string, data: any): void {
-    this.emitEvent('strategy:tick', { strategyId, ...data }, `strategy:${strategyId}`);
+  public async broadcastStrategyTick(strategyId: string, data: any): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping strategy tick broadcast');
+      return;
+    }
+    await this.realtime.broadcastStrategyTick(strategyId, data);
   }
 
   /**
-   * Broadcast leaderboard update
+   * Broadcast leaderboard update via Supabase Realtime
    */
-  public broadcastLeaderboardUpdate(entries: LeaderboardEntry[]): void {
-    this.emitEvent('leaderboard:update', entries);
+  public async broadcastLeaderboardUpdate(entries: LeaderboardEntry[]): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping leaderboard broadcast');
+      return;
+    }
+    await this.realtime.broadcastLeaderboardUpdate(entries);
   }
 
   /**
-   * Broadcast market ticker update
+   * Broadcast market ticker update via Supabase Realtime
    */
-  public broadcastMarketTick(ticker: any): void {
-    this.emitEvent('market:tick', ticker, 'market:tickers');
+  public async broadcastMarketTick(ticker: any): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping market tick broadcast');
+      return;
+    }
+    await this.realtime.broadcastMarketTick(ticker.symbol, ticker);
   }
 
-  public broadcastOrderBookSnapshot(symbol: string, snapshot: OrderBookSnapshot): void {
-    this.emitEvent('orderbook:snapshot', snapshot, `orderbook:${symbol}`);
+  /**
+   * Broadcast order book snapshot via Supabase Realtime
+   */
+  public async broadcastOrderBookSnapshot(symbol: string, snapshot: OrderBookSnapshot): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping orderbook snapshot broadcast');
+      return;
+    }
+    await this.realtime.broadcastOrderBookSnapshot(symbol, snapshot);
   }
 
-  public broadcastOrderBookDelta(symbol: string, delta: OrderBookDelta): void {
-    this.emitEvent('orderbook:delta', delta, `orderbook:${symbol}`);
+  /**
+   * Broadcast order book delta via Supabase Realtime
+   */
+  public async broadcastOrderBookDelta(symbol: string, delta: OrderBookDelta): Promise<void> {
+    if (!this.realtime) {
+      console.warn('[Realtime] Service not initialized, skipping orderbook delta broadcast');
+      return;
+    }
+    await this.realtime.broadcastOrderBookDelta(symbol, delta);
   }
 
   private setupOrderBookServices(): void {
@@ -669,11 +645,25 @@ export class APIServer extends EventEmitter {
         return reject(new Error('Server is already running'));
       }
 
-      this.httpServer.listen(this.config.port, () => {
+      this.httpServer.listen(this.config.port, async () => {
         this.isRunning = true;
         console.log(`[API Server] Listening on port ${this.config.port}`);
         console.log(`[API Server] REST API: http://localhost:${this.config.port}/api`);
-        console.log(`[API Server] WebSocket: ws://localhost:${this.config.port}`);
+        console.log(`[API Server] Realtime: Supabase Realtime enabled`);
+        
+        // Initialize Realtime presence tracking
+        if (this.realtime) {
+          try {
+            await this.realtime.trackPresence('api-server', {
+              type: 'server',
+              startedAt: new Date().toISOString(),
+            });
+            console.log('[Realtime] Server presence tracked');
+          } catch (error: any) {
+            console.error('[Realtime] Failed to track server presence:', error.message);
+          }
+        }
+        
         this.emit('start');
         resolve();
       });
@@ -690,9 +680,19 @@ export class APIServer extends EventEmitter {
    * Stop the API server
    */
   public stop(): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!this.isRunning) {
         return resolve();
+      }
+
+      // Cleanup Realtime connections
+      if (this.realtime) {
+        try {
+          await this.realtime.unsubscribeAll();
+          console.log('[Realtime] All channels unsubscribed');
+        } catch (error: any) {
+          console.error('[Realtime] Error during cleanup:', error.message);
+        }
       }
 
       this.httpServer.close((error?: Error) => {
@@ -716,17 +716,17 @@ export class APIServer extends EventEmitter {
   }
 
   /**
-   * Get the Socket.IO server instance
-   */
-  public getIO(): SocketIOServer {
-    return this.io;
-  }
-
-  /**
    * Get the Express app instance
    */
   public getApp(): Express {
     return this.app;
+  }
+
+  /**
+   * Get the Supabase Realtime service instance
+   */
+  public getRealtime(): SupabaseRealtimeService | null {
+    return this.realtime;
   }
 }
 
