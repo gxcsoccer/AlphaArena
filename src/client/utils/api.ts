@@ -28,7 +28,7 @@ const FUNCTION_MAP: Record<string, string> = {
   '/api/leaderboard': 'get-leaderboard',
   '/api/orderbook': 'get-orderbook',
   '/api/market/tickers': 'get-market-tickers',
-  '/api/market/kline': 'get-market-tickers', // Use same function
+  '/api/market/kline': 'get-market-kline',
 };
 
 // Helper to map API paths to Supabase function names
@@ -63,7 +63,10 @@ function mapToFunction(path: string): string {
 // Unified fetch wrapper that handles Supabase function mapping
 async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
   const endpoint = mapToFunction(path);
-  const url = `${API_BASE_URL}/${endpoint}`;
+  // Ensure proper URL construction (avoid double slashes)
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  const endpointPath = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const url = `${baseUrl}/${endpointPath}`;
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',

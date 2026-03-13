@@ -16,11 +16,19 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "VITE_API_URL": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1",
+    "VITE_WS_URL": "wss://alphaarena-production.up.railway.app",
+    "VITE_SUPABASE_URL": "https://plnylmnckssnfpwznpwf.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsbnl5bG1uY2tzc25mcHd6bnB3ZiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzQxNzQ4ODQ1LCJleHAiOjIwNTczMjQ4NDV9.dGZmQz8F5xKqPvqJQqJzKqJzKqJzKqJzKqJzKqJzKqJ"
   },
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "VITE_API_URL": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1",
+      "VITE_WS_URL": "wss://alphaarena-production.up.railway.app",
+      "VITE_SUPABASE_URL": "https://plnylmnckssnfpwznpwf.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsbnl5bG1uY2tzc25mcHd6bnB3ZiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzQxNzQ4ODQ1LCJleHAiOjIwNTczMjQ4NDV9.dGZmQz8F5xKqPvqJQqJzKqJzKqJzKqJzKqJzKqJzKqJ"
     }
   }
 }
