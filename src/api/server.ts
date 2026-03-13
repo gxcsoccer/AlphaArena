@@ -7,7 +7,7 @@
  * - CORS support for frontend integration
  */
 
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer, Server as HTTPServer } from 'http';
 import cors from 'cors';
 import { EventEmitter } from 'events';
@@ -21,6 +21,7 @@ import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy
 import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 import { SupabaseRealtimeService } from './SupabaseRealtimeService';
+import { getMonitoringService, getFeishuAlertService } from '../monitoring';
 
 export interface APIServerConfig {
   port: number;
@@ -77,6 +78,8 @@ export class APIServer extends EventEmitter {
   private app: Express;
   private httpServer: HTTPServer;
   private realtime: SupabaseRealtimeService;
+  private monitoring = getMonitoringService();
+  private feishuAlert = getFeishuAlertService();
   private strategiesDAO: StrategiesDAO;
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
@@ -119,6 +122,7 @@ export class APIServer extends EventEmitter {
     this.setupMiddleware();
     this.setupRoutes();
     this.setupOrderBookServices();
+    this.setupMonitoring();
   }
 
   /**
@@ -142,6 +146,32 @@ export class APIServer extends EventEmitter {
     // JSON parsing
     this.app.use(express.json());
 
+    // Monitoring middleware - track request timing and errors
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      const startTime = Date.now();
+      
+      // Track response finish
+      res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        this.monitoring.recordResponse(duration);
+        
+        // Track errors (5xx responses)
+        if (res.statusCode >= 500) {
+          this.monitoring.trackError(
+            `HTTP ${res.statusCode} on ${req.method} ${req.path}`,
+            {
+              operation: `${req.method} ${req.path}`,
+              statusCode: res.statusCode,
+              duration,
+            },
+            'high'
+          );
+        }
+      });
+      
+      next();
+    });
+
     // Optional authentication middleware
     if (this.config.enableAuth) {
       this.app.use((req: Request, res: Response, next) => {
@@ -164,9 +194,41 @@ export class APIServer extends EventEmitter {
    * Setup REST API routes
    */
   private setupRoutes(): void {
-    // Health check
+    // Basic health check
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({ status: 'ok', timestamp: Date.now() });
+    });
+
+    // Detailed health status with metrics
+    this.app.get('/health/status', (req: Request, res: Response) => {
+      const healthStatus = this.monitoring.getHealthStatus(
+        true, // database connected (assumed)
+        this.realtime !== null,
+        this.orderBookServices.size
+      );
+      res.json(healthStatus);
+    });
+
+    // Performance metrics dashboard
+    this.app.get('/metrics', (req: Request, res: Response) => {
+      const metrics = this.monitoring.getMetrics(
+        0, // activeStrategies - would need to be passed from StrategyManager
+        0, // totalTrades - would need to be passed from TradesDAO
+        this.orderBookServices.size
+      );
+      res.json(metrics);
+    });
+
+    // Recent errors
+    this.app.get('/metrics/errors', (req: Request, res: Response) => {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const errors = this.monitoring.getRecentErrors(limit);
+      const bySeverity = this.monitoring.getErrorsBySeverity();
+      res.json({
+        errors,
+        bySeverity,
+        total: this.monitoring.getRecentErrors(1000).length,
+      });
     });
 
     // API version
@@ -545,6 +607,40 @@ export class APIServer extends EventEmitter {
       
       console.log(`[OrderBook] Initialized service for ${symbol}`);
     });
+  }
+
+  /**
+   * Setup monitoring and alerting
+   */
+  private setupMonitoring(): void {
+    // Set up error alerting
+    this.monitoring.on('error:tracked', async (error) => {
+      if (error.severity === 'critical' || error.severity === 'high') {
+        console.log(`[Monitoring] Sending alert for ${error.severity} error: ${error.message}`);
+        await this.feishuAlert.sendCriticalError(
+          new Error(error.message),
+          { context: error.context, stack: error.stack }
+        );
+      }
+    });
+
+    // Set up threshold alerting
+    this.monitoring.on('alert', async (alertData) => {
+      console.log(`[Monitoring] Threshold alert: ${alertData.alerts.join(', ')}`);
+      await this.feishuAlert.sendAlert({
+        type: 'warning',
+        title: '系统阈值警告',
+        content: alertData.alerts.join('\n'),
+        severity: 'medium',
+        metadata: {
+          memoryUsagePercent: alertData.metrics.memoryUsagePercent,
+          cpuUsage: alertData.metrics.cpuUsage,
+          errorRate: alertData.metrics.errorRate,
+        },
+      });
+    });
+
+    console.log('[Monitoring] Monitoring and alerting initialized');
   }
 
   public getOrderBookService(symbol: string): OrderBookService | undefined {
