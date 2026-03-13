@@ -25,14 +25,23 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist/client',
-    sourcemap: true,
+    sourcemap: false, // Disable sourcemaps in production to reduce bundle size
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true, // Remove console.log in production
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {
           'arco-design': ['@arco-design/web-react'],
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'charts': ['lightweight-charts', 'recharts'],
         },
       },
     },
+    chunkSizeWarningLimit: 800, // Increase limit after optimization
   },
 });

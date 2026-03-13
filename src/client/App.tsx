@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Layout, Menu } from '@arco-design/web-react';
+import { Layout, Menu, Spin } from '@arco-design/web-react';
 import {
   IconDashboard,
   IconApps,
@@ -17,12 +17,21 @@ const TransactionOutlined = IconSwap;
 const WalletOutlined = IconSafe;
 const TrophyOutlined = IconTrophy;
 const HomeOutlined = IconHome;
-import HomePage from './pages/HomePage';
-import DashboardPage from './pages/DashboardPage';
-import StrategiesPage from './pages/StrategiesPage';
-import TradesPage from './pages/TradesPage';
-import HoldingsPage from './pages/HoldingsPage';
-import LeaderboardPage from './pages/LeaderboardPage';
+
+// Lazy load pages for code splitting
+const HomePage = lazy(() => import('./pages/HomePage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const StrategiesPage = lazy(() => import('./pages/StrategiesPage'));
+const TradesPage = lazy(() => import('./pages/TradesPage'));
+const HoldingsPage = lazy(() => import('./pages/HoldingsPage'));
+const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+
+// Loading component for lazy routes
+const PageLoader: React.FC = () => (
+  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+    <Spin size="large" />
+  </div>
+);
 
 const { Header, Sider, Content } = Layout;
 
@@ -98,14 +107,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 const AppRoutes: React.FC = () => {
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/strategies" element={<StrategiesPage />} />
-      <Route path="/trades" element={<TradesPage />} />
-      <Route path="/holdings" element={<HoldingsPage />} />
-      <Route path="/leaderboard" element={<LeaderboardPage />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/strategies" element={<StrategiesPage />} />
+        <Route path="/trades" element={<TradesPage />} />
+        <Route path="/holdings" element={<HoldingsPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
+      </Routes>
+    </Suspense>
   );
 };
 
