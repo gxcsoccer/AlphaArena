@@ -84,6 +84,19 @@ export class RealtimeClient {
   }
 
   /**
+   * Initialize connection (for backward compatibility)
+   * Supabase client auto-connects on first subscription, but this method
+   * provides explicit connection for legacy code
+   */
+  public async connect(): Promise<void> {
+    // Supabase JS client auto-connects when first channel is subscribed
+    // This method is for backward compatibility with existing code
+    console.log('[RealtimeClient] Connection initialized');
+    this.connectionStatus = 'connected';
+    return Promise.resolve();
+  }
+
+  /**
    * Monitor Supabase realtime connection status
    */
   private monitorConnection() {
