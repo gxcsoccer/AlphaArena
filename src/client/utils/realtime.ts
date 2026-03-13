@@ -20,9 +20,23 @@ import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabas
 // Supabase configuration - will be set from environment variables at runtime
 // In Vite: import.meta.env.VITE_SUPABASE_URL
 // In Jest: process.env.VITE_SUPABASE_URL
-// Using process.env for compatibility (Vite will transform these at build time)
-const SUPABASE_URL = (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_URL : undefined) || 'https://plnylmnckssnfpwznpwf.supabase.co';
-const SUPABASE_ANON_KEY = (typeof process !== 'undefined' ? process.env.VITE_SUPABASE_ANON_KEY : undefined) || '';
+// Using import.meta.env for Vite (it will be replaced at build time)
+declare const process: { env: Record<string, string> } | undefined;
+
+const getEnv = (key: string, fallback: string): string => {
+  // Vite uses import.meta.env
+  if (typeof import.meta !== 'undefined' && (import.meta as any).env) {
+    return (import.meta as any).env[key] || fallback;
+  }
+  // Fallback for Node.js environments (Jest, etc.)
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key] || fallback;
+  }
+  return fallback;
+};
+
+const SUPABASE_URL = getEnv('VITE_SUPABASE_URL', 'https://plnylmnckssnfpwznpwf.supabase.co');
+const SUPABASE_ANON_KEY = getEnv('VITE_SUPABASE_ANON_KEY', '');
 
 // Reconnection settings
 const RECONNECT_DELAY = 1000; // 1 second
