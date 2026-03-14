@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconButton, Tooltip } from '@arco-design/web-react';
+import { Button, Tooltip } from '@arco-design/web-react';
 import { IconSun, IconMoonFill } from '@arco-design/web-react/icon';
 import { useTheme } from '../hooks/useTheme';
 
@@ -14,10 +14,11 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
 
   return (
     <Tooltip content={isDark ? '切换到浅色模式' : '切换到深色模式'} position="br">
-      <IconButton
+      <Button
         icon={isDark ? <IconSun style={{ fontSize: compact ? 18 : 20 }} /> : <IconMoonFill style={{ fontSize: compact ? 18 : 20 }} />}
         onClick={toggleTheme}
         size="small"
+        type="text"
         style={{
           background: 'transparent',
           border: 'none',
