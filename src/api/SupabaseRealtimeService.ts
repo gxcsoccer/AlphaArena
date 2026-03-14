@@ -49,7 +49,6 @@ export interface RealtimeMessage {
   data: any;
   timestamp: number;
 }
-
 export class SupabaseRealtimeService {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();

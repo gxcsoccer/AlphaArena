@@ -1102,20 +1102,20 @@ export class APIServer extends EventEmitter {
   /**
    * Stop the API server
    */
-  public stop(): Promise<void> {
-    return new Promise(async (resolve, reject) => {
+  public async stop(): Promise<void> {
+    // Cleanup Realtime connections
+    if (this.realtime) {
+      try {
+        await this.realtime.unsubscribeAll();
+        console.log('[Realtime] All channels unsubscribed');
+      } catch (error: any) {
+        console.error('[Realtime] Error during cleanup:', error.message);
+      }
+    }
+
+    return new Promise((resolve, reject) => {
       if (!this.isRunning) {
         return resolve();
-      }
-
-      // Cleanup Realtime connections
-      if (this.realtime) {
-        try {
-          await this.realtime.unsubscribeAll();
-          console.log('[Realtime] All channels unsubscribed');
-        } catch (error: any) {
-          console.error('[Realtime] Error during cleanup:', error.message);
-        }
       }
 
       this.httpServer.close((error?: Error) => {

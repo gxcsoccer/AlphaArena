@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { RealtimeClient, api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot } from '../utils/api';
+import { api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot, RealtimeClient } from '../utils/api';
 import { getRealtimeClient } from '../utils/realtime';
 
 /**
@@ -18,8 +18,7 @@ export const useWebSocket = () => {
       .catch((err) => console.error('[useWebSocket] Connection failed:', err));
 
     return () => {
-      client.disconnect();
-      setConnected(false);
+      // Don't disconnect - other components may be using it
     };
   }, []);
 

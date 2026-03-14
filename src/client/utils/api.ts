@@ -1,6 +1,6 @@
 /**
  * API Client for AlphaArena Backend
- * Provides REST API and WebSocket connections
+ * Provides REST API and Supabase Realtime connections
  * 
  * Note: API endpoints are mapped to Supabase Edge Functions when using Supabase:
  * - /api/strategies → get-strategies
@@ -499,6 +499,7 @@ export const api = {
  * 
  * For new code, use getRealtimeClient() from ./realtime directly.
  */
+
 import { getRealtimeClient as getRealtimeClientInternal } from './realtime';
 
 export class RealtimeClient {
