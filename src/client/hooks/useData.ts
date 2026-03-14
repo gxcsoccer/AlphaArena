@@ -1,39 +1,49 @@
-import { useEffect, useState, useCallback } from 'react';
-import { WebSocketClient, api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot } from '../utils/api';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot } from '../utils/api';
+import { getRealtimeClient, RealtimeClient } from '../utils/realtime';
 
 /**
- * Hook for WebSocket connection management
+ * Hook for Supabase Realtime connection management
  */
 export const useWebSocket = () => {
   const [connected, setConnected] = useState(false);
-  const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
+  const realtimeClientRef = useRef<RealtimeClient | null>(null);
 
   useEffect(() => {
-    const client = new WebSocketClient();
+    const client = getRealtimeClient();
+    realtimeClientRef.current = client;
     
-    client.connect()
-      .then(() => setConnected(true))
-      .catch((err) => console.error('[useWebSocket] Connection failed:', err));
-
-    setWsClient(client);
+    // The client auto-connects on first subscription
+    setConnected(true);
 
     return () => {
-      client.disconnect();
-      setConnected(false);
+      // Don't disconnect - other components may be using it
     };
   }, []);
 
-  const subscribe = useCallback((strategyId?: string, symbol?: string) => {
-    wsClient?.subscribe(strategyId, symbol);
-  }, [wsClient]);
+  const subscribe = useCallback(async (strategyId?: string, symbol?: string) => {
+    const client = realtimeClientRef.current;
+    if (!client) return;
+    
+    if (strategyId) {
+      await client.subscribe(`strategy:${strategyId}`);
+    }
+    if (symbol) {
+      await client.subscribe(`ticker:${symbol}`);
+    }
+  }, []);
 
-  const unsubscribe = useCallback((room: string) => {
-    wsClient?.unsubscribe(room);
-  }, [wsClient]);
+  const unsubscribe = useCallback(async (topic: string) => {
+    const client = realtimeClientRef.current;
+    if (!client) return;
+    await client.unsubscribe(topic);
+  }, []);
 
-  const on = useCallback((event: string, callback: Function) => {
-    wsClient?.on(event, callback);
-  }, [wsClient]);
+  const on = useCallback((topic: string, event: string, callback: Function) => {
+    const client = realtimeClientRef.current;
+    if (!client) return () => {};
+    return client.on(topic, event, callback as any);
+  }, []);
 
   return { connected, subscribe, unsubscribe, on };
 };
@@ -74,7 +84,7 @@ export const useStrategies = () => {
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { connected, on } = useWebSocket();
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const fetchStrategies = useCallback(async () => {
     try {
@@ -92,10 +102,10 @@ export const useStrategies = () => {
     fetchStrategies();
   }, [fetchStrategies]);
 
-  // Listen for strategy updates via WebSocket
+  // Listen for strategy updates via Supabase Realtime
   useEffect(() => {
-    if (!connected) return;
-
+    const client = getRealtimeClient();
+    
     const handleStrategyUpdate = (data: any) => {
       setStrategies(prev => {
         const index = prev.findIndex(s => s.id === data.strategyId);
@@ -106,11 +116,16 @@ export const useStrategies = () => {
       });
     };
 
-    on('strategy:tick', handleStrategyUpdate);
+    // Subscribe to all strategy channels (in production, this should be dynamic)
+    const unsubscribe = client.on('strategy:*', 'strategy:tick', handleStrategyUpdate);
+    unsubscribeRef.current = unsubscribe;
+
     return () => {
-      // Cleanup handled by useWebSocket
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
     };
-  }, [connected, on]);
+  }, []);
 
   return { strategies, loading, error, refresh: fetchStrategies };
 };
@@ -125,7 +140,7 @@ export const useTrades = (
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { connected, on } = useWebSocket();
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const fetchTrades = useCallback(async () => {
     try {
@@ -143,9 +158,9 @@ export const useTrades = (
     fetchTrades();
   }, [fetchTrades]);
 
-  // Listen for new trades via WebSocket
+  // Listen for new trades via Supabase Realtime
   useEffect(() => {
-    if (!connected) return;
+    const client = getRealtimeClient();
 
     const handleNewTrade = (trade: Trade) => {
       // Filter by current filters if set
@@ -155,11 +170,15 @@ export const useTrades = (
       setTrades(prev => [trade, ...prev].slice(0, limit));
     };
 
-    on('trade:new', handleNewTrade);
+    const unsubscribe = client.onTrade('global', handleNewTrade);
+    unsubscribeRef.current = unsubscribe;
+
     return () => {
-      // Cleanup handled by useWebSocket
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
     };
-  }, [connected, on, filters, limit]);
+  }, [filters, limit]);
 
   return { trades, loading, error, refresh: fetchTrades };
 };
@@ -171,7 +190,7 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { connected, on } = useWebSocket();
+  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   const fetchPortfolio = useCallback(async () => {
     try {
@@ -189,29 +208,77 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
-  // Listen for portfolio updates via WebSocket
+  // Listen for portfolio updates via Supabase Realtime
   useEffect(() => {
-    if (!connected) return;
+    const client = getRealtimeClient();
 
     const handlePortfolioUpdate = (data: Portfolio) => {
       if (strategyId && data.strategyId !== strategyId) return;
       setPortfolio(data);
     };
 
-    on('portfolio:update', handlePortfolioUpdate);
+    const unsubscribe = client.on('trade:global', 'portfolio_update', handlePortfolioUpdate);
+    unsubscribeRef.current = unsubscribe;
+
     return () => {
-      // Cleanup handled by useWebSocket
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
     };
-  }, [connected, on, strategyId]);
+  }, [strategyId]);
 
   return { portfolio, loading, error, refresh: fetchPortfolio };
+};
+
+/**
+ * Hook for portfolio PnL history with time range support
+ */
+export const usePortfolioHistory = (
+  strategyId: string | undefined,
+  timeRange: '1d' | '1w' | '1m' | 'all' = '1w'
+) => {
+  const [history, setHistory] = useState<
+    Array<{
+      timestamp: Date;
+      totalValue: number;
+      realizedPnL: number;
+      unrealizedPnL: number;
+    }>
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchHistory = useCallback(async () => {
+    if (!strategyId) {
+      setHistory([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const data = await api.getPortfolioHistory(strategyId, timeRange);
+      setHistory(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [strategyId, timeRange]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
+
+  return { history, loading, error, refresh: fetchHistory };
 };
 
 export const useOrderBook = (symbol: string, levels: number = 20) => {
   const [orderBook, setOrderBook] = useState<OrderBookSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { connected, subscribe, on } = useWebSocket();
+  const realtimeClientRef = useRef<ReturnType<typeof getRealtimeClient> | null>(null);
+  const unsubscribeRef = useRef<(() => void)[]>([]);
 
   const fetchOrderBook = useCallback(async () => {
     try {
@@ -230,29 +297,38 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
   }, [fetchOrderBook]);
 
   useEffect(() => {
-    if (!connected || !symbol) return;
+    if (!symbol) return;
 
-    subscribeOrderBook(symbol);
+    const client = getRealtimeClient();
+    realtimeClientRef.current = client;
 
-    const handleSnapshot = (data: OrderBookSnapshot) => {
+    // Subscribe to orderbook channel
+    client.subscribeOrderBook(symbol).catch(err => {
+      console.error(`[useOrderBook] Failed to subscribe to orderbook:${symbol}`, err);
+    });
+
+    // Listen for snapshot and delta events
+    const unsubscribeSnapshot = client.onOrderBookSnapshot(symbol, (data: OrderBookSnapshot) => {
       setOrderBook(data);
       setLoading(false);
-    };
+    });
 
-    const handleDelta = (delta: OrderBookSnapshot) => {
+    const unsubscribeDelta = client.onOrderBookDelta(symbol, (delta: OrderBookSnapshot) => {
       setOrderBook(prev => {
         if (!prev || !delta) return prev;
         return { ...delta };
       });
-    };
+    });
 
-    on('orderbook:snapshot', handleSnapshot);
-    on('orderbook:delta', handleDelta);
+    unsubscribeRef.current = [unsubscribeSnapshot, unsubscribeDelta];
 
     return () => {
-      unsubscribeOrderBook(symbol);
+      // Cleanup subscriptions
+      unsubscribeSnapshot();
+      unsubscribeDelta();
+      client.unsubscribe(`orderbook:${symbol}`);
     };
-  }, [connected, symbol, subscribe, on]);
+  }, [symbol]);
 
   return { orderBook, loading, error, refresh: fetchOrderBook };
 };

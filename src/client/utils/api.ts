@@ -1,6 +1,6 @@
 /**
  * API Client for AlphaArena Backend
- * Provides REST API and WebSocket connections
+ * Provides REST API and Supabase Realtime connections
  * 
  * Note: API endpoints are mapped to Supabase Edge Functions when using Supabase:
  * - /api/strategies → get-strategies
@@ -8,7 +8,7 @@
  * - etc.
  */
 
-// Use environment variables for API and WebSocket URLs
+// Use environment variables for API and Supabase URLs
 // Falls back to localhost for development
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const WS_BASE_URL = import.meta.env.VITE_WS_URL || API_BASE_URL.replace('http', 'ws');
@@ -379,103 +379,75 @@ export const api = {
  * 2. Migrate to Supabase Realtime (requires code changes)
  * 3. Use polling instead of WebSocket
  */
+/**
+ * @deprecated Use RealtimeClient from './realtime' instead
+ * Legacy WebSocketClient for backward compatibility - will be removed in next major version
+ */
 export class WebSocketClient {
-  private socket: any;
-  private url: string;
-  private listeners: Map<string, Set<Function>> = new Map();
-  private connectionPromise: Promise<void> | null = null;
+  private realtimeClient: any;
 
-  constructor(url: string = WS_BASE_URL) {
-    this.url = url;
-    this.socket = null;
+  constructor() {
+    console.warn('[WebSocketClient] WebSocketClient is deprecated. Use getRealtimeClient() from "./realtime" instead.');
+    // Import dynamically to avoid circular dependency
+    import('./realtime').then(({ getRealtimeClient }) => {
+      this.realtimeClient = getRealtimeClient();
+    });
   }
 
-  connect(): Promise<void> {
-    if (this.connectionPromise) return this.connectionPromise;
-
-    this.connectionPromise = new Promise((resolve, reject) => {
-      import('socket.io-client').then(({ io }) => {
-        this.socket = io(this.url, {
-          transports: ['websocket', 'polling'],
-        });
-
-        this.socket.on('connect', () => {
-          console.log('[WebSocket] Connected');
-          resolve();
-        });
-
-        this.socket.on('disconnect', () => {
-          console.log('[WebSocket] Disconnected');
-        });
-
-        this.socket.on('connect_error', (error: any) => {
-          console.error('[WebSocket] Connection error:', error);
-          this.connectionPromise = null;
-          reject(error);
-        });
-
-        this.socket.on('trade:new', (data: any) => this.emit('trade:new', data));
-        this.socket.on('portfolio:update', (data: any) => this.emit('portfolio:update', data));
-        this.socket.on('strategy:tick', (data: any) => this.emit('strategy:tick', data));
-        this.socket.on('leaderboard:update', (data: any) => this.emit('leaderboard:update', data));
-        this.socket.on('orderbook:snapshot', (data: any) => this.emit('orderbook:snapshot', data));
-        this.socket.on('orderbook:delta', (data: any) => this.emit('orderbook:delta', data));
-      }).catch((error) => {
-        this.connectionPromise = null;
-        reject(error);
-      });
-    });
-
-    return this.connectionPromise;
+  async connect(): Promise<void> {
+    console.warn('[WebSocketClient] connect() is deprecated - RealtimeClient auto-connects');
   }
 
   subscribe(strategyId?: string, symbol?: string): void {
-    if (!this.socket) return;
-    if (strategyId) this.socket.emit('subscribe:strategy', strategyId);
-    if (symbol) this.socket.emit('subscribe:symbol', symbol);
+    if (strategyId) {
+      this.realtimeClient?.subscribe(`strategy:${strategyId}`);
+    }
+    if (symbol) {
+      this.realtimeClient?.subscribe(`ticker:${symbol}`);
+    }
   }
 
-  unsubscribe(room: string): void {
-    if (!this.socket) return;
-    this.socket.emit('unsubscribe', room);
+  unsubscribe(topic: string): void {
+    this.realtimeClient?.unsubscribe(topic);
   }
 
   subscribeOrderBook(symbol: string): void {
-    if (!this.socket) return;
-    this.socket.emit('subscribe:orderbook', symbol);
+    this.realtimeClient?.subscribeOrderBook(symbol);
   }
 
   unsubscribeOrderBook(symbol: string): void {
-    if (!this.socket) return;
-    this.socket.emit('unsubscribe:orderbook', symbol);
+    this.realtimeClient?.unsubscribe(`orderbook:${symbol}`);
   }
 
   on(event: string, callback: Function): () => void {
-    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
-    this.listeners.get(event)!.add(callback);
-    return () => this.listeners.get(event)?.delete(callback);
+    // Map legacy Socket.IO events to Supabase Realtime channels
+    const [channelType, ...eventParts] = event.split(':');
+    const eventName = eventParts.join(':');
+
+    switch (channelType) {
+      case 'orderbook':
+        return this.realtimeClient?.on(`orderbook:${eventName}`, event, callback as any);
+      case 'market':
+        return this.realtimeClient?.on(`ticker:${eventName}`, event, callback as any);
+      case 'trade':
+        return this.realtimeClient?.on('trade:global', event, callback as any);
+      case 'portfolio':
+        return this.realtimeClient?.on('trade:global', event, callback as any);
+      case 'strategy':
+        return this.realtimeClient?.on(`strategy:${eventName}`, event, callback as any);
+      case 'leaderboard':
+        return this.realtimeClient?.on('leaderboard:global', event, callback as any);
+      default:
+        console.warn(`[WebSocketClient] Unknown event type: ${event}`);
+        return () => {};
+    }
   }
 
   off(event: string, callback: Function): void {
-    this.listeners.get(event)?.delete(callback);
-  }
-
-  private emit(event: string, data: any): void {
-    this.listeners.get(event)?.forEach((callback) => {
-      try {
-        callback(data);
-      } catch (error) {
-        console.error(`[WebSocket] Error in listener for event "${event}":`, error);
-      }
-    });
+    console.warn('[WebSocketClient] off() is deprecated - use the unsubscribe function from on()');
   }
 
   disconnect(): void {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
-      this.connectionPromise = null;
-      this.listeners.clear();
-    }
+    this.realtimeClient?.disconnect();
   }
 }
