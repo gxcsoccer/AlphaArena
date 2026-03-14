@@ -17,6 +17,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
+import TradeHistoryPanel from '../components/TradeHistoryPanel';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
@@ -256,6 +257,15 @@ const DashboardPage: React.FC = () => {
                 </BarChart>
               </ResponsiveContainer>
             </Card>
+          </Col>
+        </Row>
+
+        {/* Real-time Trade History Panel */}
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col span={24}>
+            <div style={{ height: isMobile ? 400 : 500 }}>
+              <TradeHistoryPanel limit={100} autoScroll={true} />
+            </div>
           </Col>
         </Row>
 
