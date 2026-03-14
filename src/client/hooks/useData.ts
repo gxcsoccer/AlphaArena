@@ -98,21 +98,31 @@ export const useStrategies = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const isMountedRef = useRef<boolean>(false);
 
   const fetchStrategies = useCallback(async () => {
     try {
       const data = await api.getStrategies();
-      setStrategies(data);
-      setError(null);
+      if (isMountedRef.current) {
+        setStrategies(data);
+        setError(null);
+        setLoading(false);
+      }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchStrategies();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchStrategies]);
 
   // Listen for strategy updates via Supabase Realtime
@@ -120,6 +130,7 @@ export const useStrategies = () => {
     const client = getRealtimeClient();
     
     const handleStrategyUpdate = (data: any) => {
+      if (!isMountedRef.current) return;
       setStrategies(prev => {
         const index = prev.findIndex(s => s.id === data.strategyId);
         if (index === -1) return prev;
@@ -154,21 +165,31 @@ export const useTrades = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const isMountedRef = useRef<boolean>(false);
 
   const fetchTrades = useCallback(async () => {
     try {
       const data = await api.getTrades({ ...filters, limit });
-      setTrades(data);
-      setError(null);
+      if (isMountedRef.current) {
+        setTrades(data);
+        setError(null);
+        setLoading(false);
+      }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, [filters, limit]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchTrades();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchTrades]);
 
   // Listen for new trades via Supabase Realtime
@@ -176,6 +197,7 @@ export const useTrades = (
     const client = getRealtimeClient();
 
     const handleNewTrade = (trade: Trade) => {
+      if (!isMountedRef.current) return;
       // Filter by current filters if set
       if (filters?.strategyId && trade.strategyId !== filters.strategyId) return;
       if (filters?.symbol && trade.symbol !== filters.symbol) return;
@@ -204,21 +226,31 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const unsubscribeRef = useRef<(() => void) | null>(null);
+  const isMountedRef = useRef<boolean>(false);
 
   const fetchPortfolio = useCallback(async () => {
     try {
       const data = await api.getPortfolio(strategyId, symbol);
-      setPortfolio(data);
-      setError(null);
+      if (isMountedRef.current) {
+        setPortfolio(data);
+        setError(null);
+        setLoading(false);
+      }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, [strategyId, symbol]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchPortfolio();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchPortfolio]);
 
   // Listen for portfolio updates via Supabase Realtime
@@ -226,6 +258,7 @@ export const usePortfolio = (strategyId?: string, symbol?: string) => {
     const client = getRealtimeClient();
 
     const handlePortfolioUpdate = (data: Portfolio) => {
+      if (!isMountedRef.current) return;
       if (strategyId && data.strategyId !== strategyId) return;
       setPortfolio(data);
     };

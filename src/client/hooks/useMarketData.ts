@@ -13,31 +13,38 @@ export const useMarketData = (refreshInterval: number = 3000) => {
   const realtimeClientRef = useRef<RealtimeClient | null>(null);
   const lastUpdateRef = useRef<Map<string, number>>(new Map());
   const unsubscribeRef = useRef<(() => void)[]>([]);
+  const isMountedRef = useRef<boolean>(false);
 
   // Fetch initial market data
   const fetchMarketData = useCallback(async () => {
     try {
       const data = await api.getMarketTickers();
-      if (data) {
+      if (isMountedRef.current && data) {
         setMarketData(data);
         setError(null);
+        setLoading(false);
         // Track last update time for each symbol
         data.forEach(ticker => {
           lastUpdateRef.current.set(ticker.symbol, Date.now());
         });
       }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, []);
 
   // Initial fetch and periodic refresh
   useEffect(() => {
+    isMountedRef.current = true;
     fetchMarketData();
     const interval = setInterval(fetchMarketData, refreshInterval);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      isMountedRef.current = false;
+    };
   }, [fetchMarketData, refreshInterval]);
 
   // Subscribe to real-time updates via Supabase Realtime
@@ -52,6 +59,7 @@ export const useMarketData = (refreshInterval: number = 3000) => {
 
     commonSymbols.forEach(symbol => {
       const unsubscribe = client.onMarketTick(symbol, (data: any) => {
+        if (!isMountedRef.current) return;
         if (!data || !data.symbol) return;
 
         setMarketData(prev => {
