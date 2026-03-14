@@ -6,14 +6,6 @@
  */
 
 describe('OrderBook Mobile Responsiveness', () => {
-  // Breakpoint constants
-  const BREAKPOINTS = {
-    mobile: 320,
-    mobileLarge: 480,
-    tablet: 768,
-    desktop: 1024,
-  };
-
   describe('Display Levels', () => {
     it('should show 20 levels on desktop', () => {
       const desktopLevels = 20;
@@ -122,7 +114,6 @@ describe('OrderBook Mobile Responsiveness', () => {
 
     it('should stack bid/ask sections vertically on mobile', () => {
       const mobileDirection = 'vertical';
-      const desktopDirection = 'horizontal';
       
       expect(mobileDirection).toBe('vertical');
     });

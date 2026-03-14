@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, memo, useState } from 'react';
-import { Card, Typography, Table, Tag, Collapse } from '@arco-design/web-react';
+import { Card, Typography, Table } from '@arco-design/web-react';
 import { useOrderBook } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 
@@ -18,6 +18,167 @@ interface OrderBookProps {
   levels?: number;
   onPriceClick?: (price: number, type: 'bid' | 'ask') => void;
 }
+
+// Mobile row component for stacked layout - defined outside to avoid React hooks violations
+interface MobileOrderRowProps {
+  row: OrderBookRow;
+  onPriceClick: (price: number, type: 'bid' | 'ask') => void;
+}
+
+const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) => (
+  <div
+    style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '12px 16px',
+      borderBottom: '1px solid #e5e6eb',
+      backgroundColor: row.type === 'bid' ? 'rgba(0, 180, 42, 0.04)' : 'rgba(245, 63, 63, 0.04)',
+      minHeight: '60px',
+    }}
+  >
+    <div
+      style={{
+        flex: 1,
+        color: row.type === 'bid' ? '#00b42a' : '#f53f3f',
+        fontWeight: 600,
+        fontSize: 14,
+        cursor: 'pointer',
+        padding: '8px 0',
+        minHeight: '44px',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+      onClick={() => onPriceClick(row.price, row.type)}
+    >
+      {row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+    </div>
+    <div
+      style={{
+        flex: 1,
+        fontSize: 13,
+        color: '#4e5969',
+        padding: '8px 0',
+        minHeight: '44px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {row.quantity.toFixed(4)}
+    </div>
+    <div
+      style={{
+        flex: 1,
+        fontSize: 13,
+        color: '#4e5969',
+        textAlign: 'right',
+        padding: '8px 0',
+        minHeight: '44px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+      }}
+    >
+      ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+    </div>
+  </div>
+);
+
+// Mobile stacked layout component - defined outside to avoid React hooks violations
+interface MobileLayoutProps {
+  bidRows: OrderBookRow[];
+  askRows: OrderBookRow[];
+  collapsedBids: boolean;
+  collapsedAsks: boolean;
+  onToggleBids: () => void;
+  onToggleAsks: () => void;
+  onPriceClick: (price: number, type: 'bid' | 'ask') => void;
+}
+
+const MobileLayout: React.FC<MobileLayoutProps> = ({
+  bidRows,
+  askRows,
+  collapsedBids,
+  collapsedAsks,
+  onToggleBids,
+  onToggleAsks,
+  onPriceClick,
+}) => (
+  <div style={{ padding: '0' }}>
+    {/* Header row */}
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '12px 16px',
+        backgroundColor: '#f7f8fa',
+        borderBottom: '1px solid #e5e6eb',
+        fontSize: 13,
+        color: '#86909c',
+        fontWeight: 500,
+      }}
+    >
+      <div style={{ flex: 1 }}>价格</div>
+      <div style={{ flex: 1, textAlign: 'center' }}>数量</div>
+      <div style={{ flex: 1, textAlign: 'right' }}>总额</div>
+    </div>
+
+    {/* Asks section (sell orders) */}
+    <div style={{ marginBottom: '8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 16px',
+          backgroundColor: 'rgba(245, 63, 63, 0.08)',
+          borderBottom: '1px solid #e5e6eb',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+        onClick={onToggleAsks}
+      >
+        <Text style={{ color: '#f53f3f', fontWeight: 600, fontSize: 14 }}>
+          卖单 (Asks)
+        </Text>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {collapsedAsks ? '展开' : '收起'} {askRows.length} 条
+        </Text>
+      </div>
+      {!collapsedAsks && askRows.map(row => (
+        <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
+      ))}
+    </div>
+
+    {/* Bids section (buy orders) */}
+    <div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 16px',
+          backgroundColor: 'rgba(0, 180, 42, 0.08)',
+          borderBottom: '1px solid #e5e6eb',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+        onClick={onToggleBids}
+      >
+        <Text style={{ color: '#00b42a', fontWeight: 600, fontSize: 14 }}>
+          买单 (Bids)
+        </Text>
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {collapsedBids ? '展开' : '收起'} {bidRows.length} 条
+        </Text>
+      </div>
+      {!collapsedBids && bidRows.map(row => (
+        <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
+      ))}
+    </div>
+  </div>
+);
 
 const OrderBook: React.FC<OrderBookProps> = memo(({
   symbol,
@@ -192,144 +353,6 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     return { bestBid, bestAsk, spread, midPrice };
   }, [orderBook]);
 
-  // Mobile row component for stacked layout
-  const MobileOrderRow: React.FC<{ row: OrderBookRow }> = ({ row }) => (
-    <div
-      style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '12px 16px',
-        borderBottom: '1px solid #e5e6eb',
-        backgroundColor: row.type === 'bid' ? 'rgba(0, 180, 42, 0.04)' : 'rgba(245, 63, 63, 0.04)',
-        minHeight: '60px',
-      }}
-    >
-      <div
-        style={{
-          flex: 1,
-          color: row.type === 'bid' ? '#00b42a' : '#f53f3f',
-          fontWeight: 600,
-          fontSize: 14,
-          cursor: 'pointer',
-          padding: '8px 0',
-          minHeight: '44px',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-        onClick={() => handlePriceClick(row.price, row.type)}
-      >
-        {row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-      </div>
-      <div
-        style={{
-          flex: 1,
-          fontSize: 13,
-          color: '#4e5969',
-          padding: '8px 0',
-          minHeight: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {row.quantity.toFixed(4)}
-      </div>
-      <div
-        style={{
-          flex: 1,
-          fontSize: 13,
-          color: '#4e5969',
-          textAlign: 'right',
-          padding: '8px 0',
-          minHeight: '44px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'flex-end',
-        }}
-      >
-        ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-      </div>
-    </div>
-  );
-
-  // Mobile stacked layout
-  const MobileLayout = () => (
-    <div style={{ padding: '0' }}>
-      {/* Header row */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '12px 16px',
-          backgroundColor: '#f7f8fa',
-          borderBottom: '1px solid #e5e6eb',
-          fontSize: 13,
-          color: '#86909c',
-          fontWeight: 500,
-        }}
-      >
-        <div style={{ flex: 1 }}>价格</div>
-        <div style={{ flex: 1, textAlign: 'center' }}>数量</div>
-        <div style={{ flex: 1, textAlign: 'right' }}>总额</div>
-      </div>
-
-      {/* Asks section (sell orders) */}
-      <div style={{ marginBottom: '8px' }}>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 16px',
-            backgroundColor: 'rgba(245, 63, 63, 0.08)',
-            borderBottom: '1px solid #e5e6eb',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-          onClick={() => setCollapsedAsks(!collapsedAsks)}
-        >
-          <Text style={{ color: '#f53f3f', fontWeight: 600, fontSize: 14 }}>
-            卖单 (Asks)
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {collapsedAsks ? '展开' : '收起'} {askRows.length} 条
-          </Text>
-        </div>
-        {!collapsedAsks && askRows.map(row => (
-          <MobileOrderRow key={row.key} row={row} />
-        ))}
-      </div>
-
-      {/* Bids section (buy orders) */}
-      <div>
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '12px 16px',
-            backgroundColor: 'rgba(0, 180, 42, 0.08)',
-            borderBottom: '1px solid #e5e6eb',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-          onClick={() => setCollapsedBids(!collapsedBids)}
-        >
-          <Text style={{ color: '#00b42a', fontWeight: 600, fontSize: 14 }}>
-            买单 (Bids)
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {collapsedBids ? '展开' : '收起'} {bidRows.length} 条
-          </Text>
-        </div>
-        {!collapsedBids && bidRows.map(row => (
-          <MobileOrderRow key={row.key} row={row} />
-        ))}
-      </div>
-    </div>
-  );
-
   return (
     <Card
       title={`${symbol} 订单簿`}
@@ -354,7 +377,15 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       {error && <Text type="danger">加载失败：{error}</Text>}
       {!loading && !error && orderBook && (
         isMobile ? (
-          <MobileLayout />
+          <MobileLayout
+            bidRows={bidRows}
+            askRows={askRows}
+            collapsedBids={collapsedBids}
+            collapsedAsks={collapsedAsks}
+            onToggleBids={() => setCollapsedBids(!collapsedBids)}
+            onToggleAsks={() => setCollapsedAsks(!collapsedAsks)}
+            onPriceClick={handlePriceClick}
+          />
         ) : (
           <Table
             columns={columns}
@@ -373,5 +404,7 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     </Card>
   );
 });
+
+OrderBook.displayName = 'OrderBook';
 
 export default OrderBook;
