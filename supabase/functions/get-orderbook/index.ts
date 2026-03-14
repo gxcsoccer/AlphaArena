@@ -43,40 +43,32 @@ serve(async (req) => {
       throw error;
     }
 
-    // If no price data, return empty orderbook
-    if (!priceData) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          data: {
-            bids: [],
-            asks: [],
-            timestamp: Date.now(),
-          },
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-      );
+    // Use latest price or default to simulated price
+    let midPrice = 50000; // Default BTC-like price
+    if (priceData) {
+      midPrice = parseFloat(priceData.price.toString());
     }
-
-    // Create simulated orderbook based on latest price
-    const midPrice = parseFloat(priceData.price.toString());
+    
     const spread = midPrice * 0.001; // 0.1% spread
 
-    // Generate 5 levels of bids and asks
+    // Generate 20 levels of bids and asks (matches frontend default)
     const bids = [];
     const asks = [];
-    for (let i = 0; i < 5; i++) {
-      const bidPrice = midPrice - (spread * (i + 1));
-      const askPrice = midPrice + (spread * (i + 1));
+    for (let i = 0; i < 20; i++) {
+      const bidPrice = midPrice - (spread * (i + 1)) - (Math.random() * 2);
+      const askPrice = midPrice + (spread * (i + 1)) + (Math.random() * 2);
+      const bidQty = 0.5 + Math.random() * 2;
+      const askQty = 0.5 + Math.random() * 2;
+      
       bids.push({
-        price: parseFloat(bidPrice.toFixed(8)),
+        price: parseFloat(bidPrice.toFixed(2)),
         orders: [],
-        totalQuantity: Math.random() * 10 + 1,
+        totalQuantity: parseFloat(bidQty.toFixed(4)),
       });
       asks.push({
-        price: parseFloat(askPrice.toFixed(8)),
+        price: parseFloat(askPrice.toFixed(2)),
         orders: [],
-        totalQuantity: Math.random() * 10 + 1,
+        totalQuantity: parseFloat(askQty.toFixed(4)),
       });
     }
 
