@@ -1,5 +1,5 @@
-import React, { useCallback, useMemo, memo } from 'react';
-import { Card, Typography, Table, Tag } from '@arco-design/web-react';
+import React, { useCallback, useMemo, memo, useState } from 'react';
+import { Card, Typography, Table, Tag, Collapse } from '@arco-design/web-react';
 import { useOrderBook } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 
@@ -26,6 +26,8 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
 }) => {
   const { orderBook, loading, error } = useOrderBook(symbol, levels);
   const [isMobile, setIsMobile] = React.useState(false);
+  const [collapsedBids, setCollapsedBids] = useState(false);
+  const [collapsedAsks, setCollapsedAsks] = useState(false);
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
@@ -38,6 +40,9 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Determine number of levels to show based on screen size
+  const displayLevels = isMobile ? 10 : levels;
+
   // Memoize prepared data to avoid recalculation on every render
   const preparedData = useMemo((): OrderBookRow[] => {
     if (!orderBook) return [];
@@ -45,7 +50,10 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     const rows: OrderBookRow[] = [];
 
     // Add asks (sell orders) - sorted by price ascending (lowest first)
-    const asks = [...(orderBook.asks || [])].sort((a, b) => a.price - b.price);
+    const asks = [...(orderBook.asks || [])]
+      .sort((a, b) => a.price - b.price)
+      .slice(0, displayLevels);
+    
     for (let i = 0; i < asks.length; i++) {
       const level = asks[i];
       rows.push({
@@ -58,7 +66,10 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     }
 
     // Add bids (buy orders) - sorted by price descending (highest first)
-    const bids = [...(orderBook.bids || [])].sort((a, b) => b.price - a.price);
+    const bids = [...(orderBook.bids || [])]
+      .sort((a, b) => b.price - a.price)
+      .slice(0, displayLevels);
+    
     for (let i = 0; i < bids.length; i++) {
       const level = bids[i];
       rows.push({
@@ -71,7 +82,18 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     }
 
     return rows;
-  }, [orderBook]);
+  }, [orderBook, displayLevels]);
+
+  // Separate bids and asks for mobile stacked layout
+  const bidRows = useMemo(() => 
+    preparedData.filter(row => row.type === 'bid'), 
+    [preparedData]
+  );
+  
+  const askRows = useMemo(() => 
+    preparedData.filter(row => row.type === 'ask'), 
+    [preparedData]
+  );
 
   // Handle price click
   const handlePriceClick = useCallback(
@@ -94,6 +116,11 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
             color: record.type === 'bid' ? '#00b42a' : '#f53f3f',
             cursor: 'pointer',
             fontWeight: 600,
+            fontSize: isMobile ? 13 : 12,
+            padding: '8px 0',
+            minHeight: '44px',
+            display: 'flex',
+            alignItems: 'center',
           }}
           onClick={() => handlePriceClick(price, record.type)}
         >
@@ -106,17 +133,36 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       dataIndex: 'quantity',
       key: 'quantity',
       width: '35%',
-      render: (quantity: number) => quantity.toFixed(4),
+      render: (quantity: number) => (
+        <span style={{ 
+          fontSize: isMobile ? 13 : 12,
+          padding: '8px 0',
+          display: 'block',
+          minHeight: '44px',
+          lineHeight: '44px',
+        }}>
+          {quantity.toFixed(4)}
+        </span>
+      ),
     },
     {
       title: '总额',
       dataIndex: 'total',
       key: 'total',
       width: '25%',
-      render: (total: number) =>
-        `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+      render: (total: number) => (
+        <span style={{ 
+          fontSize: isMobile ? 13 : 12,
+          padding: '8px 0',
+          display: 'block',
+          minHeight: '44px',
+          lineHeight: '44px',
+        }}>
+          ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+        </span>
+      ),
     },
-  ], [handlePriceClick]);
+  ], [handlePriceClick, isMobile]);
 
   // Calculate spread and mid price - optimized to avoid unnecessary calculations
   const spreadInfo = useMemo(() => {
@@ -146,6 +192,144 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     return { bestBid, bestAsk, spread, midPrice };
   }, [orderBook]);
 
+  // Mobile row component for stacked layout
+  const MobileOrderRow: React.FC<{ row: OrderBookRow }> = ({ row }) => (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '12px 16px',
+        borderBottom: '1px solid #e5e6eb',
+        backgroundColor: row.type === 'bid' ? 'rgba(0, 180, 42, 0.04)' : 'rgba(245, 63, 63, 0.04)',
+        minHeight: '60px',
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          color: row.type === 'bid' ? '#00b42a' : '#f53f3f',
+          fontWeight: 600,
+          fontSize: 14,
+          cursor: 'pointer',
+          padding: '8px 0',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+        onClick={() => handlePriceClick(row.price, row.type)}
+      >
+        {row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+      </div>
+      <div
+        style={{
+          flex: 1,
+          fontSize: 13,
+          color: '#4e5969',
+          padding: '8px 0',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {row.quantity.toFixed(4)}
+      </div>
+      <div
+        style={{
+          flex: 1,
+          fontSize: 13,
+          color: '#4e5969',
+          textAlign: 'right',
+          padding: '8px 0',
+          minHeight: '44px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+        }}
+      >
+        ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+      </div>
+    </div>
+  );
+
+  // Mobile stacked layout
+  const MobileLayout = () => (
+    <div style={{ padding: '0' }}>
+      {/* Header row */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          backgroundColor: '#f7f8fa',
+          borderBottom: '1px solid #e5e6eb',
+          fontSize: 13,
+          color: '#86909c',
+          fontWeight: 500,
+        }}
+      >
+        <div style={{ flex: 1 }}>价格</div>
+        <div style={{ flex: 1, textAlign: 'center' }}>数量</div>
+        <div style={{ flex: 1, textAlign: 'right' }}>总额</div>
+      </div>
+
+      {/* Asks section (sell orders) */}
+      <div style={{ marginBottom: '8px' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            backgroundColor: 'rgba(245, 63, 63, 0.08)',
+            borderBottom: '1px solid #e5e6eb',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+          onClick={() => setCollapsedAsks(!collapsedAsks)}
+        >
+          <Text style={{ color: '#f53f3f', fontWeight: 600, fontSize: 14 }}>
+            卖单 (Asks)
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {collapsedAsks ? '展开' : '收起'} {askRows.length} 条
+          </Text>
+        </div>
+        {!collapsedAsks && askRows.map(row => (
+          <MobileOrderRow key={row.key} row={row} />
+        ))}
+      </div>
+
+      {/* Bids section (buy orders) */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '12px 16px',
+            backgroundColor: 'rgba(0, 180, 42, 0.08)',
+            borderBottom: '1px solid #e5e6eb',
+            cursor: 'pointer',
+            userSelect: 'none',
+          }}
+          onClick={() => setCollapsedBids(!collapsedBids)}
+        >
+          <Text style={{ color: '#00b42a', fontWeight: 600, fontSize: 14 }}>
+            买单 (Bids)
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {collapsedBids ? '展开' : '收起'} {bidRows.length} 条
+          </Text>
+        </div>
+        {!collapsedBids && bidRows.map(row => (
+          <MobileOrderRow key={row.key} row={row} />
+        ))}
+      </div>
+    </div>
+  );
+
   return (
     <Card
       title={`${symbol} 订单簿`}
@@ -155,7 +339,7 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
         padding: '0',
         height: isMobile ? 'auto' : 'calc(100% - 57px)',
         overflow: isMobile ? 'auto' : 'hidden',
-        maxHeight: isMobile ? 400 : 'calc(100% - 57px)',
+        maxHeight: isMobile ? 'none' : 'calc(100% - 57px)',
       }}
       extra={
         spreadInfo && (
@@ -169,16 +353,19 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       {loading && <Text type="secondary">加载中...</Text>}
       {error && <Text type="danger">加载失败：{error}</Text>}
       {!loading && !error && orderBook && (
-        <Table
-          columns={columns}
-          data={preparedData}
-          rowKey="key"
-          pagination={false}
-          size="small"
-          border={false}
-          style={{ fontSize: isMobile ? 11 : 12 }}
-          scroll={isMobile ? { x: 300 } : undefined}
-        />
+        isMobile ? (
+          <MobileLayout />
+        ) : (
+          <Table
+            columns={columns}
+            data={preparedData}
+            rowKey="key"
+            pagination={false}
+            size="small"
+            border={false}
+            style={{ fontSize: 12 }}
+          />
+        )
       )}
       {!loading && !error && !orderBook && (
         <Text type="secondary">暂无数据</Text>
