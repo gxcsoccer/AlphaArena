@@ -224,7 +224,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
     >
       {loading && orders.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
-          <Spin size="large" />
+          <Spin size={32} />
           <div style={{ marginTop: 16, color: '#86909c' }}>加载订单中...</div>
         </div>
       ) : orders.length === 0 ? (
@@ -234,7 +234,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       ) : (
         <Table
           columns={columns}
-          dataSource={orders}
+          data={orders}
           rowKey="id"
           pagination={false}
           size="small"
