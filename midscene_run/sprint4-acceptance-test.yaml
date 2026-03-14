@@ -1,0 +1,141 @@
+# Sprint 4 UI Acceptance Tests - OrderBook Component Verification
+# Test against production: https://alphaarena-eight.vercel.app
+# Ops has forced redeployed production environment and cleared cache
+
+web:
+  url: https://alphaarena-eight.vercel.app
+  viewport:
+    width: 1920
+    height: 1080
+
+agent:
+  testId: "sprint4-acceptance"
+  groupName: "Sprint 4 - OrderBook Component"
+  groupDescription: "UI acceptance testing for OrderBook component after production redeploy"
+  generateReport: true
+  autoPrintReportMsg: true
+  reportFileName: "sprint4-acceptance-report"
+
+tasks:
+  - name: Load home page and verify initial state
+    flow:
+      - ai: Wait for page to load completely, verify no white screen or loading spinner
+      - aiAssert: Page is loaded and shows the main trading interface without ErrorBoundary errors
+
+  - name: Verify OrderBook component renders correctly
+    flow:
+      - ai: Find the OrderBook component on the page
+      - aiAssert: OrderBook component is visible and properly rendered with no error boundaries
+
+  - name: Verify bid (buy order) data displays correctly
+    flow:
+      - ai: Locate the bid side (buy orders) in the OrderBook, usually shown in green
+      - aiAssert: Bid orders show at least 5 price levels with price and quantity data
+
+  - name: Verify ask (sell order) data displays correctly
+    flow:
+      - ai: Locate the ask side (sell orders) in the OrderBook, usually shown in red
+      - aiAssert: Ask orders show at least 5 price levels with price and quantity data
+
+  - name: Verify real-time order book updates
+    flow:
+      - ai: Observe the order book for initial state
+      - sleep: 10000
+      - ai: Check if bid/ask levels have updated automatically
+      - aiAssert: Order book updates in real-time via Supabase Realtime without page refresh
+
+  - name: Verify clicking price fills TradingOrder form
+    flow:
+      - ai: Find a bid price in the order book and click on it
+      - sleep: 2000
+      - ai: Check if the TradingOrder form price field is populated with the clicked price
+      - aiAssert: Clicking order book price auto-fills the TradingOrder form price input
+
+  - name: Verify page layout is correct
+    flow:
+      - ai: Observe the overall page layout
+      - aiAssert: Page layout shows all expected sections (trading pair list, chart, order book, order form) properly arranged
+
+  - name: Verify no console errors or ErrorBoundary
+    flow:
+      - ai: Check the page for any visible error messages or ErrorBoundary fallback UI
+      - aiAssert: No ErrorBoundary errors or React error overlays are visible
+
+  - name: Take screenshot of home page
+    flow:
+      - screenshot: sprint4-home-page.png
+
+  - name: Navigate to dashboard page
+    flow:
+      - ai: Click on the Dashboard navigation link
+      - sleep: 3000
+      - aiAssert: Dashboard page loads successfully without errors
+
+  - name: Verify dashboard displays correctly
+    flow:
+      - ai: Check that dashboard shows portfolio values and metrics
+      - aiAssert: Dashboard displays all expected data correctly
+
+  - name: Take screenshot of dashboard page
+    flow:
+      - screenshot: sprint4-dashboard-page.png
+
+  - name: Navigate to trades page
+    flow:
+      - ai: Click on the Trades navigation link
+      - sleep: 3000
+      - aiAssert: Trades page loads successfully
+
+  - name: Verify trades page displays correctly
+    flow:
+      - ai: Check that trades list shows recent trade history
+      - aiAssert: Trades page displays trade data correctly
+
+  - name: Take screenshot of trades page
+    flow:
+      - screenshot: sprint4-trades-page.png
+
+  - name: Navigate to holdings page
+    flow:
+      - ai: Click on the Holdings navigation link
+      - sleep: 3000
+      - aiAssert: Holdings page loads successfully
+
+  - name: Verify holdings page displays correctly
+    flow:
+      - ai: Check that holdings show current positions with values
+      - aiAssert: Holdings page displays portfolio positions correctly
+
+  - name: Take screenshot of holdings page
+    flow:
+      - screenshot: sprint4-holdings-page.png
+
+  - name: Navigate to leaderboard page
+    flow:
+      - ai: Click on the Leaderboard navigation link
+      - sleep: 3000
+      - aiAssert: Leaderboard page loads successfully
+
+  - name: Verify leaderboard displays correctly
+    flow:
+      - ai: Check that leaderboard shows trader rankings with PnL data
+      - aiAssert: Leaderboard displays trader rankings correctly
+
+  - name: Take screenshot of leaderboard page
+    flow:
+      - screenshot: sprint4-leaderboard-page.png
+
+  - name: Navigate to strategies page
+    flow:
+      - ai: Click on the Strategies navigation link
+      - sleep: 3000
+      - aiAssert: Strategies page loads successfully
+
+  - name: Verify strategies page displays correctly
+    flow:
+      - ai: Check that strategies list shows available trading strategies
+      - aiAssert: Strategies page displays correctly
+
+  - name: Take screenshot of strategies page
+    flow:
+      - screenshot: sprint4-strategies-page.png

@@ -1,0 +1,43 @@
+# P0 Bug #75 Verification - Production Deployment
+# Test against production: https://alphaarena-eight.vercel.app
+# Verifying config validation fix from PR #77
+
+web:
+  url: https://alphaarena-eight.vercel.app
+  viewport:
+    width: 1920
+    height: 1080
+
+agent:
+  testId: "p0-bug-75-verification"
+  groupName: "P0 Bug #75 - Config Validation Fix"
+  groupDescription: "UI acceptance testing to verify P0 Bug #75 is fixed after config validation PR #77"
+  generateReport: true
+  autoPrintReportMsg: true
+  reportFileName: "p0-bug-75-verification-report"
+
+tasks:
+  - name: Load home page and verify no ErrorBoundary errors
+    flow:
+      - ai: Wait for page to load completely, verify no white screen or loading spinner
+      - aiAssert: Page is loaded without ErrorBoundary errors and no "组件加载失败" message is visible
+
+  - name: Verify main trading interface is visible
+    flow:
+      - ai: Check the page shows the main trading interface with all expected components
+      - aiAssert: Main trading interface is visible with trading pair list, chart, order book, and order form
+
+  - name: Verify no config validation errors
+    flow:
+      - ai: Look for any error messages related to configuration or environment variables
+      - aiAssert: No configuration errors or missing environment variable warnings are displayed
+
+  - name: Verify core functionality works
+    flow:
+      - ai: Check that navigation links are clickable and functional
+      - sleep: 3000
+      - aiAssert: All core UI elements are interactive and responsive
+
+  - name: Take screenshot of home page
+    flow:
+      - screenshot: p0-bug-75-home-page.png

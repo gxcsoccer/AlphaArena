@@ -12,6 +12,8 @@ import {
   IconMenuUnfold,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
+import ThemeToggle from './components/ThemeToggle';
+import { ThemeProvider } from './hooks/useTheme';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
@@ -160,7 +162,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               AlphaArena
             </h2>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ThemeToggle compact={isMobile} />
             <BalanceDisplay compact={isMobile} />
           </div>
         </Header>
@@ -217,11 +220,13 @@ const AppRoutes: React.FC = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <MainLayout>
-        <AppRoutes />
-      </MainLayout>
-    </BrowserRouter>
+    <ThemeProvider>
+      <BrowserRouter>
+        <MainLayout>
+          <AppRoutes />
+        </MainLayout>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
