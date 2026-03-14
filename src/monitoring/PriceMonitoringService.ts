@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { ConditionalOrdersDAO } from '../database/conditional-orders.dao';
 import { TradesDAO } from '../database/trades.dao';
-import { getMonitoringService } from '../monitoring';
+import { getMonitoringService } from './MonitoringService';
 
 /**
  * Price Monitoring Service

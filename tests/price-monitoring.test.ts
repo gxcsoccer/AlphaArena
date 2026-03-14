@@ -1,4 +1,4 @@
-import { PriceMonitoringService } from '../../src/monitoring/PriceMonitoringService';
+import { PriceMonitoringService } from '../src/monitoring/PriceMonitoringService';
 
 describe('PriceMonitoringService', () => {
   let service: PriceMonitoringService;
