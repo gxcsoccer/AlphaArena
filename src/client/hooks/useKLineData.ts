@@ -19,10 +19,13 @@ export const useKLineData = (
       setLoading(true);
       setError(null);
       
+      console.log('[useKLineData] Fetching K-line data for:', { symbol, timeframe, limit });
       const data = await api.getKLineData(symbol, timeframe, limit);
+      console.log('[useKLineData] Received data:', data?.length, 'points');
       setKlineData(data);
     } catch (err: any) {
-      setError(err.message);
+      console.error('[useKLineData] Failed to fetch K-line data:', err);
+      setError(err.message || '未知错误');
     } finally {
       setLoading(false);
     }

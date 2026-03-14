@@ -396,9 +396,17 @@ export const api = {
     params.append('timeframe', timeframe);
     params.append('symbol', symbol); // Pass symbol as query param instead of path
     if (limit) params.append('limit', limit.toString());
-    const res = await apiFetch(`/api/market/kline?${params}`);
+    const url = `/api/market/kline?${params}`;
+    console.log('[api.getKLineData] Requesting:', url);
+    const res = await apiFetch(url);
+    console.log('[api.getKLineData] Response status:', res.status);
     const data: ApiResponse<KLineData[]> = await res.json();
-    return data.success ? data.data : [];
+    console.log('[api.getKLineData] Response success:', data.success, 'data length:', data.data?.length);
+    if (!data.success) {
+      console.error('[api.getKLineData] API returned error:', data.error);
+      throw new Error(data.error || 'API request failed');
+    }
+    return data.data || [];
   },
 
   async createOrder(order: {

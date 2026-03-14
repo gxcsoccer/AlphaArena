@@ -64,6 +64,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   useEffect(() => {
     if (!chartContainerRef.current) {
       console.error('[KLineChart] Chart container ref is null');
+      setChartError('图表容器未就绪');
       return;
     }
 
@@ -72,16 +73,32 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     // Function to initialize chart with proper width
     const initializeChart = () => {
       const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+      
+      console.log('[KLineChart] Initializing chart, container size:', { width: containerWidth, height: containerHeight, height: height });
       
       if (containerWidth <= 0) {
         console.warn('[KLineChart] Container width is still 0, will retry...');
         return false;
       }
 
+      if (containerHeight <= 0 && height <= 0) {
+        console.warn('[KLineChart] Container height is 0 and no height prop, will retry...');
+        return false;
+      }
+
       try {
+        // Validate container is a valid DOM element
+        if (!(container instanceof HTMLElement)) {
+          throw new Error('Chart container is not a valid HTML element');
+        }
+
+        // Clear any existing chart content
+        container.innerHTML = '';
+
         const chart = createChart(container, {
           width: containerWidth,
-          height: height,
+          height: height > 0 ? height : 400,
           layout: {
             background: { type: 'solid', color: '#1a1a1a' },
             textColor: '#d1d4dc',
@@ -100,6 +117,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           },
         });
 
+        if (!chart) {
+          throw new Error('createChart returned null/undefined');
+        }
+
         chartRef.current = chart;
 
         // Create candlestick series - lightweight-charts v5.x API
@@ -110,6 +131,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           wickUpColor: '#26a69a',
           wickDownColor: '#ef5350',
         });
+
+        if (!candleSeries) {
+          throw new Error('Failed to create candlestick series');
+        }
 
         candleSeriesRef.current = candleSeries;
 
@@ -127,9 +152,14 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
             },
           });
 
+          if (!volumeSeries) {
+            throw new Error('Failed to create volume series');
+          }
+
           volumeSeriesRef.current = volumeSeries;
         }
 
+        console.log('[KLineChart] Chart initialized successfully');
         setChartError(null); // Clear any previous errors
         return true;
       } catch (err: any) {
@@ -138,8 +168,9 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           message: err.message,
           stack: err.stack,
           name: err.name,
+          constructor: err.constructor?.name,
         });
-        setChartError(`图表初始化失败：${err.message}`);
+        setChartError(`图表初始化失败：${err.message || '未知错误'}`);
         return false;
       }
     };
@@ -232,7 +263,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     return (
       <Card>
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          <Text type="danger">加载失败：{error || chartError}</Text>
+          <Text type="danger" style={{ fontSize: 16, marginBottom: 16, display: 'block' }}>
+            {error ? `数据加载失败：${error}` : chartError}
+          </Text>
+          <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+            {error ? '请检查网络连接或 API 配置' : '图表初始化失败，请检查浏览器控制台日志'}
+          </Text>
         </div>
       </Card>
     );
