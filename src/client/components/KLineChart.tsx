@@ -83,7 +83,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
       
-      console.log('[KLineChart] Initializing chart, container size:', { width: containerWidth, height: containerHeight, height: height });
+      console.log('[KLineChart] Initializing chart, container size:', { width: containerWidth, containerHeight, height });
       
       if (containerWidth <= 0) {
         console.warn('[KLineChart] Container width is still 0, will retry...');
