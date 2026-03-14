@@ -68,7 +68,7 @@ export function getConfigErrorMessage(config: AppConfig): string {
  */
 export function logConfigStatus(config: AppConfig): void {
   if (!config.isConfigured) {
-    console.error('[Config] Missing environment variables:', config.missingVars);
+    console.error('[Config] ❌ Missing environment variables:', config.missingVars);
     console.error('[Config] This usually means:');
     console.error('[Config] 1. Environment variables are not set in Vercel project settings');
     console.error('[Config] 2. Build was triggered without the required VITE_* variables');
@@ -77,8 +77,36 @@ export function logConfigStatus(config: AppConfig): void {
     console.error('[Config] To fix:');
     console.error('[Config] - Go to Vercel Dashboard > Project > Settings > Environment Variables');
     console.error('[Config] - Add: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_URL');
+    console.error('[Config] - Ensure they are marked as "Build" variables (not just Runtime)');
     console.error('[Config] - Redeploy the application');
   } else {
-    console.log('[Config] Configuration validated successfully');
+    console.log('[Config] ✅ Configuration validated successfully');
+    console.log('[Config] API URL:', config.apiUrl);
+    console.log('[Config] Supabase URL:', config.supabaseUrl);
+    console.log('[Config] Supabase Key present:', config.supabaseAnonKey ? 'Yes (***' + config.supabaseAnonKey.slice(-8) + ')' : 'No');
   }
+}
+
+/**
+ * Check if Supabase configuration appears valid (basic sanity check)
+ */
+export function isSupabaseConfigValid(config: AppConfig): boolean {
+  if (!config.supabaseUrl || !config.supabaseAnonKey) {
+    return false;
+  }
+  
+  // Basic validation: Supabase URL should be a valid URL
+  try {
+    new URL(config.supabaseUrl);
+  } catch {
+    return false;
+  }
+  
+  // Supabase anon key should be a JWT (has 3 parts separated by dots)
+  const keyParts = config.supabaseAnonKey.split('.');
+  if (keyParts.length !== 3) {
+    return false;
+  }
+  
+  return true;
 }
