@@ -119,12 +119,15 @@ const OfflineIndicator: React.FC = () => {
     <Alert
       type={getAlertType()}
       message={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ flex: 1 }}>{getMessage()}</span>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {getStatusTag()}
-            {getQualityIndicator()}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ flex: 1 }}>{getMessage()}</span>
+            <div style={{ display: 'flex', gap: 8 }}>
+              {getStatusTag()}
+              {getQualityIndicator()}
+            </div>
           </div>
+          {getReconnectProgress()}
         </div>
       }
       closable
@@ -137,9 +140,7 @@ const OfflineIndicator: React.FC = () => {
         borderRadius: 0,
         margin: 0,
       }}
-    >
-      {getReconnectProgress()}
-    </Alert>
+    />
   );
 };
 
