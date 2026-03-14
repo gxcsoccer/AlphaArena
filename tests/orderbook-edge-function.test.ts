@@ -5,7 +5,7 @@
  * even when database has no price history.
  */
 
-import { describe, it, expect } from 'vitest';
+// Jest provides describe, it, expect as globals - no import needed
 
 // Mock the Supabase client
 const mockSupabase = {
@@ -29,7 +29,7 @@ describe('get-orderbook Edge Function', () => {
   it('should return simulated orderbook when no price data exists', async () => {
     // Simulate the logic from get-orderbook/index.ts
     let midPrice = 50000; // Default BTC-like price
-    const priceData = null; // No data from database
+    const priceData: any = null; // No data from database
     
     if (priceData) {
       midPrice = parseFloat(priceData.price.toString());
@@ -85,7 +85,7 @@ describe('get-orderbook Edge Function', () => {
   });
 
   it('should use database price when available', async () => {
-    const priceData = { price: 45000 };
+    const priceData: any = { price: 45000 };
     let midPrice = 50000;
     
     if (priceData) {
