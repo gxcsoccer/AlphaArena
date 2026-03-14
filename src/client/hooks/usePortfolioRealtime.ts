@@ -66,24 +66,29 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
   const priceCacheRef = useRef<Map<string, number>>(new Map());
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastPnLValuesRef = useRef<Map<string, number>>(new Map());
+  const isMountedRef = useRef<boolean>(false);
 
   // Fetch initial portfolio data
   const fetchPortfolio = useCallback(async () => {
     try {
       const data = await api.getPortfolio(strategyId, symbol);
-      if (data) {
-        // Initialize price cache with current data
-        const enrichedPortfolio = enrichPortfolioWithPrices(data, priceCacheRef.current);
-        setPortfolio(enrichedPortfolio);
-        setError(null);
-      } else {
-        setPortfolio(null);
-        setError(null);
+      if (isMountedRef.current) {
+        if (data) {
+          // Initialize price cache with current data
+          const enrichedPortfolio = enrichPortfolioWithPrices(data, priceCacheRef.current);
+          setPortfolio(enrichedPortfolio);
+          setError(null);
+        } else {
+          setPortfolio(null);
+          setError(null);
+        }
+        setLoading(false);
       }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, [strategyId, symbol]);
 
@@ -170,7 +175,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      if (!portfolio) return;
+      if (!isMountedRef.current || !portfolio) return;
 
       const enrichedPortfolio = enrichPortfolioWithPrices(portfolio, updatedPrices);
       
@@ -198,7 +203,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
         lastPnLValuesRef.current.set(pos.symbol, currentPnL);
       });
 
-      if (changes.length > 0) {
+      if (changes.length > 0 && isMountedRef.current) {
         setRecentChanges(prev => [...changes, ...prev].slice(0, 10)); // Keep last 10 changes
         setPortfolio(enrichedPortfolio);
       }
@@ -207,7 +212,12 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
 
   // Initial fetch
   useEffect(() => {
+    isMountedRef.current = true;
     fetchPortfolio();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchPortfolio]);
 
   // Subscribe to market price updates
@@ -220,33 +230,32 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
 
       symbols.forEach(symbol => {
         const unsubscribe = client.onMarketTick(symbol, (data: any) => {
+          if (!isMountedRef.current) return;
           if (!data || !data.symbol || !data.price) return;
 
           // Update price cache
           priceCacheRef.current.set(data.symbol, data.price);
 
           // Update portfolio with 24h change data
-          if (portfolio) {
-            setPortfolio(prev => {
-              if (!prev) return prev;
-              
-              return {
-                ...prev,
-                positions: prev.positions.map(pos => {
-                  if (pos.symbol === data.symbol) {
-                    return {
-                      ...pos,
-                      currentPrice: data.price,
-                      priceChange24h: data.priceChange24h || 0,
-                      priceChangePercent24h: data.priceChangePercent24h || 0,
-                      ...calculatePositionPnL(pos.quantity, pos.averageCost, data.price),
-                    };
-                  }
-                  return pos;
-                }),
-              };
-            });
-          }
+          setPortfolio(prev => {
+            if (!prev) return prev;
+            
+            return {
+              ...prev,
+              positions: prev.positions.map(pos => {
+                if (pos.symbol === data.symbol) {
+                  return {
+                    ...pos,
+                    currentPrice: data.price,
+                    priceChange24h: data.priceChange24h || 0,
+                    priceChangePercent24h: data.priceChangePercent24h || 0,
+                    ...calculatePositionPnL(pos.quantity, pos.averageCost, data.price),
+                  };
+                }
+                return pos;
+              }),
+            };
+          });
         });
 
         unsubscribeFunctions.push(unsubscribe);
