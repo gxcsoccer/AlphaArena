@@ -15,9 +15,10 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { usePortfolio, useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
+import { useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
+import { usePortfolioRealtime } from '../hooks/usePortfolioRealtime';
 import type { TableProps } from '@arco-design/web-react';
-import type { Portfolio } from '../utils/api';
+import type { PortfolioWithPnL } from '../hooks/usePortfolioRealtime';
 
 const { Row, Col } = Grid;
 const { Header, Content } = Layout;
@@ -60,7 +61,10 @@ const HoldingsPage: React.FC = () => {
     }
   }, [strategies, selectedStrategyId]);
 
-  const { portfolio, loading: portfolioLoading } = usePortfolio(selectedStrategyId);
+  const { portfolio, loading: portfolioLoading, recentChanges } = usePortfolioRealtime({
+    strategyId: selectedStrategyId,
+    debounceMs: 100,
+  });
   // Memoize filters to prevent infinite re-renders
   const tradesFilters = useMemo(() => ({ strategyId: selectedStrategyId }), [selectedStrategyId]);
   const { trades, loading: tradesLoading } = useTrades(tradesFilters, 500);
@@ -68,6 +72,23 @@ const HoldingsPage: React.FC = () => {
     selectedStrategyId,
     timeRange
   );
+
+  // Track which positions recently changed for flash animation
+  const [flashingPositions, setFlashingPositions] = useState<Set<string>>(new Set());
+  
+  useEffect(() => {
+    if (recentChanges.length > 0) {
+      const changedSymbols = new Set(recentChanges.map(c => c.symbol));
+      setFlashingPositions(changedSymbols);
+      
+      // Remove flash after animation completes (300ms)
+      const timer = setTimeout(() => {
+        setFlashingPositions(new Set());
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [recentChanges]);
 
   // Calculate P&L from trades
   const pnlData: PnLData = useMemo(() => {
@@ -134,8 +155,8 @@ const HoldingsPage: React.FC = () => {
     }));
   }, [pnlHistory]);
 
-  // Position table columns
-  const positionColumns: TableProps<NonNullable<Portfolio['positions']>[0]>['columns'] = [
+  // Position table columns with real-time P/L
+  const positionColumns: TableProps<NonNullable<PortfolioWithPnL['positions']>[0]>['columns'] = [
     {
       title: 'Symbol',
       dataIndex: 'symbol',
@@ -157,18 +178,69 @@ const HoldingsPage: React.FC = () => {
       render: (cost: number) => `$${cost.toLocaleString()}`,
     },
     {
+      title: 'Current Price',
+      dataIndex: 'currentPrice',
+      key: 'currentPrice',
+      width: 120,
+      render: (price: number, record: any) => (
+        <span style={{ 
+          color: record.priceChange24h >= 0 ? '#3f8600' : '#cf1322',
+          fontWeight: 500 
+        }}>
+          ${price?.toLocaleString()}
+          {record.priceChangePercent24h !== 0 && (
+            <span style={{ fontSize: '12px', marginLeft: '4px' }}>
+              ({record.priceChangePercent24h >= 0 ? '+' : ''}{record.priceChangePercent24h.toFixed(2)}%)
+            </span>
+          )}
+        </span>
+      ),
+    },
+    {
       title: 'Market Value',
       key: 'marketValue',
       width: 120,
-      render: (_: any, record) => `$${(record.quantity * record.averageCost).toLocaleString()}`,
+      render: (_: any, record: any) => `$${(record.marketValue || (record.quantity * record.averageCost)).toLocaleString()}`,
+    },
+    {
+      title: 'Unrealized P/L',
+      key: 'unrealizedPnL',
+      width: 140,
+      render: (_: any, record: any) => {
+        const pnl = record.unrealizedPnL || 0;
+        const pnlPercent = record.unrealizedPnLPercent || 0;
+        const isFlashing = flashingPositions.has(record.symbol);
+        
+        return (
+          <div style={{
+            padding: '4px 8px',
+            borderRadius: '4px',
+            backgroundColor: isFlashing ? (pnl >= 0 ? 'rgba(63, 134, 0, 0.1)' : 'rgba(207, 19, 34, 0.1)') : 'transparent',
+            transition: 'background-color 0.3s ease',
+          }}>
+            <div style={{ 
+              color: pnl >= 0 ? '#3f8600' : '#cf1322',
+              fontWeight: 600,
+            }}>
+              {pnl >= 0 ? '+' : ''}${pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <div style={{ 
+              fontSize: '12px',
+              color: pnl >= 0 ? '#3f8600' : '#cf1322',
+            }}>
+              {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: 'Allocation',
       key: 'allocation',
       width: 100,
-      render: (_: any, record: NonNullable<Portfolio['positions']>[0]) => {
+      render: (_: any, record: any) => {
         const total = allocationData.reduce((sum, item) => sum + item.value, 0);
-        const percentage = total > 0 ? ((record.quantity * record.averageCost) / total) * 100 : 0;
+        const percentage = total > 0 ? ((record.marketValue || (record.quantity * record.averageCost)) / total) * 100 : 0;
         return `${percentage.toFixed(1)}%`;
       },
     },
@@ -225,11 +297,19 @@ const HoldingsPage: React.FC = () => {
           <Col xs={12} sm={12} md={6}>
             <Card loading={loading}>
               <Statistic
-                title="Realized P&L"
-                value={pnlData.realizedPnL}
+                title="Unrealized P&L"
+                value={portfolio?.totalUnrealizedPnL || 0}
                 prefixText="$"
                 precision={2}
-                valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
+                valueStyle={{ 
+                  color: (portfolio?.totalUnrealizedPnL || 0) >= 0 ? '#3f8600' : '#cf1322',
+                  transition: 'color 0.3s ease',
+                }}
+                extra={
+                  <span style={{ fontSize: '14px', color: (portfolio?.totalUnrealizedPnLPercent || 0) >= 0 ? '#3f8600' : '#cf1322' }}>
+                    {(portfolio?.totalUnrealizedPnLPercent || 0) >= 0 ? '+' : ''}{portfolio?.totalUnrealizedPnLPercent?.toFixed(2)}%
+                  </span>
+                }
               />
             </Card>
           </Col>
@@ -365,11 +445,18 @@ const HoldingsPage: React.FC = () => {
                 </Col>
                 <Col xs={24} sm={8}>
                   <Statistic
-                    title="Net P&L"
-                    value={pnlData.realizedPnL}
+                    title="Total P&L"
+                    value={(portfolio?.totalPnL || 0) + pnlData.realizedPnL}
                     prefixText="$"
                     precision={2}
-                    valueStyle={{ color: pnlData.realizedPnL >= 0 ? '#3f8600' : '#cf1322' }}
+                    valueStyle={{ 
+                      color: ((portfolio?.totalPnL || 0) + pnlData.realizedPnL) >= 0 ? '#3f8600' : '#cf1322',
+                    }}
+                    extra={
+                      <span style={{ fontSize: '14px' }}>
+                        (Unrealized: ${portfolio?.totalUnrealizedPnL?.toFixed(2) || '0.00'})
+                      </span>
+                    }
                   />
                 </Col>
               </Row>
