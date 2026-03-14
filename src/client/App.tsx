@@ -13,7 +13,9 @@ import {
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
+import OfflineIndicator from './components/OfflineIndicator';
 import { ThemeProvider } from './hooks/useTheme';
+import { ConnectionProvider } from './store/connectionStore';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
@@ -221,11 +223,14 @@ const AppRoutes: React.FC = () => {
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <MainLayout>
-          <AppRoutes />
-        </MainLayout>
-      </BrowserRouter>
+      <ConnectionProvider>
+        <BrowserRouter>
+          <OfflineIndicator />
+          <MainLayout>
+            <AppRoutes />
+          </MainLayout>
+        </BrowserRouter>
+      </ConnectionProvider>
     </ThemeProvider>
   );
 }
