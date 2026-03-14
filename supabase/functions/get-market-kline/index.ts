@@ -84,10 +84,8 @@ serve(async (req) => {
 
     // Parse URL to extract symbol, timeframe, and limit
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/');
-    // Path is like /functions/v1/get-market-kline or /functions/v1/get-market-kline/BTC/USD
-    // pathParts: ['', 'functions', 'v1', 'get-market-kline'] or ['', 'functions', 'v1', 'get-market-kline', 'BTC/USD']
-    const symbol = pathParts.length > 4 ? pathParts[4] : 'BTC/USD';
+    // Symbol is now passed as query parameter to avoid URL encoding issues with slashes
+    const symbol = url.searchParams.get('symbol') || 'BTC/USD';
     
     // Get query parameters
     const timeframe = url.searchParams.get('timeframe') || '1h';

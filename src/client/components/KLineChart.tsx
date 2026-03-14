@@ -43,6 +43,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const [timeframe, setTimeframe] = useState<TimeFrame>('1h');
   const [isMobile, setIsMobile] = useState(false);
+  const [chartError, setChartError] = useState<string | null>(null);
   const { klineData, loading, error } = useKLineData(symbol, timeframe);
 
   // Detect mobile on mount and resize
@@ -129,6 +130,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           volumeSeriesRef.current = volumeSeries;
         }
 
+        setChartError(null); // Clear any previous errors
         return true;
       } catch (err: any) {
         console.error('[KLineChart] Failed to initialize chart:', err);
@@ -137,7 +139,8 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           stack: err.stack,
           name: err.name,
         });
-        throw err; // Re-throw to be caught by ErrorBoundary
+        setChartError(`图表初始化失败：${err.message}`);
+        return false;
       }
     };
 
@@ -212,9 +215,11 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         }));
         volumeSeriesRef.current.setData(volumeData);
       }
+      
+      setChartError(null); // Clear errors on successful update
     } catch (err: any) {
       console.error('[KLineChart] Failed to update chart data:', err);
-      throw err; // Re-throw to be caught by ErrorBoundary
+      setChartError(`图表数据更新失败：${err.message}`);
     }
   }, [klineData, showVolume]);
 
@@ -223,11 +228,11 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     setTimeframe(value);
   }, []);
 
-  if (error) {
+  if (error || chartError) {
     return (
       <Card>
         <div style={{ padding: '40px', textAlign: 'center' }}>
-          <Text type="danger">加载失败：{error}</Text>
+          <Text type="danger">加载失败：{error || chartError}</Text>
         </div>
       </Card>
     );

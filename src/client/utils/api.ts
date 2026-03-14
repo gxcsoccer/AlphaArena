@@ -394,8 +394,9 @@ export const api = {
   async getKLineData(symbol: string, timeframe: string, limit?: number): Promise<KLineData[]> {
     const params = new URLSearchParams();
     params.append('timeframe', timeframe);
+    params.append('symbol', symbol); // Pass symbol as query param instead of path
     if (limit) params.append('limit', limit.toString());
-    const res = await apiFetch(`/api/market/kline/${symbol}?${params}`);
+    const res = await apiFetch(`/api/market/kline?${params}`);
     const data: ApiResponse<KLineData[]> = await res.json();
     return data.success ? data.data : [];
   },
