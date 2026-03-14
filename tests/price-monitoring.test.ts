@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import { PriceMonitoringService } from '../../src/monitoring/PriceMonitoringService';
 
 describe('PriceMonitoringService', () => {
@@ -40,7 +39,7 @@ describe('PriceMonitoringService', () => {
       tradeId: 'trade-456',
     };
 
-    const eventHandler = vi.fn();
+    const eventHandler = jest.fn();
     service.on('order-triggered', eventHandler);
 
     // Manually emit event to test listener
@@ -50,7 +49,7 @@ describe('PriceMonitoringService', () => {
   });
 
   it('should emit error event on failure', () => {
-    const errorHandler = vi.fn();
+    const errorHandler = jest.fn();
     service.on('error', errorHandler);
 
     const testError = new Error('Test error');
