@@ -1,32 +1,36 @@
 /**
- * Supabase Realtime Client for Frontend
+ * Enhanced Supabase Realtime Client with Advanced Reconnection Logic
  * 
- * Replaces Socket.IO client with Supabase Realtime SDK.
- * Provides real-time subscriptions for:
- * - Order book updates (snapshot/delta)
- * - Market ticker updates
- * - Trade notifications
- * - Presence tracking (online traders)
- * 
- * Channel naming convention (matches backend):
- * - orderbook:{symbol} - Order book updates
- * - ticker:{symbol} - Market ticker updates
- * - trade:{userId} - User-specific trade notifications
- * - leaderboard:global - Leaderboard updates
+ * Features:
+ * - Exponential backoff reconnection with jitter
+ * - Connection state management
+ * - Connection quality monitoring (latency tracking, stale detection)
+ * - Message queueing for offline actions
+ * - Automatic reconnection on network recovery
  */
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { validateConfig } from './config';
 
-// Supabase configuration - validated at app startup
-const config = validateConfig();
-const SUPABASE_URL = config.supabaseUrl;
-const SUPABASE_ANON_KEY = config.supabaseAnonKey;
-
-// Reconnection settings
-const RECONNECT_DELAY = 1000; // 1 second
+// Reconnection settings with exponential backoff
+const INITIAL_RECONNECT_DELAY = 1000; // 1 second
 const MAX_RECONNECT_DELAY = 30000; // 30 seconds
 const RECONNECT_MULTIPLIER = 2; // Exponential backoff
+const JITTER_FACTOR = 0.2; // 20% jitter to prevent thundering herd
+const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for subscription
+const STALE_CONNECTION_THRESHOLD = 60000; // 60 seconds without ping = stale
+const PING_INTERVAL = 15000; // 15 seconds ping interval
+
+// Connection states
+export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
+
+export interface ConnectionQuality {
+  latency: number;
+  lastPingAt: number;
+  isStale: boolean;
+  reconnectAttempts: number;
+  lastReconnectAt: number | null;
+}
 
 export interface RealtimeMessage {
   event: string;
@@ -53,19 +57,49 @@ export interface PresenceState {
   };
 }
 
+// Message queue item for offline actions
+interface QueuedMessage {
+  topic: string;
+  event: string;
+  payload: any;
+  timestamp: number;
+  priority: number; // Higher = more important
+}
+
 /**
- * Supabase Realtime Client
- * Manages channel subscriptions and message handling
+ * Enhanced Realtime Client with advanced reconnection and monitoring
  */
 export class RealtimeClient {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();
   private listeners: Map<string, Array<{ callback: Function; handler: Function }>> = new Map();
-  private connectionStatus: 'disconnected' | 'connecting' | 'connected' | 'reconnecting' = 'disconnected';
-  private reconnectDelay: number = RECONNECT_DELAY;
-  private reconnectTimer: NodeJS.Timeout | null = null;
+  
+  // Connection state
+  private connectionStatus: ConnectionStatus = 'disconnected';
+  private reconnectDelay: number = INITIAL_RECONNECT_DELAY;
+  private reconnectTimers: Map<string, NodeJS.Timeout> = new Map();
+  private pingTimer: NodeJS.Timeout | null = null;
+  private connectionQuality: ConnectionQuality = {
+    latency: 0,
+    lastPingAt: 0,
+    isStale: false,
+    reconnectAttempts: 0,
+    lastReconnectAt: null,
+  };
+  
+  // Message queue for offline actions
+  private messageQueue: QueuedMessage[] = [];
+  private isProcessingQueue: boolean = false;
+  
+  // Event listeners for connection state changes
+  private connectionListeners: Array<(status: ConnectionStatus) => void> = [];
+  private qualityListeners: Array<(quality: ConnectionQuality) => void> = [];
 
   constructor() {
+    const config = validateConfig();
+    const SUPABASE_URL = config.supabaseUrl;
+    const SUPABASE_ANON_KEY = config.supabaseAnonKey;
+
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
       console.warn('[RealtimeClient] Missing Supabase credentials. Realtime features will be disabled.');
     }
@@ -78,30 +112,77 @@ export class RealtimeClient {
       },
     });
 
-    // Set up connection status monitoring
-    this.monitorConnection();
+    // Monitor browser online status
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', () => this.handleNetworkRecovery());
+      window.addEventListener('offline', () => this.handleNetworkLoss());
+    }
+
+    // Start connection quality monitoring
+    this.startQualityMonitoring();
   }
 
   /**
-   * Initialize connection (for backward compatibility)
-   * Supabase client auto-connects on first subscription, but this method
-   * provides explicit connection for legacy code
+   * Calculate reconnect delay with exponential backoff and jitter
    */
-  public async connect(): Promise<void> {
-    // Supabase JS client auto-connects when first channel is subscribed
-    // This method is for backward compatibility with existing code
-    console.log('[RealtimeClient] Connection initialized');
-    this.connectionStatus = 'connected';
-    return Promise.resolve();
+  private calculateReconnectDelay(attempt: number): number {
+    const baseDelay = Math.min(
+      INITIAL_RECONNECT_DELAY * Math.pow(RECONNECT_MULTIPLIER, attempt - 1),
+      MAX_RECONNECT_DELAY
+    );
+    
+    // Add jitter to prevent thundering herd
+    const jitter = baseDelay * JITTER_FACTOR * (Math.random() * 2 - 1);
+    return Math.max(100, baseDelay + jitter);
   }
 
   /**
-   * Monitor Supabase realtime connection status
+   * Start connection quality monitoring
    */
-  private monitorConnection() {
-    // Supabase JS client handles reconnection automatically
-    // We just track the status for UI purposes
-    this.connectionStatus = 'connected';
+  private startQualityMonitoring() {
+    // Clear existing timer
+    if (this.pingTimer) {
+      clearInterval(this.pingTimer);
+    }
+
+    // Ping interval to detect stale connections
+    this.pingTimer = setInterval(() => {
+      this.checkConnectionHealth();
+    }, PING_INTERVAL);
+  }
+
+  /**
+   * Check connection health and detect stale connections
+   */
+  private checkConnectionHealth() {
+    const now = Date.now();
+    const timeSinceLastPing = now - this.connectionQuality.lastPingAt;
+    
+    // Mark as stale if no ping in threshold time
+    const isStale = timeSinceLastPing > STALE_CONNECTION_THRESHOLD;
+    
+    if (isStale && this.connectionQuality.isStale === false) {
+      console.warn('[RealtimeClient] Connection detected as stale');
+      this.connectionQuality.isStale = true;
+      this.notifyQualityListeners();
+      
+      // If connected but stale, trigger reconnection
+      if (this.connectionStatus === 'connected') {
+        this.handleReconnect('stale');
+      }
+    } else if (!isStale) {
+      this.connectionQuality.isStale = false;
+    }
+  }
+
+  /**
+   * Record a successful ping/pong
+   */
+  private recordPing(latency: number) {
+    this.connectionQuality.latency = latency;
+    this.connectionQuality.lastPingAt = Date.now();
+    this.connectionQuality.isStale = false;
+    this.notifyQualityListeners();
   }
 
   /**
@@ -111,7 +192,7 @@ export class RealtimeClient {
     if (!this.channels.has(topic)) {
       const channel = this.supabase.channel(topic, {
         config: {
-          private: false, // Public channels for broadcast
+          private: false,
         },
       });
       this.channels.set(topic, channel);
@@ -127,23 +208,40 @@ export class RealtimeClient {
       return this.channels.get(topic)!;
     }
 
+    // Clear any existing reconnect timer for this topic
+    if (this.reconnectTimers.has(topic)) {
+      clearTimeout(this.reconnectTimers.get(topic)!);
+      this.reconnectTimers.delete(topic);
+    }
+
     const channel = this.getChannel(topic);
+    this.connectionStatus = 'connecting';
+    this.notifyConnectionListeners();
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
+        console.error(`[RealtimeClient] Subscription timeout for ${topic}`);
+        this.handleReconnect(topic);
         reject(new Error(`Subscription timeout for ${topic}`));
-      }, 10000);
+      }, CONNECTION_TIMEOUT);
 
       channel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           clearTimeout(timeout);
-          console.log(`[Realtime] Subscribed to ${topic}`);
+          console.log(`[RealtimeClient] Subscribed to ${topic}`);
           this.connectionStatus = 'connected';
-          this.reconnectDelay = RECONNECT_DELAY; // Reset on success
+          this.reconnectDelay = INITIAL_RECONNECT_DELAY; // Reset on success
+          this.connectionQuality.reconnectAttempts = 0;
+          this.recordPing(0);
+          this.notifyConnectionListeners();
+          
+          // Process any queued messages
+          this.processMessageQueue();
+          
           resolve(channel);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           clearTimeout(timeout);
-          console.error(`[Realtime] Subscription error for ${topic}:`, status);
+          console.error(`[RealtimeClient] Subscription error for ${topic}:`, status);
           this.handleReconnect(topic);
           reject(new Error(`Subscription failed: ${status}`));
         }
@@ -155,23 +253,57 @@ export class RealtimeClient {
    * Handle reconnection with exponential backoff
    */
   private handleReconnect(topic: string) {
-    if (this.reconnectTimer) return;
+    // Clear existing timer
+    if (this.reconnectTimers.has(topic)) {
+      clearTimeout(this.reconnectTimers.get(topic)!);
+    }
 
     this.connectionStatus = 'reconnecting';
-    console.log(`[Realtime] Reconnecting to ${topic} in ${this.reconnectDelay}ms`);
+    this.connectionQuality.reconnectAttempts++;
+    this.connectionQuality.lastReconnectAt = Date.now();
+    this.notifyConnectionListeners();
+    this.notifyQualityListeners();
 
-    this.reconnectTimer = setTimeout(() => {
-      this.reconnectTimer = null;
+    const delay = this.calculateReconnectDelay(this.connectionQuality.reconnectAttempts);
+    console.log(`[RealtimeClient] Reconnecting to ${topic} in ${Math.round(delay)}ms (attempt ${this.connectionQuality.reconnectAttempts})`);
+
+    const timer = setTimeout(() => {
+      this.reconnectTimers.delete(topic);
       this.channels.delete(topic); // Remove failed channel
-      this.subscribe(topic).catch(() => {
-        // Increase delay for next attempt
-        this.reconnectDelay = Math.min(
-          this.reconnectDelay * RECONNECT_MULTIPLIER,
-          MAX_RECONNECT_DELAY
-        );
-        this.handleReconnect(topic);
+      
+      // Try to resubscribe
+      this.subscribe(topic).catch((error) => {
+        console.warn(`[RealtimeClient] Reconnection attempt failed for ${topic}`);
+        // Next attempt will use increased delay
       });
-    }, this.reconnectDelay);
+    }, delay);
+
+    this.reconnectTimers.set(topic, timer);
+  }
+
+  /**
+   * Handle network recovery (browser came back online)
+   */
+  private handleNetworkRecovery() {
+    console.log('[RealtimeClient] Network recovered, attempting to reconnect all channels');
+    this.connectionQuality.reconnectAttempts = 0;
+    this.reconnectDelay = INITIAL_RECONNECT_DELAY;
+    
+    // Re-subscribe to all channels
+    const topics = Array.from(this.channels.keys());
+    topics.forEach(topic => {
+      this.channels.delete(topic);
+      this.subscribe(topic).catch(() => {});
+    });
+  }
+
+  /**
+   * Handle network loss
+   */
+  private handleNetworkLoss() {
+    console.log('[RealtimeClient] Network lost');
+    this.connectionStatus = 'disconnected';
+    this.notifyConnectionListeners();
   }
 
   /**
@@ -183,12 +315,9 @@ export class RealtimeClient {
   }
 
   /**
-   * Subscribe to market ticker updates for all symbols
+   * Subscribe to market ticker updates
    */
   public async subscribeMarket(): Promise<void> {
-    // Subscribe to a wildcard or specific symbols
-    // For now, we'll subscribe to common symbols
-    // In production, this should be dynamic based on user preferences
     const commonSymbols = ['BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT'];
     await Promise.all(
       commonSymbols.map(symbol => this.subscribe(`ticker:${symbol}`))
@@ -196,7 +325,7 @@ export class RealtimeClient {
   }
 
   /**
-   * Subscribe to trade notifications for a user
+   * Subscribe to trade notifications
    */
   public async subscribeTrades(userId: string = 'global'): Promise<void> {
     const topic = `trade:${userId}`;
@@ -212,25 +341,22 @@ export class RealtimeClient {
   }
 
   /**
-   * Listen to broadcast messages on a channel
+   * Listen to broadcast messages
    */
   public on(topic: string, event: string, callback: (payload: any) => void): () => void {
     const channel = this.getChannel(topic);
 
     const handler = (payload: any) => {
-      // Supabase Realtime broadcast payload structure:
-      // { event: string, payload: any, ref: string, ... }
       if (payload.event === event) {
-        // Extract the actual data from the payload
         const data = payload.payload?.data || payload.payload;
         callback(data);
+        // Update ping on receiving messages
+        this.recordPing(Date.now() - (payload.timestamp || Date.now()));
       }
     };
 
-    // Register the listener - use type assertion to handle API differences
     (channel as any).on('broadcast', handler);
 
-    // Store listener for cleanup
     const listenerKey = `${topic}:${event}`;
     if (!this.listeners.has(listenerKey)) {
       this.listeners.set(listenerKey, []);
@@ -238,7 +364,6 @@ export class RealtimeClient {
     const eventListeners = this.listeners.get(listenerKey)!;
     eventListeners.push({ callback, handler });
 
-    // Return unsubscribe function
     return () => {
       (channel as any).off('broadcast', handler);
       const index = eventListeners.findIndex(l => l.callback === callback);
@@ -252,49 +377,83 @@ export class RealtimeClient {
   }
 
   /**
-   * Listen to order book snapshot events
+   * Event-specific listeners
    */
   public onOrderBookSnapshot(symbol: string, callback: (snapshot: any) => void): () => void {
     return this.on(`orderbook:${symbol}`, 'snapshot', callback);
   }
 
-  /**
-   * Listen to order book delta events
-   */
   public onOrderBookDelta(symbol: string, callback: (delta: any) => void): () => void {
     return this.on(`orderbook:${symbol}`, 'delta', callback);
   }
 
-  /**
-   * Listen to market tick events
-   */
   public onMarketTick(symbol: string, callback: (ticker: any) => void): () => void {
     return this.on(`ticker:${symbol}`, 'tick', callback);
   }
 
-  /**
-   * Listen to trade events
-   */
   public onTrade(userId: string = 'global', callback: (trade: any) => void): () => void {
     return this.on(`trade:${userId}`, 'new', callback);
   }
 
-  /**
-   * Listen to strategy tick events
-   */
   public onStrategyTick(strategyId: string, callback: (data: any) => void): () => void {
     return this.on(`strategy:${strategyId}`, 'tick', callback);
   }
 
-  /**
-   * Listen to leaderboard update events
-   */
   public onLeaderboardUpdate(callback: (entries: any[]) => void): () => void {
     return this.on('leaderboard:global', 'update', callback);
   }
 
   /**
-   * Track presence for current user
+   * Queue a message for later delivery (when offline)
+   */
+  public queueMessage(topic: string, event: string, payload: any, priority: number = 0): void {
+    this.messageQueue.push({
+      topic,
+      event,
+      payload,
+      timestamp: Date.now(),
+      priority,
+    });
+    
+    // Sort by priority (higher first)
+    this.messageQueue.sort((a, b) => b.priority - a.priority);
+    
+    console.log(`[RealtimeClient] Message queued: ${topic}:${event} (queue size: ${this.messageQueue.length})`);
+  }
+
+  /**
+   * Process queued messages
+   */
+  private async processMessageQueue(): Promise<void> {
+    if (this.isProcessingQueue || this.messageQueue.length === 0) {
+      return;
+    }
+
+    this.isProcessingQueue = true;
+    
+    while (this.messageQueue.length > 0 && this.connectionStatus === 'connected') {
+      const message = this.messageQueue.shift()!;
+      console.log(`[RealtimeClient] Processing queued message: ${message.topic}:${message.event}`);
+      
+      try {
+        const channel = this.getChannel(message.topic);
+        await channel.send({
+          type: 'broadcast',
+          event: message.event,
+          payload: message.payload,
+        });
+      } catch (error) {
+        console.error(`[RealtimeClient] Failed to send queued message`, error);
+        // Re-queue with lower priority
+        this.messageQueue.push({ ...message, priority: Math.max(0, message.priority - 1) });
+      }
+    }
+    
+    this.isProcessingQueue = false;
+  }
+
+  /**
+   * Presence tracking
    */
   public async trackPresence(userId: string, metadata?: Record<string, any>): Promise<void> {
     const channel = this.getChannel('presence:traders');
@@ -307,12 +466,9 @@ export class RealtimeClient {
       ...metadata,
     });
 
-    console.log(`[Realtime] Presence tracked for ${userId}`);
+    console.log(`[RealtimeClient] Presence tracked for ${userId}`);
   }
 
-  /**
-   * Get current presence state
-   */
   public getPresenceState(): PresenceState {
     const channel = this.channels.get('presence:traders');
     if (!channel) {
@@ -337,9 +493,6 @@ export class RealtimeClient {
     return result;
   }
 
-  /**
-   * Listen to presence events
-   */
   public onPresence(callback: (state: PresenceState) => void): () => void {
     const channel = this.getChannel('presence:traders');
 
@@ -348,7 +501,6 @@ export class RealtimeClient {
       callback(state);
     };
 
-    // Use type assertion to handle API differences
     (channel as any).on('presence', { event: 'sync' }, presenceHandler);
     (channel as any).on('presence', { event: 'join' }, presenceHandler);
     (channel as any).on('presence', { event: 'leave' }, presenceHandler);
@@ -361,9 +513,46 @@ export class RealtimeClient {
   }
 
   /**
+   * Connection state listeners
+   */
+  public onConnectionChange(callback: (status: ConnectionStatus) => void): () => void {
+    this.connectionListeners.push(callback);
+    return () => {
+      const index = this.connectionListeners.indexOf(callback);
+      if (index !== -1) {
+        this.connectionListeners.splice(index, 1);
+      }
+    };
+  }
+
+  public onQualityChange(callback: (quality: ConnectionQuality) => void): () => void {
+    this.qualityListeners.push(callback);
+    return () => {
+      const index = this.qualityListeners.indexOf(callback);
+      if (index !== -1) {
+        this.qualityListeners.splice(index, 1);
+      }
+    };
+  }
+
+  private notifyConnectionListeners() {
+    this.connectionListeners.forEach(cb => cb(this.connectionStatus));
+  }
+
+  private notifyQualityListeners() {
+    this.qualityListeners.forEach(cb => cb({ ...this.connectionQuality }));
+  }
+
+  /**
    * Unsubscribe from a channel
    */
   public async unsubscribe(topic: string): Promise<void> {
+    // Clear reconnect timer
+    if (this.reconnectTimers.has(topic)) {
+      clearTimeout(this.reconnectTimers.get(topic)!);
+      this.reconnectTimers.delete(topic);
+    }
+
     const channel = this.channels.get(topic);
     if (!channel) {
       return;
@@ -379,36 +568,62 @@ export class RealtimeClient {
       }
     }
 
-    console.log(`[Realtime] Unsubscribed from ${topic}`);
+    console.log(`[RealtimeClient] Unsubscribed from ${topic}`);
   }
 
   /**
    * Unsubscribe from all channels
    */
   public async unsubscribeAll(): Promise<void> {
+    // Clear all reconnect timers
+    this.reconnectTimers.forEach((timer) => clearTimeout(timer));
+    this.reconnectTimers.clear();
+
     const topics = Array.from(this.channels.keys());
     await Promise.all(topics.map((topic) => this.unsubscribe(topic)));
     this.channels.clear();
     this.listeners.clear();
     this.connectionStatus = 'disconnected';
+    this.notifyConnectionListeners();
   }
 
   /**
    * Disconnect and cleanup
    */
   public async disconnect(): Promise<void> {
-    if (this.reconnectTimer) {
-      clearTimeout(this.reconnectTimer);
-      this.reconnectTimer = null;
+    if (this.pingTimer) {
+      clearInterval(this.pingTimer);
+      this.pingTimer = null;
     }
+
+    if (this.reconnectTimers.size > 0) {
+      this.reconnectTimers.forEach((timer) => clearTimeout(timer));
+      this.reconnectTimers.clear();
+    }
+
     await this.unsubscribeAll();
+    this.messageQueue = [];
+    this.connectionQuality = {
+      latency: 0,
+      lastPingAt: 0,
+      isStale: false,
+      reconnectAttempts: 0,
+      lastReconnectAt: null,
+    };
   }
 
   /**
    * Get connection status
    */
-  public getConnectionStatus(): 'disconnected' | 'connecting' | 'connected' | 'reconnecting' {
+  public getConnectionStatus(): ConnectionStatus {
     return this.connectionStatus;
+  }
+
+  /**
+   * Get connection quality metrics
+   */
+  public getConnectionQuality(): ConnectionQuality {
+    return { ...this.connectionQuality };
   }
 
   /**
@@ -417,9 +632,16 @@ export class RealtimeClient {
   public getChannelCount(): number {
     return this.channels.size;
   }
+
+  /**
+   * Get queued message count
+   */
+  public getQueuedMessageCount(): number {
+    return this.messageQueue.length;
+  }
 }
 
-// Singleton instance for app-wide use
+// Singleton instance
 let realtimeClientInstance: RealtimeClient | null = null;
 
 export function getRealtimeClient(): RealtimeClient {
