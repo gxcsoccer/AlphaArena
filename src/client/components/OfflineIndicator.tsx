@@ -7,12 +7,12 @@
 
 import React from 'react';
 import { Alert, Tag, Progress } from '@arco-design/web-react';
-import { IconClose, IconSync, IconCheckCircle, IconWarning } from '@arco-design/web-react/icon';
+import { IconClose, IconSync, IconCheckCircle, IconExclamationCircle } from '@arco-design/web-react/icon';
 import { useConnection } from '../store/connectionStore';
 
 const ReconnectingIcon = IconSync;
 const ConnectedIcon = IconCheckCircle;
-const WarningIcon = IconWarning;
+const WarningIcon = IconExclamationCircle;
 
 const OfflineIndicator: React.FC = () => {
   const { status, isOnline, quality, lastDisconnectedAt } = useConnection();
