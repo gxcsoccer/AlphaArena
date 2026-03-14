@@ -24,6 +24,7 @@ coverage/
 # Environment
 .env
 .env.local
+.env.vercel-prod
 .vercel
 
 # Supabase
