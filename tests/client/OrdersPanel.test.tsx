@@ -15,6 +15,30 @@ jest.mock('../../src/client/utils/api', () => ({
   },
 }));
 
+// Mock Arco Design Message and Modal to avoid ReactDOM.render issues in tests
+jest.mock('@arco-design/web-react', () => {
+  const actual = jest.requireActual('@arco-design/web-react');
+  return {
+    ...actual,
+    Message: {
+      error: jest.fn(),
+      success: jest.fn(),
+      info: jest.fn(),
+      warning: jest.fn(),
+    },
+    Modal: {
+      ...actual.Modal,
+      confirm: jest.fn((config) => {
+        // Immediately call onOk to simulate user confirming
+        if (config.onOk) {
+          config.onOk();
+        }
+        return Promise.resolve();
+      }),
+    },
+  };
+});
+
 const { api } = require('../../src/client/utils/api');
 
 describe('OrdersPanel', () => {
@@ -70,11 +94,11 @@ describe('OrdersPanel', () => {
     render(<OrdersPanel />);
 
     await waitFor(() => {
-      expect(screen.getByText('BTC/USD')).toBeInTheDocument();
+      expect(screen.getAllByText('BTC/USD')).toHaveLength(2);
     });
 
     expect(screen.getByText('ETH/USD')).toBeInTheDocument();
-    expect(screen.getByText(/买入/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/买入/i)).toHaveLength(2);
     expect(screen.getByText(/卖出/i)).toBeInTheDocument();
   });
 
@@ -106,22 +130,20 @@ describe('OrdersPanel', () => {
     render(<OrdersPanel />);
 
     await waitFor(() => {
-      const cancelButtons = screen.getAllByText('取消');
+      const cancelButtons = screen.getAllByRole('button', { name: /取消/i });
       // Should have 3 cancel buttons (one per row), but only first should be enabled
       expect(cancelButtons).toHaveLength(3);
     });
 
     // First order (pending) should have enabled cancel button
-    const pendingCancelBtn = screen.getAllByText('取消')[0];
-    expect(pendingCancelBtn).not.toBeDisabled();
+    const cancelButtons = screen.getAllByRole('button', { name: /取消/i });
+    expect(cancelButtons[0]).not.toBeDisabled();
 
     // Second order (filled) should have disabled cancel button
-    const filledCancelBtn = screen.getAllByText('取消')[1];
-    expect(filledCancelBtn).toBeDisabled();
+    expect(cancelButtons[1]).toBeDisabled();
 
     // Third order (cancelled) should have disabled cancel button
-    const cancelledCancelBtn = screen.getAllByText('取消')[2];
-    expect(cancelledCancelBtn).toBeDisabled();
+    expect(cancelButtons[2]).toBeDisabled();
   });
 
   it('should call cancelOrder API when cancel button is clicked and confirmed', async () => {
@@ -135,11 +157,11 @@ describe('OrdersPanel', () => {
     render(<OrdersPanel />);
 
     await waitFor(() => {
-      expect(screen.getByText('BTC/USD')).toBeInTheDocument();
+      expect(screen.getAllByText('BTC/USD')).toHaveLength(2);
     });
 
     // Click cancel button for first order
-    const cancelButtons = screen.getAllByText('取消');
+    const cancelButtons = screen.getAllByRole('button', { name: /取消/i });
     fireEvent.click(cancelButtons[0]);
 
     // Confirm in the modal (mock Modal.confirm)
@@ -168,23 +190,19 @@ describe('OrdersPanel', () => {
     });
   });
 
-  it('should show error message when getOrders fails', async () => {
+  it('should handle getOrders failure gracefully', async () => {
+    const mockMessage = require('@arco-design/web-react').Message;
     api.getOrders.mockRejectedValue(new Error('Network error'));
-
-    // Mock Message.error
-    const mockMessage = {
-      error: jest.fn(),
-      success: jest.fn(),
-    };
-    jest.mock('@arco-design/web-react', () => ({
-      Message: mockMessage,
-    }));
 
     render(<OrdersPanel />);
 
+    // Component should handle error and show error message
     await waitFor(() => {
       expect(mockMessage.error).toHaveBeenCalled();
     });
+    
+    // Verify API was called
+    expect(api.getOrders).toHaveBeenCalled();
   });
 
   it('should filter orders by symbol when symbol prop is provided', async () => {
@@ -240,7 +258,7 @@ describe('OrdersPanel', () => {
     render(<OrdersPanel />);
 
     await waitFor(() => {
-      expect(screen.getByText(/限价/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/限价/i)).toHaveLength(2);
       expect(screen.getByText(/市价/i)).toBeInTheDocument();
     });
   });

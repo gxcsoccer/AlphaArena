@@ -7,14 +7,21 @@ module.exports = {
   coverageDirectory: 'coverage',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  globals: {
-    'ts-jest': {
+    '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
+        target: 'ES2020',
+        module: 'ESNext',
+        lib: ['ES2020', 'DOM', 'DOM.Iterable'],
+        strict: true,
+        esModuleInterop: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        moduleResolution: 'node',
+        resolveJsonModule: true,
         jsx: 'react-jsx',
-      },
-    },
+        types: ['jest', '@testing-library/jest-dom']
+      }
+    }],
   },
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
 };
