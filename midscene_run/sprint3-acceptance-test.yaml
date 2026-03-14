@@ -1,0 +1,151 @@
+# Sprint 3 UI Acceptance Tests - Supabase Realtime Migration
+# Test against production: https://alphaarena-eight.vercel.app
+
+web:
+  url: https://alphaarena-1010tcrkv-gxcsoccer-s-team.vercel.app
+  viewport:
+    width: 1920
+    height: 1080
+
+agent:
+  testId: "sprint3-acceptance"
+  groupName: "Sprint 3 - Realtime Features"
+  groupDescription: "UI acceptance testing for Supabase Realtime migration"
+  generateReport: true
+  autoPrintReportMsg: true
+  reportFileName: "sprint3-acceptance-report"
+
+tasks:
+  - name: Load home page and verify initial state
+    flow:
+      - ai: Wait for page to load completely, verify no white screen or loading spinner
+      - aiAssert: Page is loaded and shows the main trading interface
+
+  - name: Verify UI is rendered correctly
+    flow:
+      - ai: Observe the page layout and verify UI components are visible and properly styled
+      - ai: Confirm the trading interface shows all expected sections (trading pair list, chart, order book, order form)
+
+  - name: Check order book display
+    flow:
+      - ai: Find the order book component, verify it shows bid/ask prices and quantities
+      - aiAssert: Order book shows at least 5 bid levels and 5 ask levels
+
+  - name: Verify real-time ticker price updates
+    flow:
+      - ai: Observe the ticker price for BTC/USD
+      - sleep: 10000
+      - ai: Check if the ticker price has updated automatically
+      - aiAssert: Ticker price updates without page refresh
+
+  - name: Verify real-time order book updates
+    flow:
+      - ai: Watch the order book for changes
+      - sleep: 10000
+      - ai: Verify that bid/ask levels have updated in real-time
+      - aiAssert: Order book updates automatically without manual refresh
+
+  - name: Verify real-time trade history
+    flow:
+      - ai: Find the recent trades section
+      - sleep: 10000
+      - ai: Check if new trades have appeared automatically
+      - aiAssert: Trade history updates in real-time
+
+  - name: Verify K-line chart displays
+    flow:
+      - ai: Find the K-line/candlestick chart
+      - aiAssert: Chart renders correctly with price data and candles visible
+
+  - name: Verify real-time K-line updates
+    flow:
+      - ai: Observe the K-line chart for the latest candle
+      - sleep: 10000
+      - ai: Check if the latest candle has updated
+      - aiAssert: K-line chart updates in real-time
+
+  - name: Check presence tracking (online traders)
+    flow:
+      - ai: Find the online traders list or presence indicator
+      - aiAssert: Presence indicator shows connected users or online count
+
+  - name: Take screenshot of home page
+    flow:
+      - screenshot: sprint3-home-page.png
+
+  - name: Navigate to dashboard page
+    flow:
+      - ai: Click on the Dashboard navigation link
+      - sleep: 3000
+      - aiAssert: Dashboard page loads successfully
+
+  - name: Verify dashboard realtime data
+    flow:
+      - ai: Check that dashboard shows portfolio values
+      - sleep: 5000
+      - aiAssert: Dashboard displays real-time data
+
+  - name: Take screenshot of dashboard page
+    flow:
+      - screenshot: sprint3-dashboard-page.png
+
+  - name: Navigate to trades page
+    flow:
+      - ai: Click on the Trades navigation link
+      - sleep: 3000
+      - aiAssert: Trades page loads successfully
+
+  - name: Verify trades page realtime updates
+    flow:
+      - ai: Observe the trades list
+      - sleep: 10000
+      - aiAssert: New trades appear automatically in real-time
+
+  - name: Take screenshot of trades page
+    flow:
+      - screenshot: sprint3-trades-page.png
+
+  - name: Navigate to holdings page
+    flow:
+      - ai: Click on the Holdings navigation link
+      - sleep: 3000
+      - aiAssert: Holdings page loads successfully
+
+  - name: Verify holdings page displays correctly
+    flow:
+      - ai: Check that holdings show current positions with values
+      - aiAssert: Holdings page displays portfolio positions correctly
+
+  - name: Take screenshot of holdings page
+    flow:
+      - screenshot: sprint3-holdings-page.png
+
+  - name: Navigate to leaderboard page
+    flow:
+      - ai: Click on the Leaderboard navigation link
+      - sleep: 3000
+      - aiAssert: Leaderboard page loads successfully
+
+  - name: Verify leaderboard displays correctly
+    flow:
+      - ai: Check that leaderboard shows trader rankings with PnL data
+      - aiAssert: Leaderboard displays trader rankings correctly
+
+  - name: Take screenshot of leaderboard page
+    flow:
+      - screenshot: sprint3-leaderboard-page.png
+
+  - name: Navigate to strategies page
+    flow:
+      - ai: Click on the Strategies navigation link
+      - sleep: 3000
+      - aiAssert: Strategies page loads successfully
+
+  - name: Verify strategies page displays correctly
+    flow:
+      - ai: Check that strategies list shows available trading strategies
+      - aiAssert: Strategies page displays correctly
+
+  - name: Take screenshot of strategies page
+    flow:
+      - screenshot: sprint3-strategies-page.png

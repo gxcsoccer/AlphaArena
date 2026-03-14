@@ -1,0 +1,22 @@
+{
+  "summary": {
+    "total": 1,
+    "successful": 0,
+    "failed": 1,
+    "partialFailed": 0,
+    "notExecuted": 0,
+    "totalDuration": 105644,
+    "generatedAt": "3/14/2026, 4:37:16 AM"
+  },
+  "results": [
+    {
+      "script": "../sprint3-acceptance-test.yaml",
+      "success": false,
+      "resultType": "failed",
+      "output": "./sprint3-acceptance-test-1773434130842.json",
+      "report": "../report/sprint3-acceptance-report.html",
+      "error": "Execution failed",
+      "duration": 105644
+    }
+  ]
+}

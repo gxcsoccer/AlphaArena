@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { ThemeProvider, useTheme, Theme } from '../useTheme.tsx';
+import { ThemeProvider, useTheme, Theme } from '../useTheme';
 
 // Mock localStorage
 const localStorageMock = (() => {
