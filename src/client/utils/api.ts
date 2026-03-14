@@ -415,6 +415,30 @@ export const api = {
     const data: ApiResponse<any> = await res.json();
     return data.success ? data.data : null;
   },
+
+  async cancelOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/api/orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getOrders(filters?: {
+    symbol?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const res = await apiFetch(`/api/orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
 };
 
 /**

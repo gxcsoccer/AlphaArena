@@ -475,6 +475,9 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Store for simulated orders (in production, this would be a database)
+    const orders: Map<string, any> = new Map();
+
     // Orders endpoints
     this.app.post('/api/orders', async (req: Request, res: Response) => {
       try {
@@ -507,13 +510,83 @@ export class APIServer extends EventEmitter {
           createdAt: new Date().toISOString(),
         };
 
+        // Store order
+        orders.set(order.id, order);
+
         console.log(`[Order] New ${side} ${type} order: ${quantity} ${symbol} @ ${price || 'market'}`);
 
         // Simulate order processing delay
         setTimeout(() => {
-          order.status = 'filled';
-          console.log(`[Order] Order ${order.id} filled`);
+          if (orders.has(order.id)) {
+            const storedOrder = orders.get(order.id);
+            storedOrder.status = 'filled';
+            console.log(`[Order] Order ${order.id} filled`);
+          }
         }, 1000);
+
+        res.json({ success: true, data: order, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get orders endpoint
+    this.app.get('/api/orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, status, limit = '50' } = req.query;
+        
+        let orderList = Array.from(orders.values());
+
+        // Filter by symbol
+        if (symbol && typeof symbol === 'string') {
+          orderList = orderList.filter(o => o.symbol === symbol);
+        }
+
+        // Filter by status
+        if (status && typeof status === 'string') {
+          orderList = orderList.filter(o => o.status === status);
+        }
+
+        // Apply limit
+        const limitNum = parseInt(typeof limit === 'string' ? limit : '50', 10);
+        orderList = orderList.slice(0, limitNum);
+
+        // Sort by creation time (newest first)
+        orderList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        res.json({ success: true, data: orderList, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Cancel order endpoint
+    this.app.post('/api/orders/:orderId/cancel', async (req: Request, res: Response) => {
+      try {
+        const { orderId } = req.params;
+        
+        // orderId from params is always a string in Express, but TypeScript doesn't know that
+        const orderIdStr = Array.isArray(orderId) ? orderId[0] : orderId;
+        const order = orders.get(orderIdStr);
+        if (!order) {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Order not found' 
+          });
+        }
+
+        if (order.status !== 'pending') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Only pending orders can be cancelled' 
+          });
+        }
+
+        // Cancel the order
+        order.status = 'cancelled';
+        order.cancelledAt = new Date().toISOString();
+        
+        console.log(`[Order] Order ${orderIdStr} cancelled`);
 
         res.json({ success: true, data: order, timestamp: Date.now() });
       } catch (error: any) {
