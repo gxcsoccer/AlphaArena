@@ -20,4 +20,9 @@ export {
   FeishuAlertServiceConfig,
 } from './FeishuAlertService';
 
+export {
+  PriceMonitoringService,
+  getPriceMonitoringService,
+} from './PriceMonitoringService';
+
 export { default as UptimeMonitor } from './UptimeMonitor';

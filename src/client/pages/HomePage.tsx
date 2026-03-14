@@ -4,6 +4,7 @@ import TradingPairList from '../components/TradingPairList';
 import KLineChart from '../components/KLineChart';
 import TradingOrder from '../components/TradingOrder';
 import OrderBook from '../components/OrderBook';
+import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 
 const { Content } = Layout;
 const { Row, Col } = Grid;
@@ -60,8 +61,11 @@ const HomePage: React.FC = () => {
           {/* Order Book - Scrollable */}
           <OrderBook symbol={selectedSymbol} levels={10} onPriceClick={handlePriceClick} />
 
-          {/* Trading Order Form - Full width at bottom */}
+          {/* Trading Order Form - Full width */}
           <TradingOrder symbol={selectedSymbol} onOrderPlaced={handleOrderPlaced} />
+
+          {/* Conditional Orders Panel */}
+          <ConditionalOrdersPanel symbol={selectedSymbol} limit={5} />
         </div>
       ) : (
         /* Desktop: Original layout */
@@ -87,9 +91,16 @@ const HomePage: React.FC = () => {
             <OrderBook symbol={selectedSymbol} levels={20} onPriceClick={handlePriceClick} />
           </Col>
 
-          {/* Right: Trading Order Form */}
+          {/* Right: Trading Order Form + Conditional Orders */}
           <Col xs={24} sm={12} md={5}>
-            <TradingOrder symbol={selectedSymbol} onOrderPlaced={handleOrderPlaced} />
+            <Row gutter={[0, 16]} style={{ height: '100%', overflow: 'auto' }}>
+              <Col span={24}>
+                <TradingOrder symbol={selectedSymbol} onOrderPlaced={handleOrderPlaced} />
+              </Col>
+              <Col span={24}>
+                <ConditionalOrdersPanel symbol={selectedSymbol} limit={10} />
+              </Col>
+            </Row>
           </Col>
         </Row>
       )}

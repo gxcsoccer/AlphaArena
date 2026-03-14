@@ -14,6 +14,7 @@ import { EventEmitter } from 'events';
 import { StrategiesDAO } from '../database/strategies.dao';
 import { TradesDAO } from '../database/trades.dao';
 import { PortfoliosDAO } from '../database/portfolios.dao';
+import { ConditionalOrdersDAO } from '../database/conditional-orders.dao';
 import { Strategy } from '../database/strategies.dao';
 import { Trade } from '../database/trades.dao';
 import { Portfolio } from '../database/portfolios.dao';
@@ -21,7 +22,7 @@ import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy
 import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 import { SupabaseRealtimeService } from './SupabaseRealtimeService';
-import { getMonitoringService, getFeishuAlertService } from '../monitoring';
+import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService } from '../monitoring';
 
 export interface APIServerConfig {
   port: number;
@@ -83,8 +84,10 @@ export class APIServer extends EventEmitter {
   private strategiesDAO: StrategiesDAO;
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
+  private conditionalOrdersDAO: ConditionalOrdersDAO;
   private leaderboardService: LeaderboardService;
   private orderBookServices: Map<string, OrderBookService> = new Map();
+  private priceMonitoring = getPriceMonitoringService();
   private isRunning: boolean = false;
 
   constructor(config: APIServerConfig) {
@@ -117,12 +120,14 @@ export class APIServer extends EventEmitter {
     this.strategiesDAO = new StrategiesDAO();
     this.tradesDAO = new TradesDAO();
     this.portfoliosDAO = new PortfoliosDAO();
+    this.conditionalOrdersDAO = new ConditionalOrdersDAO();
     this.leaderboardService = new LeaderboardService();
 
     this.setupMiddleware();
     this.setupRoutes();
     this.setupOrderBookServices();
     this.setupMonitoring();
+    this.setupPriceMonitoring();
   }
 
   /**
@@ -594,6 +599,144 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Conditional Orders endpoints (Stop-loss / Take-profit)
+    this.app.post('/api/conditional-orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, side, orderType, triggerPrice, quantity, expiresAt } = req.body;
+        
+        // Validate input
+        if (!symbol || !side || !orderType || !triggerPrice || !quantity) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required fields: symbol, side, orderType, triggerPrice, quantity' 
+          });
+        }
+
+        if (!['stop_loss', 'take_profit'].includes(orderType)) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Invalid orderType. Must be stop_loss or take_profit' 
+          });
+        }
+
+        // Validate trigger price logic
+        if (orderType === 'stop_loss' && side === 'buy') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Stop-loss orders can only be placed for sell side' 
+          });
+        }
+
+        if (orderType === 'take_profit' && side === 'buy') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Take-profit orders can only be placed for sell side' 
+          });
+        }
+
+        // Create conditional order
+        const order = {
+          id: `cond_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          symbol,
+          side,
+          orderType,
+          triggerPrice,
+          quantity,
+          status: 'active',
+          expiresAt: expiresAt || null,
+          createdAt: new Date().toISOString(),
+        };
+
+        // Store in database
+        const savedOrder = await this.conditionalOrdersDAO.create({
+          symbol,
+          side,
+          orderType: orderType as 'stop_loss' | 'take_profit',
+          triggerPrice,
+          quantity,
+          expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+        });
+
+        // Add to price monitoring
+        this.priceMonitoring.watchSymbol(symbol);
+
+        console.log(`[Conditional Order] New ${orderType} order: ${quantity} ${symbol} @ trigger ${triggerPrice}`);
+
+        res.json({ success: true, data: savedOrder, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get conditional orders
+    this.app.get('/api/conditional-orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, status, orderType, limit = '50' } = req.query;
+        
+        const filters: any = {
+          limit: parseInt(typeof limit === 'string' ? limit : '50', 10),
+        };
+
+        if (symbol && typeof symbol === 'string') {
+          filters.symbol = symbol;
+        }
+        if (status && typeof status === 'string') {
+          filters.status = status as any;
+        }
+        if (orderType && typeof orderType === 'string') {
+          filters.orderType = orderType as 'stop_loss' | 'take_profit';
+        }
+
+        const orders = await this.conditionalOrdersDAO.getMany(filters);
+
+        res.json({ success: true, data: orders, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Cancel conditional order
+    this.app.post('/api/conditional-orders/:orderId/cancel', async (req: Request, res: Response) => {
+      try {
+        const { orderId } = req.params;
+        const orderIdStr = Array.isArray(orderId) ? orderId[0] : orderId;
+        
+        const order = await this.conditionalOrdersDAO.getById(orderIdStr);
+        if (!order) {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Conditional order not found' 
+          });
+        }
+
+        if (order.status !== 'active') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Only active conditional orders can be cancelled' 
+          });
+        }
+
+        const cancelledOrder = await this.conditionalOrdersDAO.cancel(orderIdStr);
+        
+        console.log(`[Conditional Order] Order ${orderIdStr} cancelled`);
+
+        res.json({ success: true, data: cancelledOrder, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get conditional order stats
+    this.app.get('/api/conditional-orders/stats', async (req: Request, res: Response) => {
+      try {
+        const { strategyId } = req.query;
+        const stats = await this.conditionalOrdersDAO.getStats(strategyId as string | undefined);
+        res.json({ success: true, data: stats, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -757,6 +900,51 @@ export class APIServer extends EventEmitter {
     });
 
     console.log('[Monitoring] Monitoring and alerting initialized');
+  }
+
+  /**
+   * Setup price monitoring for conditional orders
+   */
+  private setupPriceMonitoring(): void {
+    // Start the price monitoring service
+    this.priceMonitoring.start();
+
+    // Watch all symbols that have order book services
+    this.orderBookServices.forEach((_, symbol) => {
+      this.priceMonitoring.watchSymbol(symbol);
+    });
+
+    // Listen for triggered orders and broadcast notifications
+    this.priceMonitoring.on('order-triggered', async (data: any) => {
+      console.log(`[PriceMonitoring] Order triggered: ${data.orderType} ${data.symbol} @ ${data.executedPrice}`);
+      
+      // In production, send notification via Feishu, email, etc.
+      // For now, just log it
+      if (data.orderType === 'stop_loss') {
+        console.warn(`⚠️ Stop-loss triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+      } else {
+        console.log(`✅ Take-profit triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+      }
+
+      // Broadcast to frontend via realtime
+      if (this.realtime) {
+        await this.realtime.broadcastMarketTick(data.symbol, {
+          type: 'conditional_order_triggered',
+          data: {
+            orderId: data.orderId,
+            orderType: data.orderType,
+            side: data.side,
+            triggerPrice: data.triggerPrice,
+            executedPrice: data.executedPrice,
+            quantity: data.quantity,
+            tradeId: data.tradeId,
+          },
+          timestamp: Date.now(),
+        });
+      }
+    });
+
+    console.log('[PriceMonitoring] Price monitoring service initialized');
   }
 
   public getOrderBookService(symbol: string): OrderBookService | undefined {

@@ -439,6 +439,55 @@ export const api = {
     const data: ApiResponse<any[]> = await res.json();
     return data.success ? data.data : [];
   },
+
+  async createConditionalOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    orderType: 'stop_loss' | 'take_profit';
+    triggerPrice: number;
+    quantity: number;
+    expiresAt?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/create-conditional-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getConditionalOrders(filters?: {
+    symbol?: string;
+    status?: 'active' | 'triggered' | 'cancelled' | 'expired';
+    orderType?: 'stop_loss' | 'take_profit';
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.orderType) params.append('orderType', filters.orderType);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const res = await apiFetch(`/api/conditional-orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async cancelConditionalOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/api/conditional-orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getConditionalOrderStats(): Promise<any | null> {
+    const res = await apiFetch('/api/conditional-orders/stats');
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**

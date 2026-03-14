@@ -19,13 +19,14 @@ import { api } from '../utils/api';
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
-export type OrderType = 'limit' | 'market';
+export type OrderType = 'limit' | 'market' | 'stop_loss' | 'take_profit';
 export type OrderSide = 'buy' | 'sell';
 
 interface OrderFormData {
   type: OrderType;
   side: OrderSide;
   price?: number;
+  triggerPrice?: number;
   quantity: number;
 }
 
@@ -40,6 +41,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<OrderSide>('buy');
   const [orderType, setOrderType] = useState<OrderType>('limit');
+  const [conditionalOrderType, setConditionalOrderType] = useState<'stop_loss' | 'take_profit'>('stop_loss');
   const [loading, setLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const formRef = React.useRef<FormInstance>(null);
@@ -132,25 +134,54 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         return;
       }
 
+      if ((orderType === 'stop_loss' || orderType === 'take_profit') && !formData.triggerPrice) {
+        Message.error('请输入触发价格');
+        return;
+      }
+
       setLoading(true);
 
-      // Place order
-      const orderData = {
-        symbol,
-        side: activeTab,
-        type: orderType,
-        price: orderType === 'limit' ? formData.price : currentPrice,
-        quantity: formData.quantity,
-      };
+      let result;
 
-      const result = await api.createOrder(orderData);
-      
-      if (result) {
-        Message.success(`${activeTab === 'buy' ? '买入' : '卖出'}订单提交成功！`);
-        onOrderPlaced?.(result.id);
-        formRef.current?.resetFields();
+      // Place order based on type
+      if (orderType === 'stop_loss' || orderType === 'take_profit') {
+        // Conditional order
+        const orderData = {
+          symbol,
+          side: activeTab,
+          orderType: orderType as 'stop_loss' | 'take_profit',
+          triggerPrice: formData.triggerPrice,
+          quantity: formData.quantity,
+        };
+
+        result = await api.createConditionalOrder(orderData);
+        
+        if (result) {
+          Message.success(`${orderType === 'stop_loss' ? '止损' : '止盈'}订单提交成功！`);
+          onOrderPlaced?.(result.id);
+          formRef.current?.resetFields();
+        } else {
+          Message.error('订单提交失败');
+        }
       } else {
-        Message.error('订单提交失败');
+        // Regular order (limit or market)
+        const orderData = {
+          symbol,
+          side: activeTab,
+          type: orderType,
+          price: orderType === 'limit' ? formData.price : currentPrice,
+          quantity: formData.quantity,
+        };
+
+        result = await api.createOrder(orderData);
+        
+        if (result) {
+          Message.success(`${activeTab === 'buy' ? '买入' : '卖出'}订单提交成功！`);
+          onOrderPlaced?.(result.id);
+          formRef.current?.resetFields();
+        } else {
+          Message.error('订单提交失败');
+        }
       }
     } catch (err: any) {
       Message.error(err.message || '订单提交失败');
@@ -189,16 +220,39 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         <Form.Item label="订单类型">
           <Radio.Group
             value={orderType}
-            onChange={setOrderType}
+            onChange={(value) => {
+              setOrderType(value);
+              // Set conditional order type based on selection
+              if (value === 'stop_loss' || value === 'take_profit') {
+                setConditionalOrderType(value);
+              }
+            }}
             options={[
-              { label: '限价单', value: 'limit' },
               { label: '市价单', value: 'market' },
+              { label: '限价单', value: 'limit' },
+              { label: '止损单', value: 'stop_loss' },
+              { label: '止盈单', value: 'take_profit' },
             ]}
             direction={isMobile ? 'vertical' : 'horizontal'}
           />
         </Form.Item>
 
-        {/* Price Input (only for limit orders) */}
+        {/* Conditional Order Type Selector (for stop_loss/take_profit) */}
+        {(orderType === 'stop_loss' || orderType === 'take_profit') && (
+          <Form.Item label="条件单类型">
+            <Radio.Group
+              value={conditionalOrderType}
+              onChange={setConditionalOrderType}
+              options={[
+                { label: '止损 (价格下跌触发)', value: 'stop_loss' },
+                { label: '止盈 (价格上涨触发)', value: 'take_profit' },
+              ]}
+              direction={isMobile ? 'vertical' : 'horizontal'}
+            />
+          </Form.Item>
+        )}
+
+        {/* Price Input (for limit orders) */}
         {orderType === 'limit' && (
           <Form.Item
             label="价格"
@@ -207,6 +261,24 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
             <InputNumber
               name="price"
               placeholder="输入价格"
+              precision={2}
+              min={0}
+              style={{ width: '100%' }}
+              addonAfter={quoteCurrency}
+              size={isMobile ? 'large' : 'default'}
+            />
+          </Form.Item>
+        )}
+
+        {/* Trigger Price Input (for conditional orders) */}
+        {(orderType === 'stop_loss' || orderType === 'take_profit') && (
+          <Form.Item
+            label="触发价格"
+            tooltip={orderType === 'stop_loss' ? '当市场价格跌破此价格时触发卖出' : '当市场价格涨破此价格时触发卖出'}
+          >
+            <InputNumber
+              name="triggerPrice"
+              placeholder="输入触发价格"
               precision={2}
               min={0}
               style={{ width: '100%' }}
