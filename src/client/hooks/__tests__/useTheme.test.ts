@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { ThemeProvider, useTheme, Theme } from '../useTheme';
+import { ThemeProvider, useTheme, Theme } from '../useTheme.tsx';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -37,7 +37,7 @@ describe('useTheme', () => {
     document.documentElement.removeAttribute('data-theme');
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
+  const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <ThemeProvider>{children}</ThemeProvider>
   );
 

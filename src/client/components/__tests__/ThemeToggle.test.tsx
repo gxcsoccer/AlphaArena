@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import ThemeToggle from '../ThemeToggle';
-import { ThemeProvider } from '../../hooks/useTheme';
+import ThemeToggle from '../ThemeToggle.tsx';
+import { ThemeProvider } from '../../hooks/useTheme.tsx';
 
 const renderWithThemeProvider = (component: React.ReactElement) => {
   return render(<ThemeProvider>{component}</ThemeProvider>);

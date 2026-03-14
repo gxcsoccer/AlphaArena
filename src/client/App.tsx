@@ -13,7 +13,7 @@ import {
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
-import { ThemeProvider } from './hooks/useTheme';
+import { ThemeProvider } from './hooks/useTheme.tsx';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
