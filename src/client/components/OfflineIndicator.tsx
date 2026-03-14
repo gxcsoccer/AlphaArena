@@ -118,7 +118,7 @@ const OfflineIndicator: React.FC = () => {
   return (
     <Alert
       type={getAlertType()}
-      message={
+      content={
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ flex: 1 }}>{getMessage()}</span>
