@@ -61,11 +61,22 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
   // Initialize chart
   useEffect(() => {
-    if (!chartContainerRef.current) return;
+    if (!chartContainerRef.current) {
+      console.error('[KLineChart] Chart container ref is null');
+      return;
+    }
+
+    const container = chartContainerRef.current;
+    const containerWidth = container.clientWidth;
+    
+    if (containerWidth <= 0) {
+      console.warn('[KLineChart] Container width is 0, waiting for next render');
+      return;
+    }
 
     try {
-      const chart = createChart(chartContainerRef.current, {
-        width: chartContainerRef.current.clientWidth,
+      const chart = createChart(container, {
+        width: containerWidth,
         height: height,
         layout: {
           background: { type: 'solid', color: '#1a1a1a' },
@@ -128,10 +139,18 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
       return () => {
         window.removeEventListener('resize', handleResize);
-        chart.remove();
+        if (chartRef.current) {
+          chartRef.current.remove();
+          chartRef.current = null;
+        }
       };
     } catch (err: any) {
       console.error('[KLineChart] Failed to initialize chart:', err);
+      console.error('[KLineChart] Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+      });
       throw err; // Re-throw to be caught by ErrorBoundary
     }
   }, [height, showVolume]);
