@@ -67,92 +67,124 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     }
 
     const container = chartContainerRef.current;
-    const containerWidth = container.clientWidth;
     
-    if (containerWidth <= 0) {
-      console.warn('[KLineChart] Container width is 0, waiting for next render');
-      return;
-    }
+    // Function to initialize chart with proper width
+    const initializeChart = () => {
+      const containerWidth = container.clientWidth;
+      
+      if (containerWidth <= 0) {
+        console.warn('[KLineChart] Container width is still 0, will retry...');
+        return false;
+      }
 
-    try {
-      const chart = createChart(container, {
-        width: containerWidth,
-        height: height,
-        layout: {
-          background: { type: 'solid', color: '#1a1a1a' },
-          textColor: '#d1d4dc',
-        },
-        grid: {
-          vertLines: { color: '#2B2B43' },
-          horzLines: { color: '#2B2B43' },
-        },
-        crosshair: {
-          mode: 1, // MagnetMode
-        },
-        timeScale: {
-          borderColor: '#2B2B43',
-          timeVisible: true,
-          secondsVisible: false,
-        },
-      });
-
-      chartRef.current = chart;
-
-      // Create candlestick series - lightweight-charts v5.x API
-      const candleSeries = chart.addSeries(CandlestickSeries, {
-        upColor: '#26a69a',
-        downColor: '#ef5350',
-        borderVisible: false,
-        wickUpColor: '#26a69a',
-        wickDownColor: '#ef5350',
-      });
-
-      candleSeriesRef.current = candleSeries;
-
-      // Create volume series (overlay at bottom)
-      if (showVolume) {
-        const volumeSeries = chart.addSeries(HistogramSeries, {
-          color: '#26a69a',
-          priceFormat: {
-            type: 'volume',
+      try {
+        const chart = createChart(container, {
+          width: containerWidth,
+          height: height,
+          layout: {
+            background: { type: 'solid', color: '#1a1a1a' },
+            textColor: '#d1d4dc',
           },
-          priceScaleId: '', // Overlay on main chart
-          scaleMargins: {
-            top: 0.8, // Push to bottom
-            bottom: 0,
+          grid: {
+            vertLines: { color: '#2B2B43' },
+            horzLines: { color: '#2B2B43' },
+          },
+          crosshair: {
+            mode: 1, // MagnetMode
+          },
+          timeScale: {
+            borderColor: '#2B2B43',
+            timeVisible: true,
+            secondsVisible: false,
           },
         });
 
-        volumeSeriesRef.current = volumeSeries;
-      }
+        chartRef.current = chart;
 
-      // Handle resize
-      const handleResize = () => {
-        if (chartContainerRef.current && chartRef.current) {
-          chartRef.current.applyOptions({
-            width: chartContainerRef.current.clientWidth,
+        // Create candlestick series - lightweight-charts v5.x API
+        const candleSeries = chart.addSeries(CandlestickSeries, {
+          upColor: '#26a69a',
+          downColor: '#ef5350',
+          borderVisible: false,
+          wickUpColor: '#26a69a',
+          wickDownColor: '#ef5350',
+        });
+
+        candleSeriesRef.current = candleSeries;
+
+        // Create volume series (overlay at bottom)
+        if (showVolume) {
+          const volumeSeries = chart.addSeries(HistogramSeries, {
+            color: '#26a69a',
+            priceFormat: {
+              type: 'volume',
+            },
+            priceScaleId: '', // Overlay on main chart
+            scaleMargins: {
+              top: 0.8, // Push to bottom
+              bottom: 0,
+            },
           });
+
+          volumeSeriesRef.current = volumeSeries;
         }
-      };
 
-      window.addEventListener('resize', handleResize);
+        return true;
+      } catch (err: any) {
+        console.error('[KLineChart] Failed to initialize chart:', err);
+        console.error('[KLineChart] Error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name,
+        });
+        throw err; // Re-throw to be caught by ErrorBoundary
+      }
+    };
 
+    // Try to initialize immediately
+    const initialized = initializeChart();
+    
+    // If not initialized (width was 0), set up a ResizeObserver to retry when container becomes available
+    if (!initialized) {
+      const resizeObserver = new ResizeObserver(() => {
+        // Only try to initialize if chart doesn't exist yet
+        if (!chartRef.current && chartContainerRef.current) {
+          const success = initializeChart();
+          if (success) {
+            resizeObserver.disconnect();
+          }
+        }
+      });
+      
+      resizeObserver.observe(container);
+      
       return () => {
-        window.removeEventListener('resize', handleResize);
+        resizeObserver.disconnect();
         if (chartRef.current) {
           chartRef.current.remove();
           chartRef.current = null;
         }
       };
-    } catch (err: any) {
-      console.error('[KLineChart] Failed to initialize chart:', err);
-      console.error('[KLineChart] Error details:', {
-        message: err.message,
-        stack: err.stack,
-        name: err.name,
-      });
-      throw err; // Re-throw to be caught by ErrorBoundary
     }
+
+    // Handle resize for already-initialized chart
+    const handleResize = () => {
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({
+          width: chartContainerRef.current.clientWidth,
+        });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
+    };
   }, [height, showVolume]);
 
   // Update data when timeframe or symbol changes
