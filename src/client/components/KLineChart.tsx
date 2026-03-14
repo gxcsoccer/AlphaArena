@@ -3,6 +3,7 @@ import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, UTCTimestamp
 import { Card, Radio, Spin, Empty, Typography } from '@arco-design/web-react';
 import { useKLineData } from '../hooks/useKLineData';
 import ErrorBoundary from './ErrorBoundary';
+import { logConfigStatus, validateConfig } from '../utils/config';
 
 const { Text } = Typography;
 
@@ -46,6 +47,13 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const [chartError, setChartError] = useState<string | null>(null);
   const { klineData, loading, error } = useKLineData(symbol, timeframe);
 
+  // Log configuration on mount for debugging
+  useEffect(() => {
+    console.log('[KLineChart] Component mounted, checking configuration...');
+    const config = validateConfig();
+    logConfigStatus(config);
+  }, []);
+
   // Detect mobile on mount and resize
   useEffect(() => {
     const checkMobile = () => {
@@ -88,15 +96,19 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       }
 
       try {
+        console.log('[KLineChart] 📈 Starting chart initialization...');
+        
         // Validate container is a valid DOM element
         if (!(container instanceof HTMLElement)) {
           throw new Error('Chart container is not a valid HTML element');
         }
+        console.log('[KLineChart] ✅ Container validation passed');
 
         // Clear any existing chart content
         container.innerHTML = '';
+        console.log('[KLineChart] ✅ Container cleared');
 
-        const chart = createChart(container, {
+        const chartOptions = {
           width: containerWidth,
           height: height > 0 ? height : 400,
           layout: {
@@ -115,7 +127,11 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
             timeVisible: true,
             secondsVisible: false,
           },
-        });
+        };
+        console.log('[KLineChart] Chart options:', JSON.stringify(chartOptions, null, 2));
+
+        const chart = createChart(container, chartOptions);
+        console.log('[KLineChart] ✅ createChart called, chart object:', chart ? 'valid' : 'null/undefined');
 
         if (!chart) {
           throw new Error('createChart returned null/undefined');
@@ -124,6 +140,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         chartRef.current = chart;
 
         // Create candlestick series - lightweight-charts v5.x API
+        console.log('[KLineChart] Creating candlestick series...');
         const candleSeries = chart.addSeries(CandlestickSeries, {
           upColor: '#26a69a',
           downColor: '#ef5350',
@@ -131,6 +148,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           wickUpColor: '#26a69a',
           wickDownColor: '#ef5350',
         });
+        console.log('[KLineChart] ✅ Candlestick series created:', candleSeries ? 'valid' : 'null/undefined');
 
         if (!candleSeries) {
           throw new Error('Failed to create candlestick series');
@@ -140,6 +158,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
         // Create volume series (overlay at bottom)
         if (showVolume) {
+          console.log('[KLineChart] Creating volume series...');
           const volumeSeries = chart.addSeries(HistogramSeries, {
             color: '#26a69a',
             priceFormat: {
@@ -151,6 +170,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
               bottom: 0,
             },
           });
+          console.log('[KLineChart] ✅ Volume series created:', volumeSeries ? 'valid' : 'null/undefined');
 
           if (!volumeSeries) {
             throw new Error('Failed to create volume series');
@@ -159,11 +179,11 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           volumeSeriesRef.current = volumeSeries;
         }
 
-        console.log('[KLineChart] Chart initialized successfully');
+        console.log('[KLineChart] ✅ Chart initialized successfully');
         setChartError(null); // Clear any previous errors
         return true;
       } catch (err: any) {
-        console.error('[KLineChart] Failed to initialize chart:', err);
+        console.error('[KLineChart] ❌ Failed to initialize chart:', err);
         console.error('[KLineChart] Error details:', {
           message: err.message,
           stack: err.stack,
@@ -223,9 +243,18 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
   // Update data when timeframe or symbol changes
   useEffect(() => {
-    if (!candleSeriesRef.current || !klineData) return;
+    if (!candleSeriesRef.current || !klineData) {
+      console.log('[KLineChart] Skipping data update:', {
+        hasCandleSeries: !!candleSeriesRef.current,
+        hasKlineData: !!klineData,
+        klineDataLength: klineData?.length,
+      });
+      return;
+    }
 
     try {
+      console.log('[KLineChart] 📊 Updating chart data with', klineData.length, 'points');
+      
       // Convert KLineDataPoint to CandlestickData
       const candleData: CandlestickData<Time>[] = klineData.map(point => ({
         time: point.time as UTCTimestamp,
@@ -235,7 +264,11 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         close: point.close,
       }));
 
+      console.log('[KLineChart] First data point:', candleData[0]);
+      console.log('[KLineChart] Last data point:', candleData[candleData.length - 1]);
+
       candleSeriesRef.current.setData(candleData);
+      console.log('[KLineChart] ✅ Candlestick data set successfully');
 
       // Update volume data
       if (volumeSeriesRef.current && showVolume) {
@@ -245,11 +278,18 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           color: point.close >= point.open ? '#26a69a80' : '#ef535080',
         }));
         volumeSeriesRef.current.setData(volumeData);
+        console.log('[KLineChart] ✅ Volume data set successfully');
       }
       
       setChartError(null); // Clear errors on successful update
+      console.log('[KLineChart] ✅ Chart data update complete');
     } catch (err: any) {
-      console.error('[KLineChart] Failed to update chart data:', err);
+      console.error('[KLineChart] ❌ Failed to update chart data:', err);
+      console.error('[KLineChart] Error details:', {
+        message: err.message,
+        stack: err.stack,
+        name: err.name,
+      });
       setChartError(`图表数据更新失败：${err.message}`);
     }
   }, [klineData, showVolume]);

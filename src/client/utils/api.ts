@@ -8,12 +8,15 @@
  * - etc.
  */
 
-import { validateConfig } from './config';
+import { validateConfig, logConfigStatus, isSupabaseConfigValid } from './config';
 
 // Use validated configuration
 const config = validateConfig();
 const API_BASE_URL = config.apiUrl;
 const WS_BASE_URL = config.wsUrl;
+
+// Log configuration status once at module load time
+logConfigStatus(config);
 
 // Check if using Supabase Edge Functions (URL contains /functions/v1)
 const IS_SUPABASE_FUNCTIONS = API_BASE_URL.includes('/functions/v1');
@@ -397,13 +400,39 @@ export const api = {
     params.append('symbol', symbol); // Pass symbol as query param instead of path
     if (limit) params.append('limit', limit.toString());
     const url = `/api/market/kline?${params}`;
-    console.log('[api.getKLineData] Requesting:', url);
-    const res = await apiFetch(url);
-    console.log('[api.getKLineData] Response status:', res.status);
-    const data: ApiResponse<KLineData[]> = await res.json();
+    console.log('[api.getKLineData] 📊 Requesting:', url);
+    console.log('[api.getKLineData] Config:', { 
+      API_BASE_URL, 
+      IS_SUPABASE_FUNCTIONS,
+      hasSupabaseKey: !!config.supabaseAnonKey 
+    });
+    
+    let res: Response;
+    try {
+      res = await apiFetch(url);
+      console.log('[api.getKLineData] Response status:', res.status, res.ok ? '✅' : '❌');
+    } catch (networkError: any) {
+      console.error('[api.getKLineData] ❌ Network error:', networkError.message);
+      console.error('[api.getKLineData] This usually means:');
+      console.error('[api.getKLineData] - CORS error (check browser console for details)');
+      console.error('[api.getKLineData] - Network connectivity issue');
+      console.error('[api.getKLineData] - Invalid API URL configuration');
+      throw new Error(`Network error: ${networkError.message}`);
+    }
+    
+    let data: ApiResponse<KLineData[]>;
+    try {
+      data = await res.json();
+    } catch (parseError: any) {
+      console.error('[api.getKLineData] ❌ Failed to parse response as JSON');
+      console.error('[api.getKLineData] Response body:', await res.text().catch(() => '<unable to read>'));
+      throw new Error(`Invalid response format: ${parseError.message}`);
+    }
+    
     console.log('[api.getKLineData] Response success:', data.success, 'data length:', data.data?.length);
     if (!data.success) {
-      console.error('[api.getKLineData] API returned error:', data.error);
+      console.error('[api.getKLineData] ❌ API returned error:', data.error);
+      console.error('[api.getKLineData] Full response:', data);
       throw new Error(data.error || 'API request failed');
     }
     return data.data || [];

@@ -10,7 +10,7 @@
  */
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import { validateConfig } from './config';
+import { validateConfig, isSupabaseConfigValid, logConfigStatus } from './config';
 
 // Reconnection settings with exponential backoff
 const INITIAL_RECONNECT_DELAY = 1000; // 1 second
@@ -100,8 +100,18 @@ export class RealtimeClient {
     const SUPABASE_URL = config.supabaseUrl;
     const SUPABASE_ANON_KEY = config.supabaseAnonKey;
 
+    // Log configuration status for debugging
+    logConfigStatus(config);
+
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-      console.warn('[RealtimeClient] Missing Supabase credentials. Realtime features will be disabled.');
+      console.error('[RealtimeClient] ❌ Missing Supabase credentials. Realtime features will be disabled.');
+      console.error('[RealtimeClient] Missing vars:', config.missingVars);
+    } else if (!isSupabaseConfigValid(config)) {
+      console.error('[RealtimeClient] ❌ Supabase configuration appears invalid.');
+      console.error('[RealtimeClient] URL:', SUPABASE_URL);
+      console.error('[RealtimeClient] Key format valid:', SUPABASE_ANON_KEY.split('.').length === 3 ? 'Yes' : 'No');
+    } else {
+      console.log('[RealtimeClient] ✅ Supabase configuration appears valid');
     }
 
     this.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
