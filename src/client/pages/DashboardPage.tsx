@@ -18,6 +18,7 @@ import {
 } from 'recharts';
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import TradeHistoryPanel from '../components/TradeHistoryPanel';
+import OrdersPanel from '../components/OrdersPanel';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
@@ -266,6 +267,13 @@ const DashboardPage: React.FC = () => {
             <div style={{ height: isMobile ? 400 : 500 }}>
               <TradeHistoryPanel limit={100} autoScroll={true} />
             </div>
+          </Col>
+        </Row>
+
+        {/* Orders Panel */}
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col span={24}>
+            <OrdersPanel limit={50} />
           </Col>
         </Row>
 
