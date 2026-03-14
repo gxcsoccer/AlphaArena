@@ -292,21 +292,31 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
   const [error, setError] = useState<string | null>(null);
   const realtimeClientRef = useRef<ReturnType<typeof getRealtimeClient> | null>(null);
   const unsubscribeRef = useRef<(() => void)[]>([]);
+  const isMountedRef = useRef<boolean>(false);
 
   const fetchOrderBook = useCallback(async () => {
     try {
       const data = await api.getOrderBook(symbol, levels);
-      setOrderBook(data);
-      setError(null);
+      if (isMountedRef.current) {
+        setOrderBook(data);
+        setError(null);
+        setLoading(false);
+      }
     } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
     }
   }, [symbol, levels]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     fetchOrderBook();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchOrderBook]);
 
   useEffect(() => {
@@ -322,15 +332,19 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
 
     // Listen for snapshot and delta events
     const unsubscribeSnapshot = client.onOrderBookSnapshot(symbol, (data: OrderBookSnapshot) => {
-      setOrderBook(data);
-      setLoading(false);
+      if (isMountedRef.current) {
+        setOrderBook(data);
+        setLoading(false);
+      }
     });
 
     const unsubscribeDelta = client.onOrderBookDelta(symbol, (delta: OrderBookSnapshot) => {
-      setOrderBook(prev => {
-        if (!prev || !delta) return prev;
-        return { ...delta };
-      });
+      if (isMountedRef.current) {
+        setOrderBook(prev => {
+          if (!prev || !delta) return prev;
+          return { ...delta };
+        });
+      }
     });
 
     unsubscribeRef.current = [unsubscribeSnapshot, unsubscribeDelta];
