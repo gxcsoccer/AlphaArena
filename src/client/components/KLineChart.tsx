@@ -201,6 +201,8 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       <Spin loading={loading} style={{ width: '100%' }}>
         <div
           ref={chartContainerRef}
+          className="kline-chart-container"
+          data-testid="kline-chart"
           style={{ height: `${adjustedHeight}px`, position: 'relative', width: '100%' }}
         >
           {klineData && klineData.length === 0 && (
