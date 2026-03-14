@@ -11,6 +11,7 @@ import {
   IconMenuFold,
   IconMenuUnfold,
 } from '@arco-design/web-react/icon';
+import BalanceDisplay from './components/BalanceDisplay';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
@@ -158,6 +159,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <h2 style={{ margin: 0, lineHeight: '64px', fontSize: isMobile ? 18 : 20 }}>
               AlphaArena
             </h2>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <BalanceDisplay compact={isMobile} />
           </div>
         </Header>
         <Content
