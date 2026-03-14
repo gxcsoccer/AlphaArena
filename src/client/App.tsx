@@ -16,6 +16,7 @@ import ThemeToggle from './components/ThemeToggle';
 import OfflineIndicator from './components/OfflineIndicator';
 import { ThemeProvider } from './hooks/useTheme';
 import { ConnectionProvider } from './store/connectionStore';
+import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
@@ -221,6 +222,8 @@ const AppRoutes: React.FC = () => {
 };
 
 function App() {
+  useRealtimeConnection();
+
   return (
     <ThemeProvider>
       <ConnectionProvider>
