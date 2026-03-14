@@ -43,7 +43,11 @@
   },
   "build": {
     "env": {
-      "NODE_ENV": "production"
+      "NODE_ENV": "production",
+      "VITE_API_URL": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1",
+      "VITE_WS_URL": "wss://alphaarena-production.up.railway.app",
+      "VITE_SUPABASE_URL": "https://plnylmnckssnfpwznpwf.supabase.co",
+      "VITE_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsbnlsbW5ja3NzbmZwd3pucHdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMyMTc5MDUsImV4cCI6MjA4ODc5MzkwNX0.BATHv0SbrOJC2MhitL_i-UyOhHRUv4HGycfecd4H4gg"
     }
   }
 }
