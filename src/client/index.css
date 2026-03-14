@@ -319,3 +319,59 @@ body {
     min-height: 48px;
   }
 }
+
+/* P/L Flash Animation for Real-time Updates */
+@keyframes pnl-flash-up {
+  0% {
+    background-color: rgba(63, 134, 0, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+@keyframes pnl-flash-down {
+  0% {
+    background-color: rgba(207, 19, 34, 0.3);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.pnl-flash-up {
+  animation: pnl-flash-up 0.3s ease-out;
+}
+
+.pnl-flash-down {
+  animation: pnl-flash-down 0.3s ease-out;
+}
+
+/* Smooth transitions for P/L value changes */
+.pnl-value {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Real-time indicator pulse */
+@keyframes realtime-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.realtime-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #3f8600;
+  border-radius: 50%;
+  margin-right: 8px;
+  animation: realtime-pulse 2s ease-in-out infinite;
+}
+
+.realtime-indicator.disconnected {
+  background-color: #cf1322;
+}
