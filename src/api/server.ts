@@ -36,11 +36,13 @@ export interface APIServerConfig {
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
   'https://alphaarena-production.up.railway.app', // Backend itself
-  'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Current Vercel preview
   'https://alphaarena.vercel.app', // Vercel production
+  'https://alphaarena-eight.vercel.app', // Vercel production deployment
   'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Vercel preview deployments
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Vite dev server
+  'https://*.vercel.app', // Wildcard for all Vercel deployments
+  'https://alpha-arena-*.vercel.app', // Wildcard for alpha-arena-* Vercel deployments
 ];
 
 /**
@@ -53,9 +55,9 @@ function corsOriginValidator(origin: string | undefined, allowedOrigins: string[
   // Check exact matches
   if (allowedOrigins.includes(origin)) return true;
   
-  // Support wildcard matching for *.vercel.app
+  // Support wildcard matching for *.vercel.app (any subdomain)
   if (allowedOrigins.includes('https://*.vercel.app')) {
-    if (origin.match(/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/)) {
+    if (origin.match(/^https:\/\/[a-zA-Z0-9][a-zA-Z0-9-]*\.vercel\.app$/)) {
       return true;
     }
   }
@@ -63,6 +65,13 @@ function corsOriginValidator(origin: string | undefined, allowedOrigins: string[
   // Support wildcard matching for alpha-arena-*.vercel.app
   if (allowedOrigins.includes('https://alpha-arena-*.vercel.app')) {
     if (origin.match(/^https:\/\/alpha-arena-[a-zA-Z0-9-]+\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  // Support wildcard matching for alphaarena-*.vercel.app (without hyphen)
+  if (allowedOrigins.includes('https://*.vercel.app')) {
+    if (origin.match(/^https:\/\/alphaarena-[a-zA-Z0-9-]+\.vercel\.app$/)) {
       return true;
     }
   }
