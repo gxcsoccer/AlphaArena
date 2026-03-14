@@ -61,7 +61,9 @@ const HoldingsPage: React.FC = () => {
   }, [strategies, selectedStrategyId]);
 
   const { portfolio, loading: portfolioLoading } = usePortfolio(selectedStrategyId);
-  const { trades, loading: tradesLoading } = useTrades({ strategyId: selectedStrategyId }, 500);
+  // Memoize filters to prevent infinite re-renders
+  const tradesFilters = useMemo(() => ({ strategyId: selectedStrategyId }), [selectedStrategyId]);
+  const { trades, loading: tradesLoading } = useTrades(tradesFilters, 500);
   const { history: pnlHistory, loading: historyLoading } = usePortfolioHistory(
     selectedStrategyId,
     timeRange

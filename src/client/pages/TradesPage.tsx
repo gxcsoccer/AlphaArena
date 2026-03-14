@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
@@ -30,6 +30,10 @@ const TradesPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  // Memoize filters to prevent infinite re-renders
+  const filters = useMemo(() => ({ symbol, side }), [symbol, side]);
+  const { trades, loading } = useTrades(filters, 100);
+
   // Detect mobile on mount and resize
   React.useEffect(() => {
     const checkMobile = () => {
@@ -40,8 +44,6 @@ const TradesPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const { trades, loading } = useTrades({ symbol, side }, 100);
 
   const handleExport = async () => {
     try {
