@@ -221,12 +221,17 @@ const AppRoutes: React.FC = () => {
   );
 };
 
-function App() {
+// Wrapper component to use the hook inside ConnectionProvider
+function RealtimeConnectionSync() {
   useRealtimeConnection();
+  return null;
+}
 
+function App() {
   return (
     <ThemeProvider>
       <ConnectionProvider>
+        <RealtimeConnectionSync />
         <BrowserRouter>
           <OfflineIndicator />
           <MainLayout>
