@@ -7,13 +7,14 @@
  * - CORS support for frontend integration
  */
 
-import express, { Express, Request, Response } from 'express';
+import express, { Express, Request, Response, NextFunction } from 'express';
 import { createServer, Server as HTTPServer } from 'http';
 import cors from 'cors';
 import { EventEmitter } from 'events';
 import { StrategiesDAO } from '../database/strategies.dao';
 import { TradesDAO } from '../database/trades.dao';
 import { PortfoliosDAO } from '../database/portfolios.dao';
+import { ConditionalOrdersDAO } from '../database/conditional-orders.dao';
 import { Strategy } from '../database/strategies.dao';
 import { Trade } from '../database/trades.dao';
 import { Portfolio } from '../database/portfolios.dao';
@@ -21,6 +22,7 @@ import { LeaderboardService, LeaderboardEntry, SortCriterion } from '../strategy
 import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 import { SupabaseRealtimeService } from './SupabaseRealtimeService';
+import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService } from '../monitoring';
 
 export interface APIServerConfig {
   port: number;
@@ -34,11 +36,48 @@ export interface APIServerConfig {
 // Allowed origins for CORS
 const ALLOWED_ORIGINS = [
   'https://alphaarena-production.up.railway.app', // Backend itself
-  'https://*.vercel.app', // Vercel preview deployments
-  'https://alpha-arena-*.vercel.app', // Vercel production deployments
+  'https://alphaarena.vercel.app', // Vercel production
+  'https://alphaarena-eight.vercel.app', // Vercel production deployment
+  'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Vercel preview deployments
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Vite dev server
+  'https://*.vercel.app', // Wildcard for all Vercel deployments
+  'https://alpha-arena-*.vercel.app', // Wildcard for alpha-arena-* Vercel deployments
 ];
+
+/**
+ * CORS origin validator function
+ * Supports wildcard matching for *.vercel.app domains
+ */
+function corsOriginValidator(origin: string | undefined, allowedOrigins: string[]): boolean {
+  if (!origin) return false;
+  
+  // Check exact matches
+  if (allowedOrigins.includes(origin)) return true;
+  
+  // Support wildcard matching for *.vercel.app (any subdomain)
+  if (allowedOrigins.includes('https://*.vercel.app')) {
+    if (origin.match(/^https:\/\/[a-zA-Z0-9][a-zA-Z0-9-]*\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  // Support wildcard matching for alpha-arena-*.vercel.app
+  if (allowedOrigins.includes('https://alpha-arena-*.vercel.app')) {
+    if (origin.match(/^https:\/\/alpha-arena-[a-zA-Z0-9-]+\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  // Support wildcard matching for alphaarena-*.vercel.app (without hyphen)
+  if (allowedOrigins.includes('https://*.vercel.app')) {
+    if (origin.match(/^https:\/\/alphaarena-[a-zA-Z0-9-]+\.vercel\.app$/)) {
+      return true;
+    }
+  }
+  
+  return false;
+}
 
 /**
  * API Server Class
@@ -49,11 +88,15 @@ export class APIServer extends EventEmitter {
   private app: Express;
   private httpServer: HTTPServer;
   private realtime: SupabaseRealtimeService;
+  private monitoring = getMonitoringService();
+  private feishuAlert = getFeishuAlertService();
   private strategiesDAO: StrategiesDAO;
   private tradesDAO: TradesDAO;
   private portfoliosDAO: PortfoliosDAO;
+  private conditionalOrdersDAO: ConditionalOrdersDAO;
   private leaderboardService: LeaderboardService;
   private orderBookServices: Map<string, OrderBookService> = new Map();
+  private priceMonitoring = getPriceMonitoringService();
   private isRunning: boolean = false;
 
   constructor(config: APIServerConfig) {
@@ -79,31 +122,69 @@ export class APIServer extends EventEmitter {
       console.log('[Realtime] Initialized Supabase Realtime service');
     } else {
       console.warn('[Realtime] Supabase credentials not provided, realtime features disabled');
+      // Create a dummy service for testing
       this.realtime = null as any;
     }
 
     this.strategiesDAO = new StrategiesDAO();
     this.tradesDAO = new TradesDAO();
     this.portfoliosDAO = new PortfoliosDAO();
+    this.conditionalOrdersDAO = new ConditionalOrdersDAO();
     this.leaderboardService = new LeaderboardService();
 
     this.setupMiddleware();
     this.setupRoutes();
     this.setupOrderBookServices();
+    this.setupMonitoring();
+    this.setupPriceMonitoring();
   }
 
   /**
    * Setup Express middleware
    */
   private setupMiddleware(): void {
-    // CORS
+    // CORS with origin validation function
+    const corsOrigin = this.config.corsOrigin || ALLOWED_ORIGINS;
     this.app.use(cors({
-      origin: this.config.corsOrigin,
+      origin: (origin, callback) => {
+        if (corsOriginValidator(origin, Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin])) {
+          callback(null, true);
+        } else {
+          console.log(`[CORS] Blocked origin: ${origin}`);
+          callback(null, false);
+        }
+      },
       credentials: true,
     }));
 
     // JSON parsing
     this.app.use(express.json());
+
+    // Monitoring middleware - track request timing and errors
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      const startTime = Date.now();
+      
+      // Track response finish
+      res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        this.monitoring.recordResponse(duration);
+        
+        // Track errors (5xx responses)
+        if (res.statusCode >= 500) {
+          this.monitoring.trackError(
+            `HTTP ${res.statusCode} on ${req.method} ${req.path}`,
+            {
+              operation: `${req.method} ${req.path}`,
+              statusCode: res.statusCode,
+              duration,
+            },
+            'high'
+          );
+        }
+      });
+      
+      next();
+    });
 
     // Optional authentication middleware
     if (this.config.enableAuth) {
@@ -127,9 +208,41 @@ export class APIServer extends EventEmitter {
    * Setup REST API routes
    */
   private setupRoutes(): void {
-    // Health check
+    // Basic health check
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({ status: 'ok', timestamp: Date.now() });
+    });
+
+    // Detailed health status with metrics
+    this.app.get('/health/status', (req: Request, res: Response) => {
+      const healthStatus = this.monitoring.getHealthStatus(
+        true, // database connected (assumed)
+        this.realtime !== null,
+        this.orderBookServices.size
+      );
+      res.json(healthStatus);
+    });
+
+    // Performance metrics dashboard
+    this.app.get('/metrics', (req: Request, res: Response) => {
+      const metrics = this.monitoring.getMetrics(
+        0, // activeStrategies - would need to be passed from StrategyManager
+        0, // totalTrades - would need to be passed from TradesDAO
+        this.orderBookServices.size
+      );
+      res.json(metrics);
+    });
+
+    // Recent errors
+    this.app.get('/metrics/errors', (req: Request, res: Response) => {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const errors = this.monitoring.getRecentErrors(limit);
+      const bySeverity = this.monitoring.getErrorsBySeverity();
+      res.json({
+        errors,
+        bySeverity,
+        total: this.monitoring.getRecentErrors(1000).length,
+      });
     });
 
     // API version
@@ -187,6 +300,32 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Export trades endpoint (CSV)
+    this.app.get('/api/trades/export', async (req: Request, res: Response) => {
+      try {
+        const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+        const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+        
+        const filters = {
+          strategyId: req.query.strategyId as string | undefined,
+          symbol: req.query.symbol as string | undefined,
+          side: req.query.side as 'buy' | 'sell' | undefined,
+          startDate,
+          endDate,
+        };
+
+        const csv = await this.tradesDAO.exportToCSV(filters);
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename=trades-export.csv');
+        
+        res.send(csv);
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
     // Portfolios endpoints
     this.app.get('/api/portfolios', async (req: Request, res: Response) => {
       try {
@@ -194,6 +333,23 @@ export class APIServer extends EventEmitter {
         const symbol = req.query.symbol as string | undefined;
         const portfolio = await this.portfoliosDAO.getLatest(strategyId, symbol);
         res.json({ success: true, data: portfolio });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Portfolio PnL history endpoint
+    this.app.get('/api/portfolios/history', async (req: Request, res: Response) => {
+      try {
+        const strategyId = req.query.strategyId as string;
+        const timeRange = (req.query.timeRange as '1d' | '1w' | '1m' | 'all') || '1w';
+
+        if (!strategyId) {
+          return res.status(400).json({ success: false, error: 'strategyId is required' });
+        }
+
+        const history = await this.portfoliosDAO.getPnLHistory(strategyId, timeRange);
+        res.json({ success: true, data: history });
       } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });
       }
@@ -333,6 +489,9 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Store for simulated orders (in production, this would be a database)
+    const orders: Map<string, any> = new Map();
+
     // Orders endpoints
     this.app.post('/api/orders', async (req: Request, res: Response) => {
       try {
@@ -365,15 +524,223 @@ export class APIServer extends EventEmitter {
           createdAt: new Date().toISOString(),
         };
 
+        // Store order
+        orders.set(order.id, order);
+
         console.log(`[Order] New ${side} ${type} order: ${quantity} ${symbol} @ ${price || 'market'}`);
 
         // Simulate order processing delay
         setTimeout(() => {
-          order.status = 'filled';
-          console.log(`[Order] Order ${order.id} filled`);
+          if (orders.has(order.id)) {
+            const storedOrder = orders.get(order.id);
+            storedOrder.status = 'filled';
+            console.log(`[Order] Order ${order.id} filled`);
+          }
         }, 1000);
 
         res.json({ success: true, data: order, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get orders endpoint
+    this.app.get('/api/orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, status, limit = '50' } = req.query;
+        
+        let orderList = Array.from(orders.values());
+
+        // Filter by symbol
+        if (symbol && typeof symbol === 'string') {
+          orderList = orderList.filter(o => o.symbol === symbol);
+        }
+
+        // Filter by status
+        if (status && typeof status === 'string') {
+          orderList = orderList.filter(o => o.status === status);
+        }
+
+        // Apply limit
+        const limitNum = parseInt(typeof limit === 'string' ? limit : '50', 10);
+        orderList = orderList.slice(0, limitNum);
+
+        // Sort by creation time (newest first)
+        orderList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+        res.json({ success: true, data: orderList, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Cancel order endpoint
+    this.app.post('/api/orders/:orderId/cancel', async (req: Request, res: Response) => {
+      try {
+        const { orderId } = req.params;
+        
+        // orderId from params is always a string in Express, but TypeScript doesn't know that
+        const orderIdStr = Array.isArray(orderId) ? orderId[0] : orderId;
+        const order = orders.get(orderIdStr);
+        if (!order) {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Order not found' 
+          });
+        }
+
+        if (order.status !== 'pending') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Only pending orders can be cancelled' 
+          });
+        }
+
+        // Cancel the order
+        order.status = 'cancelled';
+        order.cancelledAt = new Date().toISOString();
+        
+        console.log(`[Order] Order ${orderIdStr} cancelled`);
+
+        res.json({ success: true, data: order, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Conditional Orders endpoints (Stop-loss / Take-profit)
+    this.app.post('/api/conditional-orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, side, orderType, triggerPrice, quantity, expiresAt } = req.body;
+        
+        // Validate input
+        if (!symbol || !side || !orderType || !triggerPrice || !quantity) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Missing required fields: symbol, side, orderType, triggerPrice, quantity' 
+          });
+        }
+
+        if (!['stop_loss', 'take_profit'].includes(orderType)) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Invalid orderType. Must be stop_loss or take_profit' 
+          });
+        }
+
+        // Validate trigger price logic
+        if (orderType === 'stop_loss' && side === 'buy') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Stop-loss orders can only be placed for sell side' 
+          });
+        }
+
+        if (orderType === 'take_profit' && side === 'buy') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Take-profit orders can only be placed for sell side' 
+          });
+        }
+
+        // Create conditional order
+        const order = {
+          id: `cond_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          symbol,
+          side,
+          orderType,
+          triggerPrice,
+          quantity,
+          status: 'active',
+          expiresAt: expiresAt || null,
+          createdAt: new Date().toISOString(),
+        };
+
+        // Store in database
+        const savedOrder = await this.conditionalOrdersDAO.create({
+          symbol,
+          side,
+          orderType: orderType as 'stop_loss' | 'take_profit',
+          triggerPrice,
+          quantity,
+          expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+        });
+
+        // Add to price monitoring
+        this.priceMonitoring.watchSymbol(symbol);
+
+        console.log(`[Conditional Order] New ${orderType} order: ${quantity} ${symbol} @ trigger ${triggerPrice}`);
+
+        res.json({ success: true, data: savedOrder, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get conditional orders
+    this.app.get('/api/conditional-orders', async (req: Request, res: Response) => {
+      try {
+        const { symbol, status, orderType, limit = '50' } = req.query;
+        
+        const filters: any = {
+          limit: parseInt(typeof limit === 'string' ? limit : '50', 10),
+        };
+
+        if (symbol && typeof symbol === 'string') {
+          filters.symbol = symbol;
+        }
+        if (status && typeof status === 'string') {
+          filters.status = status as any;
+        }
+        if (orderType && typeof orderType === 'string') {
+          filters.orderType = orderType as 'stop_loss' | 'take_profit';
+        }
+
+        const orders = await this.conditionalOrdersDAO.getMany(filters);
+
+        res.json({ success: true, data: orders, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Cancel conditional order
+    this.app.post('/api/conditional-orders/:orderId/cancel', async (req: Request, res: Response) => {
+      try {
+        const { orderId } = req.params;
+        const orderIdStr = Array.isArray(orderId) ? orderId[0] : orderId;
+        
+        const order = await this.conditionalOrdersDAO.getById(orderIdStr);
+        if (!order) {
+          return res.status(404).json({ 
+            success: false, 
+            error: 'Conditional order not found' 
+          });
+        }
+
+        if (order.status !== 'active') {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Only active conditional orders can be cancelled' 
+          });
+        }
+
+        const cancelledOrder = await this.conditionalOrdersDAO.cancel(orderIdStr);
+        
+        console.log(`[Conditional Order] Order ${orderIdStr} cancelled`);
+
+        res.json({ success: true, data: cancelledOrder, timestamp: Date.now() });
+      } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+      }
+    });
+
+    // Get conditional order stats
+    this.app.get('/api/conditional-orders/stats', async (req: Request, res: Response) => {
+      try {
+        const { strategyId } = req.query;
+        const stats = await this.conditionalOrdersDAO.getStats(strategyId as string | undefined);
+        res.json({ success: true, data: stats, timestamp: Date.now() });
       } catch (error: any) {
         res.status(500).json({ success: false, error: error.message });
       }
@@ -387,6 +754,20 @@ export class APIServer extends EventEmitter {
 
   /**
    * Broadcast trade event via Supabase Realtime
+   * 
+   * Channel Subscription Strategy:
+   * - Global trade channel ('trade:global'): All clients interested in any trade can subscribe
+   * - Symbol-specific ticker channel ('ticker:{symbol}'): Clients interested in specific symbols subscribe here
+   * 
+   * This dual-broadcast approach allows clients to choose their subscription strategy:
+   * - Subscribe to 'trade:global' to receive all trades (high volume)
+   * - Subscribe to 'ticker:{symbol}' to receive trades and market ticks for specific symbols (targeted)
+   * 
+   * Note: The same trade data is broadcast to both channels, but with different event types:
+   * - 'trade:global' receives event 'new' with full trade data
+   * - 'ticker:{symbol}' receives event 'tick' with trade wrapped as market tick
+   * 
+   * This is intentional and not a duplicate - it supports different client subscription patterns.
    */
   public async broadcastTrade(trade: Trade): Promise<void> {
     if (!this.realtime) {
@@ -394,10 +775,10 @@ export class APIServer extends EventEmitter {
       return;
     }
     
-    // Broadcast to global trade channel
+    // Broadcast to global trade channel (for clients subscribed to all trades)
     await this.realtime.broadcastTrade('global', trade);
     
-    // Broadcast to symbol-specific channel
+    // Broadcast to symbol-specific channel (for clients interested in this symbol only)
     if (trade.symbol) {
       await this.realtime.broadcastMarketTick(trade.symbol, {
         type: 'trade',
@@ -494,6 +875,85 @@ export class APIServer extends EventEmitter {
       
       console.log(`[OrderBook] Initialized service for ${symbol}`);
     });
+  }
+
+  /**
+   * Setup monitoring and alerting
+   */
+  private setupMonitoring(): void {
+    // Set up error alerting
+    this.monitoring.on('error:tracked', async (error) => {
+      if (error.severity === 'critical' || error.severity === 'high') {
+        console.log(`[Monitoring] Sending alert for ${error.severity} error: ${error.message}`);
+        await this.feishuAlert.sendCriticalError(
+          new Error(error.message),
+          { context: error.context, stack: error.stack }
+        );
+      }
+    });
+
+    // Set up threshold alerting
+    this.monitoring.on('alert', async (alertData) => {
+      console.log(`[Monitoring] Threshold alert: ${alertData.alerts.join(', ')}`);
+      await this.feishuAlert.sendAlert({
+        type: 'warning',
+        title: '系统阈值警告',
+        content: alertData.alerts.join('\n'),
+        severity: 'medium',
+        metadata: {
+          memoryUsagePercent: alertData.metrics.memoryUsagePercent,
+          cpuUsage: alertData.metrics.cpuUsage,
+          errorRate: alertData.metrics.errorRate,
+        },
+      });
+    });
+
+    console.log('[Monitoring] Monitoring and alerting initialized');
+  }
+
+  /**
+   * Setup price monitoring for conditional orders
+   */
+  private setupPriceMonitoring(): void {
+    // Start the price monitoring service
+    this.priceMonitoring.start();
+
+    // Watch all symbols that have order book services
+    this.orderBookServices.forEach((_, symbol) => {
+      this.priceMonitoring.watchSymbol(symbol);
+    });
+
+    // Listen for triggered orders and broadcast notifications
+    this.priceMonitoring.on('order-triggered', async (data: any) => {
+      console.log(`[PriceMonitoring] Order triggered: ${data.orderType} ${data.symbol} @ ${data.executedPrice}`);
+      
+      // In production, send notification via Feishu, email, etc.
+      // For now, just log it
+      if (data.orderType === 'stop_loss') {
+        console.warn(`⚠️ Stop-loss triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+      } else {
+        console.log(`✅ Take-profit triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+      }
+
+      // Broadcast to frontend via realtime
+      if (this.realtime) {
+        await this.realtime.broadcastMarketTick(data.symbol, {
+          type: 'conditional_order_triggered',
+          data: {
+            orderId: data.orderId,
+            orderType: data.orderType,
+            side: data.side,
+            triggerPrice: data.triggerPrice,
+            executedPrice: data.executedPrice,
+            quantity: data.quantity,
+            tradeId: data.tradeId,
+          },
+          timestamp: Date.now(),
+        });
+      }
+    });
+
+    console.log('[PriceMonitoring] Price monitoring service initialized');
   }
 
   public getOrderBookService(symbol: string): OrderBookService | undefined {
@@ -679,17 +1139,17 @@ export class APIServer extends EventEmitter {
   }
 
   /**
-   * Get the Supabase Realtime service instance
-   */
-  public getRealtime(): SupabaseRealtimeService | null {
-    return this.realtime;
-  }
-
-  /**
    * Get the Express app instance
    */
   public getApp(): Express {
     return this.app;
+  }
+
+  /**
+   * Get the Supabase Realtime service instance
+   */
+  public getRealtime(): SupabaseRealtimeService | null {
+    return this.realtime;
   }
 }
 

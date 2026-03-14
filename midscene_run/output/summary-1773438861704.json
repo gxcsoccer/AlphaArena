@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "total": 1,
+    "successful": 0,
+    "failed": 1,
+    "partialFailed": 0,
+    "notExecuted": 0,
+    "totalDuration": 0,
+    "generatedAt": "3/14/2026, 5:54:21 AM"
+  },
+  "results": [
+    {
+      "script": "../../ui-acceptance-test.yml",
+      "success": false,
+      "resultType": "failed",
+      "error": "No valid interface configuration found in the yaml script, should be either \"web\", \"android\", \"ios\", \"computer\", or \"interface\"",
+      "duration": 0
+    }
+  ]
+}

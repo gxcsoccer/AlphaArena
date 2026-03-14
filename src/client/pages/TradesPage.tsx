@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid } from '@arco-design/web-react';
+import React, { useState, useMemo } from 'react';
+import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
   LineChart,
@@ -16,6 +16,7 @@ import {
   Bar,
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
+import { api } from '../utils/api';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
@@ -26,8 +27,57 @@ const TradesPage: React.FC = () => {
   const [symbol, setSymbol] = useState<string | undefined>(undefined);
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  const { trades, loading } = useTrades({ symbol, side }, 100);
+  // Memoize filters to prevent infinite re-renders
+  const filters = useMemo(() => ({ symbol, side }), [symbol, side]);
+  const { trades, loading } = useTrades(filters, 100);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      
+      const filters: any = {
+        symbol,
+        side,
+      };
+      
+      if (dateRange) {
+        filters.startDate = dateRange[0]?.toDate ? dateRange[0].toDate() : dateRange[0];
+        filters.endDate = dateRange[1]?.toDate ? dateRange[1].toDate() : dateRange[1];
+      }
+      
+      const blob = await api.exportTrades(filters);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `trades-export-${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      Message.success('Export successful!');
+    } catch (error: any) {
+      Message.error(`Export failed: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   // Prepare chart data
   const tradeDistributionData = trades.reduce((acc: any, trade) => {
@@ -140,13 +190,13 @@ const TradesPage: React.FC = () => {
           AlphaArena - Trades
         </Title>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Filters */}
-        <Card style={{ marginBottom: 24 }}>
-          <Space wrap>
+        <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
             <Select
               placeholder="All Symbols"
-              style={{ width: 150 }}
+              style={{ width: isMobile ? '100%' : 150 }}
               allowClear
               value={symbol}
               onChange={setSymbol}
@@ -157,7 +207,7 @@ const TradesPage: React.FC = () => {
             </Select>
             <Select
               placeholder="All Sides"
-              style={{ width: 120 }}
+              style={{ width: isMobile ? '100%' : 120 }}
               allowClear
               value={side}
               onChange={setSide}
@@ -168,18 +218,26 @@ const TradesPage: React.FC = () => {
             <DatePicker.RangePicker
               value={dateRange}
               onChange={(dates) => setDateRange(dates as [any, any] | null)}
+              style={{ width: isMobile ? '100%' : 'auto' }}
             />
+            <Button 
+              type="primary" 
+              loading={exporting}
+              onClick={handleExport}
+            >
+              Export CSV
+            </Button>
           </Space>
         </Card>
 
         {/* Charts */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={24} md={12}>
             <Card title="Hourly Trade Distribution">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <BarChart data={hourlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" />
+                  <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -188,12 +246,12 @@ const TradesPage: React.FC = () => {
               </ResponsiveContainer>
             </Card>
           </Col>
-          <Col span={12}>
+          <Col xs={24} md={12}>
             <Card title="Volume by Symbol">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <BarChart data={symbolVolumeData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="symbol" />
+                  <XAxis dataKey="symbol" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -204,33 +262,46 @@ const TradesPage: React.FC = () => {
           </Col>
         </Row>
 
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
             <Card title="Price Trend">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <AreaChart data={priceTrendData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" />
+                  <XAxis dataKey="time" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="price" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} name="Price ($)" />
+                  <Area
+                    type="monotone"
+                    dataKey="price"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                    fillOpacity={0.3}
+                    name="Price ($)"
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </Card>
           </Col>
         </Row>
 
-        {/* Trade Table */}
-        <Card title="Trade History">
-          <Table
-            columns={tradeColumns}
-            dataSource={trades}
-            rowKey="id"
-            loading={loading}
-            pagination={{ pageSize: 20, showSizeChanger: true }}
-            size="small"
-          />
+        {/* Trade Table - Scrollable on mobile */}
+        <Card
+          title="Trade History"
+          bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+        >
+          <div className={isMobile ? 'mobile-table-container' : ''}>
+            <Table
+              columns={tradeColumns}
+              dataSource={trades}
+              rowKey="id"
+              loading={loading}
+              pagination={{ pageSize: 20, showSizeChanger: true }}
+              size="small"
+              scroll={isMobile ? { x: 1000 } : undefined}
+            />
+          </div>
         </Card>
       </Content>
     </Layout>

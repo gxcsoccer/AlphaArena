@@ -33,6 +33,18 @@ const LeaderboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<string>('roi');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile on mount and resize
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Fetch leaderboard data
   const fetchLeaderboard = async () => {
@@ -303,20 +315,28 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title heading={2} style={{ color: 'white', margin: 0 }}>
+      <Header
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: isMobile ? 8 : 0,
+        }}
+      >
+        <Title heading={2} style={{ color: 'white', margin: 0, fontSize: isMobile ? 18 : 20 }}>
           <IconTrophy style={{ marginRight: 8 }} />
           Strategy Leaderboard
         </Title>
-        <Space>
-          <Text style={{ color: 'rgba(255,255,255,0.8)' }}>
+        <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
+          <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: isMobile ? 12 : 14 }}>
             {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
           </Text>
-          <Select 
-            value={sortBy} 
+          <Select
+            value={sortBy}
             onChange={setSortBy}
-            style={{ width: 150 }}
-            size="large"
+            style={{ width: isMobile ? '100%' : 150 }}
+            size={isMobile ? 'default' : 'large'}
           >
             <Select.Option value="roi">ROI</Select.Option>
             <Select.Option value="sharpeRatio">Sharpe Ratio</Select.Option>
@@ -325,21 +345,22 @@ const LeaderboardPage: React.FC = () => {
             <Select.Option value="winRate">Win Rate</Select.Option>
             <Select.Option value="totalVolume">Volume</Select.Option>
           </Select>
-          <Button 
-            type="primary" 
-            icon={<IconRefresh />} 
+          <Button
+            type="primary"
+            icon={<IconRefresh />}
             onClick={fetchLeaderboard}
             loading={loading}
+            size={isMobile ? 'default' : 'large'}
           >
-            Refresh
+            {isMobile ? '刷新' : 'Refresh'}
           </Button>
         </Space>
       </Header>
-      <Content style={{ padding: '24px' }}>
+      <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Top Stats */}
         {summaryStats && (
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={4}>
+          <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Total Strategies"
@@ -348,7 +369,7 @@ const LeaderboardPage: React.FC = () => {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Total Trades"
@@ -357,7 +378,7 @@ const LeaderboardPage: React.FC = () => {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Total Volume"
@@ -367,7 +388,7 @@ const LeaderboardPage: React.FC = () => {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Best ROI"
@@ -378,7 +399,7 @@ const LeaderboardPage: React.FC = () => {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Best Sharpe"
@@ -388,7 +409,7 @@ const LeaderboardPage: React.FC = () => {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col xs={12} sm={8} md={4}>
               <Card loading={loading}>
                 <Statistic
                   title="Lowest Drawdown"
@@ -403,13 +424,13 @@ const LeaderboardPage: React.FC = () => {
         )}
 
         {/* Charts */}
-        <Row gutter={16} style={{ marginBottom: 24 }}>
-          <Col span={12}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col xs={24} md={12}>
             <Card title="🏆 Top 10 Strategies by ROI">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <BarChart data={roiComparisonData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <RechartsTooltip />
                   <Legend />
@@ -418,19 +439,19 @@ const LeaderboardPage: React.FC = () => {
               </ResponsiveContainer>
             </Card>
           </Col>
-          <Col span={12}>
+          <Col xs={24} md={12}>
             <Card title="📈 Performance Radar (Top 5)">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
                   <PolarGrid />
-                  <PolarAngleAxis dataKey="strategy" tick={{ fontSize: 11 }} />
+                  <PolarAngleAxis dataKey="strategy" tick={{ fontSize: isMobile ? 10 : 11 }} />
                   <PolarRadiusAxis />
-                  <Radar 
-                    name="Performance" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fill="#8884d8" 
-                    fillOpacity={0.6} 
+                  <Radar
+                    name="Performance"
+                    dataKey="roi"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                    fillOpacity={0.6}
                   />
                   <Legend />
                   <RechartsTooltip />
@@ -440,29 +461,29 @@ const LeaderboardPage: React.FC = () => {
           </Col>
         </Row>
 
-        <Row gutter={16} style={{ marginBottom: 24 }}>
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
             <Card title="📊 ROI Comparison (Top 10)">
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                 <AreaChart data={roiComparisonData}>
                   <defs>
                     <linearGradient id="colorRoi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                  <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
                   <YAxis />
                   <RechartsTooltip />
                   <Legend />
-                  <Area 
-                    type="monotone" 
-                    dataKey="roi" 
-                    stroke="#8884d8" 
-                    fillOpacity={1} 
-                    fill="url(#colorRoi)" 
-                    name="ROI %" 
+                  <Area
+                    type="monotone"
+                    dataKey="roi"
+                    stroke="#8884d8"
+                    fillOpacity={1}
+                    fill="url(#colorRoi)"
+                    name="ROI %"
                   />
                   <Line type="monotone" dataKey="pnl" stroke="#82ca9d" name="P&L ($)" />
                 </AreaChart>
@@ -471,27 +492,30 @@ const LeaderboardPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Rankings Table */}
-        <Card 
+        {/* Rankings Table - Scrollable on mobile */}
+        <Card
           title="🎖️ Full Rankings"
           extra={
             <Text type="secondary">
               Sorted by: <Text strong>{sortBy}</Text>
             </Text>
           }
+          bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
         >
-          <Table
-            columns={rankingColumns}
-            dataSource={leaderboard}
-            rowKey="strategyId"
-            loading={loading}
-            pagination={false}
-            size="small"
-            scroll={{ x: 1400 }}
-            onChange={(pagination, filters, sorter) => {
-              // Handle table sorting if needed
-            }}
-          />
+          <div className={isMobile ? 'mobile-table-container' : ''}>
+            <Table
+              columns={rankingColumns}
+              dataSource={leaderboard}
+              rowKey="strategyId"
+              loading={loading}
+              pagination={false}
+              size="small"
+              scroll={isMobile ? { x: 1400 } : undefined}
+              onChange={(pagination, filters, sorter) => {
+                // Handle table sorting if needed
+              }}
+            />
+          </div>
         </Card>
 
         {/* Footer info */}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot } from '../utils/api';
-import { getRealtimeClient, RealtimeClient } from '../utils/realtime';
+import { api, Strategy, Trade, Portfolio, Stats, OrderBookSnapshot, RealtimeClient } from '../utils/api';
+import { getRealtimeClient } from '../utils/realtime';
 
 /**
  * Hook for Supabase Realtime connection management
@@ -13,8 +13,9 @@ export const useWebSocket = () => {
     const client = getRealtimeClient();
     realtimeClientRef.current = client;
     
-    // The client auto-connects on first subscription
-    setConnected(true);
+    client.connect()
+      .then(() => setConnected(true))
+      .catch((err) => console.error('[useWebSocket] Connection failed:', err));
 
     return () => {
       // Don't disconnect - other components may be using it
@@ -22,27 +23,39 @@ export const useWebSocket = () => {
   }, []);
 
   const subscribe = useCallback(async (strategyId?: string, symbol?: string) => {
-    const client = realtimeClientRef.current;
-    if (!client) return;
-    
     if (strategyId) {
-      await client.subscribe(`strategy:${strategyId}`);
+      await realtimeClientRef.current?.subscribe(`strategy:${strategyId}`);
     }
     if (symbol) {
-      await client.subscribe(`ticker:${symbol}`);
+      await realtimeClientRef.current?.subscribe(`ticker:${symbol}`);
     }
   }, []);
 
   const unsubscribe = useCallback(async (topic: string) => {
-    const client = realtimeClientRef.current;
-    if (!client) return;
-    await client.unsubscribe(topic);
+    await realtimeClientRef.current?.unsubscribe(topic);
   }, []);
 
-  const on = useCallback((topic: string, event: string, callback: Function) => {
+  const on = useCallback((event: string, callback: Function) => {
     const client = realtimeClientRef.current;
     if (!client) return () => {};
-    return client.on(topic, event, callback as any);
+
+    // Map legacy events to Realtime channels
+    const [channelType, ...eventParts] = event.split(':');
+    const eventName = eventParts.join(':');
+
+    switch (channelType) {
+      case 'strategy':
+        return client.on(`strategy:${eventName}`, event, callback as any);
+      case 'trade':
+        return client.on('trade:global', event, callback as any);
+      case 'portfolio':
+        return client.on('trade:global', event, callback as any);
+      case 'leaderboard':
+        return client.on('leaderboard:global', event, callback as any);
+      default:
+        console.warn(`[Realtime] Unknown event type: ${event}`);
+        return () => {};
+    }
   }, []);
 
   return { connected, subscribe, unsubscribe, on };

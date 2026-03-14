@@ -42,7 +42,22 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const [timeframe, setTimeframe] = useState<TimeFrame>('1h');
+  const [isMobile, setIsMobile] = useState(false);
   const { klineData, loading, error } = useKLineData(symbol, timeframe);
+
+  // Detect mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Adjust height for mobile
+  const adjustedHeight = isMobile ? Math.min(height, 300) : height;
 
   // Initialize chart
   useEffect(() => {
@@ -178,12 +193,16 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
             value,
             label,
           }))}
-          size="small"
+          size={isMobile ? 'default' : 'small'}
+          style={{ flexWrap: 'wrap' }}
         />
       }
     >
       <Spin loading={loading} style={{ width: '100%' }}>
-        <div ref={chartContainerRef} style={{ height: `${height}px`, position: 'relative' }}>
+        <div
+          ref={chartContainerRef}
+          style={{ height: `${adjustedHeight}px`, position: 'relative', width: '100%' }}
+        >
           {klineData && klineData.length === 0 && (
             <Empty description="暂无 K 线数据" />
           )}

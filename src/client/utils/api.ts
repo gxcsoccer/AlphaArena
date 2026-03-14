@@ -8,16 +8,18 @@
  * - etc.
  */
 
-// Use environment variables for API and Supabase URLs
-// Falls back to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const WS_BASE_URL = import.meta.env.VITE_WS_URL || API_BASE_URL.replace('http', 'ws');
+import { validateConfig } from './config';
+
+// Use validated configuration
+const config = validateConfig();
+const API_BASE_URL = config.apiUrl;
+const WS_BASE_URL = config.wsUrl;
 
 // Check if using Supabase Edge Functions (URL contains /functions/v1)
 const IS_SUPABASE_FUNCTIONS = API_BASE_URL.includes('/functions/v1');
 
 // Supabase API Key (required for Edge Functions)
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const SUPABASE_ANON_KEY = config.supabaseAnonKey;
 
 // Map API endpoints to Supabase Function names
 const FUNCTION_MAP: Record<string, string> = {
@@ -28,7 +30,7 @@ const FUNCTION_MAP: Record<string, string> = {
   '/api/leaderboard': 'get-leaderboard',
   '/api/orderbook': 'get-orderbook',
   '/api/market/tickers': 'get-market-tickers',
-  '/api/market/kline': 'get-market-tickers', // Use same function
+  '/api/market/kline': 'get-market-kline',
 };
 
 // Helper to map API paths to Supabase function names
@@ -63,7 +65,10 @@ function mapToFunction(path: string): string {
 // Unified fetch wrapper that handles Supabase function mapping
 async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
   const endpoint = mapToFunction(path);
-  const url = `${API_BASE_URL}/${endpoint}`;
+  // Ensure proper URL construction (avoid double slashes)
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
+  const endpointPath = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+  const url = `${baseUrl}/${endpointPath}`;
   
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -276,6 +281,24 @@ export const api = {
     return data.success ? data.data : [];
   },
 
+  async exportTrades(filters?: {
+    strategyId?: string;
+    symbol?: string;
+    side?: 'buy' | 'sell';
+    startDate?: Date;
+    endDate?: Date;
+  }): Promise<Blob> {
+    const params = new URLSearchParams();
+    if (filters?.strategyId) params.append('strategyId', filters.strategyId);
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.side) params.append('side', filters.side);
+    if (filters?.startDate) params.append('startDate', filters.startDate.toISOString());
+    if (filters?.endDate) params.append('endDate', filters.endDate.toISOString());
+    const res = await apiFetch(`/api/trades/export?${params}`);
+    if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+    return res.blob();
+  },
+
   async getPortfolio(strategyId?: string, symbol?: string): Promise<Portfolio | null> {
     const params = new URLSearchParams();
     if (strategyId) params.append('strategyId', strategyId);
@@ -283,6 +306,30 @@ export const api = {
     const res = await apiFetch(`/api/portfolios?${params}`);
     const data: ApiResponse<Portfolio> = await res.json();
     return data.success ? data.data : null;
+  },
+
+  async getPortfolioHistory(
+    strategyId: string,
+    timeRange: '1d' | '1w' | '1m' | 'all' = '1w'
+  ): Promise<
+    Array<{
+      timestamp: Date;
+      totalValue: number;
+      realizedPnL: number;
+      unrealizedPnL: number;
+    }>
+  > {
+    const params = new URLSearchParams();
+    params.append('strategyId', strategyId);
+    params.append('timeRange', timeRange);
+    const res = await apiFetch(`/api/portfolios/history?${params}`);
+    const data: ApiResponse<Array<{ timestamp: string; totalValue: number; realizedPnL: number; unrealizedPnL: number }>> = await res.json();
+    return data.success 
+      ? data.data.map(item => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        }))
+      : [];
   },
 
   async getStats(): Promise<Stats | null> {
@@ -368,55 +415,127 @@ export const api = {
     const data: ApiResponse<any> = await res.json();
     return data.success ? data.data : null;
   },
+
+  async cancelOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/api/orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getOrders(filters?: {
+    symbol?: string;
+    status?: string;
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const res = await apiFetch(`/api/orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async createConditionalOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    orderType: 'stop_loss' | 'take_profit';
+    triggerPrice: number;
+    quantity: number;
+    expiresAt?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/create-conditional-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getConditionalOrders(filters?: {
+    symbol?: string;
+    status?: 'active' | 'triggered' | 'cancelled' | 'expired';
+    orderType?: 'stop_loss' | 'take_profit';
+    limit?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.orderType) params.append('orderType', filters.orderType);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    const res = await apiFetch(`/api/conditional-orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async cancelConditionalOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/api/conditional-orders/${orderId}/cancel`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getConditionalOrderStats(): Promise<any | null> {
+    const res = await apiFetch('/api/conditional-orders/stats');
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**
- * WebSocket Client
- * Note: Supabase does not support custom WebSocket servers.
- * This client uses Socket.IO which requires a Node.js server.
- * Options:
- * 1. Keep Railway for WebSocket only
- * 2. Migrate to Supabase Realtime (requires code changes)
- * 3. Use polling instead of WebSocket
+ * Supabase Realtime Client Wrapper
+ * 
+ * Replaces Socket.IO with Supabase Realtime for real-time updates.
+ * This is a thin wrapper around the RealtimeClient from ./realtime
+ * for backward compatibility with existing code.
+ * 
+ * For new code, use getRealtimeClient() from ./realtime directly.
  */
-/**
- * @deprecated Use RealtimeClient from './realtime' instead
- * Legacy WebSocketClient for backward compatibility - will be removed in next major version
- */
-export class WebSocketClient {
-  private realtimeClient: any;
+
+import { getRealtimeClient as getRealtimeClientInternal } from './realtime';
+
+export class RealtimeClient {
+  private client: ReturnType<typeof getRealtimeClientInternal>;
+  private connectionPromise: Promise<void> | null = null;
 
   constructor() {
-    console.warn('[WebSocketClient] WebSocketClient is deprecated. Use getRealtimeClient() from "./realtime" instead.');
-    // Import dynamically to avoid circular dependency
-    import('./realtime').then(({ getRealtimeClient }) => {
-      this.realtimeClient = getRealtimeClient();
-    });
+    this.client = getRealtimeClientInternal();
   }
 
   async connect(): Promise<void> {
-    console.warn('[WebSocketClient] connect() is deprecated - RealtimeClient auto-connects');
+    if (this.connectionPromise) return this.connectionPromise;
+    this.connectionPromise = Promise.resolve();
+    console.log('[Realtime] Client initialized');
+    return this.connectionPromise;
   }
 
-  subscribe(strategyId?: string, symbol?: string): void {
+  async subscribe(strategyId?: string, symbol?: string): Promise<void> {
     if (strategyId) {
-      this.realtimeClient?.subscribe(`strategy:${strategyId}`);
+      await this.client.subscribe(`strategy:${strategyId}`);
     }
     if (symbol) {
-      this.realtimeClient?.subscribe(`ticker:${symbol}`);
+      await this.client.subscribe(`ticker:${symbol}`);
     }
   }
 
-  unsubscribe(topic: string): void {
-    this.realtimeClient?.unsubscribe(topic);
+  async subscribeOrderBook(symbol: string): Promise<void> {
+    await this.client.subscribeOrderBook(symbol);
   }
 
-  subscribeOrderBook(symbol: string): void {
-    this.realtimeClient?.subscribeOrderBook(symbol);
+  async unsubscribe(topic: string): Promise<void> {
+    await this.client.unsubscribe(topic);
   }
 
-  unsubscribeOrderBook(symbol: string): void {
-    this.realtimeClient?.unsubscribe(`orderbook:${symbol}`);
+  async unsubscribeOrderBook(symbol: string): Promise<void> {
+    await this.client.unsubscribe(`orderbook:${symbol}`);
   }
 
   on(event: string, callback: Function): () => void {
@@ -426,28 +545,44 @@ export class WebSocketClient {
 
     switch (channelType) {
       case 'orderbook':
-        return this.realtimeClient?.on(`orderbook:${eventName}`, event, callback as any);
+        return this.client.on(`orderbook:${eventName}`, event, callback as any);
       case 'market':
-        return this.realtimeClient?.on(`ticker:${eventName}`, event, callback as any);
+        return this.client.on(`ticker:${eventName}`, event, callback as any);
       case 'trade':
-        return this.realtimeClient?.on('trade:global', event, callback as any);
+        return this.client.on('trade:global', event, callback as any);
       case 'portfolio':
-        return this.realtimeClient?.on('trade:global', event, callback as any);
+        return this.client.on('trade:global', event, callback as any);
       case 'strategy':
-        return this.realtimeClient?.on(`strategy:${eventName}`, event, callback as any);
+        return this.client.on(`strategy:${eventName}`, event, callback as any);
       case 'leaderboard':
-        return this.realtimeClient?.on('leaderboard:global', event, callback as any);
+        return this.client.on('leaderboard:global', event, callback as any);
       default:
-        console.warn(`[WebSocketClient] Unknown event type: ${event}`);
+        console.warn(`[Realtime] Unknown event type: ${event}`);
         return () => {};
     }
   }
 
   off(event: string, callback: Function): void {
-    console.warn('[WebSocketClient] off() is deprecated - use the unsubscribe function from on()');
+    console.warn('[Realtime] off() is deprecated - use the unsubscribe function from on()');
   }
 
   disconnect(): void {
-    this.realtimeClient?.disconnect();
+    this.client.disconnect();
+    this.connectionPromise = null;
+  }
+
+  getConnectionStatus(): 'disconnected' | 'connecting' | 'connected' | 'reconnecting' {
+    return this.client.getConnectionStatus();
+  }
+}
+
+/**
+ * @deprecated Use RealtimeClient instead
+ * Legacy WebSocketClient for backward compatibility
+ */
+export class WebSocketClient extends RealtimeClient {
+  constructor() {
+    super();
+    console.warn('[WebSocketClient] WebSocketClient is deprecated. Use RealtimeClient instead.');
   }
 }

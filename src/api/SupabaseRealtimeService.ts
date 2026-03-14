@@ -1,5 +1,5 @@
 /**
- * Supabase Realtime Service
+ * Supabase Realtime Broadcast Service
  * 
  * Replaces Socket.IO with Supabase Realtime for real-time event broadcasting.
  * Supports Broadcast and Presence features.
@@ -35,10 +35,25 @@ export interface PresenceState {
   };
 }
 
+export type RealtimeEventType = 
+  | 'orderbook:snapshot'
+  | 'orderbook:delta'
+  | 'market:tick'
+  | 'trade:new'
+  | 'portfolio:update'
+  | 'strategy:tick'
+  | 'leaderboard:update';
+
+export interface RealtimeMessage {
+  event: RealtimeEventType;
+  data: any;
+  timestamp: number;
+}
 export class SupabaseRealtimeService {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();
   private isConnected: boolean = false;
+  private presenceState: Map<string, PresenceState> = new Map();
 
   constructor(supabaseUrl: string, supabaseAnonKey: string) {
     this.supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -260,6 +275,55 @@ export class SupabaseRealtimeService {
     }
     
     return result;
+  }
+
+  /**
+   * Listen to broadcast messages on a channel
+   */
+  public onBroadcast(
+    topic: string,
+    event: string | '*',
+    callback: (payload: any) => void
+  ): () => void {
+    const channel = this.getChannel(topic);
+
+    const handler = (payload: any) => {
+      if (event === '*' || payload.event === event) {
+        callback(payload);
+      }
+    };
+
+    // Use type assertion to handle API differences
+    (channel as any).on('broadcast', handler);
+
+    // Return unsubscribe function
+    return () => {
+      (channel as any).off('broadcast', handler);
+    };
+  }
+
+  /**
+   * Listen to presence events
+   */
+  public onPresence(
+    callback: (state: PresenceState) => void
+  ): () => void {
+    const channel = this.getChannel('presence:traders');
+
+    const presenceHandler = () => {
+      const state = this.getPresenceState();
+      callback(state);
+    };
+
+    // Subscribe to presence events
+    channel.on('presence', { event: 'sync' }, presenceHandler);
+    channel.on('presence', { event: 'join' }, presenceHandler);
+    channel.on('presence', { event: 'leave' }, presenceHandler);
+
+    // Return unsubscribe function
+    return () => {
+      channel.on('presence', { event: 'sync' }, () => {}); // Clear handlers
+    };
   }
 
   /**

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { api } from '../utils/api';
-import { getRealtimeClient } from '../utils/realtime';
+import { api, RealtimeClient } from '../utils/api';
 import type { TradingPair } from '../components/TradingPairList';
+import { getRealtimeClient } from '../utils/realtime';
 
 /**
  * Hook for real-time market data (ticker data for all trading pairs)
@@ -10,7 +10,7 @@ export const useMarketData = (refreshInterval: number = 3000) => {
   const [marketData, setMarketData] = useState<TradingPair[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const realtimeClientRef = useRef<ReturnType<typeof getRealtimeClient> | null>(null);
+  const realtimeClientRef = useRef<RealtimeClient | null>(null);
   const lastUpdateRef = useRef<Map<string, number>>(new Map());
   const unsubscribeRef = useRef<(() => void)[]>([]);
 
