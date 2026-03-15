@@ -13,6 +13,7 @@ export const useKLineData = (
   const [klineData, setKlineData] = useState<KLineDataPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const prevSymbolRef = useRef<string>('');
 
   const fetchKLineData = useCallback(async () => {
     try {
@@ -22,18 +23,32 @@ export const useKLineData = (
       console.log('[useKLineData] Fetching K-line data for:', { symbol, timeframe, limit });
       const data = await api.getKLineData(symbol, timeframe, limit);
       console.log('[useKLineData] Received data:', data?.length, 'points');
-      setKlineData(data);
+      
+      if (!Array.isArray(data)) {
+        console.error('[useKLineData] Invalid data format: not an array');
+        setError('数据格式错误');
+        setKlineData([]);
+      } else {
+        setKlineData(data);
+      }
     } catch (err: any) {
-      console.error('[useKLineData] Failed to fetch K-line data:', err);
+      console.error('[useKLineData] Failed to fetch K-line data:', err.message);
       setError(err.message || '未知错误');
+      setKlineData([]);
     } finally {
       setLoading(false);
     }
   }, [symbol, timeframe, limit]);
 
   useEffect(() => {
+    if (prevSymbolRef.current !== symbol) {
+      console.log('[useKLineData] Symbol changed, resetting data');
+      setKlineData([]);
+      setLoading(true);
+      prevSymbolRef.current = symbol;
+    }
     fetchKLineData();
-  }, [fetchKLineData]);
+  }, [fetchKLineData, symbol]);
 
   return { klineData, loading, error, refresh: fetchKLineData };
 };

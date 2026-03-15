@@ -243,26 +243,58 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
   // Update data when timeframe or symbol changes
   useEffect(() => {
-    if (!candleSeriesRef.current || !klineData) {
-      console.log('[KLineChart] Skipping data update:', {
-        hasCandleSeries: !!candleSeriesRef.current,
-        hasKlineData: !!klineData,
-        klineDataLength: klineData?.length,
-      });
+    if (!candleSeriesRef.current) {
+      console.warn('[KLineChart] Candle series not ready, skipping data update');
+      return;
+    }
+    
+    if (!klineData) {
+      console.warn('[KLineChart] No K-line data available yet');
+      return;
+    }
+    
+    if (!Array.isArray(klineData)) {
+      console.error('[KLineChart] Invalid klineData: not an array', typeof klineData);
+      setChartError('K 线数据格式错误');
+      return;
+    }
+
+    if (klineData.length === 0) {
+      console.log('[KLineChart] Empty klineData, clearing chart');
+      try {
+        candleSeriesRef.current.setData([]);
+        if (volumeSeriesRef.current) {
+          volumeSeriesRef.current.setData([]);
+        }
+      } catch (err: any) {
+        console.error('[KLineChart] Error clearing chart:', err);
+      }
       return;
     }
 
     try {
-      console.log('[KLineChart] 📊 Updating chart data with', klineData.length, 'points');
+      console.log('[KLineChart] 📊 Updating chart data with', klineData.length, 'points for symbol:', symbol);
       
-      // Convert KLineDataPoint to CandlestickData
-      const candleData: CandlestickData<Time>[] = klineData.map(point => ({
-        time: point.time as UTCTimestamp,
-        open: point.open,
-        high: point.high,
-        low: point.low,
-        close: point.close,
-      }));
+      const firstPoint = klineData[0];
+      if (!firstPoint || typeof firstPoint.open !== 'number' || typeof firstPoint.close !== 'number') {
+        console.error('[KLineChart] Invalid data point structure:', firstPoint);
+        setChartError('K 线数据格式无效');
+        return;
+      }
+      
+      const candleData: CandlestickData<Time>[] = klineData.map((point, idx) => {
+        const time = point.time as UTCTimestamp;
+        if (typeof time !== 'number' || time <= 0) {
+          console.warn('[KLineChart] Invalid timestamp at index', idx, ':', time);
+        }
+        return {
+          time,
+          open: point.open,
+          high: point.high,
+          low: point.low,
+          close: point.close,
+        };
+      });
 
       console.log('[KLineChart] First data point:', candleData[0]);
       console.log('[KLineChart] Last data point:', candleData[candleData.length - 1]);
@@ -270,7 +302,6 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       candleSeriesRef.current.setData(candleData);
       console.log('[KLineChart] ✅ Candlestick data set successfully');
 
-      // Update volume data
       if (volumeSeriesRef.current && showVolume) {
         const volumeData = klineData.map(point => ({
           time: point.time as UTCTimestamp,
@@ -281,7 +312,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         console.log('[KLineChart] ✅ Volume data set successfully');
       }
       
-      setChartError(null); // Clear errors on successful update
+      setChartError(null);
       console.log('[KLineChart] ✅ Chart data update complete');
     } catch (err: any) {
       console.error('[KLineChart] ❌ Failed to update chart data:', err);
@@ -292,7 +323,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       });
       setChartError(`图表数据更新失败：${err.message}`);
     }
-  }, [klineData, showVolume]);
+  }, [klineData, showVolume, symbol]);
 
   // Handle timeframe change
   const handleTimeframeChange = useCallback((value: TimeFrame) => {
