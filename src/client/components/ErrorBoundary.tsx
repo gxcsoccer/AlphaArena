@@ -122,12 +122,12 @@ export class ErrorBoundary extends Component<Props, State> {
                 <details open style={{ marginTop: 16, fontSize: 12, color: '#86909c' }}>
                   <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>错误详情（已自动展开）</summary>
                   <div style={{ 
-                    marginTop: 8, 
                     padding: 12, 
                     background: '#fff1f0', 
                     borderRadius: 4,
                     overflow: 'auto',
                     maxWidth: '100%',
+                    maxHeight: 400,
                     fontFamily: 'monospace',
                     fontSize: 11,
                     border: '1px solid #ffa39e',
