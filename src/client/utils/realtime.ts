@@ -211,7 +211,7 @@ export class RealtimeClient {
   }
 
   /**
-   * Subscribe to a channel with automatic reconnection
+   * Subscribe to a channel with automatic reconnection and timeout handling
    */
   public async subscribe(topic: string): Promise<RealtimeChannel> {
     if (this.channels.has(topic)) {
@@ -231,8 +231,11 @@ export class RealtimeClient {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         console.error(`[RealtimeClient] Subscription timeout for ${topic}`);
+        // Update connection status to disconnected on timeout
+        this.connectionStatus = 'disconnected';
+        this.notifyConnectionListeners();
         this.handleReconnect(topic);
-        reject(new Error(`Subscription timeout for ${topic}`));
+        reject(new Error(`订阅超时：${topic}`));
       }, CONNECTION_TIMEOUT);
 
       channel.subscribe((status) => {
@@ -252,8 +255,11 @@ export class RealtimeClient {
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           clearTimeout(timeout);
           console.error(`[RealtimeClient] Subscription error for ${topic}:`, status);
+          // Update connection status on error
+          this.connectionStatus = 'disconnected';
+          this.notifyConnectionListeners();
           this.handleReconnect(topic);
-          reject(new Error(`Subscription failed: ${status}`));
+          reject(new Error(`订阅失败：${status}`));
         }
       });
     });
