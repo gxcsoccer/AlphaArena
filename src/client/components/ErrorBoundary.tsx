@@ -103,17 +103,18 @@ export class ErrorBoundary extends Component<Props, State> {
               )}
               
               {this.state.error && (
-                <details style={{ marginTop: 16, fontSize: 12, color: '#86909c' }}>
-                  <summary>错误详情（点击展开）</summary>
+                <div style={{ marginTop: 16, fontSize: 12, color: '#86909c' }}>
+                  <Text strong style={{ fontSize: 14, display: 'block', marginBottom: 12 }}>错误详情：</Text>
                   <div style={{ 
-                    marginTop: 8, 
                     padding: 12, 
                     background: '#f5f5f5', 
                     borderRadius: 4,
                     overflow: 'auto',
                     maxWidth: '100%',
+                    maxHeight: 400,
                     fontFamily: 'monospace',
                     fontSize: 11,
+                    border: '1px solid #e5e6eb',
                   }}>
                     <div style={{ marginBottom: 8 }}>
                       <Text strong>错误类型：</Text> {this.state.error.name || 'Error'}
@@ -122,12 +123,13 @@ export class ErrorBoundary extends Component<Props, State> {
                       <Text strong>错误信息：</Text> {this.state.error.message}
                     </div>
                     {this.state.error.stack && (
-                      <div>
+                      <div style={{ marginTop: 12 }}>
                         <Text strong>堆栈跟踪：</Text>
                         <pre style={{ 
                           marginTop: 4,
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
+                          margin: 0,
                         }}>
                           {this.state.error.stack}
                         </pre>
@@ -140,13 +142,14 @@ export class ErrorBoundary extends Component<Props, State> {
                           marginTop: 4,
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
+                          margin: 0,
                         }}>
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>
                     )}
                   </div>
-                </details>
+                </div>
               )}
             </div>
           }
