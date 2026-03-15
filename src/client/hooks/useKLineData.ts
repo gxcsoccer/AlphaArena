@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../utils/api';
 import type { KLineDataPoint, TimeFrame } from '../components/KLineChart';
 
