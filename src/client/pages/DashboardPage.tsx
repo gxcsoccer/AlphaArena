@@ -19,6 +19,8 @@ import {
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import TradeHistoryPanel from '../components/TradeHistoryPanel';
 import OrdersPanel from '../components/OrdersPanel';
+import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
+import PriceAlertsPanel from '../components/PriceAlertsPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
@@ -276,6 +278,20 @@ const DashboardPage: React.FC = () => {
         <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col span={24}>
             <OrdersPanel limit={50} />
+          </Col>
+        </Row>
+
+        {/* Conditional Orders Panel */}
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col span={24}>
+            <ConditionalOrdersPanel limit={50} />
+          </Col>
+        </Row>
+
+        {/* Price Alerts Panel */}
+        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+          <Col span={24}>
+            <PriceAlertsPanel limit={50} />
           </Col>
         </Row>
 

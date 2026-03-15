@@ -216,6 +216,24 @@ export interface BestPrices {
   spread: number | null;
 }
 
+export interface PriceAlert {
+  id: string;
+  userId?: string | null;
+  symbol: string;
+  conditionType: 'above' | 'below';
+  targetPrice: number;
+  currentPrice?: number | null;
+  status: 'active' | 'triggered' | 'disabled' | 'expired';
+  notificationMethod: 'in_app' | 'feishu' | 'email' | 'push';
+  triggeredAt?: string | null;
+  triggeredPrice?: number | null;
+  isRecurring: boolean;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  expiresAt?: string | null;
+}
+
 export interface ApiResponse<T> {
   success: boolean;
   data: T;
@@ -526,6 +544,70 @@ export const api = {
     const res = await apiFetch('/api/conditional-orders/stats');
     const data: ApiResponse<any> = await res.json();
     return data.success ? data.data : null;
+  },
+
+  // Price Alert API methods
+  async getPriceAlerts(filters?: {
+    userId?: string;
+    symbol?: string;
+    status?: 'active' | 'triggered' | 'disabled' | 'expired';
+    conditionType?: 'above' | 'below';
+    limit?: number;
+  }): Promise<PriceAlert[]> {
+    const params = new URLSearchParams();
+    if (filters?.userId) params.append('userId', filters.userId);
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.conditionType) params.append('conditionType', filters.conditionType);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    
+    const res = await apiFetch(`/functions/v1/price-alerts?${params}`);
+    const data: ApiResponse<PriceAlert[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async createPriceAlert(alert: {
+    symbol: string;
+    conditionType: 'above' | 'below';
+    targetPrice: number;
+    notificationMethod?: 'in_app' | 'feishu' | 'email' | 'push';
+    expiresAt?: string;
+    isRecurring?: boolean;
+    notes?: string;
+    userId?: string;
+  }): Promise<PriceAlert | null> {
+    const res = await apiFetch('/functions/v1/create-price-alert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(alert),
+    });
+    const data: ApiResponse<PriceAlert> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async updatePriceAlert(id: string, updates: {
+    status?: 'active' | 'triggered' | 'disabled' | 'expired';
+    targetPrice?: number;
+    notificationMethod?: 'in_app' | 'feishu' | 'email' | 'push';
+    isRecurring?: boolean;
+    notes?: string;
+  }): Promise<PriceAlert | null> {
+    const res = await apiFetch(`/functions/v1/update-price-alert/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const data: ApiResponse<PriceAlert> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async deletePriceAlert(id: string): Promise<boolean> {
+    const res = await apiFetch(`/functions/v1/delete-price-alert/${id}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data: ApiResponse<{ id: string; deleted: boolean }> = await res.json();
+    return data.success ? data.data.deleted : false;
   },
 };
 

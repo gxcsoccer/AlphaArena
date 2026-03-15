@@ -6,6 +6,7 @@
  */
 
 import { APIServer } from './api/server';
+import { getPriceAlertMonitor } from './monitoring/PriceAlertMonitor';
 
 // Get port from environment variable or use default
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
@@ -29,6 +30,13 @@ server.start()
   .then(() => {
     console.log(`[Startup] Server is running on port ${PORT}`);
     console.log(`[Startup] Health check: http://localhost:${PORT}/health`);
+    
+    // Start price alert monitor
+    const alertMonitor = getPriceAlertMonitor({
+      checkIntervalMs: parseInt(process.env.PRICE_ALERT_CHECK_INTERVAL || '5000'),
+    });
+    alertMonitor.start();
+    console.log('[Startup] Price alert monitor started');
   })
   .catch((error) => {
     console.error('[Startup] Failed to start server:', error);
@@ -36,28 +44,28 @@ server.start()
   });
 
 // Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('[Startup] SIGTERM received, shutting down gracefully...');
-  server.stop()
-    .then(() => {
-      console.log('[Startup] Server closed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('[Startup] Error during shutdown:', error);
-      process.exit(1);
-    });
-});
+const gracefulShutdown = async (signal: string) => {
+  console.log(`[Startup] ${signal} received, shutting down gracefully...`);
+  
+  // Stop price alert monitor
+  try {
+    const alertMonitor = getPriceAlertMonitor();
+    alertMonitor.stop();
+    console.log('[Startup] Price alert monitor stopped');
+  } catch (error) {
+    console.error('[Startup] Error stopping alert monitor:', error);
+  }
+  
+  // Stop server
+  try {
+    await server.stop();
+    console.log('[Startup] Server closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('[Startup] Error during shutdown:', error);
+    process.exit(1);
+  }
+};
 
-process.on('SIGINT', () => {
-  console.log('[Startup] SIGINT received, shutting down gracefully...');
-  server.stop()
-    .then(() => {
-      console.log('[Startup] Server closed');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('[Startup] Error during shutdown:', error);
-      process.exit(1);
-    });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
