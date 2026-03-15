@@ -17,6 +17,8 @@ import OfflineIndicator from './components/OfflineIndicator';
 import { ThemeProvider } from './hooks/useTheme';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
+import useErrorReporter from './hooks/useErrorReporter';
+import ErrorReporterPanel from './components/ErrorReporterPanel';
 
 // Alias the icons for menu items
 const DashboardOutlined = IconDashboard;
@@ -228,6 +230,13 @@ function RealtimeConnectionSync() {
 }
 
 function App() {
+  // Enable error reporting with localStorage fallback
+  const { errors, clearErrors, hasErrors } = useErrorReporter({
+    enableLocalStorage: true,
+    maxLocalStorageErrors: 50,
+    debug: process.env.NODE_ENV === 'development',
+  });
+
   return (
     <ThemeProvider>
       <ConnectionProvider>
@@ -237,6 +246,14 @@ function App() {
           <MainLayout>
             <AppRoutes />
           </MainLayout>
+          {/* Error reporter panel - shown when errors are captured */}
+          {hasErrors && (
+            <ErrorReporterPanel
+              errors={errors}
+              onClear={clearErrors}
+              visible={process.env.NODE_ENV === 'development'}
+            />
+          )}
         </BrowserRouter>
       </ConnectionProvider>
     </ThemeProvider>
