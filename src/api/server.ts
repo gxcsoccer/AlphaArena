@@ -98,6 +98,7 @@ export class APIServer extends EventEmitter {
   private orderBookServices: Map<string, OrderBookService> = new Map();
   private priceMonitoring = getPriceMonitoringService();
   private isRunning: boolean = false;
+  private clientErrors: any[] = [];
 
   constructor(config: APIServerConfig) {
     super();
@@ -211,6 +212,84 @@ export class APIServer extends EventEmitter {
     // Basic health check
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({ status: 'ok', timestamp: Date.now() });
+    });
+
+    // Error logging endpoint - receives client-side errors
+    this.app.post('/api/log-error', (req: Request, res: Response) => {
+      try {
+        const { error } = req.body;
+        
+        if (!error) {
+          return res.status(400).json({ 
+            success: false, 
+            error: 'Missing error data' 
+          });
+        }
+
+        // Log the error to console with timestamp
+        const timestamp = new Date().toISOString();
+        const errorType = error.type === 'unhandledrejection' ? 'UNHANDLED_REJECTION' : 'CLIENT_ERROR';
+        
+        console.log(`[${timestamp}] [${errorType}] ${error.message}`);
+        console.log(`  URL: ${error.url}`);
+        console.log(`  Source: ${error.source || 'unknown'}`);
+        console.log(`  Location: ${error.lineno}:${error.colno || 'unknown'}`);
+        
+        if (error.stack) {
+          console.log(`  Stack: ${error.stack}`);
+        }
+
+        // In production, you could:
+        // 1. Store in database for later analysis
+        // 2. Send to external error tracking service (Sentry, etc.)
+        // 3. Send Feishu alert for critical errors
+        
+        // For now, store in memory (would be lost on restart)
+        // In production, replace with database storage
+        if (!this.clientErrors) {
+          this.clientErrors = [];
+        }
+        this.clientErrors.push({
+          ...error,
+          receivedAt: timestamp,
+        });
+
+        // Keep only last 1000 errors in memory
+        if (this.clientErrors.length > 1000) {
+          this.clientErrors = this.clientErrors.slice(-1000);
+        }
+
+        res.json({ 
+          success: true, 
+          message: 'Error logged successfully',
+          errorId: error.id,
+        });
+      } catch (logError: any) {
+        console.error('[API] Failed to log client error:', logError);
+        res.status(500).json({ 
+          success: false, 
+          error: 'Failed to log error' 
+        });
+      }
+    });
+
+    // Get logged client errors (for debugging)
+    this.app.get('/api/log-error', (req: Request, res: Response) => {
+      try {
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+        const errors = this.clientErrors ? this.clientErrors.slice(-limit) : [];
+        
+        res.json({ 
+          success: true, 
+          data: errors,
+          total: this.clientErrors?.length || 0,
+        });
+      } catch (error: any) {
+        res.status(500).json({ 
+          success: false, 
+          error: error.message 
+        });
+      }
     });
 
     // Detailed health status with metrics
