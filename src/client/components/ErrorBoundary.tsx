@@ -51,6 +51,7 @@ function isThirdPartyDOMError(error: Error | null): boolean {
  */
 export class ErrorBoundary extends Component<Props, State> {
   private retryTimeout: NodeJS.Timeout | null = null;
+  private isInRetryCycle = false;
   
   constructor(props: Props) {
     super(props);
@@ -75,6 +76,7 @@ export class ErrorBoundary extends Component<Props, State> {
       clearTimeout(this.retryTimeout);
       this.retryTimeout = null;
     }
+    this.isInRetryCycle = false;
   }
 
   static getDerivedStateFromError(error: Error): State {
@@ -116,18 +118,17 @@ export class ErrorBoundary extends Component<Props, State> {
       console.warn('[ErrorBoundary] Detected third-party DOM error, will auto-retry...');
       
       // Auto-retry after a short delay (up to 3 attempts)
-      if (this.state.retryCount < 3) {
+      if (!this.isInRetryCycle && this.state.retryCount < 3) {
+        this.isInRetryCycle = true;
+        if (this.retryTimeout) clearTimeout(this.retryTimeout);
         this.retryTimeout = setTimeout(() => {
-          console.log('[ErrorBoundary] Attempting auto-retry...');
-          // Increment remountKey to force full remount of children
-          this.setState({ 
-            hasError: false, 
-            error: null, 
-            errorInfo: null, 
-            retryCount: this.state.retryCount + 1,
-            remountKey: this.state.remountKey + 1,
-          });
-        }, 500);
+          this.isInRetryCycle = false;
+          this.setState((prevState) => ({
+            hasError: false,
+            retryCount: prevState.retryCount + 1,
+            remountKey: prevState.remountKey + 1,
+          }));
+        }, 1000);
         return; // Don't show error UI yet, wait for retry
       }
     }
