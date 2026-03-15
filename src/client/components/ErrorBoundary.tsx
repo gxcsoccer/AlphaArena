@@ -15,6 +15,7 @@ interface State {
   error: Error | null;
   errorInfo: ErrorInfo | null;
   retryCount: number;
+  remountKey: number; // Key to force remount on retry
 }
 
 /**
@@ -58,6 +59,7 @@ export class ErrorBoundary extends Component<Props, State> {
       error: null, 
       errorInfo: null,
       retryCount: 0,
+      remountKey: 0,
     };
     
     // Validate configuration on mount
@@ -76,7 +78,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null, retryCount: 0 };
+    return { hasError: true, error, errorInfo: null, retryCount: 0, remountKey: 0 };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -117,7 +119,14 @@ export class ErrorBoundary extends Component<Props, State> {
       if (this.state.retryCount < 3) {
         this.retryTimeout = setTimeout(() => {
           console.log('[ErrorBoundary] Attempting auto-retry...');
-          this.setState({ hasError: false, error: null, errorInfo: null, retryCount: this.state.retryCount + 1 });
+          // Increment remountKey to force full remount of children
+          this.setState({ 
+            hasError: false, 
+            error: null, 
+            errorInfo: null, 
+            retryCount: this.state.retryCount + 1,
+            remountKey: this.state.remountKey + 1,
+          });
         }, 500);
         return; // Don't show error UI yet, wait for retry
       }
@@ -128,7 +137,15 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null, retryCount: 0 });
+    // CRITICAL: Increment remountKey to force React to fully unmount and remount children
+    // Simply clearing error state with setState doesn't trigger remount - children stay in error state
+    this.setState({ 
+      hasError: false, 
+      error: null, 
+      errorInfo: null, 
+      retryCount: 0,
+      remountKey: this.state.remountKey + 1,
+    });
   };
 
   handleReload = () => {
@@ -281,7 +298,9 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    // CRITICAL: Use remountKey to force full remount when retry is triggered
+    // This ensures children components are properly unmounted and remounted fresh
+    return <React.Fragment key={this.state.remountKey}>{this.props.children}</React.Fragment>;
   }
 }
 
