@@ -342,20 +342,24 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
   const realtimeClientRef = useRef<ReturnType<typeof getRealtimeClient> | null>(null);
   const unsubscribeRef = useRef<(() => void)[]>([]);
   const isMountedRef = useRef<boolean>(false);
+  const prevSymbolRef = useRef<string | null>(null);
 
   const fetchOrderBook = useCallback(async () => {
     try {
+      console.log('[useOrderBook] Fetching order book for:', symbol);
       const data = await fetchWithTimeout(
         api.getOrderBook(symbol, levels),
-        10000, // 10 second timeout
+        10000,
         '获取订单簿数据超时'
       );
+      console.log('[useOrderBook] Received order book:', data ? 'success' : 'null');
       if (isMountedRef.current) {
         setOrderBook(data);
         setError(null);
         setLoading(false);
       }
     } catch (err: any) {
+      console.error('[useOrderBook] Failed to fetch order book:', err.message);
       if (isMountedRef.current) {
         setError(err.message);
         setLoading(false);
@@ -366,25 +370,43 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
   useEffect(() => {
     isMountedRef.current = true;
     fetchOrderBook();
-    
     return () => {
+      console.log('[useOrderBook] Cleanup: unmounting');
       isMountedRef.current = false;
     };
   }, [fetchOrderBook]);
 
   useEffect(() => {
-    if (!symbol) return;
+    if (!symbol) {
+      console.log('[useOrderBook] No symbol provided, skipping subscription');
+      return;
+    }
 
+    if (prevSymbolRef.current && prevSymbolRef.current !== symbol) {
+      console.log('[useOrderBook] Symbol changed from', prevSymbolRef.current, 'to', symbol);
+      unsubscribeRef.current.forEach(unsub => {
+        try { unsub(); } catch (err) { console.error('[useOrderBook] Cleanup error:', err); }
+      });
+      unsubscribeRef.current = [];
+      try {
+        const client = realtimeClientRef.current;
+        if (client) client.unsubscribe(`orderbook:${prevSymbolRef.current}`);
+      } catch (err) {
+        console.error('[useOrderBook] Unsubscribe error:', err);
+      }
+    }
+
+    prevSymbolRef.current = symbol;
     const client = getRealtimeClient();
     realtimeClientRef.current = client;
 
-    // Subscribe to orderbook channel
+    console.log('[useOrderBook] Subscribing to orderbook:', symbol);
     client.subscribeOrderBook(symbol).catch(err => {
-      console.error(`[useOrderBook] Failed to subscribe to orderbook:${symbol}`, err);
+      console.error(`[useOrderBook] Subscribe error:`, err);
     });
 
-    // Listen for snapshot and delta events
     const unsubscribeSnapshot = client.onOrderBookSnapshot(symbol, (data: OrderBookSnapshot) => {
+      console.log('[useOrderBook] Received snapshot for', symbol);
       if (isMountedRef.current) {
         setOrderBook(data);
         setLoading(false);
@@ -392,6 +414,7 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
     });
 
     const unsubscribeDelta = client.onOrderBookDelta(symbol, (delta: OrderBookSnapshot) => {
+      console.log('[useOrderBook] Received delta for', symbol);
       if (isMountedRef.current) {
         setOrderBook(prev => {
           if (!prev || !delta) return prev;
@@ -403,10 +426,16 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
     unsubscribeRef.current = [unsubscribeSnapshot, unsubscribeDelta];
 
     return () => {
-      // Cleanup subscriptions
-      unsubscribeSnapshot();
-      unsubscribeDelta();
-      client.unsubscribe(`orderbook:${symbol}`);
+      console.log('[useOrderBook] Cleanup: removing subscriptions for', symbol);
+      unsubscribeRef.current.forEach(unsub => {
+        try { unsub(); } catch (err) { console.error('[useOrderBook] Unsub error:', err); }
+      });
+      unsubscribeRef.current = [];
+      try {
+        client.unsubscribe(`orderbook:${symbol}`);
+      } catch (err) {
+        console.error('[useOrderBook] Final unsubscribe error:', err);
+      }
     };
   }, [symbol]);
 
