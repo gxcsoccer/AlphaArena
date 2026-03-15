@@ -319,6 +319,22 @@ export const usePortfolioHistory = (
   return { history, loading, error, refresh: fetchHistory };
 };
 
+/**
+ * Wrapper function to add timeout to fetch operations
+ */
+const fetchWithTimeout = async <T>(
+  promise: Promise<T>,
+  timeoutMs: number = 10000,
+  timeoutMessage: string = 'Request timed out'
+): Promise<T> => {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(timeoutMessage)), timeoutMs)
+    ),
+  ]);
+};
+
 export const useOrderBook = (symbol: string, levels: number = 20) => {
   const [orderBook, setOrderBook] = useState<OrderBookSnapshot | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,7 +345,11 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
 
   const fetchOrderBook = useCallback(async () => {
     try {
-      const data = await api.getOrderBook(symbol, levels);
+      const data = await fetchWithTimeout(
+        api.getOrderBook(symbol, levels),
+        10000, // 10 second timeout
+        '获取订单簿数据超时'
+      );
       if (isMountedRef.current) {
         setOrderBook(data);
         setError(null);
