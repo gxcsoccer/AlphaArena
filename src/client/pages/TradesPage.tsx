@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { useTrades } from '../hooks/useData';
 import { api } from '../utils/api';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
@@ -184,13 +185,14 @@ const TradesPage: React.FC = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header>
-        <Title heading={2} style={{ color: 'white', margin: 0 }}>
-          AlphaArena - Trades
-        </Title>
-      </Header>
-      <Content style={{ padding: isMobile ? 12 : 24 }}>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header>
+          <Title heading={2} style={{ color: 'white', margin: 0 }}>
+            AlphaArena - Trades
+          </Title>
+        </Header>
+        <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Filters */}
         <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
@@ -305,6 +307,7 @@ const TradesPage: React.FC = () => {
         </Card>
       </Content>
     </Layout>
+    </ErrorBoundary>
   );
 };
 

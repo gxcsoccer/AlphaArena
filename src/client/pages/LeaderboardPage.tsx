@@ -22,6 +22,7 @@ import {
 } from 'recharts';
 import { useStrategies, useTrades } from '../hooks/useData';
 import { api, LeaderboardEntry, StrategyMetrics } from '../utils/api';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps, TableColumnProps } from '@arco-design/web-react';
 import { IconRefresh, IconTrophy, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon';
 
@@ -314,20 +315,21 @@ const LeaderboardPage: React.FC = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: isMobile ? 8 : 0,
-        }}
-      >
-        <Title heading={2} style={{ color: 'white', margin: 0, fontSize: isMobile ? 18 : 20 }}>
-          <IconTrophy style={{ marginRight: 8 }} />
-          Strategy Leaderboard
-        </Title>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: isMobile ? 8 : 0,
+          }}
+        >
+          <Title heading={2} style={{ color: 'white', margin: 0, fontSize: isMobile ? 18 : 20 }}>
+            <IconTrophy style={{ marginRight: 8 }} />
+            Strategy Leaderboard
+          </Title>
         <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
           <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: isMobile ? 12 : 14 }}>
             {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
@@ -526,6 +528,7 @@ const LeaderboardPage: React.FC = () => {
         </div>
       </Content>
     </Layout>
+    </ErrorBoundary>
   );
 };
 

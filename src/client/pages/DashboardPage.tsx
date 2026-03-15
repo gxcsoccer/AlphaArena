@@ -19,6 +19,7 @@ import {
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import TradeHistoryPanel from '../components/TradeHistoryPanel';
 import OrdersPanel from '../components/OrdersPanel';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
@@ -170,13 +171,14 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header>
-        <Title heading={2} style={{ color: 'white', margin: 0 }}>
-          AlphaArena - Dashboard
-        </Title>
-      </Header>
-      <Content style={{ padding: isMobile ? 12 : 24 }}>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header>
+          <Title heading={2} style={{ color: 'white', margin: 0 }}>
+            AlphaArena - Dashboard
+          </Title>
+        </Header>
+        <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Stats Overview */}
         <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col xs={12} sm={12} md={6}>
@@ -322,6 +324,7 @@ const DashboardPage: React.FC = () => {
         </Row>
       </Content>
     </Layout>
+    </ErrorBoundary>
   );
 };
 

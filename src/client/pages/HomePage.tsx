@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Typography, Card, Grid } from '@arco-design/web-react';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import TradingPairList from '../components/TradingPairList';
 import KLineChart from '../components/KLineChart';
 import TradingOrder from '../components/TradingOrder';
@@ -42,9 +43,10 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <Content style={{ padding: isMobile ? 8 : 24 }}>
-      {/* Mobile: Stack vertically */}
-      {isMobile ? (
+    <ErrorBoundary>
+      <Content style={{ padding: isMobile ? 8 : 24 }}>
+        {/* Mobile: Stack vertically */}
+        {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {/* Trading Pair List - Full width at top */}
           <Card
@@ -104,7 +106,8 @@ const HomePage: React.FC = () => {
           </Col>
         </Row>
       )}
-    </Content>
+      </Content>
+    </ErrorBoundary>
   );
 };
 

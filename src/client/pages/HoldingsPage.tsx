@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
 import { usePortfolioRealtime } from '../hooks/usePortfolioRealtime';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { PortfolioWithPnL } from '../hooks/usePortfolioRealtime';
 
@@ -249,13 +250,14 @@ const HoldingsPage: React.FC = () => {
   const loading = strategiesLoading || portfolioLoading || tradesLoading;
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header>
-        <Title heading={2} style={{ color: 'white', margin: 0 }}>
-          AlphaArena - Holdings
-        </Title>
-      </Header>
-      <Content style={{ padding: isMobile ? 12 : 24 }}>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header>
+          <Title heading={2} style={{ color: 'white', margin: 0 }}>
+            AlphaArena - Holdings
+          </Title>
+        </Header>
+        <Content style={{ padding: isMobile ? 12 : 24 }}>
         {/* Strategy Selector */}
         <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Select
@@ -573,6 +575,7 @@ const HoldingsPage: React.FC = () => {
         </Card>
       </Content>
     </Layout>
+    </ErrorBoundary>
   );
 };
 

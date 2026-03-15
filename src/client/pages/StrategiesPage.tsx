@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Layout, Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Switch, Drawer } from '@arco-design/web-react';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useStrategies } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 import type { Strategy } from '../utils/api';
@@ -146,13 +147,14 @@ const StrategiesPage: React.FC = () => {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header>
-        <Title heading={2} style={{ color: 'white', margin: 0 }}>
-          AlphaArena - Strategies
-        </Title>
-      </Header>
-      <Content style={{ padding: isMobile ? 12 : 24 }}>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Header>
+          <Title heading={2} style={{ color: 'white', margin: 0 }}>
+            AlphaArena - Strategies
+          </Title>
+        </Header>
+        <Content style={{ padding: isMobile ? 12 : 24 }}>
         <Card
           title="Strategy Management"
           extra={
@@ -272,6 +274,7 @@ const StrategiesPage: React.FC = () => {
         </Form>
       </Modal>
     </Layout>
+    </ErrorBoundary>
   );
 };
 
