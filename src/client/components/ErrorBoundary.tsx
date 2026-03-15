@@ -1,5 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Result, Button, Alert, Typography } from '@arco-design/web-react';
+import { Result, Button, Alert, Typography, Spin } from '@arco-design/web-react';
 import { validateConfig, getConfigErrorMessage } from '../utils/config';
 
 const { Text } = Typography;
@@ -14,17 +14,51 @@ interface State {
   hasError: boolean;
   error: Error | null;
   errorInfo: ErrorInfo | null;
+  retryCount: number;
+}
+
+/**
+ * Check if this is a DOM operation error from third-party libraries
+ * These errors are often transient and should be handled gracefully
+ */
+function isThirdPartyDOMError(error: Error | null): boolean {
+  if (!error) return false;
+  
+  // Common DOM operation errors from browser/third-party libraries
+  const domErrorPatterns = [
+    'NotFoundError',
+    'removeChild',
+    'appendChild',
+    'insertBefore',
+    'replaceChild',
+    'parentNode',
+    'Failed to execute',
+  ];
+  
+  const errorString = `${error.name}: ${error.message}`;
+  return domErrorPatterns.some(pattern => errorString.includes(pattern));
 }
 
 /**
  * Error Boundary Component
  * Catches JavaScript errors anywhere in the component tree
  * and displays a fallback UI instead of crashing the whole app
+ * 
+ * Special handling for third-party DOM errors (e.g., Arco Design):
+ * - Shows a graceful loading spinner instead of error details
+ * - Auto-retries after a short delay since these errors are often transient
  */
 export class ErrorBoundary extends Component<Props, State> {
+  private retryTimeout: NodeJS.Timeout | null = null;
+  
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null, errorInfo: null };
+    this.state = { 
+      hasError: false, 
+      error: null, 
+      errorInfo: null,
+      retryCount: 0,
+    };
     
     // Validate configuration on mount
     const config = validateConfig();
@@ -33,8 +67,16 @@ export class ErrorBoundary extends Component<Props, State> {
     }
   }
 
+  componentWillUnmount() {
+    // Clean up any pending retry timeouts
+    if (this.retryTimeout) {
+      clearTimeout(this.retryTimeout);
+      this.retryTimeout = null;
+    }
+  }
+
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error, errorInfo: null };
+    return { hasError: true, error, errorInfo: null, retryCount: 0 };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -61,17 +103,32 @@ export class ErrorBoundary extends Component<Props, State> {
       url: window.location.href,
     };
     
-    // Auto-expand error details in UI for better visibility
-    this.setState({ errorInfo });
-    
     // Log to error reporting service if configured
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
+
+    // Special handling for third-party DOM errors (e.g., Arco Design removeChild errors)
+    // These are often transient timing issues during component cleanup
+    if (isThirdPartyDOMError(error)) {
+      console.warn('[ErrorBoundary] Detected third-party DOM error, will auto-retry...');
+      
+      // Auto-retry after a short delay (up to 3 attempts)
+      if (this.state.retryCount < 3) {
+        this.retryTimeout = setTimeout(() => {
+          console.log('[ErrorBoundary] Attempting auto-retry...');
+          this.setState({ hasError: false, error: null, errorInfo: null, retryCount: this.state.retryCount + 1 });
+        }, 500);
+        return; // Don't show error UI yet, wait for retry
+      }
+    }
+    
+    // Store error info for display if not auto-retrying
+    this.setState({ errorInfo });
   }
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null, errorInfo: null });
+    this.setState({ hasError: false, error: null, errorInfo: null, retryCount: 0 });
   };
 
   handleReload = () => {
@@ -85,13 +142,48 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
+      // Check if this is a third-party DOM error (e.g., Arco Design)
+      const isDOMError = isThirdPartyDOMError(this.state.error);
+
+      // For third-party DOM errors, show a graceful loading spinner with retry option
+      // These errors are often transient and don't indicate a real application problem
+      if (isDOMError) {
+        return (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: 300,
+            padding: 24,
+          }}>
+            <Spin size="large" style={{ marginBottom: 16 }} />
+            <Text style={{ marginBottom: 8 }}>界面加载中，请稍候...</Text>
+            <Text type="secondary" style={{ fontSize: 12, marginBottom: 16 }}>
+              （第三方组件库的临时渲染问题，正在自动恢复）
+            </Text>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button onClick={this.handleReset}>重试</Button>
+              <Button status="danger" onClick={this.handleReload}>
+                刷新页面
+              </Button>
+            </div>
+            {this.state.retryCount > 0 && (
+              <Text type="secondary" style={{ fontSize: 11, marginTop: 8 }}>
+                已尝试恢复 {this.state.retryCount} 次
+              </Text>
+            )}
+          </div>
+        );
+      }
+
       // Check if this might be a configuration error
       const config = validateConfig();
       const isConfigError = !config.isConfigured || 
         (this.state.error?.message?.includes('environment') || 
          this.state.error?.message?.includes('configuration'));
 
-      // Default error UI - auto-expand error details for visibility
+      // Default error UI for application errors - show full details
       return (
         <Result
           status="error"
