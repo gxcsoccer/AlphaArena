@@ -34,6 +34,7 @@ const FUNCTION_MAP: Record<string, string> = {
   '/api/orderbook': 'get-orderbook',
   '/api/market/tickers': 'get-market-tickers',
   '/api/market/kline': 'get-market-kline',
+  '/api/conditional-orders': 'conditional-orders',
 };
 
 // Helper to map API paths to Supabase function names

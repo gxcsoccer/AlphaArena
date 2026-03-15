@@ -1006,12 +1006,30 @@ export class APIServer extends EventEmitter {
     this.priceMonitoring.on('order-triggered', async (data: any) => {
       console.log(`[PriceMonitoring] Order triggered: ${data.orderType} ${data.symbol} @ ${data.executedPrice}`);
       
-      // In production, send notification via Feishu, email, etc.
-      // For now, just log it
+      // Send Feishu notification for triggered orders
+      const orderTypeText = data.orderType === 'stop_loss' ? '止损单' : '止盈单';
+      const sideText = data.side === 'buy' ? '买入' : '卖出';
+      
       if (data.orderType === 'stop_loss') {
-        console.warn(`⚠️ Stop-loss triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+        console.warn(`⚠️ Stop-loss triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
       } else {
-        console.log(`✅ Take-profit triggered for ${data.symbol}: Sold ${data.quantity} @ ${data.executedPrice}`);
+        console.log(`✅ Take-profit triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
+      }
+
+      // Send Feishu notification
+      try {
+        await this.feishuAlert.sendAlert({
+          type: data.orderType === 'stop_loss' ? 'warning' : 'info',
+          title: `条件单已触发 - ${orderTypeText}`,
+          content: `交易对：${data.symbol}\n` +
+                   `类型：${orderTypeText} (${sideText})\n` +
+                   `触发价格：$${data.triggerPrice}\n` +
+                   `执行价格：$${data.executedPrice}\n` +
+                   `数量：${data.quantity}\n` +
+                   `交易 ID: ${data.tradeId}`,
+        });
+      } catch (error: any) {
+        console.error('[PriceMonitoring] Failed to send Feishu notification:', error);
       }
 
       // Broadcast to frontend via realtime
