@@ -38,14 +38,30 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('[ErrorBoundary] Caught error:', error);
-    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
-    console.error('[ErrorBoundary] Full error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
+    // CRITICAL: Log errors prominently to help debugging production issues
+    console.error('========================================');
+    console.error('🚨 ERRORBOUNDARY CAUGHT ERROR 🚨');
+    console.error('========================================');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Component stack:', errorInfo.componentStack);
+    console.error('Full error object:', error);
+    console.error('========================================');
     
+    // Store error globally for easy access from console
+    (window as any).__LAST_ERROR__ = {
+      error: {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      },
+      componentStack: errorInfo.componentStack,
+      timestamp: Date.now(),
+      url: window.location.href,
+    };
+    
+    // Auto-expand error details in UI for better visibility
     this.setState({ errorInfo });
     
     // Log to error reporting service if configured
@@ -75,7 +91,7 @@ export class ErrorBoundary extends Component<Props, State> {
         (this.state.error?.message?.includes('environment') || 
          this.state.error?.message?.includes('configuration'));
 
-      // Default error UI
+      // Default error UI - auto-expand error details for visibility
       return (
         <Result
           status="error"
@@ -103,31 +119,34 @@ export class ErrorBoundary extends Component<Props, State> {
               )}
               
               {this.state.error && (
-                <details style={{ marginTop: 16, fontSize: 12, color: '#86909c' }}>
-                  <summary>错误详情（点击展开）</summary>
+                <details open style={{ marginTop: 16, fontSize: 12, color: '#86909c' }}>
+                  <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>错误详情（已自动展开）</summary>
                   <div style={{ 
                     marginTop: 8, 
                     padding: 12, 
-                    background: '#f5f5f5', 
+                    background: '#fff1f0', 
                     borderRadius: 4,
                     overflow: 'auto',
                     maxWidth: '100%',
                     fontFamily: 'monospace',
                     fontSize: 11,
+                    border: '1px solid #ffa39e',
                   }}>
                     <div style={{ marginBottom: 8 }}>
-                      <Text strong>错误类型：</Text> {this.state.error.name || 'Error'}
+                      <Text strong style={{ color: '#f5222d' }}>错误类型：</Text> {this.state.error.name || 'Error'}
                     </div>
                     <div style={{ marginBottom: 8 }}>
-                      <Text strong>错误信息：</Text> {this.state.error.message}
+                      <Text strong style={{ color: '#f5222d' }}>错误信息：</Text> {this.state.error.message}
                     </div>
                     {this.state.error.stack && (
                       <div>
-                        <Text strong>堆栈跟踪：</Text>
+                        <Text strong style={{ color: '#f5222d' }}>堆栈跟踪：</Text>
                         <pre style={{ 
                           marginTop: 4,
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
+                          background: '#f5f5f5',
+                          padding: 8,
                         }}>
                           {this.state.error.stack}
                         </pre>
@@ -135,16 +154,24 @@ export class ErrorBoundary extends Component<Props, State> {
                     )}
                     {this.state.errorInfo?.componentStack && (
                       <div style={{ marginTop: 12 }}>
-                        <Text strong>组件堆栈：</Text>
+                        <Text strong style={{ color: '#f5222d' }}>组件堆栈：</Text>
                         <pre style={{ 
                           marginTop: 4,
                           whiteSpace: 'pre-wrap',
                           wordBreak: 'break-word',
+                          background: '#f5f5f5',
+                          padding: 8,
                         }}>
                           {this.state.errorInfo.componentStack}
                         </pre>
                       </div>
                     )}
+                    <div style={{ marginTop: 12, padding: 8, background: '#e6f7ff', borderRadius: 4 }}>
+                      <Text strong>💡 调试提示：</Text>
+                      <p style={{ margin: '4px 0 0 0', fontSize: 10 }}>
+                        打开浏览器控制台（F12），输入 <code style={{ background: '#f0f0f0', padding: '2px 4px' }}>window.__LAST_ERROR__</code> 查看完整错误对象
+                      </p>
+                    </div>
                   </div>
                 </details>
               )}
