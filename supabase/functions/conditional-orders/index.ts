@@ -66,19 +66,18 @@ serve(async (req) => {
     // Transform data to match expected format
     const formattedOrders = orders.map((o) => ({
       id: o.id,
-      userId: o.user_id,
+      strategyId: o.strategy_id,
       symbol: o.symbol,
+      side: o.side,
       orderType: o.order_type,
-      triggerType: o.trigger_type,
       triggerPrice: o.trigger_price ? parseFloat(o.trigger_price.toString()) : null,
-      orderSide: o.order_side,
-      orderPrice: o.order_price ? parseFloat(o.order_price.toString()) : null,
-      orderQuantity: o.order_quantity ? parseFloat(o.order_quantity.toString()) : null,
+      quantity: o.quantity ? parseFloat(o.quantity.toString()) : null,
       status: o.status,
+      triggeredAt: o.triggered_at,
+      triggeredOrderId: o.triggered_order_id,
       createdAt: o.created_at,
       updatedAt: o.updated_at,
-      triggeredAt: o.triggered_at,
-      expiresAt: o.expires_at
+      expiresAt: o.expires_at,
     }));
 
     return new Response(JSON.stringify({
