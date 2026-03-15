@@ -239,6 +239,9 @@ export class PriceAlertsDAO {
   async getAlertsToTrigger(symbol: string, currentPrice: number): Promise<PriceAlert[]> {
     const supabase = getSupabaseClient();
 
+    const cooldownMs = 5 * 60 * 1000;
+    const cooldownTime = new Date(Date.now() - cooldownMs).toISOString();
+
     // Get active "above" alerts (trigger when price >= target_price)
     const { data: aboveAlerts, error: aboveError } = await supabase
       .from('price_alerts')
@@ -261,7 +264,13 @@ export class PriceAlertsDAO {
 
     if (belowError) throw belowError;
 
-    return [...aboveAlerts, ...belowAlerts].map(this.mapToPriceAlert);
+    const allAlerts = [...aboveAlerts, ...belowAlerts].map(this.mapToPriceAlert);
+
+    return allAlerts.filter(alert => {
+      if (!alert.isRecurring) return true;
+      if (!alert.triggeredAt) return true;
+      return alert.triggeredAt < new Date(cooldownTime);
+    });
   }
 
   /**

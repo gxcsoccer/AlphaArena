@@ -28,7 +28,7 @@ serve(async (req) => {
     // Extract alert ID from URL path
     const url = new URL(req.url);
     const pathParts = url.pathname.split('/');
-    const alertId = pathParts[pathParts.length - 2]; // Get the ID from /price-alerts/{id}/delete
+    const alertId = pathParts[pathParts.length - 1];
 
     if (!alertId) {
       return new Response(
