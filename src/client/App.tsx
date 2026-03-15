@@ -14,6 +14,7 @@ import {
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
 import OfflineIndicator from './components/OfflineIndicator';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ThemeProvider } from './hooks/useTheme';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
@@ -112,10 +113,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   };
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      {/* Desktop Sider */}
-      {!isMobile && (
-        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+    <ErrorBoundary>
+      <Layout style={{ minHeight: '100vh' }}>
+        {/* Desktop Sider */}
+        {!isMobile && (
+          <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
           <div
             style={{
               height: 32,
@@ -205,6 +207,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         />
       </Drawer>
     </Layout>
+    </ErrorBoundary>
   );
 };
 
