@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Layout, Typography, Card, Grid } from '@arco-design/web-react';
+import React, { useState, useCallback } from 'react';
+import { Layout, Typography, Card, Grid, Spin } from '@arco-design/web-react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import TradingPairList from '../components/TradingPairList';
 import KLineChart from '../components/KLineChart';
@@ -10,20 +10,36 @@ import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 const { Content } = Layout;
 const { Row, Col } = Grid;
 
+// Fallback component for ErrorBoundary to prevent rapid mount/unmount
+const HomePageFallback: React.FC = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100%',
+    minHeight: 400,
+  }}>
+    <Spin size="large" />
+  </div>
+);
+
 const HomePage: React.FC = () => {
   const [selectedSymbol, setSelectedSymbol] = useState('BTC/USD');
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile on mount and resize
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+  // Stable callback for resize handler to prevent re-creation
+  const checkMobile = useCallback(() => {
+    setIsMobile(window.innerWidth <= 768);
+  }, []);
 
+  // Detect mobile on mount and resize with proper cleanup
+  React.useEffect(() => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, [checkMobile]);
 
   const handlePairSelect = (symbol: string) => {
     setSelectedSymbol(symbol);
@@ -43,8 +59,8 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <ErrorBoundary>
-      <Content style={{ padding: isMobile ? 8 : 24 }}>
+    <ErrorBoundary fallback={<HomePageFallback />}>
+      <Content key={`content-${isMobile ? 'mobile' : 'desktop'}`} style={{ padding: isMobile ? 8 : 24 }}>
         {/* Mobile: Stack vertically */}
         {isMobile ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
