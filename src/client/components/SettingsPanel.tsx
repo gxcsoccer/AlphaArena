@@ -4,10 +4,11 @@
  * Provides UI for user preferences including theme and language settings.
  * 
  * Issue #197: Sprint 10: 用户偏好设置功能
+ * Issue #209: Settings panel button not easily discoverable - added tooltip and hover effects
  */
 
 import React, { useState } from 'react';
-import { Modal, Button, Radio, Space, Divider, Typography } from '@arco-design/web-react';
+import { Modal, Button, Radio, Space, Divider, Typography, Tooltip } from '@arco-design/web-react';
 import { IconSettings, IconSun, IconMoonFill, IconLanguage } from '@arco-design/web-react/icon';
 import { useSettings } from '../store/settingsStore';
 
@@ -35,24 +36,27 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
 
   return (
     <>
-      <Button
-        icon={<IconSettings />}
-        onClick={() => setVisible(true)}
-        size="small"
-        type="text"
-        style={{
-          background: 'transparent',
-          border: 'none',
-          color: 'var(--color-text-1)',
-          padding: compact ? 4 : 8,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.3s ease',
-        }}
-        aria-label="打开设置"
-      />
+      <Tooltip content="设置 (主题、语言)" position="br">
+        <Button
+          icon={<IconSettings style={{ fontSize: compact ? 18 : 20 }} />}
+          onClick={() => setVisible(true)}
+          size="small"
+          type="text"
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--color-text-1)',
+            padding: compact ? 4 : 8,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+          }}
+          className="settings-button"
+          aria-label="打开设置"
+        />
+      </Tooltip>
       
       <Modal
         title={
