@@ -15,9 +15,9 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { useTrades } from '../hooks/useData';
-import { api } from '../utils/api';
+import { useTrades, useStrategies } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import ExportModal from '../components/ExportModal';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
@@ -28,11 +28,12 @@ const TradesPage: React.FC = () => {
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[any, any] | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [exporting, setExporting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Memoize filters to prevent infinite re-renders
   const filters = useMemo(() => ({ symbol, side }), [symbol, side]);
   const { trades, loading } = useTrades(filters, 100);
+  const { strategies } = useStrategies();
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
@@ -45,39 +46,15 @@ const TradesPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleExport = async () => {
-    try {
-      setExporting(true);
-      
-      const filters: any = {
-        symbol,
-        side,
-      };
-      
-      if (dateRange) {
-        filters.startDate = dateRange[0]?.toDate ? dateRange[0].toDate() : dateRange[0];
-        filters.endDate = dateRange[1]?.toDate ? dateRange[1].toDate() : dateRange[1];
-      }
-      
-      const blob = await api.exportTrades(filters);
-      
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `trades-export-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      Message.success('Export successful!');
-    } catch (error: any) {
-      Message.error(`Export failed: ${error.message}`);
-    } finally {
-      setExporting(false);
-    }
-  };
+  // Get unique symbols from trades
+  const availableSymbols = useMemo(() => {
+    return Array.from(new Set(trades.map(t => t.symbol)));
+  }, [trades]);
+
+  // Get strategies for export filter
+  const availableStrategies = useMemo(() => {
+    return strategies.map(s => ({ id: s.id, name: s.name }));
+  }, [strategies]);
 
   // Prepare chart data
   const tradeDistributionData = trades.reduce((acc: any, trade) => {
@@ -222,10 +199,9 @@ const TradesPage: React.FC = () => {
             />
             <Button 
               type="primary" 
-              loading={exporting}
-              onClick={handleExport}
+              onClick={() => setShowExportModal(true)}
             >
-              Export CSV
+              Export
             </Button>
           </Space>
         </Card>
@@ -303,6 +279,15 @@ const TradesPage: React.FC = () => {
             />
           </div>
         </Card>
+
+        {/* Export Modal */}
+        <ExportModal
+          visible={showExportModal}
+          onCancel={() => setShowExportModal(false)}
+          trades={trades}
+          availableSymbols={availableSymbols}
+          availableStrategies={availableStrategies}
+        />
       </div>
     </ErrorBoundary>
   );
