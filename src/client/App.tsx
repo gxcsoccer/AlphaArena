@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Spin, Drawer, Button } from '@arco-design/web-react';
 import {
@@ -21,14 +21,15 @@ import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
 import ErrorReporterPanel from './components/ErrorReporterPanel';
+import { lazyWithRetry } from './utils/lazyWithRetry';
 
-// Lazy load pages for code splitting
-const HomePage = lazy(() => import('./pages/HomePage'));
-const DashboardPage = lazy(() => import('./pages/DashboardPage'));
-const StrategiesPage = lazy(() => import('./pages/StrategiesPage'));
-const TradesPage = lazy(() => import('./pages/TradesPage'));
-const HoldingsPage = lazy(() => import('./pages/HoldingsPage'));
-const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
+// Lazy load pages for code splitting with retry logic for chunk loading failures
+const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
+const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
+const StrategiesPage = lazyWithRetry(() => import('./pages/StrategiesPage'));
+const TradesPage = lazyWithRetry(() => import('./pages/TradesPage'));
+const HoldingsPage = lazyWithRetry(() => import('./pages/HoldingsPage'));
+const LeaderboardPage = lazyWithRetry(() => import('./pages/LeaderboardPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
