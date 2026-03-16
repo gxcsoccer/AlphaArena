@@ -15,6 +15,7 @@ import { OrderBook } from '../orderbook/OrderBook';
 import { MatchingEngine } from '../matching/MatchingEngine';
 import { SMAStrategy } from '../strategy/SMAStrategy';
 import { RSIStrategy } from '../strategy/RSIStrategy';
+import { MACDStrategy } from '../strategy/MACDStrategy';
 import { Strategy } from '../strategy/Strategy';
 import { OrderType, Order } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
@@ -72,6 +73,17 @@ export class BacktestEngine {
             period: params?.period ?? 14,
             overbought: params?.overbought ?? 70,
             oversold: params?.oversold ?? 30,
+            tradeQuantity: params?.tradeQuantity ?? 10,
+          },
+        });
+      case 'macd':
+        return new MACDStrategy({
+          id: 'macd-strategy',
+          name: 'MACD Strategy',
+          params: {
+            fastPeriod: params?.fastPeriod ?? 12,
+            slowPeriod: params?.slowPeriod ?? 26,
+            signalPeriod: params?.signalPeriod ?? 9,
             tradeQuantity: params?.tradeQuantity ?? 10,
           },
         });
