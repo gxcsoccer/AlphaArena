@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, UTCTimestamp, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import { Card, Radio, Spin, Empty, Typography } from '@arco-design/web-react';
 import { useKLineData } from '../hooks/useKLineData';
@@ -33,6 +33,26 @@ const TIMEFRAME_LABELS: Record<TimeFrame, string> = {
   '1d': '1 天',
 };
 
+/**
+ * Safely remove a chart instance, catching DOM-related errors
+ * that can occur when React StrictMode or Arco Design Spin component
+ * manipulates the DOM during cleanup.
+ */
+function safeRemoveChart(chart: IChartApi | null): void {
+  if (!chart) return;
+  try {
+    chart.remove();
+  } catch (err: any) {
+    // Ignore DOM-related errors that occur due to React StrictMode
+    // or Arco Design Spin component interactions
+    if (!err.message?.includes('removeChild') &&
+        !err.message?.includes('not a child') &&
+        err.name !== 'NotFoundError') {
+      console.error('[KLineChart] Unexpected error during chart removal:', err);
+    }
+  }
+}
+
 const KLineChartInner: React.FC<KLineChartProps> = ({
   symbol = 'BTC/USD',
   height = 500,
@@ -47,11 +67,24 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const [chartError, setChartError] = useState<string | null>(null);
   const { klineData, loading, error } = useKLineData(symbol, timeframe);
 
+  // Mount state tracking to prevent DOM operations after unmount
+  const isMountedRef = useRef(true);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const initRafRef = useRef<ReturnType<typeof requestAnimationFrame> | null>(null);
+
   // Log configuration on mount for debugging
   useEffect(() => {
     console.log('[KLineChart] Component mounted, checking configuration...');
     const config = validateConfig();
     logConfigStatus(config);
+  }, []);
+
+  // Track mount state
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Detect mobile on mount and resize
@@ -68,8 +101,45 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   // Adjust height for mobile
   const adjustedHeight = isMobile ? Math.min(height, 300) : height;
 
-  // Initialize chart
-  useEffect(() => {
+  /**
+   * Cleanup function that safely removes chart and observers.
+   * Must be called when component unmounts or when chart needs to be re-initialized.
+   */
+  const cleanupChart = useCallback(() => {
+    console.log('[KLineChart] Cleaning up chart resources...');
+
+    // Cancel any pending animation frame
+    if (initRafRef.current) {
+      cancelAnimationFrame(initRafRef.current);
+      initRafRef.current = null;
+    }
+
+    // Disconnect resize observer
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+      resizeObserverRef.current = null;
+    }
+
+    // Safely remove chart
+    if (chartRef.current) {
+      safeRemoveChart(chartRef.current);
+      chartRef.current = null;
+    }
+
+    // Clear series refs
+    candleSeriesRef.current = null;
+    volumeSeriesRef.current = null;
+  }, []);
+
+  // Initialize chart - use useLayoutEffect for DOM operations
+  // Wait for loading to complete before initializing to avoid DOM conflicts with Spin
+  useLayoutEffect(() => {
+    // Skip if loading - wait for data to be ready
+    if (loading) {
+      console.log('[KLineChart] Loading in progress, deferring chart initialization...');
+      return;
+    }
+
     if (!chartContainerRef.current) {
       console.error('[KLineChart] Chart container ref is null');
       setChartError('图表容器未就绪');
@@ -77,14 +147,22 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     }
 
     const container = chartContainerRef.current;
-    
-    // Function to initialize chart with proper width
-    const initializeChart = () => {
+
+    /**
+     * Initialize chart with proper error handling and mount state checks.
+     */
+    const initializeChart = (): boolean => {
+      // Check mount state before proceeding
+      if (!isMountedRef.current) {
+        console.log('[KLineChart] Component unmounted, aborting initialization');
+        return false;
+      }
+
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
-      
+
       console.log('[KLineChart] Initializing chart, container size:', { width: containerWidth, containerHeight, height });
-      
+
       if (containerWidth <= 0) {
         console.warn('[KLineChart] Container width is still 0, will retry...');
         return false;
@@ -97,7 +175,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
       try {
         console.log('[KLineChart] 📈 Starting chart initialization...');
-        
+
         // Validate container is a valid DOM element
         if (!(container instanceof HTMLElement)) {
           throw new Error('Chart container is not a valid HTML element');
@@ -190,39 +268,44 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           name: err.name,
           constructor: err.constructor?.name,
         });
-        setChartError(`图表初始化失败：${err.message || '未知错误'}`);
+        if (isMountedRef.current) {
+          setChartError(`图表初始化失败：${err.message || '未知错误'}`);
+        }
         return false;
       }
     };
 
-    // Try to initialize immediately
-    const initialized = initializeChart();
-    
-    // If not initialized (width was 0), set up a ResizeObserver to retry when container becomes available
-    if (!initialized) {
-      const resizeObserver = new ResizeObserver(() => {
-        // Only try to initialize if chart doesn't exist yet
-        if (!chartRef.current && chartContainerRef.current) {
-          const success = initializeChart();
-          if (success) {
-            resizeObserver.disconnect();
+    // Delay initialization with requestAnimationFrame to ensure DOM is stable
+    // This helps avoid conflicts with Arco Design Spin component's DOM operations
+    initRafRef.current = requestAnimationFrame(() => {
+      if (!isMountedRef.current) {
+        console.log('[KLineChart] Component unmounted during RAF, aborting');
+        return;
+      }
+
+      const initialized = initializeChart();
+
+      // If not initialized (width was 0), set up a ResizeObserver to retry
+      if (!initialized && isMountedRef.current) {
+        const resizeObserver = new ResizeObserver(() => {
+          // Only try to initialize if chart doesn't exist yet and component is mounted
+          if (!chartRef.current && chartContainerRef.current && isMountedRef.current) {
+            const success = initializeChart();
+            if (success && resizeObserverRef.current) {
+              resizeObserverRef.current.disconnect();
+              resizeObserverRef.current = null;
+            }
           }
-        }
-      });
-      
-      resizeObserver.observe(container);
-      
-      return () => {
-        resizeObserver.disconnect();
-        if (chartRef.current) {
-          chartRef.current.remove();
-          chartRef.current = null;
-        }
-      };
-    }
+        });
+
+        resizeObserverRef.current = resizeObserver;
+        resizeObserver.observe(container);
+      }
+    });
 
     // Handle resize for already-initialized chart
     const handleResize = () => {
+      if (!isMountedRef.current) return;
       if (chartContainerRef.current && chartRef.current) {
         chartRef.current.applyOptions({
           width: chartContainerRef.current.clientWidth,
@@ -234,12 +317,9 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
-      }
+      cleanupChart();
     };
-  }, [height, showVolume]);
+  }, [height, showVolume, loading, cleanupChart]);
 
   // Update data when timeframe or symbol changes
   useEffect(() => {
@@ -247,15 +327,17 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       console.warn('[KLineChart] Candle series not ready, skipping data update');
       return;
     }
-    
+
     if (!klineData) {
       console.warn('[KLineChart] No K-line data available yet');
       return;
     }
-    
+
     if (!Array.isArray(klineData)) {
       console.error('[KLineChart] Invalid klineData: not an array', typeof klineData);
-      setChartError('K 线数据格式错误');
+      if (isMountedRef.current) {
+        setChartError('K 线数据格式错误');
+      }
       return;
     }
 
@@ -274,14 +356,16 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
     try {
       console.log('[KLineChart] 📊 Updating chart data with', klineData.length, 'points for symbol:', symbol);
-      
+
       const firstPoint = klineData[0];
       if (!firstPoint || typeof firstPoint.open !== 'number' || typeof firstPoint.close !== 'number') {
         console.error('[KLineChart] Invalid data point structure:', firstPoint);
-        setChartError('K 线数据格式无效');
+        if (isMountedRef.current) {
+          setChartError('K 线数据格式无效');
+        }
         return;
       }
-      
+
       const candleData: CandlestickData<Time>[] = klineData.map((point, idx) => {
         const time = point.time as UTCTimestamp;
         if (typeof time !== 'number' || time <= 0) {
@@ -311,8 +395,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         volumeSeriesRef.current.setData(volumeData);
         console.log('[KLineChart] ✅ Volume data set successfully');
       }
-      
-      setChartError(null);
+
+      if (isMountedRef.current) {
+        setChartError(null);
+      }
       console.log('[KLineChart] ✅ Chart data update complete');
     } catch (err: any) {
       console.error('[KLineChart] ❌ Failed to update chart data:', err);
@@ -321,7 +407,9 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         stack: err.stack,
         name: err.name,
       });
-      setChartError(`图表数据更新失败：${err.message}`);
+      if (isMountedRef.current) {
+        setChartError(`图表数据更新失败：${err.message}`);
+      }
     }
   }, [klineData, showVolume, symbol]);
 
