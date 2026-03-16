@@ -450,3 +450,15 @@ body {
 .realtime-indicator.disconnected {
   background-color: #cf1322;
 }
+
+/* Desktop Sider explicit width */
+@media (min-width: 769px) {
+  .arco-layout-sider {
+    width: 200px !important;
+    min-width: 200px;
+  }
+  .arco-layout-sider-collapsed {
+    width: 48px !important;
+    min-width: 48px;
+  }
+}

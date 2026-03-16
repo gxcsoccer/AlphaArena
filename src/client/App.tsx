@@ -117,7 +117,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Layout style={{ minHeight: '100vh' }}>
         {/* Desktop Sider */}
         {!isMobile && (
-          <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark">
+          <Sider width={200} collapsedWidth={48} collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark">
           <div
             style={{
               height: 32,
