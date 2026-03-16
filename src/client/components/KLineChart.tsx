@@ -1,6 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import { createChart, IChartApi, ISeriesApi, CandlestickData, Time, UTCTimestamp, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
-import { Card, Radio, Spin, Empty, Typography } from '@arco-design/web-react';
+import { Card, Radio, Spin, Empty, Typography, Space, Button, Tooltip } from '@arco-design/web-react';
+import { IconFullscreen, IconFullscreenExit } from '@arco-design/web-react/icon';
 import { useKLineData } from '../hooks/useKLineData';
 import ErrorBoundary from './ErrorBoundary';
 import { logConfigStatus, validateConfig } from '../utils/config';
@@ -29,12 +30,12 @@ interface KLineChartProps {
 }
 
 const TIMEFRAME_LABELS: Record<TimeFrame, string> = {
-  '1m': '1 分钟',
-  '5m': '5 分钟',
-  '15m': '15 分钟',
-  '1h': '1 小时',
-  '4h': '4 小时',
-  '1d': '1 天',
+  '1m': '1分',
+  '5m': '5分',
+  '15m': '15分',
+  '1h': '1时',
+  '4h': '4时',
+  '1d': '1天',
 };
 
 /**
@@ -69,8 +70,15 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const [timeframe, setTimeframe] = useState<TimeFrame>('1h');
   const [isMobile, setIsMobile] = useState(false);
   const [chartError, setChartError] = useState<string | null>(null);
-  const [chartReady, setChartReady] = useState(false); // Track when chart is ready for data
+  const [chartReady, setChartReady] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const { klineData, loading, error, currentSymbol } = useKLineData(symbol, timeframe);
+
+  // Pinch-to-zoom state
+  const pinchStateRef = useRef<{
+    initialDistance: number;
+    initialScale: number;
+  } | null>(null);
 
   // Track the current symbol to detect changes and clear chart data
   const prevSymbolRef = useRef<string>(symbol);
@@ -107,37 +115,94 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   }, []);
 
   // Adjust height for mobile
-  const adjustedHeight = isMobile ? Math.min(height, 300) : height;
+  const adjustedHeight = isFullscreen 
+    ? window.innerHeight - 120 
+    : (isMobile ? Math.min(height, 300) : height);
 
   /**
    * Cleanup function that safely removes chart and observers.
-   * Must be called when component unmounts or when chart needs to be re-initialized.
    */
   const cleanupChart = useCallback(() => {
     log.debug('Cleaning up chart resources...');
-    setChartReady(false); // Mark chart as not ready
+    setChartReady(false);
 
-    // Cancel any pending animation frame
     if (initRafRef.current) {
       cancelAnimationFrame(initRafRef.current);
       initRafRef.current = null;
     }
 
-    // Disconnect resize observer
     if (resizeObserverRef.current) {
       resizeObserverRef.current.disconnect();
       resizeObserverRef.current = null;
     }
 
-    // Safely remove chart
     if (chartRef.current) {
       safeRemoveChart(chartRef.current);
       chartRef.current = null;
     }
 
-    // Clear series refs
     candleSeriesRef.current = null;
     volumeSeriesRef.current = null;
+  }, []);
+
+  // Handle pinch-to-zoom gesture
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const dx = touch1.clientX - touch2.clientX;
+      const dy = touch1.clientY - touch2.clientY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+      
+      pinchStateRef.current = {
+        initialDistance: distance,
+        initialScale: 1,
+      };
+      
+      // Prevent default zoom behavior
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!pinchStateRef.current || e.touches.length !== 2) return;
+    
+    const touch1 = e.touches[0];
+    const touch2 = e.touches[1];
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    const scale = distance / pinchStateRef.current.initialDistance;
+    
+    // Apply scale to chart time scale
+    if (chartRef.current) {
+      const timeScale = chartRef.current.timeScale();
+      const visibleRange = timeScale.getVisibleRange();
+      
+      if (visibleRange) {
+        // Scale the visible range based on pinch gesture
+        const center = (visibleRange.from as number + visibleRange.to as number) / 2;
+        const halfRange = (visibleRange.to as number - visibleRange.from as number) / 2;
+        const newHalfRange = halfRange / scale;
+        
+        // Clamp to prevent over-zooming
+        const clampedHalfRange = Math.max(60, Math.min(newHalfRange, 86400 * 30)); // Min 1 min, max 30 days
+        
+        timeScale.setVisibleRange({
+          from: (center - clampedHalfRange) as Time,
+          to: (center + clampedHalfRange) as Time,
+        });
+      }
+    }
+    
+    pinchStateRef.current.initialDistance = distance;
+    
+    e.preventDefault();
+  }, []);
+
+  const handleTouchEnd = useCallback((e: TouchEvent) => {
+    pinchStateRef.current = null;
   }, []);
 
   // Clear chart data when symbol changes
@@ -146,7 +211,6 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       log.debug('Symbol changed', { from: prevSymbolRef.current, to: symbol });
       prevSymbolRef.current = symbol;
       
-      // Clear chart data immediately
       if (candleSeriesRef.current) {
         try {
           candleSeriesRef.current.setData([]);
@@ -164,10 +228,8 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     }
   }, [symbol]);
 
-  // Initialize chart - use useLayoutEffect for DOM operations
-  // Wait for loading to complete before initializing to avoid DOM conflicts with Spin
+  // Initialize chart
   useLayoutEffect(() => {
-    // Skip if loading - wait for data to be ready
     if (loading) {
       log.debug('Loading in progress, deferring chart initialization...');
       return;
@@ -181,11 +243,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
     const container = chartContainerRef.current;
 
-    /**
-     * Initialize chart with proper error handling and mount state checks.
-     */
     const initializeChart = (): boolean => {
-      // Check mount state before proceeding
       if (!isMountedRef.current) {
         log.debug('Component unmounted, aborting initialization');
         return false;
@@ -209,34 +267,46 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       try {
         log.info('Starting chart initialization...');
 
-        // Validate container is a valid DOM element
         if (!(container instanceof HTMLElement)) {
           throw new Error('Chart container is not a valid HTML element');
         }
         log.debug('Container validation passed');
 
-        // Clear any existing chart content
         container.innerHTML = '';
         log.debug('Container cleared');
 
         const chartOptions = {
           width: containerWidth,
-          height: height > 0 ? height : 400,
+          height: adjustedHeight > 0 ? adjustedHeight : 400,
           layout: {
-            background: { type: 'solid', color: '#1a1a1a' },
-            textColor: '#d1d4dc',
+            background: { type: 'solid', color: 'var(--color-bg-1)' },
+            textColor: 'var(--color-text-2)',
           },
           grid: {
-            vertLines: { color: '#2B2B43' },
-            horzLines: { color: '#2B2B43' },
+            vertLines: { color: 'var(--color-border-1)' },
+            horzLines: { color: 'var(--color-border-1)' },
           },
           crosshair: {
-            mode: 1, // MagnetMode
+            mode: 1,
           },
           timeScale: {
-            borderColor: '#2B2B43',
+            borderColor: 'var(--color-border-1)',
             timeVisible: true,
             secondsVisible: false,
+          },
+          rightPriceScale: {
+            borderColor: 'var(--color-border-1)',
+          },
+          handleScroll: {
+            vertTouchDrag: true,
+            horzTouchDrag: true,
+            mouseWheel: true,
+            pressedMouseMove: true,
+          },
+          handleScale: {
+            axisPressedMouseMove: true,
+            mouseWheel: true,
+            pinch: true,
           },
         };
         log.debug('Chart options', chartOptions);
@@ -250,14 +320,13 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
         chartRef.current = chart;
 
-        // Create candlestick series - lightweight-charts v5.x API
         log.debug('Creating candlestick series...');
         const candleSeries = chart.addSeries(CandlestickSeries, {
-          upColor: '#26a69a',
-          downColor: '#ef5350',
+          upColor: '#00b42a',
+          downColor: '#f53f3f',
           borderVisible: false,
-          wickUpColor: '#26a69a',
-          wickDownColor: '#ef5350',
+          wickUpColor: '#00b42a',
+          wickDownColor: '#f53f3f',
         });
         log.debug('Candlestick series created', { valid: !!candleSeries });
 
@@ -267,17 +336,16 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
         candleSeriesRef.current = candleSeries;
 
-        // Create volume series (overlay at bottom)
         if (showVolume) {
           log.debug('Creating volume series...');
           const volumeSeries = chart.addSeries(HistogramSeries, {
-            color: '#26a69a',
+            color: '#00b42a80',
             priceFormat: {
               type: 'volume',
             },
-            priceScaleId: '', // Overlay on main chart
+            priceScaleId: '',
             scaleMargins: {
-              top: 0.8, // Push to bottom
+              top: 0.8,
               bottom: 0,
             },
           });
@@ -290,9 +358,14 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           volumeSeriesRef.current = volumeSeries;
         }
 
+        // Add touch event listeners for pinch-to-zoom
+        container.addEventListener('touchstart', handleTouchStart, { passive: false });
+        container.addEventListener('touchmove', handleTouchMove, { passive: false });
+        container.addEventListener('touchend', handleTouchEnd);
+
         log.info('Chart initialized successfully');
-        setChartError(null); // Clear any previous errors
-        setChartReady(true); // Mark chart as ready for data
+        setChartError(null);
+        setChartReady(true);
         return true;
       } catch (err: any) {
         log.error('Failed to initialize chart', err, {
@@ -300,14 +373,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           name: err.name,
         });
         if (isMountedRef.current) {
-          setChartError(`图表初始化失败：${err.message || '未知错误'}`);
+          setChartError('图表初始化失败：' + (err.message || '未知错误'));
         }
         return false;
       }
     };
 
-    // Delay initialization with requestAnimationFrame to ensure DOM is stable
-    // This helps avoid conflicts with Arco Design Spin component's DOM operations
     initRafRef.current = requestAnimationFrame(() => {
       if (!isMountedRef.current) {
         log.debug('Component unmounted during RAF, aborting');
@@ -316,10 +387,8 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
       const initialized = initializeChart();
 
-      // If not initialized (width was 0), set up a ResizeObserver to retry
       if (!initialized && isMountedRef.current) {
         const resizeObserver = new ResizeObserver(() => {
-          // Only try to initialize if chart doesn't exist yet and component is mounted
           if (!chartRef.current && chartContainerRef.current && isMountedRef.current) {
             const success = initializeChart();
             if (success && resizeObserverRef.current) {
@@ -334,12 +403,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       }
     });
 
-    // Handle resize for already-initialized chart
     const handleResize = () => {
       if (!isMountedRef.current) return;
       if (chartContainerRef.current && chartRef.current) {
         chartRef.current.applyOptions({
           width: chartContainerRef.current.clientWidth,
+          height: adjustedHeight,
         });
       }
     };
@@ -348,13 +417,15 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
       cleanupChart();
     };
-  }, [height, showVolume, loading, cleanupChart]);
+  }, [adjustedHeight, showVolume, loading, cleanupChart, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   // Update data when chart is ready or data changes
   useEffect(() => {
-    // Wait for chart to be ready before setting data
     if (!chartReady) {
       log.debug('Chart not ready yet, waiting...');
       return;
@@ -370,7 +441,6 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       return;
     }
 
-    // Verify data matches current symbol
     if (currentSymbol !== symbol) {
       log.warn('Data symbol mismatch', { got: currentSymbol, expected: symbol });
       return;
@@ -409,12 +479,6 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         return;
       }
 
-      // Log price range for debugging
-      const prices = klineData.map(d => d.close);
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      log.debug('Price range', { symbol, min: minPrice, max: maxPrice, first: firstPoint.close });
-
       const candleData: CandlestickData<Time>[] = klineData.map((point, idx) => {
         const time = point.time as UTCTimestamp;
         if (typeof time !== 'number' || time <= 0) {
@@ -438,7 +502,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         const volumeData = klineData.map(point => ({
           time: point.time as UTCTimestamp,
           value: point.volume,
-          color: point.close >= point.open ? '#26a69a80' : '#ef535080',
+          color: point.close >= point.open ? '#00b42a80' : '#f53f3f80',
         }));
         volumeSeriesRef.current.setData(volumeData);
         log.debug('Volume data set successfully');
@@ -454,7 +518,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         name: err.name,
       });
       if (isMountedRef.current) {
-        setChartError(`图表数据更新失败：${err.message}`);
+        setChartError('图表数据更新失败：' + (err.message || ''));
       }
     }
   }, [chartReady, klineData, showVolume, symbol, currentSymbol]);
@@ -464,12 +528,17 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     setTimeframe(value);
   }, []);
 
+  // Toggle fullscreen
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(prev => !prev);
+  }, []);
+
   if (error || chartError) {
     return (
       <Card>
         <div style={{ padding: '40px', textAlign: 'center' }}>
           <Text type="danger" style={{ fontSize: 16, marginBottom: 16, display: 'block' }}>
-            {error ? `数据加载失败：${error}` : chartError}
+            {error ? '数据加载失败：' + error : chartError}
           </Text>
           <Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
             {error ? '请检查网络连接或 API 配置' : '图表初始化失败，请检查浏览器控制台日志'}
@@ -479,28 +548,91 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     );
   }
 
+  // Mobile-optimized timeframe selector
+  const TimeframeSelector = () => {
+    if (isMobile) {
+      return (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {Object.entries(TIMEFRAME_LABELS).map(([value, label]) => (
+            <Button
+              key={value}
+              size="small"
+              type={timeframe === value ? 'primary' : 'default'}
+              onClick={() => handleTimeframeChange(value as TimeFrame)}
+              style={{ minWidth: 44, minHeight: 36 }}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+      );
+    }
+    
+    return (
+      <Radio.Group
+        value={timeframe}
+        onChange={handleTimeframeChange}
+        options={Object.entries(TIMEFRAME_LABELS).map(([value, label]) => ({
+          value,
+          label,
+        }))}
+        size="small"
+        style={{ flexWrap: 'wrap' }}
+      />
+    );
+  };
+
   return (
     <Card
-      title={`${symbol} K 线图`}
+      title={symbol + ' K 线图'}
       extra={
-        <Radio.Group
-          value={timeframe}
-          onChange={handleTimeframeChange}
-          options={Object.entries(TIMEFRAME_LABELS).map(([value, label]) => ({
-            value,
-            label,
-          }))}
-          size={isMobile ? 'default' : 'small'}
-          style={{ flexWrap: 'wrap' }}
-        />
+        <Space>
+          <TimeframeSelector />
+          {isMobile && (
+            <Tooltip content={isFullscreen ? '退出全屏' : '全屏'}>
+              <Button
+                type="text"
+                icon={isFullscreen ? <IconFullscreenExit /> : <IconFullscreen />}
+                onClick={toggleFullscreen}
+              />
+            </Tooltip>
+          )}
+        </Space>
       }
+      style={isFullscreen ? { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 } : {}}
     >
+      {/* Touch hint for mobile users */}
+      {isMobile && !chartError && (
+        <div
+          className="chart-touch-hint visible"
+          style={{
+            position: 'absolute',
+            bottom: 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(0, 0, 0, 0.6)',
+            color: 'white',
+            padding: '4px 12px',
+            borderRadius: 12,
+            fontSize: 11,
+            zIndex: 10,
+          }}
+        >
+          双指缩放 · 滑动查看更多
+        </div>
+      )}
+      
       <Spin loading={loading} style={{ width: '100%' }}>
         <div
           ref={chartContainerRef}
           className="kline-chart-container"
           data-testid="kline-chart"
-          style={{ height: `${adjustedHeight}px`, position: 'relative', width: '100%' }}
+          style={{ 
+            height: adjustedHeight + 'px', 
+            position: 'relative', 
+            width: '100%',
+            touchAction: 'pan-y',
+          }}
         >
           {klineData && klineData.length === 0 && (
             <Empty description="暂无 K 线数据" />

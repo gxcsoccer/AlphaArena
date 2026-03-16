@@ -472,3 +472,608 @@ body {
 .settings-button:active {
   background-color: var(--color-fill-3) !important;
 }
+
+/* ============================================
+   Mobile Responsive Enhancements - Issue #213
+   ============================================ */
+
+/* Mobile-specific touch target sizing (min 44x44px per WCAG) */
+@media (max-width: 768px) {
+  /* Ensure all interactive elements meet touch target size */
+  .arco-btn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 8px 16px;
+  }
+  
+  .arco-btn-size-small {
+    min-height: 36px;
+    padding: 4px 12px;
+  }
+  
+  .arco-input {
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom on focus */
+  }
+  
+  .arco-input-number {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  .arco-select .arco-select-view,
+  .arco-select-view {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  .arco-radio-wrapper,
+  .arco-checkbox-wrapper {
+    min-height: 44px;
+    padding: 10px 0;
+  }
+  
+  .arco-radio,
+  .arco-checkbox {
+    transform: scale(1.2); /* Larger touch target */
+  }
+  
+  /* Form item spacing for touch */
+  .arco-form-item {
+    margin-bottom: 16px;
+  }
+  
+  .arco-form-item-label {
+    padding-bottom: 8px;
+    font-size: 14px;
+  }
+  
+  /* Card mobile styles */
+  .arco-card {
+    border-radius: 8px;
+  }
+  
+  .arco-card-header {
+    padding: 12px 16px;
+  }
+  
+  .arco-card-body {
+    padding: 12px 16px;
+  }
+  
+  /* Tab navigation for mobile */
+  .arco-tabs-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  
+  .arco-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .arco-tabs-tab {
+    min-height: 44px;
+    padding: 10px 16px;
+    white-space: nowrap;
+  }
+  
+  /* Modal mobile styles */
+  .arco-modal {
+    width: calc(100% - 32px) !important;
+    max-width: 100%;
+    margin: 16px;
+  }
+  
+  .arco-modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Drawer mobile styles */
+  .arco-drawer {
+    width: 280px !important;
+  }
+  
+  .arco-drawer-body {
+    padding: 12px;
+  }
+  
+  /* Menu item touch targets */
+  .arco-menu-item,
+  .arco-menu-inline .arco-menu-item {
+    height: 48px;
+    line-height: 48px;
+    margin: 4px 0;
+  }
+  
+  /* Table mobile optimizations */
+  .arco-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .arco-table {
+    font-size: 14px;
+  }
+  
+  .arco-table-th,
+  .arco-table-td {
+    padding: 12px 8px;
+  }
+  
+  /* Message/Toast mobile position */
+  .arco-message {
+    top: 16px !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: auto !important;
+  }
+  
+  /* Dropdown mobile styles */
+  .arco-dropdown-menu {
+    max-height: 50vh;
+    overflow-y: auto;
+  }
+  
+  /* Progress bar mobile */
+  .arco-progress-line-text {
+    font-size: 12px;
+  }
+}
+
+/* Pull-to-refresh indicator */
+.pull-to-refresh {
+  position: relative;
+  overflow: hidden;
+}
+
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -50px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px;
+  transition: top 0.3s ease;
+}
+
+.pull-to-refresh-indicator.visible {
+  top: 0;
+}
+
+.pull-to-refresh-indicator .arco-spin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Swipe hint animation */
+@keyframes swipe-hint {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(-10px);
+    opacity: 1;
+  }
+}
+
+.swipe-hint-left {
+  animation: swipe-hint 1.5s ease-in-out infinite;
+}
+
+@keyframes swipe-hint-right {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateX(10px);
+    opacity: 1;
+  }
+}
+
+.swipe-hint-right {
+  animation: swipe-hint-right 1.5s ease-in-out infinite;
+}
+
+/* Mobile trading pair card styles */
+.mobile-trading-pair-card {
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.mobile-trading-pair-card:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Mobile order book touch-friendly rows */
+.mobile-orderbook-row {
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.mobile-orderbook-row:active {
+  background-color: var(--color-fill-2);
+}
+
+/* Chart touch hint overlay */
+.chart-touch-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.chart-touch-hint.visible {
+  opacity: 1;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .arco-layout-sider {
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+  
+  .arco-layout-header {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+  
+  .arco-layout-content {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+  
+  .arco-drawer {
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+  
+  .arco-modal-footer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Landscape orientation optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .arco-layout-header {
+    height: 48px !important;
+    line-height: 48px !important;
+  }
+  
+  .arco-card-header {
+    padding: 8px 16px;
+  }
+  
+  .arco-card-body {
+    padding: 8px 16px;
+  }
+  
+  .arco-form-item {
+    margin-bottom: 8px;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .arco-divider {
+    height: 0.5px;
+  }
+  
+  .arco-table-th,
+  .arco-table-td {
+    border-bottom-width: 0.5px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .pull-to-refresh-indicator,
+  .swipe-hint-left,
+  .swipe-hint-right {
+    animation: none !important;
+  }
+}
+
+/* Dark mode mobile-specific adjustments */
+:root.dark .mobile-trading-pair-card:active,
+:root[data-theme='dark'] .mobile-trading-pair-card:active {
+  background-color: var(--color-fill-3);
+}
+
+/* Touch feedback for all interactive elements */
+@media (hover: none) and (pointer: coarse) {
+  .arco-btn:active {
+    transform: scale(0.96);
+  }
+  
+  .arco-card:active {
+    transform: scale(0.99);
+  }
+  
+  .arco-menu-item:active {
+    background-color: var(--color-fill-2);
+  }
+  
+  .arco-tabs-tab:active {
+    background-color: var(--color-fill-1);
+  }
+}
+
+/* Prevent text selection during swipe gestures */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+/* Smooth scrolling for all scrollable containers */
+.scrollable {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar for cleaner mobile look (but keep functionality) */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============================================
+   Accessibility Enhancements - Issue #214
+   ============================================ */
+
+/* Focus-visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Skip to content link styles */
+.skip-to-content:focus {
+  position: absolute !important;
+  left: 8px !important;
+  top: 8px !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 8px 16px !important;
+  background: var(--color-primary) !important;
+  color: white !important;
+  border-radius: 4px !important;
+  z-index: 9999 !important;
+  text-decoration: none !important;
+}
+
+/* Ensure buttons have proper focus states */
+button:focus-visible,
+.arco-btn:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 4px rgba(22, 93, 255, 0.2) !important;
+}
+
+/* Theme toggle button focus state */
+.theme-toggle-button:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  background-color: var(--color-fill-2) !important;
+  border-radius: 4px !important;
+}
+
+/* Settings button focus state */
+.settings-button:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  background-color: var(--color-fill-2) !important;
+  border-radius: 4px !important;
+}
+
+/* Menu item focus states */
+.arco-menu-item:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: -2px !important;
+  background-color: var(--color-fill-2) !important;
+}
+
+/* Tab focus states */
+.arco-tabs-tab:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  border-radius: 4px !important;
+}
+
+/* Form input focus states */
+input:focus-visible,
+.arco-input:focus-visible,
+.arco-input-number:focus-visible,
+.arco-select-view:focus-visible,
+.arco-radio-group:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Table row focus states */
+.arco-table-tr:focus-visible,
+.arco-table-td:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: -2px !important;
+}
+
+/* Card focus states for interactive cards */
+.arco-card[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Drawer focus states */
+.arco-drawer:focus-visible {
+  outline: none !important;
+}
+
+/* Modal focus trap styles */
+.arco-modal {
+  outline: none !important;
+}
+
+/* Ensure sufficient color contrast for text */
+.arco-typography {
+  color: var(--color-text-1) !important;
+}
+
+/* Improve link contrast */
+a {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+  border-radius: 2px !important;
+}
+
+/* Screen reader only class */
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Ensure minimum touch target size (44x44px) */
+.arco-btn {
+  min-height: 32px;
+  min-width: 32px;
+}
+
+.arco-btn-sm {
+  min-height: 28px;
+  min-width: 28px;
+}
+
+/* Icon-only buttons should have larger touch targets */
+.arco-btn-icon-only {
+  min-height: 44px !important;
+  min-width: 44px !important;
+  padding: 8px !important;
+}
+
+/* Ensure clickable areas have adequate size for touch */
+[role="button"],
+[tabindex="0"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border-1: #000000;
+    --color-text-1: #000000;
+    --color-text-2: #333333;
+  }
+  
+  :root.dark {
+    --color-border-1: #ffffff;
+    --color-text-1: #ffffff;
+    --color-text-2: #cccccc;
+  }
+  
+  button:focus-visible,
+  a:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 3px solid currentColor !important;
+    outline-offset: 2px !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ensure visible focus for all interactive elements in keyboard navigation */
+.keyboard-user *:focus {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* OrderBook accessibility */
+.orderbook-mobile-row:focus-within {
+  background-color: var(--color-fill-2) !important;
+}
+
+.orderbook-price-column:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: -2px !important;
+  border-radius: 4px !important;
+}
+
+/* Trading pair list accessibility */
+.arco-table-row:hover,
+.arco-table-row:focus-within {
+  background-color: var(--color-fill-1) !important;
+}
+
+/* Tooltip accessibility - ensure tooltips are announced */
+.arco-tooltip-content {
+  role: "tooltip";
+}
+
+/* Loading state accessibility */
+.arco-spin {
+  role: "status";
+  aria-live: "polite";
+}
+
+/* Error state accessibility */
+[role="alert"] {
+  color: var(--color-danger);
+  font-weight: 500;
+}
+
+/* Status announcements */
+[role="status"] {
+  aria-live: "polite";
+}
