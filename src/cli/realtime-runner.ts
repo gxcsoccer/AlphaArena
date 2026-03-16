@@ -11,6 +11,7 @@
 import { TradingEngine } from '../engine/TradingEngine';
 import { EngineConfig, EngineState, RiskControlConfig } from '../engine/types';
 import { SMAStrategy } from '../strategy/SMAStrategy';
+import { RSIStrategy } from '../strategy/RSIStrategy';
 
 /**
  * Real-time Trading Runner Configuration
@@ -24,13 +25,16 @@ export interface RunnerConfig {
   initialCapital: number;
   /** Strategies to run */
   strategies: Array<{
-    type: 'SMA';
+    type: 'SMA' | 'RSI';
     params: {
       id: string;
       name: string;
       params: {
-        shortPeriod: number;
-        longPeriod: number;
+        shortPeriod?: number;
+        longPeriod?: number;
+        period?: number;
+        overbought?: number;
+        oversold?: number;
         tradeQuantity: number;
       };
     };
@@ -130,7 +134,15 @@ export class RealtimeRunner {
           const strategy = new SMAStrategy({
             id: strategyConfig.params.id,
             name: strategyConfig.params.name,
-            params: strategyConfig.params.params,
+            params: strategyConfig.params.params as any,
+          });
+          this.engine!.addStrategy(strategy);
+          console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
+        } else if (strategyConfig.type === 'RSI') {
+          const strategy = new RSIStrategy({
+            id: strategyConfig.params.id,
+            name: strategyConfig.params.name,
+            params: strategyConfig.params.params as any,
           });
           this.engine!.addStrategy(strategy);
           console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);

@@ -62,13 +62,19 @@ npx alpha-arena portfolio --show
 npx alpha-arena run --strategy sma --symbol BTC/USDT --timeframe 1h
 ```
 
-#### 2. 执行历史回测
+#### 2. 运行 RSI 策略
+
+```bash
+npx alpha-arena run --strategy rsi --symbol BTC/USDT --timeframe 1h
+```
+
+#### 3. 执行历史回测
 
 ```bash
 npx alpha-arena backtest --strategy sma --symbol BTC/USDT --start 2024-01-01 --end 2024-12-31 --initial-capital 10000
 ```
 
-#### 3. 查看当前持仓
+#### 4. 查看当前持仓
 
 ```bash
 npx alpha-arena portfolio --show
@@ -77,7 +83,7 @@ npx alpha-arena portfolio --show
 ### 代码使用示例
 
 ```typescript
-import { OrderBook, MatchingEngine, Portfolio, SMAStrategy } from 'alphaarena';
+import { OrderBook, MatchingEngine, Portfolio, SMAStrategy, RSIStrategy } from 'alphaarena';
 
 // 创建订单簿
 const orderBook = new OrderBook('BTC/USDT');
@@ -92,8 +98,11 @@ const engine = new MatchingEngine(orderBook);
 // 创建投资组合
 const portfolio = new Portfolio(10000); // 初始资金 10000 USDT
 
-// 创建策略
-const strategy = new SMAStrategy({ shortPeriod: 10, longPeriod: 30 });
+// 创建 SMA 策略
+const smaStrategy = new SMAStrategy({ shortPeriod: 10, longPeriod: 30 });
+
+// 创建 RSI 策略
+const rsiStrategy = new RSIStrategy({ period: 14, overbought: 70, oversold: 30 });
 ```
 
 ## 架构说明
@@ -121,6 +130,7 @@ AlphaArena/
 │   ├── strategy/         # 策略框架模块
 │   │   ├── Strategy.ts   # 策略接口
 │   │   ├── SMAStrategy.ts # SMA 交叉策略实现
+│   │   ├── RSIStrategy.ts # RSI 策略实现
 │   │   ├── types.ts      # 策略类型定义
 │   │   └── index.ts      # 模块导出
 │   │
@@ -158,6 +168,31 @@ AlphaArena/
 3. **Portfolio**: 跟踪现金和持仓变化，计算盈亏
 4. **Strategy**: 定义策略接口，包括 `onData()`, `generateSignal()`, `execute()` 等方法
 5. **BacktestEngine**: 模拟历史交易，评估策略表现
+
+### 内置策略
+
+#### SMA 交叉策略 (SMAStrategy)
+
+基于简单移动平均线的交叉策略：
+- **金叉**：短期均线上穿长期均线 → 买入信号
+- **死叉**：短期均线下穿长期均线 → 卖出信号
+
+配置参数：
+- `shortPeriod`: 短期均线周期 (默认: 5)
+- `longPeriod`: 长期均线周期 (默认: 20)
+- `tradeQuantity`: 每次交易数量 (默认: 10)
+
+#### RSI 策略 (RSIStrategy)
+
+基于相对强弱指数的动量策略：
+- **超卖信号**：RSI < 30 → 买入信号
+- **超买信号**：RSI > 70 → 卖出信号
+
+配置参数：
+- `period`: RSI 计算周期 (默认: 14)
+- `overbought`: 超买阈值 (默认: 70)
+- `oversold`: 超卖阈值 (默认: 30)
+- `tradeQuantity`: 每次交易数量 (默认: 10)
 
 ## 开发
 
