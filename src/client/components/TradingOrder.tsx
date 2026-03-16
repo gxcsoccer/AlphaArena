@@ -33,6 +33,16 @@ interface OrderFormData {
 }
 
 interface TradingOrderProps {
+  /**
+   * Optional base currency (e.g., "BTC", "AAPL")
+   * If not provided, will be parsed from symbol
+   */
+  baseCurrency?: string;
+  /**
+   * Optional quote currency (e.g., "USD", "USDT")
+   * If not provided, will be parsed from symbol or default to "USD"
+   */
+  quoteCurrency?: string;
   symbol?: string;
   onOrderPlaced?: (orderId: string) => void;
 }
@@ -48,6 +58,8 @@ const TRADING_FEE_RATE = 0.001; // 0.1% trading fee
 
 const TradingOrder: React.FC<TradingOrderProps> = ({
   symbol = 'BTC/USD',
+  baseCurrency: baseCurrencyProp,
+  quoteCurrency: quoteCurrencyProp,
   onOrderPlaced,
 }) => {
   const [activeTab, setActiveTab] = useState<OrderSide>('buy');
@@ -82,8 +94,14 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
 
   // Calculate available balance
   const availableBalance = portfolio?.cashBalance || 0;
-  const baseCurrency = symbol.split('/')[0];
-  const quoteCurrency = symbol.split('/')[1];
+  
+  // Resolve baseCurrency and quoteCurrency:
+  // 1. Use props if provided (from parent with API data)
+  // 2. Fallback to parsing symbol (works for crypto pairs like "BTC/USD")
+  // 3. For stock symbols like "AAPL", default quoteCurrency to "USD"
+  const symbolParts = symbol.split('/');
+  const baseCurrency = baseCurrencyProp || symbolParts[0] || symbol;
+  const quoteCurrency = quoteCurrencyProp || symbolParts[1] || 'USD';
   const baseBalance = portfolio?.positions.find(p => p.symbol === baseCurrency)?.quantity || 0;
   const totalPortfolioValue = portfolio?.totalValue || availableBalance;
 

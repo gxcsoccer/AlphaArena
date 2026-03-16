@@ -96,16 +96,37 @@ export const useMarketData = (refreshInterval: number = 3000) => {
 
 /**
  * Transform MarketTick API response to TradingPair format
+ * 
+ * IMPORTANT: API now returns baseCurrency and quoteCurrency fields directly.
+ * We prioritize these fields over symbol parsing to handle both:
+ * - Crypto pairs like "BTC/USD" → baseCurrency="BTC", quoteCurrency="USD"
+ * - Stock symbols like "AAPL" → baseCurrency="AAPL", quoteCurrency="USD"
  */
 function transformMarketTickToTradingPair(tick: any): TradingPair {
   const symbol = tick.symbol || 'UNKNOWN';
-  const [baseCurrency, quoteCurrency] = symbol.split('/');
+  
+  // Prioritize API-provided baseCurrency and quoteCurrency fields
+  // Fallback to symbol parsing only if API doesn't provide these fields
+  let baseCurrency: string;
+  let quoteCurrency: string;
+  
+  if (tick.baseCurrency && tick.quoteCurrency) {
+    // API provided the currencies directly - use them
+    baseCurrency = tick.baseCurrency;
+    quoteCurrency = tick.quoteCurrency;
+  } else {
+    // Fallback: parse from symbol (works for crypto pairs like "BTC/USD")
+    // For stock symbols like "AAPL", split('/')[1] would be undefined
+    const [base, quote] = symbol.split('/');
+    baseCurrency = base || symbol || 'UNKNOWN';
+    quoteCurrency = quote || 'USD'; // Default to USD for stock symbols
+  }
 
   return {
     symbol,
-    baseCurrency: baseCurrency || 'UNKNOWN',
-    quoteCurrency: quoteCurrency || 'USD',
-    lastPrice: tick.price || 0,
+    baseCurrency,
+    quoteCurrency,
+    lastPrice: tick.lastPrice ?? tick.price ?? 0,
     priceChange24h: tick.priceChange24h || 0,
     priceChangePercent24h: tick.priceChangePercent24h || 0,
     high24h: tick.high24h || 0,
