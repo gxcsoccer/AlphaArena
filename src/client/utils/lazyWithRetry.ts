@@ -1,25 +1,24 @@
 /**
- * Lazy Loading with Retry Logic
+ * Lazy Loading with Cache-Busting on Chunk Error
  * 
  * Handles "Failed to fetch dynamically imported module" errors that occur when:
  * - A new deployment changes chunk hashes
  * - Browser cache holds old bundle with stale chunk references
  * - Network issues during chunk loading
  * 
- * Solution: Retry the import and if that fails, force a page reload to get the latest bundle.
+ * IMPORTANT: The browser caches both successful AND failed dynamic imports.
+ * Retrying the same import() will return the cached error, not fetch fresh code.
+ * 
+ * Solution: Force immediate hard reload with cache-busting on chunk error.
  */
 
 import React, { ComponentType, LazyExoticComponent } from 'react';
 
-// Track retry attempts to prevent infinite loops
-const RETRY_LIMIT = 3;
-const RETRY_DELAY = 500; // ms
-
-// Store for tracking failed imports
-const failedImports = new Set<string>();
+// Key for storing the intended route before reload
+const PENDING_ROUTE_KEY = '__vite_pending_route__';
 
 /**
- * Wrap a dynamic import with retry logic
+ * Wrap a dynamic import with chunk error handling
  * 
  * Usage:
  *   const MyComponent = lazyWithRetry(() => import('./MyComponent'));
@@ -27,29 +26,22 @@ const failedImports = new Set<string>();
 export function lazyWithRetry<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>
 ): LazyExoticComponent<T> {
-  return React.lazy(() => retryImport(importFn));
+  return React.lazy(() => loadWithRetry(importFn));
 }
 
 /**
- * Retry an import with reload fallback
+ * Load a module with immediate hard reload on chunk error
+ * 
+ * Note: We don't retry the import because the browser caches failed imports.
+ * Retrying the same import() returns the cached error, wasting time.
  */
-async function retryImport<T extends ComponentType<any>>(
-  importFn: () => Promise<{ default: T }>,
-  attempt: number = 1
+async function loadWithRetry<T extends ComponentType<any>>(
+  importFn: () => Promise<{ default: T }>
 ): Promise<{ default: T }> {
   try {
     const module = await importFn();
-    
-    // Clear any previous failure tracking on success
-    const importPath = importFn.toString();
-    failedImports.delete(importPath);
-    
     return module;
   } catch (error) {
-    const importPath = importFn.toString();
-    
-    console.error(`[LazyLoad] Import failed (attempt ${attempt}/${RETRY_LIMIT}):`, error);
-    
     // Check if this is a chunk loading error
     const isChunkError = error instanceof Error && (
       error.message.includes('Failed to fetch dynamically imported module') ||
@@ -59,49 +51,64 @@ async function retryImport<T extends ComponentType<any>>(
     );
     
     if (!isChunkError) {
-      // Not a chunk error, re-throw
+      // Not a chunk error, re-throw normally
       throw error;
     }
     
-    // Check if we've already tried too many times
-    if (attempt >= RETRY_LIMIT) {
-      console.error('[LazyLoad] Max retries reached, forcing page reload...');
-      
-      // Track this import as failed
-      failedImports.add(importPath);
-      
-      // Force reload to get fresh bundle
-      // Use setTimeout to ensure error is logged
-      setTimeout(() => {
-        // Preserve the current URL so user returns to the same page
-        window.location.reload();
-      }, 100);
-      
-      // Re-throw to show error boundary temporarily
-      throw error;
+    console.error('[ChunkError] Chunk loading failed, forcing hard reload...');
+    console.error('[ChunkError] Error:', error);
+    
+    // Store current route for restoration after reload
+    try {
+      const currentPath = window.location.pathname + window.location.search + window.location.hash;
+      sessionStorage.setItem(PENDING_ROUTE_KEY, currentPath);
+    } catch (e) {
+      // Ignore sessionStorage errors
     }
     
-    // Wait before retrying
-    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * attempt));
+    // Force hard reload with cache-busting
+    // Using location.href with cache-busting query ensures fresh fetch
+    const cacheBuster = `__t=${Date.now()}`;
+    const currentUrl = window.location.href;
+    const separator = currentUrl.includes('?') ? '&' : '?';
     
-    console.log(`[LazyLoad] Retrying import (attempt ${attempt + 1})...`);
+    // Force reload - this will fetch all chunks fresh
+    window.location.href = currentUrl + separator + cacheBuster;
     
-    return retryImport(importFn, attempt + 1);
+    // Return a never-resolving promise while reload happens
+    // This prevents React from showing error UI briefly
+    return new Promise(() => {});
   }
 }
 
 /**
- * Check if we're in a retry loop for a specific import
+ * Check if there's a pending route to restore after reload
+ * Call this on app startup
  */
-export function isImportFailed(importFn: () => Promise<any>): boolean {
-  return failedImports.has(importFn.toString());
+export function getPendingRoute(): string | null {
+  try {
+    const route = sessionStorage.getItem(PENDING_ROUTE_KEY);
+    if (route) {
+      sessionStorage.removeItem(PENDING_ROUTE_KEY);
+    }
+    return route;
+  } catch {
+    return null;
+  }
 }
 
 /**
- * Clear all failed import tracking
+ * Restore pending route if available
+ * Call this in the app's root component after router is ready
  */
-export function clearFailedImports(): void {
-  failedImports.clear();
+export function restorePendingRoute(): void {
+  const pendingRoute = getPendingRoute();
+  if (pendingRoute && pendingRoute !== window.location.pathname + window.location.search + window.location.hash) {
+    // Use history.replaceState to avoid adding to history stack
+    window.history.replaceState(null, '', pendingRoute);
+    // Trigger a popstate event so the router picks up the change
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
 }
 
 export default lazyWithRetry;

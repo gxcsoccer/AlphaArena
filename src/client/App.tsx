@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Spin, Drawer, Button } from '@arco-design/web-react';
 import {
@@ -21,7 +21,7 @@ import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
 import ErrorReporterPanel from './components/ErrorReporterPanel';
-import { lazyWithRetry } from './utils/lazyWithRetry';
+import { lazyWithRetry, getPendingRoute } from './utils/lazyWithRetry';
 
 // Lazy load pages for code splitting with retry logic for chunk loading failures
 const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
@@ -296,6 +296,27 @@ function RealtimeConnectionSync() {
   return null;
 }
 
+// Component to restore pending route after chunk-error reload
+function RouteRestorer() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Check if we need to restore a pending route
+    const pendingRoute = getPendingRoute();
+    if (pendingRoute) {
+      // Remove the cache-busting query parameter if present
+      const cleanPath = pendingRoute.split('?__t=')[0].split('&__t=')[0];
+      if (cleanPath && cleanPath !== location.pathname + location.search + location.hash) {
+        console.log('[RouteRestorer] Restoring pending route:', cleanPath);
+        navigate(cleanPath, { replace: true });
+      }
+    }
+  }, [navigate, location]);
+  
+  return null;
+}
+
 function App() {
   // Enable error reporting with localStorage fallback
   const { errors, clearErrors, hasErrors } = useErrorReporter({
@@ -309,6 +330,7 @@ function App() {
       <ConnectionProvider>
         <RealtimeConnectionSync />
         <BrowserRouter>
+          <RouteRestorer />
           <OfflineIndicator />
           <MainLayout>
             <AppRoutes />

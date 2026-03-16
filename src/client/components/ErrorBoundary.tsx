@@ -44,6 +44,9 @@ function isThirdPartyDOMError(error: Error | null): boolean {
  * Check if this is a chunk/module loading error
  * These errors occur when the browser fails to load a JavaScript chunk
  * Common causes: deployment updates, cache issues, network problems
+ * 
+ * Note: lazyWithRetry handles chunk errors by forcing an immediate hard reload,
+ * so if we reach here with a chunk error, something unusual happened.
  */
 function isChunkLoadError(error: Error | null): boolean {
   if (!error) return false;
@@ -132,23 +135,18 @@ export class ErrorBoundary extends Component<Props, State> {
       this.props.onError(error, errorInfo);
     }
 
-    // Special handling for third-party DOM errors (e.g., Arco Design removeChild errors)
-    // These are often transient timing issues during component cleanup
-    // Special handling for chunk loading errors (e.g., "Failed to fetch dynamically imported module")
-    // These occur when deployment updates change chunk hashes - reload to get fresh bundle
+    // Special handling for chunk loading errors
+    // These should be rare now since lazyWithRetry handles them earlier
+    // But if they reach here, force an immediate hard reload
     if (isChunkLoadError(error)) {
-      console.warn("[ErrorBoundary] Detected chunk loading error, will auto-reload...");
+      console.warn("[ErrorBoundary] Chunk error reached ErrorBoundary, forcing immediate reload...");
       
-      // Auto-reload after a short delay to get fresh bundle
-      if (!this.isInRetryCycle && this.state.retryCount < 2) {
-        this.isInRetryCycle = true;
-        if (this.retryTimeout) clearTimeout(this.retryTimeout);
-        this.retryTimeout = setTimeout(() => {
-          console.log("[ErrorBoundary] Reloading page to fetch fresh bundle...");
-          window.location.reload();
-        }, 500);
-        return; // Do not show error UI, wait for reload
-      }
+      // Force immediate hard reload with cache-busting
+      const cacheBuster = `__t=${Date.now()}`;
+      const currentUrl = window.location.href;
+      const separator = currentUrl.includes('?') ? '&' : '?';
+      window.location.href = currentUrl + separator + cacheBuster;
+      return;
     }
     
     // Special handling for third-party DOM errors (e.g., Arco Design removeChild errors)
@@ -169,7 +167,7 @@ export class ErrorBoundary extends Component<Props, State> {
           }));
         }, 1000);
         return; // Do not show error UI yet, wait for retry
-    }
+      }
     }
     
     // Store error info for display if not auto-retrying
@@ -189,7 +187,11 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   handleReload = () => {
-    window.location.reload();
+    // Force hard reload with cache-busting
+    const cacheBuster = `__t=${Date.now()}`;
+    const currentUrl = window.location.href;
+    const separator = currentUrl.includes('?') ? '&' : '?';
+    window.location.href = currentUrl + separator + cacheBuster;
   };
 
   render() {
@@ -199,12 +201,10 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.fallback;
       }
 
-      // Check if this is a third-party DOM error (e.g., Arco Design)
-      // Check if this is a chunk loading error (e.g., "Failed to fetch dynamically imported module")
+      // Check for chunk loading error (should be rare now)
       const isChunkError = isChunkLoadError(this.state.error);
 
       // For chunk loading errors, show a reload prompt
-      // These errors require a page reload to get the latest bundle
       if (isChunkError) {
         return (
           <div style={{ 
@@ -232,7 +232,6 @@ export class ErrorBoundary extends Component<Props, State> {
       const isDOMError = isThirdPartyDOMError(this.state.error);
 
       // For third-party DOM errors, show a graceful loading spinner with retry option
-      // These errors are often transient and don't indicate a real application problem
       if (isDOMError) {
         return (
           <div style={{ 
