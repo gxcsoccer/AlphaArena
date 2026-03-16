@@ -156,6 +156,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   } | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+  const [formPrice, setFormPrice] = useState<number | undefined>(undefined);
   const formRef = React.useRef<FormInstance>(null);
 
   // Inject success animation style
@@ -255,7 +256,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
 
   // Calculate max quantity based on available balance
   const maxQuantity = useMemo(() => {
-    const price = formRef.current?.getFieldValue('price') || currentPrice;
+    const price = formPrice || currentPrice;
     if (activeTab === 'buy') {
       // For buy: max = availableBalance / (price * (1 + fee))
       return price > 0 ? availableBalance / (price * (1 + TRADING_FEE_RATE)) : 0;
@@ -263,7 +264,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
       // For sell: max = baseBalance
       return baseBalance;
     }
-  }, [activeTab, availableBalance, baseBalance, currentPrice]);
+  }, [activeTab, availableBalance, baseBalance, currentPrice, formPrice]);
 
   // Real-time validation function
   const validateField = useCallback((field: 'price' | 'quantity' | 'triggerPrice', value: number | undefined): ValidationError | null => {
@@ -725,7 +726,15 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         />
       </Tabs>
 
-      <Form ref={formRef} layout="vertical">
+      <Form 
+      ref={formRef} 
+      layout="vertical"
+      onValuesChange={(changedValues) => {
+        if (changedValues.price !== undefined) {
+          setFormPrice(changedValues.price);
+        }
+      }}
+    >
         {/* Order Type */}
         <Form.Item label="订单类型">
           <Radio.Group
