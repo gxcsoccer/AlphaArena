@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Layout, Typography, Card, Table, Tag, Statistic, Avatar, Progress, Space, Select, Button, Tooltip, Grid } from '@arco-design/web-react';
+import { Typography, Card, Table, Tag, Statistic, Avatar, Progress, Space, Select, Button, Tooltip, Grid } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
   BarChart,
@@ -26,7 +26,6 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps, TableColumnProps } from '@arco-design/web-react';
 import { IconRefresh, IconTrophy, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon';
 
-const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const LeaderboardPage: React.FC = () => {
@@ -316,49 +315,42 @@ const LeaderboardPage: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: isMobile ? 8 : 0,
-          }}
-        >
-          <Title heading={2} style={{ color: 'white', margin: 0, fontSize: isMobile ? 18 : 20 }}>
+      <div>
+        {/* Page Title and Controls */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile ? 12 : 24, flexWrap: 'wrap', gap: isMobile ? 8 : 0 }}>
+          <Title heading={3} style={{ margin: 0 }}>
             <IconTrophy style={{ marginRight: 8 }} />
-            Strategy Leaderboard
+            Leaderboard
           </Title>
-        <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
-          <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: isMobile ? 12 : 14 }}>
-            {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
-          </Text>
-          <Select
-            value={sortBy}
-            onChange={setSortBy}
-            style={{ width: isMobile ? '100%' : 150 }}
-            size={isMobile ? 'default' : 'large'}
-          >
-            <Select.Option value="roi">ROI</Select.Option>
-            <Select.Option value="sharpeRatio">Sharpe Ratio</Select.Option>
-            <Select.Option value="maxDrawdown">Max Drawdown</Select.Option>
-            <Select.Option value="totalPnL">Total P&L</Select.Option>
-            <Select.Option value="winRate">Win Rate</Select.Option>
-            <Select.Option value="totalVolume">Volume</Select.Option>
-          </Select>
-          <Button
-            type="primary"
-            icon={<IconRefresh />}
-            onClick={fetchLeaderboard}
-            loading={loading}
-            size={isMobile ? 'default' : 'large'}
-          >
-            {isMobile ? '刷新' : 'Refresh'}
-          </Button>
-        </Space>
-      </Header>
-      <Content style={{ padding: isMobile ? 12 : 24 }}>
+          <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
+            <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+              {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
+            </Text>
+            <Select
+              value={sortBy}
+              onChange={setSortBy}
+              style={{ width: isMobile ? '100%' : 150 }}
+              size={isMobile ? 'default' : 'default'}
+            >
+              <Select.Option value="roi">ROI</Select.Option>
+              <Select.Option value="sharpeRatio">Sharpe Ratio</Select.Option>
+              <Select.Option value="maxDrawdown">Max Drawdown</Select.Option>
+              <Select.Option value="totalPnL">Total P&L</Select.Option>
+              <Select.Option value="winRate">Win Rate</Select.Option>
+              <Select.Option value="totalVolume">Volume</Select.Option>
+            </Select>
+            <Button
+              type="primary"
+              icon={<IconRefresh />}
+              onClick={fetchLeaderboard}
+              loading={loading}
+              size={isMobile ? 'default' : 'default'}
+            >
+              {isMobile ? '刷新' : 'Refresh'}
+            </Button>
+          </Space>
+        </div>
+
         {/* Top Stats */}
         {summaryStats && (
           <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
@@ -526,8 +518,7 @@ const LeaderboardPage: React.FC = () => {
             Leaderboard updates automatically every minute. Last updated: {lastUpdated?.toLocaleString() || 'Never'}
           </Text>
         </div>
-      </Content>
-    </Layout>
+      </div>
     </ErrorBoundary>
   );
 };
