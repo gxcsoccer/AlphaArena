@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Layout, Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Message } from '@arco-design/web-react';
+import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
   LineChart,
@@ -21,7 +21,6 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
-const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const TradesPage: React.FC = () => {
@@ -186,13 +185,12 @@ const TradesPage: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header>
-          <Title heading={2} style={{ color: 'white', margin: 0 }}>
-            AlphaArena - Trades
-          </Title>
-        </Header>
-        <Content style={{ padding: isMobile ? 12 : 24 }}>
+      <div>
+        {/* Page Title */}
+        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+          Trades
+        </Title>
+
         {/* Filters */}
         <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
@@ -305,8 +303,7 @@ const TradesPage: React.FC = () => {
             />
           </div>
         </Card>
-      </Content>
-    </Layout>
+      </div>
     </ErrorBoundary>
   );
 };

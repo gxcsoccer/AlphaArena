@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layout, Typography, Card, Statistic, Table, Tag, Space, Button, Grid } from '@arco-design/web-react';
+import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
   LineChart,
@@ -25,7 +25,6 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
-const { Header, Content } = Layout;
 const { Title } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
@@ -174,13 +173,12 @@ const DashboardPage: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header>
-          <Title heading={2} style={{ color: 'white', margin: 0 }}>
-            AlphaArena - Dashboard
-          </Title>
-        </Header>
-        <Content style={{ padding: isMobile ? 12 : 24 }}>
+      <div>
+        {/* Page Title */}
+        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+          Dashboard
+        </Title>
+
         {/* Stats Overview */}
         <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Col xs={12} sm={12} md={6}>
@@ -338,8 +336,7 @@ const DashboardPage: React.FC = () => {
             </Card>
           </Col>
         </Row>
-      </Content>
-    </Layout>
+      </div>
     </ErrorBoundary>
   );
 };

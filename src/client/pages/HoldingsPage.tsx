@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Layout, Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space } from '@arco-design/web-react';
+import { Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -22,7 +22,6 @@ import type { TableProps } from '@arco-design/web-react';
 import type { PortfolioWithPnL } from '../hooks/usePortfolioRealtime';
 
 const { Row, Col } = Grid;
-const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#FF6B6B'];
@@ -251,13 +250,12 @@ const HoldingsPage: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header>
-          <Title heading={2} style={{ color: 'white', margin: 0 }}>
-            AlphaArena - Holdings
-          </Title>
-        </Header>
-        <Content style={{ padding: isMobile ? 12 : 24 }}>
+      <div>
+        {/* Page Title */}
+        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+          Holdings
+        </Title>
+
         {/* Strategy Selector */}
         <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
           <Select
@@ -573,8 +571,7 @@ const HoldingsPage: React.FC = () => {
             </div>
           )}
         </Card>
-      </Content>
-    </Layout>
+      </div>
     </ErrorBoundary>
   );
 };

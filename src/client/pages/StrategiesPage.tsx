@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
-import { Layout, Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Switch, Drawer } from '@arco-design/web-react';
+import { Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Switch, Drawer } from '@arco-design/web-react';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useStrategies } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 import type { Strategy } from '../utils/api';
 
-const { Header, Content } = Layout;
 const { Title, Text } = Typography;
 
 interface StrategyFormValues {
@@ -57,37 +56,31 @@ const StrategiesPage: React.FC = () => {
     setModalVisible(true);
   };
 
-  const handleSave = async (values: StrategyFormValues) => {
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedStrategy(null);
+    form.resetFields();
+  };
+
+  const handleSubmit = async (values: StrategyFormValues) => {
     try {
-      // TODO: Call API to update strategy
-      console.log('Update strategy:', selectedStrategy?.id, values);
-      setModalVisible(false);
+      // TODO: Implement API call to update strategy
+      console.log('Updating strategy:', values);
+      Message.success('Strategy updated successfully');
+      handleCloseModal();
       refresh();
     } catch (error) {
-      console.error('Failed to update strategy:', error);
+      Message.error('Failed to update strategy');
     }
   };
 
-  const handleToggleStatus = async (strategy: Strategy) => {
-    try {
-      const newStatus = strategy.status === 'active' ? 'stopped' : 'active';
-      // TODO: Call API to update strategy status
-      console.log('Toggle strategy status:', strategy.id, newStatus);
-      refresh();
-    } catch (error) {
-      console.error('Failed to toggle strategy:', error);
-    }
-  };
-
+  // Strategy table columns
   const strategyColumns: TableProps<Strategy>['columns'] = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
       width: 200,
-      render: (text: string, record: Strategy) => (
-        <a onClick={() => handleViewDetails(record)}>{text}</a>
-      ),
     },
     {
       title: 'Symbol',
@@ -116,30 +109,16 @@ const StrategiesPage: React.FC = () => {
       ellipsis: true,
     },
     {
-      title: 'Created',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 150,
-      render: (text: string) => new Date(text).toLocaleDateString(),
-    },
-    {
       title: 'Actions',
       key: 'actions',
       width: 200,
       render: (_: any, record: Strategy) => (
         <Space>
-          <Button
-            size="small"
-            type={record.status === 'active' ? 'default' : 'primary'}
-            onClick={() => handleToggleStatus(record)}
-          >
-            {record.status === 'active' ? 'Stop' : 'Start'}
-          </Button>
-          <Button size="small" onClick={() => handleEdit(record)}>
-            Edit
-          </Button>
           <Button size="small" onClick={() => handleViewDetails(record)}>
-            Details
+            View
+          </Button>
+          <Button size="small" type="primary" onClick={() => handleEdit(record)}>
+            Edit
           </Button>
         </Space>
       ),
@@ -148,13 +127,12 @@ const StrategiesPage: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <Layout style={{ minHeight: '100vh' }}>
-        <Header>
-          <Title heading={2} style={{ color: 'white', margin: 0 }}>
-            AlphaArena - Strategies
-          </Title>
-        </Header>
-        <Content style={{ padding: isMobile ? 12 : 24 }}>
+      <div>
+        {/* Page Title */}
+        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+          Strategies
+        </Title>
+
         <Card
           title="Strategy Management"
           extra={
@@ -175,105 +153,79 @@ const StrategiesPage: React.FC = () => {
             />
           </div>
         </Card>
-      </Content>
 
-      {/* Strategy Details Drawer */}
-      <Drawer
-        title="Strategy Details"
-        placement="end"
-        width={isMobile ? '100%' : 600}
-        visible={drawerVisible}
-        onClose={handleCloseDrawer}
-      >
-        {selectedStrategy && (
-          <Space direction="vertical" style={{ width: '100%' }} size="large">
-            <div>
-              <Text strong>Name: </Text>
-              <Text>{selectedStrategy.name}</Text>
-            </div>
-            <div>
-              <Text strong>Symbol: </Text>
-              <Text>{selectedStrategy.symbol}</Text>
-            </div>
-            <div>
-              <Text strong>Status: </Text>
-              <Tag color={selectedStrategy.status === 'active' ? 'green' : 'red'}>
-                {selectedStrategy.status}
-              </Tag>
-            </div>
-            <div>
-              <Text strong>Description: </Text>
-              <Text>{selectedStrategy.description || 'N/A'}</Text>
-            </div>
-            <div>
-              <Text strong>Created: </Text>
-              <Text>{new Date(selectedStrategy.createdAt).toLocaleString()}</Text>
-            </div>
-            <div>
-              <Text strong>Updated: </Text>
-              <Text>{new Date(selectedStrategy.updatedAt).toLocaleString()}</Text>
-            </div>
-            <div>
-              <Text strong>Configuration: </Text>
-              <pre
-                style={{
-                  background: '#f5f5f5',
-                  padding: 12,
-                  borderRadius: 4,
-                  overflowX: 'auto',
-                  fontSize: isMobile ? 12 : 14,
-                }}
-              >
-                {JSON.stringify(selectedStrategy.config, null, 2)}
-              </pre>
-            </div>
-          </Space>
-        )}
-      </Drawer>
+        {/* Strategy Details Drawer */}
+        <Drawer
+          title="Strategy Details"
+          placement="end"
+          width={isMobile ? '100%' : 600}
+          visible={drawerVisible}
+          onClose={handleCloseDrawer}
+        >
+          {selectedStrategy && (
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+              <div>
+                <Text strong>Name: </Text>
+                <Text>{selectedStrategy.name}</Text>
+              </div>
+              <div>
+                <Text strong>Symbol: </Text>
+                <Text>{selectedStrategy.symbol}</Text>
+              </div>
+              <div>
+                <Text strong>Status: </Text>
+                <Tag color={selectedStrategy.status === 'active' ? 'green' : 'red'}>
+                  {selectedStrategy.status}
+                </Tag>
+              </div>
+              <div>
+                <Text strong>Description: </Text>
+                <Text>{selectedStrategy.description || 'N/A'}</Text>
+              </div>
+              {selectedStrategy.config && (
+                <div>
+                  <Text strong>Config: </Text>
+                  <pre style={{ background: '#f5f5f5', padding: 8, borderRadius: 4 }}>
+                    {JSON.stringify(selectedStrategy.config, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </Space>
+          )}
+        </Drawer>
 
-      {/* Edit Strategy Modal */}
-      <Modal
-        title="Edit Strategy"
-        visible={modalVisible}
-        onOk={() => form.submit()}
-        onCancel={() => setModalVisible(false)}
-        width={isMobile ? '95%' : 600}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Form.Item
-            name="name"
-            label="Name"
-            rules={[{ required: true, message: 'Please enter strategy name' }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item name="description" label="Description">
-            <Input.Textarea rows={3} />
-          </Form.Item>
-          <Form.Item
-            name="symbol"
-            label="Symbol"
-            rules={[{ required: true, message: 'Please enter trading symbol' }]}
-          >
-            <Input placeholder="e.g., BTC/USDT" />
-          </Form.Item>
-          <Form.Item
-            name="status"
-            label="Status"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Select.Option value="active">Active</Select.Option>
-              <Select.Option value="paused">Paused</Select.Option>
-              <Select.Option value="stopped">Stopped</Select.Option>
-            </Select>
-          </Form.Item>
-          <Form.Item name="config" label="Configuration (JSON)">
-            <Input.Textarea rows={6} />
-          </Form.Item>
-        </Form>
-      </Modal>
-    </Layout>
+        {/* Edit Strategy Modal */}
+        <Modal
+          title="Edit Strategy"
+          visible={modalVisible}
+          onCancel={handleCloseModal}
+          onOk={() => form.submit()}
+          style={{ width: isMobile ? '95%' : 600 }}
+        >
+          <Form form={form} onSubmit={handleSubmit} layout="vertical">
+            <Form.Item label="Name" field="name" rules={[{ required: true }]}>
+              <Input placeholder="Strategy name" />
+            </Form.Item>
+            <Form.Item label="Description" field="description">
+              <Input.TextArea placeholder="Strategy description" />
+            </Form.Item>
+            <Form.Item label="Symbol" field="symbol" rules={[{ required: true }]}>
+              <Select placeholder="Select symbol">
+                <Select.Option value="BTC/USD">BTC/USD</Select.Option>
+                <Select.Option value="ETH/USD">ETH/USD</Select.Option>
+                <Select.Option value="SOL/USD">SOL/USD</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Status" field="status" rules={[{ required: true }]}>
+              <Select placeholder="Select status">
+                <Select.Option value="active">Active</Select.Option>
+                <Select.Option value="paused">Paused</Select.Option>
+                <Select.Option value="stopped">Stopped</Select.Option>
+              </Select>
+            </Form.Item>
+          </Form>
+        </Modal>
+      </div>
     </ErrorBoundary>
   );
 };
