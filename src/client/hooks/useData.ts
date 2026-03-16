@@ -414,11 +414,29 @@ export const useOrderBook = (symbol: string, levels: number = 20) => {
     });
 
     const unsubscribeDelta = client.onOrderBookDelta(symbol, (delta: OrderBookSnapshot) => {
-      console.log('[useOrderBook] Received delta for', symbol);
+      console.log('[useOrderBook] Received delta for', symbol, 'bids:', delta?.bids?.length, 'asks:', delta?.asks?.length);
       if (isMountedRef.current) {
         setOrderBook(prev => {
           if (!prev || !delta) return prev;
-          return { ...delta };
+          
+          // Smart merge: only update bids/asks if delta contains them (non-empty arrays)
+          // This prevents empty delta arrays from overwriting existing data
+          const mergedBids = (Array.isArray(delta.bids) && delta.bids.length > 0) 
+            ? delta.bids 
+            : prev.bids;
+          const mergedAsks = (Array.isArray(delta.asks) && delta.asks.length > 0) 
+            ? delta.asks 
+            : prev.asks;
+          
+          const merged = {
+            ...prev,
+            ...delta,
+            bids: mergedBids,
+            asks: mergedAsks,
+          };
+          
+          console.log('[useOrderBook] Merged data - bids:', merged.bids?.length, 'asks:', merged.asks?.length);
+          return merged;
         });
       }
     });
