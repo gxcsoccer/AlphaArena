@@ -12,6 +12,8 @@ import { TradingEngine } from '../engine/TradingEngine';
 import { EngineConfig, EngineState, RiskControlConfig } from '../engine/types';
 import { SMAStrategy } from '../strategy/SMAStrategy';
 import { RSIStrategy } from '../strategy/RSIStrategy';
+import { MACDStrategy } from '../strategy/MACDStrategy';
+import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 
 /**
  * Real-time Trading Runner Configuration
@@ -25,7 +27,7 @@ export interface RunnerConfig {
   initialCapital: number;
   /** Strategies to run */
   strategies: Array<{
-    type: 'SMA' | 'RSI';
+    type: 'SMA' | 'RSI' | 'MACD' | 'Bollinger';
     params: {
       id: string;
       name: string;
@@ -35,6 +37,11 @@ export interface RunnerConfig {
         period?: number;
         overbought?: number;
         oversold?: number;
+        fastPeriod?: number;
+        slowPeriod?: number;
+        signalPeriod?: number;
+        stdDevMultiplier?: number;
+        squeezeThreshold?: number;
         tradeQuantity: number;
       };
     };
@@ -140,6 +147,22 @@ export class RealtimeRunner {
           console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
         } else if (strategyConfig.type === 'RSI') {
           const strategy = new RSIStrategy({
+            id: strategyConfig.params.id,
+            name: strategyConfig.params.name,
+            params: strategyConfig.params.params as any,
+          });
+          this.engine!.addStrategy(strategy);
+          console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
+        } else if (strategyConfig.type === 'MACD') {
+          const strategy = new MACDStrategy({
+            id: strategyConfig.params.id,
+            name: strategyConfig.params.name,
+            params: strategyConfig.params.params as any,
+          });
+          this.engine!.addStrategy(strategy);
+          console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
+        } else if (strategyConfig.type === 'Bollinger') {
+          const strategy = new BollingerBandsStrategy({
             id: strategyConfig.params.id,
             name: strategyConfig.params.name,
             params: strategyConfig.params.params as any,
@@ -381,13 +404,13 @@ export function createDefaultConfig(): RunnerConfig {
         },
       },
       {
-        type: 'SMA',
+        type: 'Bollinger',
         params: {
-          id: 'sma-googl',
-          name: 'SMA Strategy - GOOGL',
+          id: 'bollinger-googl',
+          name: 'Bollinger Bands Strategy - GOOGL',
           params: {
-            shortPeriod: 5,
-            longPeriod: 20,
+            period: 20,
+            stdDevMultiplier: 2,
             tradeQuantity: 5,
           },
         },

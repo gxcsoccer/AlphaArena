@@ -16,6 +16,7 @@ import { MatchingEngine } from '../matching/MatchingEngine';
 import { SMAStrategy } from '../strategy/SMAStrategy';
 import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
+import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 import { Strategy } from '../strategy/Strategy';
 import { OrderType, Order } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
@@ -85,6 +86,19 @@ export class BacktestEngine {
             slowPeriod: params?.slowPeriod ?? 26,
             signalPeriod: params?.signalPeriod ?? 9,
             tradeQuantity: params?.tradeQuantity ?? 10,
+          },
+        });
+      case 'bollinger':
+      case 'bollingerbands':
+      case 'bb':
+        return new BollingerBandsStrategy({
+          id: 'bollinger-strategy',
+          name: 'Bollinger Bands Strategy',
+          params: {
+            period: params?.period ?? 20,
+            stdDevMultiplier: params?.stdDevMultiplier ?? 2,
+            tradeQuantity: params?.tradeQuantity ?? 10,
+            squeezeThreshold: params?.squeezeThreshold ?? 0.02,
           },
         });
       default:
