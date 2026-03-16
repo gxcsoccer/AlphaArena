@@ -14,6 +14,7 @@ import {
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
 import SettingsPanel from './components/SettingsPanel';
+import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsProvider } from './store/settingsStore';
@@ -206,6 +207,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="toolbar" aria-label="工具栏">
             <ThemeToggle compact={isMobile} />
+            <NotificationCenter compact={isMobile} />
             <SettingsPanel compact={isMobile} />
             <BalanceDisplay compact={isMobile} />
           </div>
