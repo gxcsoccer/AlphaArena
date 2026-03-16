@@ -29,3 +29,6 @@ coverage/
 
 # Supabase
 .supabase/
+
+# E2E test output
+midscene_run/

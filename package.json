@@ -20,7 +20,11 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "test:e2e": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trading-pair-switching.test.ts && E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/page-navigation.test.ts",
+    "test:e2e:trading": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trading-pair-switching.test.ts",
+    "test:e2e:nav": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/page-navigation.test.ts",
+    "preview": "vite preview --port 3000 --host"
   },
   "repository": {
     "type": "git",
@@ -56,7 +60,8 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
     "@arco-design/web-react": "^2.66.11",

@@ -1,0 +1,89 @@
+name: E2E Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Puppeteer browsers
+        run: npx puppeteer browsers install chrome
+
+      - name: Build application
+        run: npm run build:client
+
+      - name: Start preview server
+        run: |
+          npx vite preview --port 3000 --host &
+          echo "Waiting for server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "Server is ready on http://localhost:3000"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 1
+          done
+
+      - name: Create output directory
+        run: mkdir -p midscene_run
+
+      - name: Run E2E tests - Trading Pair Switching
+        id: test-trading
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trading-pair-switching.test.ts
+          echo "trading_result=\$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Run E2E tests - Page Navigation
+        id: test-nav
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/page-navigation.test.ts
+          echo "nav_result=\$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-test-artifacts
+          path: |
+            midscene_run/
+          retention-days: 14
+
+      - name: Aggregate test results
+        run: |
+          echo "## E2E Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trading Pair Switching | ${{ steps.test-trading.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Page Navigation | ${{ steps.test-nav.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Test artifacts (screenshots) are available in the workflow artifacts." >> $GITHUB_STEP_SUMMARY
+
+      - name: Check overall test status
+        run: |
+          if [[ "${{ steps.test-trading.outcome }}" != "success" || "${{ steps.test-nav.outcome }}" != "success" ]]; then
+            echo "❌ One or more E2E test suites failed. Check artifacts for details."
+            exit 1
+          fi
+          echo "✅ All E2E tests passed!"
