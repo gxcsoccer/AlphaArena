@@ -9,6 +9,10 @@
  */
 
 import { validateConfig, logConfigStatus, isSupabaseConfigValid } from './config';
+import { createLogger } from '../../utils/logger';
+
+// Create logger for this module
+const log = createLogger('APIClient');
 
 // Use validated configuration
 const config = validateConfig();
@@ -419,8 +423,8 @@ export const api = {
     params.append('symbol', symbol); // Pass symbol as query param instead of path
     if (limit) params.append('limit', limit.toString());
     const url = `/api/market/kline?${params}`;
-    console.log('[api.getKLineData] 📊 Requesting:', url);
-    console.log('[api.getKLineData] Config:', { 
+    log.info('📊 Requesting:', url);
+    log.info('Config:', { 
       API_BASE_URL, 
       IS_SUPABASE_FUNCTIONS,
       hasSupabaseKey: !!config.supabaseAnonKey 
@@ -429,13 +433,13 @@ export const api = {
     let res: Response;
     try {
       res = await apiFetch(url);
-      console.log('[api.getKLineData] Response status:', res.status, res.ok ? '✅' : '❌');
+      log.info('Response status:', res.status, res.ok ? '✅' : '❌');
     } catch (networkError: any) {
-      console.error('[api.getKLineData] ❌ Network error:', networkError.message);
-      console.error('[api.getKLineData] This usually means:');
-      console.error('[api.getKLineData] - CORS error (check browser console for details)');
-      console.error('[api.getKLineData] - Network connectivity issue');
-      console.error('[api.getKLineData] - Invalid API URL configuration');
+      log.error('❌ Network error:', networkError.message);
+      log.error('This usually means:');
+      log.error('- CORS error (check browser console for details)');
+      log.error('- Network connectivity issue');
+      log.error('- Invalid API URL configuration');
       throw new Error(`Network error: ${networkError.message}`);
     }
     
@@ -443,15 +447,15 @@ export const api = {
     try {
       data = await res.json();
     } catch (parseError: any) {
-      console.error('[api.getKLineData] ❌ Failed to parse response as JSON');
-      console.error('[api.getKLineData] Response body:', await res.text().catch(() => '<unable to read>'));
+      log.error('❌ Failed to parse response as JSON');
+      log.error('Response body:', await res.text().catch(() => '<unable to read>'));
       throw new Error(`Invalid response format: ${parseError.message}`);
     }
     
-    console.log('[api.getKLineData] Response success:', data.success, 'data length:', data.data?.length);
+    log.info('Response success:', data.success, 'data length:', data.data?.length);
     if (!data.success) {
-      console.error('[api.getKLineData] ❌ API returned error:', data.error);
-      console.error('[api.getKLineData] Full response:', data);
+      log.error('❌ API returned error:', data.error);
+      log.error('Full response:', data);
       throw new Error(data.error || 'API request failed');
     }
     return data.data || [];
@@ -634,7 +638,7 @@ export class RealtimeClient {
   async connect(): Promise<void> {
     if (this.connectionPromise) return this.connectionPromise;
     this.connectionPromise = Promise.resolve();
-    console.log('[Realtime] Client initialized');
+    log.info('Client initialized');
     return this.connectionPromise;
   }
 
@@ -678,13 +682,13 @@ export class RealtimeClient {
       case 'leaderboard':
         return this.client.on('leaderboard:global', event, callback as any);
       default:
-        console.warn(`[Realtime] Unknown event type: ${event}`);
+        log.warn(`Unknown event type: ${event}`);
         return () => {};
     }
   }
 
   off(event: string, callback: Function): void {
-    console.warn('[Realtime] off() is deprecated - use the unsubscribe function from on()');
+    log.warn('off() is deprecated - use the unsubscribe function from on()');
   }
 
   disconnect(): void {
@@ -704,6 +708,6 @@ export class RealtimeClient {
 export class WebSocketClient extends RealtimeClient {
   constructor() {
     super();
-    console.warn('[WebSocketClient] WebSocketClient is deprecated. Use RealtimeClient instead.');
+    log.warn('WebSocketClient is deprecated. Use RealtimeClient instead.');
   }
 }

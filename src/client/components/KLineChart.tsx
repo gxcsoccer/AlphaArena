@@ -4,8 +4,12 @@ import { Card, Radio, Spin, Empty, Typography } from '@arco-design/web-react';
 import { useKLineData } from '../hooks/useKLineData';
 import ErrorBoundary from './ErrorBoundary';
 import { logConfigStatus, validateConfig } from '../utils/config';
+import { createLogger } from '../../utils/logger';
 
 const { Text } = Typography;
+
+// Create logger for this module
+const log = createLogger('KLineChart');
 
 export interface KLineDataPoint {
   time: number; // timestamp in seconds
@@ -48,7 +52,7 @@ function safeRemoveChart(chart: IChartApi | null): void {
     if (!err.message?.includes('removeChild') &&
         !err.message?.includes('not a child') &&
         err.name !== 'NotFoundError') {
-      console.error('[KLineChart] Unexpected error during chart removal:', err);
+      log.error('Unexpected error during chart removal', err);
     }
   }
 }
@@ -78,7 +82,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
   // Log configuration on mount for debugging
   useEffect(() => {
-    console.log('[KLineChart] Component mounted, checking configuration...');
+    log.debug('Component mounted, checking configuration...');
     const config = validateConfig();
     logConfigStatus(config);
   }, []);
@@ -110,7 +114,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
    * Must be called when component unmounts or when chart needs to be re-initialized.
    */
   const cleanupChart = useCallback(() => {
-    console.log('[KLineChart] Cleaning up chart resources...');
+    log.debug('Cleaning up chart resources...');
     setChartReady(false); // Mark chart as not ready
 
     // Cancel any pending animation frame
@@ -139,7 +143,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   // Clear chart data when symbol changes
   useEffect(() => {
     if (prevSymbolRef.current !== symbol) {
-      console.log('[KLineChart] Symbol changed from', prevSymbolRef.current, 'to', symbol, '- clearing chart data');
+      log.debug('Symbol changed', { from: prevSymbolRef.current, to: symbol });
       prevSymbolRef.current = symbol;
       
       // Clear chart data immediately
@@ -147,14 +151,14 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         try {
           candleSeriesRef.current.setData([]);
         } catch (err) {
-          console.warn('[KLineChart] Error clearing candlestick data:', err);
+          log.warn('Error clearing candlestick data', err);
         }
       }
       if (volumeSeriesRef.current) {
         try {
           volumeSeriesRef.current.setData([]);
         } catch (err) {
-          console.warn('[KLineChart] Error clearing volume data:', err);
+          log.warn('Error clearing volume data', err);
         }
       }
     }
@@ -165,12 +169,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   useLayoutEffect(() => {
     // Skip if loading - wait for data to be ready
     if (loading) {
-      console.log('[KLineChart] Loading in progress, deferring chart initialization...');
+      log.debug('Loading in progress, deferring chart initialization...');
       return;
     }
 
     if (!chartContainerRef.current) {
-      console.error('[KLineChart] Chart container ref is null');
+      log.error('Chart container ref is null');
       setChartError('图表容器未就绪');
       return;
     }
@@ -183,37 +187,37 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     const initializeChart = (): boolean => {
       // Check mount state before proceeding
       if (!isMountedRef.current) {
-        console.log('[KLineChart] Component unmounted, aborting initialization');
+        log.debug('Component unmounted, aborting initialization');
         return false;
       }
 
       const containerWidth = container.clientWidth;
       const containerHeight = container.clientHeight;
 
-      console.log('[KLineChart] Initializing chart, container size:', { width: containerWidth, containerHeight, height });
+      log.debug('Initializing chart', { width: containerWidth, containerHeight, height });
 
       if (containerWidth <= 0) {
-        console.warn('[KLineChart] Container width is still 0, will retry...');
+        log.warn('Container width is still 0, will retry...');
         return false;
       }
 
       if (containerHeight <= 0 && height <= 0) {
-        console.warn('[KLineChart] Container height is 0 and no height prop, will retry...');
+        log.warn('Container height is 0 and no height prop, will retry...');
         return false;
       }
 
       try {
-        console.log('[KLineChart] 📈 Starting chart initialization...');
+        log.info('Starting chart initialization...');
 
         // Validate container is a valid DOM element
         if (!(container instanceof HTMLElement)) {
           throw new Error('Chart container is not a valid HTML element');
         }
-        console.log('[KLineChart] ✅ Container validation passed');
+        log.debug('Container validation passed');
 
         // Clear any existing chart content
         container.innerHTML = '';
-        console.log('[KLineChart] ✅ Container cleared');
+        log.debug('Container cleared');
 
         const chartOptions = {
           width: containerWidth,
@@ -235,10 +239,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
             secondsVisible: false,
           },
         };
-        console.log('[KLineChart] Chart options:', JSON.stringify(chartOptions, null, 2));
+        log.debug('Chart options', chartOptions);
 
         const chart = createChart(container, chartOptions);
-        console.log('[KLineChart] ✅ createChart called, chart object:', chart ? 'valid' : 'null/undefined');
+        log.debug('createChart called', { valid: !!chart });
 
         if (!chart) {
           throw new Error('createChart returned null/undefined');
@@ -247,7 +251,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         chartRef.current = chart;
 
         // Create candlestick series - lightweight-charts v5.x API
-        console.log('[KLineChart] Creating candlestick series...');
+        log.debug('Creating candlestick series...');
         const candleSeries = chart.addSeries(CandlestickSeries, {
           upColor: '#26a69a',
           downColor: '#ef5350',
@@ -255,7 +259,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           wickUpColor: '#26a69a',
           wickDownColor: '#ef5350',
         });
-        console.log('[KLineChart] ✅ Candlestick series created:', candleSeries ? 'valid' : 'null/undefined');
+        log.debug('Candlestick series created', { valid: !!candleSeries });
 
         if (!candleSeries) {
           throw new Error('Failed to create candlestick series');
@@ -265,7 +269,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
         // Create volume series (overlay at bottom)
         if (showVolume) {
-          console.log('[KLineChart] Creating volume series...');
+          log.debug('Creating volume series...');
           const volumeSeries = chart.addSeries(HistogramSeries, {
             color: '#26a69a',
             priceFormat: {
@@ -277,7 +281,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
               bottom: 0,
             },
           });
-          console.log('[KLineChart] ✅ Volume series created:', volumeSeries ? 'valid' : 'null/undefined');
+          log.debug('Volume series created', { valid: !!volumeSeries });
 
           if (!volumeSeries) {
             throw new Error('Failed to create volume series');
@@ -286,17 +290,14 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           volumeSeriesRef.current = volumeSeries;
         }
 
-        console.log('[KLineChart] ✅ Chart initialized successfully');
+        log.info('Chart initialized successfully');
         setChartError(null); // Clear any previous errors
         setChartReady(true); // Mark chart as ready for data
         return true;
       } catch (err: any) {
-        console.error('[KLineChart] ❌ Failed to initialize chart:', err);
-        console.error('[KLineChart] Error details:', {
+        log.error('Failed to initialize chart', err, {
           message: err.message,
-          stack: err.stack,
           name: err.name,
-          constructor: err.constructor?.name,
         });
         if (isMountedRef.current) {
           setChartError(`图表初始化失败：${err.message || '未知错误'}`);
@@ -309,7 +310,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     // This helps avoid conflicts with Arco Design Spin component's DOM operations
     initRafRef.current = requestAnimationFrame(() => {
       if (!isMountedRef.current) {
-        console.log('[KLineChart] Component unmounted during RAF, aborting');
+        log.debug('Component unmounted during RAF, aborting');
         return;
       }
 
@@ -355,28 +356,28 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   useEffect(() => {
     // Wait for chart to be ready before setting data
     if (!chartReady) {
-      console.log('[KLineChart] Chart not ready yet, waiting...');
+      log.debug('Chart not ready yet, waiting...');
       return;
     }
 
     if (!candleSeriesRef.current) {
-      console.warn('[KLineChart] Candle series not ready, skipping data update');
+      log.warn('Candle series not ready, skipping data update');
       return;
     }
 
     if (!klineData) {
-      console.warn('[KLineChart] No K-line data available yet');
+      log.warn('No K-line data available yet');
       return;
     }
 
     // Verify data matches current symbol
     if (currentSymbol !== symbol) {
-      console.warn('[KLineChart] Data symbol mismatch: got', currentSymbol, 'but expected', symbol, '- skipping update');
+      log.warn('Data symbol mismatch', { got: currentSymbol, expected: symbol });
       return;
     }
 
     if (!Array.isArray(klineData)) {
-      console.error('[KLineChart] Invalid klineData: not an array', typeof klineData);
+      log.error('Invalid klineData: not an array', { type: typeof klineData });
       if (isMountedRef.current) {
         setChartError('K 线数据格式错误');
       }
@@ -384,24 +385,24 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     }
 
     if (klineData.length === 0) {
-      console.log('[KLineChart] Empty klineData, clearing chart');
+      log.debug('Empty klineData, clearing chart');
       try {
         candleSeriesRef.current.setData([]);
         if (volumeSeriesRef.current) {
           volumeSeriesRef.current.setData([]);
         }
       } catch (err: any) {
-        console.error('[KLineChart] Error clearing chart:', err);
+        log.error('Error clearing chart', err);
       }
       return;
     }
 
     try {
-      console.log('[KLineChart] 📊 Updating chart data with', klineData.length, 'points for symbol:', symbol);
+      log.info('Updating chart data', { points: klineData.length, symbol });
 
       const firstPoint = klineData[0];
       if (!firstPoint || typeof firstPoint.open !== 'number' || typeof firstPoint.close !== 'number') {
-        console.error('[KLineChart] Invalid data point structure:', firstPoint);
+        log.error('Invalid data point structure', { point: firstPoint });
         if (isMountedRef.current) {
           setChartError('K 线数据格式无效');
         }
@@ -412,12 +413,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       const prices = klineData.map(d => d.close);
       const minPrice = Math.min(...prices);
       const maxPrice = Math.max(...prices);
-      console.log('[KLineChart] Price range for', symbol, ':', { min: minPrice, max: maxPrice, first: firstPoint.close });
+      log.debug('Price range', { symbol, min: minPrice, max: maxPrice, first: firstPoint.close });
 
       const candleData: CandlestickData<Time>[] = klineData.map((point, idx) => {
         const time = point.time as UTCTimestamp;
         if (typeof time !== 'number' || time <= 0) {
-          console.warn('[KLineChart] Invalid timestamp at index', idx, ':', time);
+          log.warn('Invalid timestamp', { index: idx, time });
         }
         return {
           time,
@@ -428,11 +429,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         };
       });
 
-      console.log('[KLineChart] First data point:', candleData[0]);
-      console.log('[KLineChart] Last data point:', candleData[candleData.length - 1]);
+      log.debug('Data points', { first: candleData[0], last: candleData[candleData.length - 1] });
 
       candleSeriesRef.current.setData(candleData);
-      console.log('[KLineChart] ✅ Candlestick data set successfully');
+      log.debug('Candlestick data set successfully');
 
       if (volumeSeriesRef.current && showVolume) {
         const volumeData = klineData.map(point => ({
@@ -441,18 +441,16 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
           color: point.close >= point.open ? '#26a69a80' : '#ef535080',
         }));
         volumeSeriesRef.current.setData(volumeData);
-        console.log('[KLineChart] ✅ Volume data set successfully');
+        log.debug('Volume data set successfully');
       }
 
       if (isMountedRef.current) {
         setChartError(null);
       }
-      console.log('[KLineChart] ✅ Chart data update complete');
+      log.info('Chart data update complete');
     } catch (err: any) {
-      console.error('[KLineChart] ❌ Failed to update chart data:', err);
-      console.error('[KLineChart] Error details:', {
+      log.error('Failed to update chart data', err, {
         message: err.message,
-        stack: err.stack,
         name: err.name,
       });
       if (isMountedRef.current) {
