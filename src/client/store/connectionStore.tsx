@@ -113,7 +113,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
   const setStatus = useCallback((status: ConnectionStatus) => {
     setState(prev => {
       // If setting to disconnected but REST API is available, use degraded instead
-      if (status === 'disconnected' && prev.isRestApiAvailable) {
+      if ((status === 'disconnected' || status === 'reconnecting') && prev.isRestApiAvailable) {
         return {
           ...prev,
           status: 'degraded',
