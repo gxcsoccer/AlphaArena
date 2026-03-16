@@ -3,10 +3,15 @@
  * 
  * Updated for Issue #197: Sprint 10: 用户偏好设置功能
  * Now uses the centralized settings store for theme state.
+ * 
+ * Issue #214: Sprint 11: UI 可访问性增强
+ * - Added visible text label for better discoverability
+ * - Enhanced aria-label with current theme state
+ * - Added focus-visible styles for keyboard navigation
  */
 
 import React from 'react';
-import { Button, Tooltip } from '@arco-design/web-react';
+import { Button, Tooltip, Space } from '@arco-design/web-react';
 import { IconSun, IconMoonFill } from '@arco-design/web-react/icon';
 import { useSettings } from '../store/settingsStore';
 
@@ -18,9 +23,10 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
   const { settings, toggleTheme } = useSettings();
 
   const isDark = settings.theme === 'dark';
+  const themeLabel = isDark ? '深色模式' : '浅色模式';
 
   return (
-    <Tooltip content={isDark ? '切换到浅色模式' : '切换到深色模式'} position="br">
+    <Tooltip content={`当前: ${themeLabel} - 点击切换`} position="br">
       <Button
         icon={isDark ? <IconSun style={{ fontSize: compact ? 18 : 20 }} /> : <IconMoonFill style={{ fontSize: compact ? 18 : 20 }} />}
         onClick={toggleTheme}
@@ -35,10 +41,20 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          gap: 4,
           transition: 'all 0.3s ease',
         }}
-        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-      />
+        className="theme-toggle-button"
+        aria-label={`主题切换: 当前${themeLabel}，点击切换到${isDark ? '浅色' : '深色'}模式`}
+        aria-pressed={isDark}
+        role="switch"
+      >
+        {!compact && (
+          <span style={{ fontSize: 12, color: 'var(--color-text-2)' }}>
+            {themeLabel}
+          </span>
+        )}
+      </Button>
     </Tooltip>
   );
 };

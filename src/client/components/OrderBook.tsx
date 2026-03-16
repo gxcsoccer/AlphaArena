@@ -3,6 +3,16 @@ import { Card, Typography, Table } from '@arco-design/web-react';
 import { useOrderBook } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
 
+/**
+ * OrderBook Component
+ * 
+ * Issue #214: Sprint 11: UI 可访问性增强
+ * - Added proper ARIA roles and labels
+ * - Added section headers with proper semantics
+ * - Enhanced keyboard navigation
+ * - Added focus indicators
+ */
+
 const { Text } = Typography;
 
 interface OrderBookRow {
@@ -36,6 +46,7 @@ const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) =>
       backgroundColor: row.type === 'bid' ? 'rgba(0, 180, 42, 0.04)' : 'rgba(245, 63, 63, 0.04)',
       minHeight: '60px',
     }}
+    role="row"
   >
     <div
       style={{
@@ -50,6 +61,15 @@ const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) =>
         alignItems: 'center',
       }}
       onClick={() => onPriceClick(row.price, row.type)}
+      role="gridcell"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPriceClick(row.price, row.type);
+        }
+      }}
+      aria-label={`${row.type === 'bid' ? '买入' : '卖出'}价格 ${row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}，点击使用此价格`}
     >
       {row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
     </div>
@@ -64,6 +84,8 @@ const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) =>
         alignItems: 'center',
         justifyContent: 'center',
       }}
+      role="gridcell"
+      aria-label={`数量 ${row.quantity.toFixed(4)}`}
     >
       {row.quantity.toFixed(4)}
     </div>
@@ -79,6 +101,8 @@ const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) =>
         alignItems: 'center',
         justifyContent: 'flex-end',
       }}
+      role="gridcell"
+      aria-label={`总额 $${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}
     >
       ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
     </div>
@@ -105,7 +129,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
   onToggleAsks,
   onPriceClick,
 }) => (
-  <div style={{ padding: '0' }}>
+  <div style={{ padding: '0' }} role="grid" aria-label="订单簿">
     {/* Header row */}
     <div
       style={{
@@ -118,14 +142,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
         color: '#86909c',
         fontWeight: 500,
       }}
+      role="row"
     >
-      <div style={{ flex: 1 }}>价格</div>
-      <div style={{ flex: 1, textAlign: 'center' }}>数量</div>
-      <div style={{ flex: 1, textAlign: 'right' }}>总额</div>
+      <div style={{ flex: 1 }} role="columnheader">价格</div>
+      <div style={{ flex: 1, textAlign: 'center' }} role="columnheader">数量</div>
+      <div style={{ flex: 1, textAlign: 'right' }} role="columnheader">总额</div>
     </div>
 
     {/* Asks section (sell orders) */}
-    <div style={{ marginBottom: '8px' }}>
+    <div style={{ marginBottom: '8px' }} role="region" aria-label="卖单区域">
       <div
         style={{
           display: 'flex',
@@ -138,6 +163,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           userSelect: 'none',
         }}
         onClick={onToggleAsks}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggleAsks();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={!collapsedAsks}
+        aria-controls="asks-list"
+        aria-label={`卖单 (Asks)，${askRows.length} 条，${collapsedAsks ? '展开' : '收起'}`}
       >
         <Text style={{ color: '#f53f3f', fontWeight: 600, fontSize: 14 }}>
           卖单 (Asks)
@@ -146,13 +182,15 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           {collapsedAsks ? '展开' : '收起'} {askRows.length} 条
         </Text>
       </div>
-      {!collapsedAsks && askRows.map(row => (
-        <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
-      ))}
+      <div id="asks-list" role="rowgroup" aria-label="卖单列表">
+        {!collapsedAsks && askRows.map(row => (
+          <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
+        ))}
+      </div>
     </div>
 
     {/* Bids section (buy orders) */}
-    <div>
+    <div role="region" aria-label="买单区域">
       <div
         style={{
           display: 'flex',
@@ -165,6 +203,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           userSelect: 'none',
         }}
         onClick={onToggleBids}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggleBids();
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-expanded={!collapsedBids}
+        aria-controls="bids-list"
+        aria-label={`买单 (Bids)，${bidRows.length} 条，${collapsedBids ? '展开' : '收起'}`}
       >
         <Text style={{ color: '#00b42a', fontWeight: 600, fontSize: 14 }}>
           买单 (Bids)
@@ -173,9 +222,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
           {collapsedBids ? '展开' : '收起'} {bidRows.length} 条
         </Text>
       </div>
-      {!collapsedBids && bidRows.map(row => (
-        <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
-      ))}
+      <div id="bids-list" role="rowgroup" aria-label="买单列表">
+        {!collapsedBids && bidRows.map(row => (
+          <MobileOrderRow key={row.key} row={row} onPriceClick={onPriceClick} />
+        ))}
+      </div>
     </div>
   </div>
 );
@@ -294,6 +345,15 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
             alignItems: 'center',
           }}
           onClick={() => handlePriceClick(price, record.type)}
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handlePriceClick(price, record.type);
+            }
+          }}
+          aria-label={`${record.type === 'bid' ? '买入' : '卖出'}价格 ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}，点击使用此价格`}
+          role="button"
         >
           {price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </Text>
@@ -376,15 +436,17 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       }}
       extra={
         spreadInfo && (
-          <Text type="secondary" size="small">
+          <Text type="secondary" size="small" aria-label={`价差 $${spreadInfo.spread.toFixed(2)}，中间价 $${spreadInfo.midPrice.toFixed(2)}`}>
             价差：${spreadInfo.spread.toFixed(2)} |{' '}
             中间价：${spreadInfo.midPrice.toFixed(2)}
           </Text>
         )
       }
+      role="region"
+      aria-label={`${symbol} 订单簿`}
     >
-      {loading && <Text type="secondary">加载中...</Text>}
-      {error && <Text type="danger">加载失败：{error}</Text>}
+      {loading && <Text type="secondary" role="status" aria-live="polite">加载中...</Text>}
+      {error && <Text type="danger" role="alert">加载失败：{error}</Text>}
       {!loading && !error && orderBook && (
         isMobile ? (
           <MobileLayout
@@ -405,11 +467,13 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
             size="small"
             border={false}
             style={{ fontSize: 12 }}
+            role="grid"
+            aria-label={`${symbol} 订单簿表格`}
           />
         )
       )}
       {!loading && !error && !orderBook && (
-        <Text type="secondary">暂无数据</Text>
+        <Text type="secondary" role="status">暂无数据</Text>
       )}
     </Card>
   );

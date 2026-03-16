@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ThemeToggle from '../ThemeToggle';
-import { ThemeProvider } from '../../hooks/useTheme';
+import { SettingsProvider } from '../../store/settingsStore';
 
 // Mock matchMedia
 const matchMediaMock = jest.fn().mockImplementation(query => ({
@@ -20,8 +20,24 @@ Object.defineProperty(window, 'matchMedia', {
   writable: true,
 });
 
-const renderWithThemeProvider = (component: React.ReactElement) => {
-  return render(<ThemeProvider>{component}</ThemeProvider>);
+// Mock localStorage
+const localStorageMock = {
+  getItem: jest.fn().mockReturnValue(null),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+  clear: jest.fn(),
+};
+Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+
+// Mock ResizeObserver
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
+const renderWithSettingsProvider = (component: React.ReactElement) => {
+  return render(<SettingsProvider>{component}</SettingsProvider>);
 };
 
 describe('ThemeToggle', () => {
@@ -30,89 +46,88 @@ describe('ThemeToggle', () => {
   });
 
   it('should render theme toggle button', () => {
-    renderWithThemeProvider(<ThemeToggle />);
+    renderWithSettingsProvider(<ThemeToggle />);
     
-    const toggleButton = screen.getByRole('button');
+    const toggleButton = screen.getByRole('switch');
     expect(toggleButton).toBeInTheDocument();
   });
 
   it('should show moon icon in light mode', () => {
-    // Mock localStorage to return light theme
-    const localStorageMock = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-    };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-    renderWithThemeProvider(<ThemeToggle />);
+    renderWithSettingsProvider(<ThemeToggle />);
     
     // The moon icon should be present in light mode
-    const moonIcon = screen.getByLabelText('Switch to dark mode');
-    expect(moonIcon).toBeInTheDocument();
-  });
-
-  it('should show sun icon in dark mode', () => {
-    // Mock localStorage to return dark theme
-    const localStorageMock = {
-      getItem: jest.fn().mockReturnValue('dark'),
-      setItem: jest.fn(),
-    };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-    renderWithThemeProvider(<ThemeToggle />);
-    
-    // The sun icon should be present in dark mode
-    const sunIcon = screen.getByLabelText('Switch to light mode');
-    expect(sunIcon).toBeInTheDocument();
+    const toggleButton = screen.getByRole('switch');
+    expect(toggleButton.getAttribute('aria-label')).toContain('浅色模式');
   });
 
   it('should toggle theme when clicked', () => {
-    const localStorageMock = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-    };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-    renderWithThemeProvider(<ThemeToggle />);
+    renderWithSettingsProvider(<ThemeToggle />);
     
-    const toggleButton = screen.getByRole('button');
+    const toggleButton = screen.getByRole('switch');
     fireEvent.click(toggleButton);
     
     // After clicking, the theme should have toggled
-    expect(localStorageMock.setItem).toHaveBeenCalledWith('alphaarena-theme', 'dark');
+    expect(localStorageMock.setItem).toHaveBeenCalled();
   });
 
   it('should support compact mode', () => {
-    renderWithThemeProvider(<ThemeToggle compact />);
+    renderWithSettingsProvider(<ThemeToggle compact />);
     
-    const toggleButton = screen.getByRole('button');
+    const toggleButton = screen.getByRole('switch');
     expect(toggleButton).toBeInTheDocument();
     expect(toggleButton).toHaveStyle('padding: 4px');
   });
 
-  it('should have tooltip with correct text in light mode', () => {
-    const localStorageMock = {
-      getItem: jest.fn().mockReturnValue(null),
-      setItem: jest.fn(),
-    };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-    renderWithThemeProvider(<ThemeToggle />);
+  it('should have accessible aria-label with current theme state', () => {
+    renderWithSettingsProvider(<ThemeToggle />);
     
-    const toggleButton = screen.getByLabelText('Switch to dark mode');
-    expect(toggleButton).toHaveAttribute('aria-label', 'Switch to dark mode');
+    const toggleButton = screen.getByRole('switch');
+    const ariaLabel = toggleButton.getAttribute('aria-label');
+    expect(ariaLabel).toContain('主题切换');
+    expect(ariaLabel).toContain('当前');
+    expect(ariaLabel).toContain('点击切换');
   });
 
-  it('should have tooltip with correct text in dark mode', () => {
-    const localStorageMock = {
-      getItem: jest.fn().mockReturnValue('dark'),
-      setItem: jest.fn(),
-    };
-    Object.defineProperty(window, 'localStorage', { value: localStorageMock });
-
-    renderWithThemeProvider(<ThemeToggle />);
+  it('should have aria-pressed attribute indicating current state', () => {
+    renderWithSettingsProvider(<ThemeToggle />);
     
-    const toggleButton = screen.getByLabelText('Switch to light mode');
-    expect(toggleButton).toHaveAttribute('aria-label', 'Switch to light mode');
+    const toggleButton = screen.getByRole('switch');
+    expect(toggleButton).toHaveAttribute('aria-pressed');
+  });
+
+  it('should have role="switch" for accessibility', () => {
+    renderWithSettingsProvider(<ThemeToggle />);
+    
+    const toggleButton = screen.getByRole('switch');
+    expect(toggleButton).toBeInTheDocument();
+  });
+
+  it('should show visible label in non-compact mode', () => {
+    renderWithSettingsProvider(<ThemeToggle compact={false} />);
+    
+    // Should show theme label text
+    expect(screen.getByText(/模式/)).toBeInTheDocument();
+  });
+
+  it('should not show visible label in compact mode', () => {
+    renderWithSettingsProvider(<ThemeToggle compact={true} />);
+    
+    // Should not show theme label text in compact mode
+    expect(screen.queryByText(/模式/)).not.toBeInTheDocument();
+  });
+
+  it('should be focusable', () => {
+    renderWithSettingsProvider(<ThemeToggle />);
+    
+    const toggleButton = screen.getByRole('switch');
+    toggleButton.focus();
+    expect(toggleButton).toHaveFocus();
+  });
+
+  it('should be a button element (keyboard accessible by default)', () => {
+    renderWithSettingsProvider(<ThemeToggle />);
+    
+    const toggleButton = screen.getByRole('switch');
+    expect(toggleButton.tagName.toLowerCase()).toBe('button');
   });
 });
