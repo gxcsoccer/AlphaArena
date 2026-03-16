@@ -13,9 +13,10 @@ import {
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
+import SettingsPanel from './components/SettingsPanel';
 import OfflineIndicator from './components/OfflineIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { ThemeProvider } from './hooks/useTheme';
+import { SettingsProvider } from './store/settingsStore';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
@@ -138,6 +139,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <ThemeToggle compact={isMobile} />
+            <SettingsPanel compact={isMobile} />
             <BalanceDisplay compact={isMobile} />
           </div>
         </Header>
@@ -214,7 +216,7 @@ function App() {
   });
 
   return (
-    <ThemeProvider>
+    <SettingsProvider>
       <ConnectionProvider>
         <RealtimeConnectionSync />
         <BrowserRouter>
@@ -232,7 +234,7 @@ function App() {
           )}
         </BrowserRouter>
       </ConnectionProvider>
-    </ThemeProvider>
+    </SettingsProvider>
   );
 }
 
