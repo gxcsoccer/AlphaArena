@@ -21,14 +21,6 @@ import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
 import ErrorReporterPanel from './components/ErrorReporterPanel';
 
-// Alias the icons for menu items
-const DashboardOutlined = IconDashboard;
-const AppstoreOutlined = IconApps;
-const TransactionOutlined = IconSwap;
-const WalletOutlined = IconSafe;
-const TrophyOutlined = IconTrophy;
-const HomeOutlined = IconHome;
-
 // Lazy load pages for code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -46,38 +38,7 @@ const PageLoader: React.FC = () => (
 
 const { Header, Sider, Content } = Layout;
 
-const menuItems = [
-  {
-    key: '/',
-    icon: <HomeOutlined />,
-    label: '行情',
-  },
-  {
-    key: '/dashboard',
-    icon: <DashboardOutlined />,
-    label: 'Dashboard',
-  },
-  {
-    key: '/strategies',
-    icon: <AppstoreOutlined />,
-    label: 'Strategies',
-  },
-  {
-    key: '/trades',
-    icon: <TransactionOutlined />,
-    label: 'Trades',
-  },
-  {
-    key: '/holdings',
-    icon: <WalletOutlined />,
-    label: 'Holdings',
-  },
-  {
-    key: '/leaderboard',
-    icon: <TrophyOutlined />,
-    label: 'Leaderboard',
-  },
-];
+const MenuItem = Menu.Item;
 
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
@@ -139,9 +100,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             theme="dark"
             mode="inline"
             selectedKeys={[location.pathname]}
-            items={menuItems}
-            onClick={handleMenuClick}
-          />
+            onClickMenuItem={(key) => handleMenuClick({ key })}
+          >
+            <MenuItem key="/" icon={<IconHome />}>行情</MenuItem>
+            <MenuItem key="/dashboard" icon={<IconDashboard />}>Dashboard</MenuItem>
+            <MenuItem key="/strategies" icon={<IconApps />}>Strategies</MenuItem>
+            <MenuItem key="/trades" icon={<IconSwap />}>Trades</MenuItem>
+            <MenuItem key="/holdings" icon={<IconSafe />}>Holdings</MenuItem>
+            <MenuItem key="/leaderboard" icon={<IconTrophy />}>Leaderboard</MenuItem>
+          </Menu>
         </Sider>
       )}
 
@@ -201,10 +168,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           theme="light"
           mode="inline"
           selectedKeys={[location.pathname]}
-          items={menuItems}
-          onClick={handleMenuClick}
+          onClickMenuItem={(key) => handleMenuClick({ key })}
           style={{ border: 'none' }}
-        />
+        >
+          <MenuItem key="/" icon={<IconHome />}>行情</MenuItem>
+          <MenuItem key="/dashboard" icon={<IconDashboard />}>Dashboard</MenuItem>
+          <MenuItem key="/strategies" icon={<IconApps />}>Strategies</MenuItem>
+          <MenuItem key="/trades" icon={<IconSwap />}>Trades</MenuItem>
+          <MenuItem key="/holdings" icon={<IconSafe />}>Holdings</MenuItem>
+          <MenuItem key="/leaderboard" icon={<IconTrophy />}>Leaderboard</MenuItem>
+        </Menu>
       </Drawer>
     </Layout>
     </ErrorBoundary>
