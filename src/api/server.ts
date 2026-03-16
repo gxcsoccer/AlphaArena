@@ -23,6 +23,10 @@ import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 import { SupabaseRealtimeService } from './SupabaseRealtimeService';
 import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService } from '../monitoring';
+import { createLogger } from '../utils/logger';
+
+// Create logger for this module
+const log = createLogger('APIServer');
 
 export interface APIServerConfig {
   port: number;
@@ -120,9 +124,9 @@ export class APIServer extends EventEmitter {
         this.config.supabaseUrl,
         this.config.supabaseAnonKey
       );
-      console.log('[Realtime] Initialized Supabase Realtime service');
+      log.info('Initialized Supabase Realtime service');
     } else {
-      console.warn('[Realtime] Supabase credentials not provided, realtime features disabled');
+      log.warn('Supabase credentials not provided, realtime features disabled');
       // Create a dummy service for testing
       this.realtime = null as any;
     }
@@ -151,7 +155,7 @@ export class APIServer extends EventEmitter {
         if (corsOriginValidator(origin, Array.isArray(corsOrigin) ? corsOrigin : [corsOrigin])) {
           callback(null, true);
         } else {
-          console.log(`[CORS] Blocked origin: ${origin}`);
+          log.info(`Blocked origin: ${origin}`);
           callback(null, false);
         }
       },
@@ -200,7 +204,7 @@ export class APIServer extends EventEmitter {
 
     // Request logging
     this.app.use((req: Request, res: Response, next) => {
-      console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+      log.info(`${req.method} ${req.path}`);
       next();
     });
   }
@@ -230,13 +234,13 @@ export class APIServer extends EventEmitter {
         const timestamp = new Date().toISOString();
         const errorType = error.type === 'unhandledrejection' ? 'UNHANDLED_REJECTION' : 'CLIENT_ERROR';
         
-        console.log(`[${timestamp}] [${errorType}] ${error.message}`);
-        console.log(`  URL: ${error.url}`);
-        console.log(`  Source: ${error.source || 'unknown'}`);
-        console.log(`  Location: ${error.lineno}:${error.colno || 'unknown'}`);
+        log.info(`[${errorType}] ${error.message}`);
+        log.debug(`  URL: ${error.url}`);
+        log.debug(`  Source: ${error.source || 'unknown'}`);
+        log.debug(`  Location: ${error.lineno}:${error.colno || 'unknown'}`);
         
         if (error.stack) {
-          console.log(`  Stack: ${error.stack}`);
+          log.debug(`  Stack: ${error.stack}`);
         }
 
         // In production, you could:
@@ -265,7 +269,7 @@ export class APIServer extends EventEmitter {
           errorId: error.id,
         });
       } catch (logError: any) {
-        console.error('[API] Failed to log client error:', logError);
+        log.error('Failed to log client error:', logError);
         res.status(500).json({ 
           success: false, 
           error: 'Failed to log error' 
@@ -606,14 +610,14 @@ export class APIServer extends EventEmitter {
         // Store order
         orders.set(order.id, order);
 
-        console.log(`[Order] New ${side} ${type} order: ${quantity} ${symbol} @ ${price || 'market'}`);
+        log.info(`New ${side} ${type} order: ${quantity} ${symbol} @ ${price || 'market'}`);
 
         // Simulate order processing delay
         setTimeout(() => {
           if (orders.has(order.id)) {
             const storedOrder = orders.get(order.id);
             storedOrder.status = 'filled';
-            console.log(`[Order] Order ${order.id} filled`);
+            log.info(`Order ${order.id} filled`);
           }
         }, 1000);
 
@@ -679,7 +683,7 @@ export class APIServer extends EventEmitter {
         order.status = 'cancelled';
         order.cancelledAt = new Date().toISOString();
         
-        console.log(`[Order] Order ${orderIdStr} cancelled`);
+        log.info(`Order ${orderIdStr} cancelled`);
 
         res.json({ success: true, data: order, timestamp: Date.now() });
       } catch (error: any) {
@@ -748,7 +752,7 @@ export class APIServer extends EventEmitter {
         // Add to price monitoring
         this.priceMonitoring.watchSymbol(symbol);
 
-        console.log(`[Conditional Order] New ${orderType} order: ${quantity} ${symbol} @ trigger ${triggerPrice}`);
+        log.info(`New ${orderType} order: ${quantity} ${symbol} @ trigger ${triggerPrice}`);
 
         res.json({ success: true, data: savedOrder, timestamp: Date.now() });
       } catch (error: any) {
@@ -806,7 +810,7 @@ export class APIServer extends EventEmitter {
 
         const cancelledOrder = await this.conditionalOrdersDAO.cancel(orderIdStr);
         
-        console.log(`[Conditional Order] Order ${orderIdStr} cancelled`);
+        log.info(`Order ${orderIdStr} cancelled`);
 
         res.json({ success: true, data: cancelledOrder, timestamp: Date.now() });
       } catch (error: any) {
@@ -850,7 +854,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastTrade(trade: Trade): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping trade broadcast');
+      log.warn('Service not initialized, skipping trade broadcast');
       return;
     }
     
@@ -872,7 +876,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastPortfolioUpdate(portfolio: Portfolio): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping portfolio broadcast');
+      log.warn('Service not initialized, skipping portfolio broadcast');
       return;
     }
     await this.realtime.broadcastPortfolioUpdate('global', portfolio);
@@ -883,7 +887,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastStrategyTick(strategyId: string, data: any): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping strategy tick broadcast');
+      log.warn('Service not initialized, skipping strategy tick broadcast');
       return;
     }
     await this.realtime.broadcastStrategyTick(strategyId, data);
@@ -894,7 +898,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastLeaderboardUpdate(entries: LeaderboardEntry[]): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping leaderboard broadcast');
+      log.warn('Service not initialized, skipping leaderboard broadcast');
       return;
     }
     await this.realtime.broadcastLeaderboardUpdate(entries);
@@ -905,7 +909,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastMarketTick(ticker: any): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping market tick broadcast');
+      log.warn('Service not initialized, skipping market tick broadcast');
       return;
     }
     await this.realtime.broadcastMarketTick(ticker.symbol, ticker);
@@ -916,7 +920,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastOrderBookSnapshot(symbol: string, snapshot: OrderBookSnapshot): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping orderbook snapshot broadcast');
+      log.warn('Service not initialized, skipping orderbook snapshot broadcast');
       return;
     }
     await this.realtime.broadcastOrderBookSnapshot(symbol, snapshot);
@@ -927,7 +931,7 @@ export class APIServer extends EventEmitter {
    */
   public async broadcastOrderBookDelta(symbol: string, delta: OrderBookDelta): Promise<void> {
     if (!this.realtime) {
-      console.warn('[Realtime] Service not initialized, skipping orderbook delta broadcast');
+      log.warn('Service not initialized, skipping orderbook delta broadcast');
       return;
     }
     await this.realtime.broadcastOrderBookDelta(symbol, delta);
@@ -941,7 +945,7 @@ export class APIServer extends EventEmitter {
       this.orderBookServices.set(symbol, service);
       
       service.connect().catch(err => {
-        console.error(`[OrderBook] Failed to connect for ${symbol}:`, err);
+        log.error(`Failed to connect for ${symbol}:`, err);
       });
       
       service.on('snapshot', (event) => {
@@ -952,7 +956,7 @@ export class APIServer extends EventEmitter {
         this.broadcastOrderBookDelta(symbol, event.data);
       });
       
-      console.log(`[OrderBook] Initialized service for ${symbol}`);
+      log.info(`Initialized service for ${symbol}`);
     });
   }
 
@@ -963,7 +967,7 @@ export class APIServer extends EventEmitter {
     // Set up error alerting
     this.monitoring.on('error:tracked', async (error) => {
       if (error.severity === 'critical' || error.severity === 'high') {
-        console.log(`[Monitoring] Sending alert for ${error.severity} error: ${error.message}`);
+        log.info(`Sending alert for ${error.severity} error: ${error.message}`);
         await this.feishuAlert.sendCriticalError(
           new Error(error.message),
           { context: error.context, stack: error.stack }
@@ -973,7 +977,7 @@ export class APIServer extends EventEmitter {
 
     // Set up threshold alerting
     this.monitoring.on('alert', async (alertData) => {
-      console.log(`[Monitoring] Threshold alert: ${alertData.alerts.join(', ')}`);
+      log.info(`Threshold alert: ${alertData.alerts.join(', ')}`);
       await this.feishuAlert.sendAlert({
         type: 'warning',
         title: '系统阈值警告',
@@ -987,7 +991,7 @@ export class APIServer extends EventEmitter {
       });
     });
 
-    console.log('[Monitoring] Monitoring and alerting initialized');
+    log.info('Monitoring and alerting initialized');
   }
 
   /**
@@ -1004,16 +1008,16 @@ export class APIServer extends EventEmitter {
 
     // Listen for triggered orders and broadcast notifications
     this.priceMonitoring.on('order-triggered', async (data: any) => {
-      console.log(`[PriceMonitoring] Order triggered: ${data.orderType} ${data.symbol} @ ${data.executedPrice}`);
+      log.info(`Order triggered: ${data.orderType} ${data.symbol} @ ${data.executedPrice}`);
       
       // Send Feishu notification for triggered orders
       const orderTypeText = data.orderType === 'stop_loss' ? '止损单' : '止盈单';
       const sideText = data.side === 'buy' ? '买入' : '卖出';
       
       if (data.orderType === 'stop_loss') {
-        console.warn(`⚠️ Stop-loss triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
+        log.warn(`⚠️ Stop-loss triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
       } else {
-        console.log(`✅ Take-profit triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
+        log.info(`✅ Take-profit triggered for ${data.symbol}: ${sideText} ${data.quantity} @ ${data.executedPrice}`);
       }
 
       // Send Feishu notification
@@ -1029,7 +1033,7 @@ export class APIServer extends EventEmitter {
                    `交易 ID: ${data.tradeId}`,
         });
       } catch (error: any) {
-        console.error('[PriceMonitoring] Failed to send Feishu notification:', error);
+        log.error('Failed to send Feishu notification:', error);
       }
 
       // Broadcast to frontend via realtime
@@ -1050,7 +1054,7 @@ export class APIServer extends EventEmitter {
       }
     });
 
-    console.log('[PriceMonitoring] Price monitoring service initialized');
+    log.info('Price monitoring service initialized');
   }
 
   public getOrderBookService(symbol: string): OrderBookService | undefined {
@@ -1167,9 +1171,9 @@ export class APIServer extends EventEmitter {
 
       this.httpServer.listen(this.config.port, async () => {
         this.isRunning = true;
-        console.log(`[API Server] Listening on port ${this.config.port}`);
-        console.log(`[API Server] REST API: http://localhost:${this.config.port}/api`);
-        console.log(`[API Server] Realtime: Supabase Realtime enabled`);
+        log.info(`Listening on port ${this.config.port}`);
+        log.info(`REST API: http://localhost:${this.config.port}/api`);
+        log.info(`Realtime: Supabase Realtime enabled`);
         
         // Initialize Realtime presence tracking
         if (this.realtime) {
@@ -1178,9 +1182,9 @@ export class APIServer extends EventEmitter {
               type: 'server',
               startedAt: new Date().toISOString(),
             });
-            console.log('[Realtime] Server presence tracked');
+            log.info('Server presence tracked');
           } catch (error: any) {
-            console.error('[Realtime] Failed to track server presence:', error.message);
+            log.error('Failed to track server presence:', error.message);
           }
         }
         
@@ -1189,7 +1193,7 @@ export class APIServer extends EventEmitter {
       });
 
       this.httpServer.on('error', (error: any) => {
-        console.error('[API Server] Error:', error);
+        log.error('Error:', error);
         this.emit('error', error);
         reject(error);
       });
@@ -1204,9 +1208,9 @@ export class APIServer extends EventEmitter {
     if (this.realtime) {
       try {
         await this.realtime.unsubscribeAll();
-        console.log('[Realtime] All channels unsubscribed');
+        log.info('All channels unsubscribed');
       } catch (error: any) {
-        console.error('[Realtime] Error during cleanup:', error.message);
+        log.error('Error during cleanup:', error.message);
       }
     }
 
@@ -1217,7 +1221,7 @@ export class APIServer extends EventEmitter {
 
       this.httpServer.close((error?: Error) => {
         this.isRunning = false;
-        console.log('[API Server] Stopped');
+        log.info('Stopped');
         this.emit('stop');
         if (error) {
           reject(error);

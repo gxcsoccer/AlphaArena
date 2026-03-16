@@ -10,6 +10,10 @@
 import { EventEmitter } from 'events';
 import { OrderBook } from './OrderBook';
 import { Order, OrderType, OrderBookSnapshot, OrderBookDelta, OrderBookUpdate } from './types';
+import { createLogger } from '../utils/logger';
+
+// Create logger for this module
+const log = createLogger('OrderBookService');
 
 /**
  * 市场数据源配置
@@ -106,7 +110,7 @@ export class OrderBookService extends EventEmitter {
       setTimeout(() => {
         this.connected = true;
         this.reconnectAttempts = 0;
-        console.log(`[OrderBookService] Connected to market data source for ${this.symbol}`);
+        log.info('Connected to market data source', { symbol: this.symbol });
         
         this.emit('connected', { symbol: this.symbol });
         resolve();
@@ -126,7 +130,7 @@ export class OrderBookService extends EventEmitter {
       this.ws = null;
     }
     this.connected = false;
-    console.log(`[OrderBookService] Disconnected from market data source for ${this.symbol}`);
+    log.info('Disconnected from market data source', { symbol: this.symbol });
     this.emit('disconnected', { symbol: this.symbol });
   }
 
