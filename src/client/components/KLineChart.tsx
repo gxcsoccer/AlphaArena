@@ -65,6 +65,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const [timeframe, setTimeframe] = useState<TimeFrame>('1h');
   const [isMobile, setIsMobile] = useState(false);
   const [chartError, setChartError] = useState<string | null>(null);
+  const [chartReady, setChartReady] = useState(false); // Track when chart is ready for data
   const { klineData, loading, error } = useKLineData(symbol, timeframe);
 
   // Mount state tracking to prevent DOM operations after unmount
@@ -107,6 +108,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
    */
   const cleanupChart = useCallback(() => {
     console.log('[KLineChart] Cleaning up chart resources...');
+    setChartReady(false); // Mark chart as not ready
 
     // Cancel any pending animation frame
     if (initRafRef.current) {
@@ -259,6 +261,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
 
         console.log('[KLineChart] ✅ Chart initialized successfully');
         setChartError(null); // Clear any previous errors
+        setChartReady(true); // Mark chart as ready for data
         return true;
       } catch (err: any) {
         console.error('[KLineChart] ❌ Failed to initialize chart:', err);
@@ -321,8 +324,14 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     };
   }, [height, showVolume, loading, cleanupChart]);
 
-  // Update data when timeframe or symbol changes
+  // Update data when chart is ready or data changes
   useEffect(() => {
+    // Wait for chart to be ready before setting data
+    if (!chartReady) {
+      console.log('[KLineChart] Chart not ready yet, waiting...');
+      return;
+    }
+
     if (!candleSeriesRef.current) {
       console.warn('[KLineChart] Candle series not ready, skipping data update');
       return;
@@ -411,7 +420,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         setChartError(`图表数据更新失败：${err.message}`);
       }
     }
-  }, [klineData, showVolume, symbol]);
+  }, [chartReady, klineData, showVolume, symbol]);
 
   // Handle timeframe change
   const handleTimeframeChange = useCallback((value: TimeFrame) => {
