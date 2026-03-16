@@ -11,9 +11,16 @@ import {
   Radio,
   Divider,
   Modal,
+  Tooltip,
+  Progress,
 } from '@arco-design/web-react';
 import type { FormInstance } from '@arco-design/web-react';
-import { IconExclamationCircle, IconCheckCircle } from '@arco-design/web-react/icon';
+import { 
+  IconExclamationCircle, 
+  IconCheckCircle, 
+  IconInfoCircle,
+  IconDelete,
+} from '@arco-design/web-react/icon';
 import { useOrderBook } from '../hooks/useData';
 import { usePortfolio } from '../hooks/useData';
 import { api } from '../utils/api';
@@ -56,6 +63,77 @@ interface ValidationError {
 
 const TRADING_FEE_RATE = 0.001; // 0.1% trading fee
 
+// Error type categorization for better error messages
+enum ErrorCategory {
+  NETWORK = 'network',
+  BUSINESS = 'business',
+  VALIDATION = 'validation',
+  UNKNOWN = 'unknown',
+}
+
+// Parse error and return user-friendly message
+const parseError = (error: any): { message: string; category: ErrorCategory } => {
+  // Network errors
+  if (error.name === 'TypeError' && error.message.includes('fetch')) {
+    return {
+      message: '网络连接失败，请检查网络后重试',
+      category: ErrorCategory.NETWORK,
+    };
+  }
+  if (error.message?.includes('timeout')) {
+    return {
+      message: '请求超时，请稍后重试',
+      category: ErrorCategory.NETWORK,
+    };
+  }
+  
+  // Business errors
+  if (error.message?.includes('Insufficient balance')) {
+    return {
+      message: '可用余额不足，无法完成交易',
+      category: ErrorCategory.BUSINESS,
+    };
+  }
+  if (error.message?.includes('Invalid order')) {
+    return {
+      message: '订单无效，请检查订单参数',
+      category: ErrorCategory.BUSINESS,
+    };
+  }
+  if (error.message?.includes('Market closed')) {
+    return {
+      message: '市场已关闭，请在交易时间内下单',
+      category: ErrorCategory.BUSINESS,
+    };
+  }
+  
+  // Default to original message
+  return {
+    message: error.message || '操作失败，请稍后重试',
+    category: ErrorCategory.UNKNOWN,
+  };
+};
+
+// Show toast with icon based on error category
+const showErrorToast = (error: any) => {
+  const { message, category } = parseError(error);
+  const icon = category === ErrorCategory.NETWORK ? '🌐' : 
+               category === ErrorCategory.BUSINESS ? '📊' : '⚠️';
+  Message.error(`${icon} ${message}`);
+};
+
+// CSS for success animation
+const successAnimationStyle = `
+  @keyframes successPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+  }
+  .order-success-pulse {
+    animation: successPulse 0.3s ease-in-out;
+  }
+`;
+
 const TradingOrder: React.FC<TradingOrderProps> = ({
   symbol = 'BTC/USD',
   baseCurrency: baseCurrencyProp,
@@ -76,7 +154,20 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
     totalWithFee: number;
     percentageOfPortfolio: number;
   } | null>(null);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+  const [formPrice, setFormPrice] = useState<number | undefined>(undefined);
   const formRef = React.useRef<FormInstance>(null);
+
+  // Inject success animation style
+  useEffect(() => {
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = successAnimationStyle;
+    document.head.appendChild(styleSheet);
+    return () => {
+      document.head.removeChild(styleSheet);
+    };
+  }, []);
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
@@ -133,6 +224,48 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
 
     return (bestBid + bestAsk) / 2;
   }, [orderBook]);
+
+  // Calculate price range for hints
+  const priceRange = useMemo(() => {
+    if (!orderBook?.bids?.length || !orderBook?.asks?.length) {
+      return null;
+    }
+
+    let minBid = Infinity;
+    let maxBid = -Infinity;
+    let minAsk = Infinity;
+    let maxAsk = -Infinity;
+
+    for (const bid of orderBook.bids) {
+      if (bid.price < minBid) minBid = bid.price;
+      if (bid.price > maxBid) maxBid = bid.price;
+    }
+
+    for (const ask of orderBook.asks) {
+      if (ask.price < minAsk) minAsk = ask.price;
+      if (ask.price > maxAsk) maxAsk = ask.price;
+    }
+
+    return {
+      minBid: minBid === Infinity ? null : minBid,
+      maxBid: maxBid === -Infinity ? null : maxBid,
+      minAsk: minAsk === Infinity ? null : minAsk,
+      maxAsk: maxAsk === -Infinity ? null : maxAsk,
+    };
+  }, [orderBook]);
+
+  // Calculate max quantity based on available balance
+  const maxQuantity = useMemo(() => {
+    const price = formPrice || currentPrice;
+    if (activeTab === 'buy') {
+      // For buy: max = availableBalance / (price * (1 + fee))
+      return price > 0 ? availableBalance / (price * (1 + TRADING_FEE_RATE)) : 0;
+    } else {
+      // For sell: max = baseBalance
+      return baseBalance;
+    }
+  }, [activeTab, availableBalance, baseBalance, currentPrice, formPrice]);
+
   // Real-time validation function
   const validateField = useCallback((field: 'price' | 'quantity' | 'triggerPrice', value: number | undefined): ValidationError | null => {
     const formData = formRef.current?.getFieldsValue();
@@ -142,8 +275,35 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
       if (!value || value <= 0) {
         return { field: 'price', message: '价格必须是正数', type: 'error' };
       }
-      if (value > currentPrice * 10) {
-        return { field: 'price', message: '价格过高，请确认是否正确', type: 'warning' };
+      
+      // Show warning for prices far from market price
+      if (currentPrice > 0) {
+        const deviation = Math.abs(value - currentPrice) / currentPrice;
+        if (deviation > 0.1) {
+          return { 
+            field: 'price', 
+            message: `价格偏离市价 ${(deviation * 100).toFixed(1)}%，请确认是否正确`, 
+            type: 'warning' 
+          };
+        }
+      }
+      
+      // Check if price is within order book range
+      if (priceRange && priceRange.maxBid && priceRange.minAsk) {
+        if (activeTab === 'buy' && value > priceRange.maxAsk * 1.1) {
+          return { 
+            field: 'price', 
+            message: `买入价格高于卖一价 ${((value / priceRange.maxAsk - 1) * 100).toFixed(1)}%`, 
+            type: 'warning' 
+          };
+        }
+        if (activeTab === 'sell' && value < priceRange.minBid * 0.9) {
+          return { 
+            field: 'price', 
+            message: `卖出价格低于买一价 ${((1 - value / priceRange.minBid) * 100).toFixed(1)}%`, 
+            type: 'warning' 
+          };
+        }
       }
     }
 
@@ -151,6 +311,18 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
     if (field === 'triggerPrice' && (orderType === 'stop_loss' || orderType === 'take_profit')) {
       if (!value || value <= 0) {
         return { field: 'triggerPrice', message: '触发价格必须是正数', type: 'error' };
+      }
+      
+      // Warn if trigger price is far from current price
+      if (currentPrice > 0) {
+        const deviation = Math.abs(value - currentPrice) / currentPrice;
+        if (deviation > 0.2) {
+          return { 
+            field: 'triggerPrice', 
+            message: `触发价格偏离市价 ${(deviation * 100).toFixed(1)}%`, 
+            type: 'warning' 
+          };
+        }
       }
     }
 
@@ -186,7 +358,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
     }
 
     return null;
-  }, [orderType, activeTab, currentPrice, availableBalance, baseBalance, baseCurrency]);
+  }, [orderType, activeTab, currentPrice, availableBalance, baseBalance, baseCurrency, priceRange]);
 
   // Validate all fields and return errors
   const validateAllFields = useCallback((): ValidationError[] => {
@@ -295,6 +467,8 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   const executeOrder = async (orderData: any) => {
     try {
       setLoading(true);
+      setOrderSuccess(false);
+      setSuccessOrderId(null);
 
       let result;
 
@@ -304,30 +478,52 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         result = await api.createConditionalOrder(orderData);
         
         if (result) {
-          Message.success(`${orderData.orderType === 'stop_loss' ? '止损' : '止盈'}订单提交成功！`);
+          setOrderSuccess(true);
+          setSuccessOrderId(result.id);
+          Message.success({
+            content: `${orderData.orderType === 'stop_loss' ? '止损' : '止盈'}订单提交成功！`,
+            icon: <IconCheckCircle />,
+          });
           onOrderPlaced?.(result.id);
           formRef.current?.resetFields();
           setValidationErrors([]);
           setOrderSummary(null);
+          
+          // Clear success state after animation
+          setTimeout(() => {
+            setOrderSuccess(false);
+            setSuccessOrderId(null);
+          }, 3000);
         } else {
-          Message.error('订单提交失败');
+          showErrorToast(new Error('订单提交失败'));
         }
       } else {
         // Regular order (limit or market)
         result = await api.createOrder(orderData);
         
         if (result) {
-          Message.success(`${orderData.side === 'buy' ? '买入' : '卖出'}订单提交成功！`);
+          setOrderSuccess(true);
+          setSuccessOrderId(result.id);
+          Message.success({
+            content: `${orderData.side === 'buy' ? '买入' : '卖出'}订单提交成功！`,
+            icon: <IconCheckCircle />,
+          });
           onOrderPlaced?.(result.id);
           formRef.current?.resetFields();
           setValidationErrors([]);
           setOrderSummary(null);
+          
+          // Clear success state after animation
+          setTimeout(() => {
+            setOrderSuccess(false);
+            setSuccessOrderId(null);
+          }, 3000);
         } else {
-          Message.error('订单提交失败');
+          showErrorToast(new Error('订单提交失败'));
         }
       }
     } catch (err: any) {
-      Message.error(err.message || '订单提交失败');
+      showErrorToast(err);
     } finally {
       setLoading(false);
     }
@@ -406,27 +602,139 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
     if (activeTab === 'buy') {
       const formData = formRef.current?.getFieldsValue();
       const price = formData?.price || currentPrice;
-      const maxQuantity = availableBalance / price;
+      const maxQuantity = availableBalance / (price * (1 + TRADING_FEE_RATE));
       formRef.current?.setFieldValue('quantity', maxQuantity * percentage);
     } else {
       formRef.current?.setFieldValue('quantity', baseBalance * percentage);
     }
   };
 
+  // Handle one-click clear position (sell all)
+  const handleClearPosition = () => {
+    if (baseBalance <= 0) {
+      Message.warning('没有可卖出的持仓');
+      return;
+    }
+
+    Modal.confirm({
+      title: '确认一键清仓',
+      content: (
+        <div>
+          <p>确定要以市价卖出所有 {baseBalance.toFixed(4)} {baseCurrency} 吗？</p>
+          <p style={{ color: '#86909c', fontSize: 12 }}>
+            预计金额：${(baseBalance * currentPrice).toFixed(2)}
+          </p>
+        </div>
+      ),
+      okText: '确认清仓',
+      cancelText: '取消',
+      okButtonProps: {
+        status: 'danger',
+      },
+      onOk: async () => {
+        try {
+          setLoading(true);
+          const result = await api.createOrder({
+            symbol,
+            side: 'sell',
+            type: 'market',
+            quantity: baseBalance,
+          });
+
+          if (result) {
+            setOrderSuccess(true);
+            setSuccessOrderId(result.id);
+            Message.success({
+              content: '一键清仓成功！',
+              icon: <IconCheckCircle />,
+            });
+            formRef.current?.resetFields();
+            
+            setTimeout(() => {
+              setOrderSuccess(false);
+              setSuccessOrderId(null);
+            }, 3000);
+          } else {
+            showErrorToast(new Error('清仓失败'));
+          }
+        } catch (err: any) {
+          showErrorToast(err);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
   return (
-    <Card title={`${symbol} 交易`} size="small">
+    <Card 
+      title={
+        <Space>
+          <span>{symbol} 交易</span>
+          {orderSuccess && (
+            <span 
+              className="order-success-pulse"
+              style={{ color: '#00b42a', fontSize: 12 }}
+            >
+              ✓ 订单已提交
+            </span>
+          )}
+        </Space>
+      } 
+      size="small"
+      extra={
+        activeTab === 'sell' && baseBalance > 0 && (
+          <Tooltip content="以市价卖出所有持仓">
+            <Button
+              type="text"
+              size="small"
+              status="danger"
+              icon={<IconDelete />}
+              onClick={handleClearPosition}
+            >
+              {!isMobile && '一键清仓'}
+            </Button>
+          </Tooltip>
+        )
+      }
+    >
       <Tabs
         activeTab={activeTab}
-        onChange={(key) => setActiveTab(key as OrderSide)}
+        onChange={(key) => {
+          setActiveTab(key as OrderSide);
+          setOrderSuccess(false);
+        }}
         type="rounded"
         style={{ marginBottom: 16 }}
         size={isMobile ? 'default' : 'default'}
       >
-        <TabPane key="buy" title="买入" />
-        <TabPane key="sell" title="卖出" />
+        <TabPane 
+          key="buy" 
+          title={
+            <span style={{ color: activeTab === 'buy' ? '#00b42a' : undefined }}>
+              买入
+            </span>
+          } 
+        />
+        <TabPane 
+          key="sell" 
+          title={
+            <span style={{ color: activeTab === 'sell' ? '#f53f3f' : undefined }}>
+              卖出
+            </span>
+          } 
+        />
       </Tabs>
 
-      <Form ref={formRef} layout="vertical">
+      <Form 
+      ref={formRef} 
+      layout="vertical"
+      onValuesChange={(changedValues) => {
+        if (changedValues.price !== undefined) {
+          setFormPrice(changedValues.price);
+        }
+      }}
+    >
         {/* Order Type */}
         <Form.Item label="订单类型">
           <Radio.Group
@@ -466,7 +774,24 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         {/* Price Input (for limit orders) */}
         {orderType === 'limit' && (
           <Form.Item
-            label="价格"
+            label={
+              <Space>
+                <span>价格</span>
+                {priceRange && (
+                  <Tooltip 
+                    content={
+                      <div>
+                        <div>买一价: {priceRange.maxBid?.toFixed(2)}</div>
+                        <div>卖一价: {priceRange.minAsk?.toFixed(2)}</div>
+                        <div>当前市价: {currentPrice.toFixed(2)}</div>
+                      </div>
+                    }
+                  >
+                    <IconInfoCircle style={{ color: '#86909c' }} />
+                  </Tooltip>
+                )}
+              </Space>
+            }
             tooltip="点击订单簿价格可自动填充"
             validateStatus={validationErrors.find(e => e.field === 'price')?.type === 'error' ? 'error' : 
                            validationErrors.find(e => e.field === 'price')?.type === 'warning' ? 'warning' : undefined}
@@ -479,6 +804,19 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
               min={0}
               style={{ width: '100%' }}
               size={isMobile ? 'large' : 'default'}
+              suffix={
+                currentPrice > 0 && (
+                  <Tooltip content="点击使用市价">
+                    <Button 
+                      type="text" 
+                      size="mini" 
+                      onClick={() => formRef.current?.setFieldValue('price', currentPrice)}
+                    >
+                      市价: {currentPrice.toFixed(2)}
+                    </Button>
+                  </Tooltip>
+                )
+              }
             />
           </Form.Item>
         )}
@@ -486,7 +824,16 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
         {/* Trigger Price Input (for conditional orders) */}
         {(orderType === 'stop_loss' || orderType === 'take_profit') && (
           <Form.Item
-            label="触发价格"
+            label={
+              <Space>
+                <span>触发价格</span>
+                {currentPrice > 0 && (
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    (当前: {currentPrice.toFixed(2)})
+                  </Text>
+                )}
+              </Space>
+            }
             tooltip={orderType === 'stop_loss' ? '当市场价格跌破此价格时触发卖出' : '当市场价格涨破此价格时触发卖出'}
             validateStatus={validationErrors.find(e => e.field === 'triggerPrice')?.type === 'error' ? 'error' : 
                            validationErrors.find(e => e.field === 'triggerPrice')?.type === 'warning' ? 'warning' : undefined}
@@ -505,7 +852,16 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
 
         {/* Quantity Input */}
         <Form.Item
-          label="数量"
+          label={
+            <Space>
+              <span>数量</span>
+              {maxQuantity > 0 && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  (最大: {maxQuantity.toFixed(4)})
+                </Text>
+              )}
+            </Space>
+          }
           rules={[{ required: true, message: '请输入数量' }]}
           validateStatus={validationErrors.find(e => e.field === 'quantity')?.type === 'error' ? 'error' : 
                          validationErrors.find(e => e.field === 'quantity')?.type === 'warning' ? 'warning' : undefined}
@@ -516,6 +872,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
             placeholder={`输入数量 (${baseCurrency})`}
             precision={4}
             min={0}
+            max={maxQuantity}
             style={{ width: '100%' }}
             size={isMobile ? 'large' : 'default'}
           />
@@ -551,10 +908,11 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
             </Button>
             <Button
               size={isMobile ? 'default' : 'mini'}
+              type="primary"
               onClick={() => handleQuickQuantity(1)}
               style={{ minWidth: isMobile ? '100%' : 'auto' }}
             >
-              100%
+              全部
             </Button>
           </Space>
         </Form.Item>
@@ -588,6 +946,31 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
                   maximumFractionDigits: 2,
                 })}
               </Text>
+            </Form.Item>
+
+            {/* Portfolio percentage indicator */}
+            <Form.Item>
+              <div style={{ marginBottom: 4 }}>
+                <Space>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    占账户比例
+                  </Text>
+                  <Text 
+                    style={{ 
+                      fontSize: 12, 
+                      color: orderSummary.percentageOfPortfolio > 10 ? '#faad14' : '#86909c' 
+                    }}
+                  >
+                    {orderSummary.percentageOfPortfolio.toFixed(1)}%
+                  </Text>
+                </Space>
+              </div>
+              <Progress
+                percent={Math.min(orderSummary.percentageOfPortfolio, 100)}
+                strokeWidth={6}
+                style={{ width: '100%' }}
+                color={orderSummary.percentageOfPortfolio > 10 ? '#faad14' : '#00b42a'}
+              />
             </Form.Item>
 
             {orderSummary.percentageOfPortfolio > 5 && (
@@ -634,14 +1017,23 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
           loading={loading}
           onClick={handleSubmit}
           disabled={validationErrors.some(e => e.type === 'error')}
+          className={orderSuccess ? 'order-success-pulse' : ''}
           style={{
             marginTop: 16,
             background: activeTab === 'buy' ? '#00b42a' : '#f53f3f',
             borderColor: activeTab === 'buy' ? '#00b42a' : '#f53f3f',
             minHeight: 48,
+            transition: 'all 0.3s ease',
+            ...(orderSuccess && {
+              background: '#00b42a',
+              borderColor: '#00b42a',
+            }),
           }}
+          icon={orderSuccess ? <IconCheckCircle /> : undefined}
         >
-          {activeTab === 'buy' ? '买入' : '卖出'} {baseCurrency}
+          {loading ? '处理中...' : 
+           orderSuccess ? '✓ 已提交' :
+           `${activeTab === 'buy' ? '买入' : '卖出'} ${baseCurrency}`}
         </Button>
       </Form>
 

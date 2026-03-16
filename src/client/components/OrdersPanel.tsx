@@ -9,8 +9,17 @@ import {
   Message,
   Modal,
   Spin,
+  Empty,
+  Tooltip,
+  Badge,
 } from '@arco-design/web-react';
 import type { TableProps } from '@arco-design/web-react';
+import { 
+  IconRefresh, 
+  IconClose, 
+  IconCheckCircle,
+  IconExclamationCircle,
+} from '@arco-design/web-react/icon';
 import { api } from '../utils/api';
 
 const { Text } = Typography;
@@ -32,6 +41,40 @@ interface OrdersPanelProps {
   limit?: number;
 }
 
+// Status config for visual display
+const STATUS_CONFIG = {
+  pending: {
+    color: 'orange',
+    text: '待成交',
+    icon: <IconExclamationCircle />,
+    badgeStatus: 'processing' as const,
+  },
+  filled: {
+    color: 'green',
+    text: '已成交',
+    icon: <IconCheckCircle />,
+    badgeStatus: 'success' as const,
+  },
+  cancelled: {
+    color: 'gray',
+    text: '已取消',
+    icon: <IconClose />,
+    badgeStatus: 'default' as const,
+  },
+};
+
+// Order type config
+const TYPE_CONFIG = {
+  limit: { color: 'blue', text: '限价' },
+  market: { color: 'orange', text: '市价' },
+};
+
+// Side config
+const SIDE_CONFIG = {
+  buy: { color: 'green', text: '买入' },
+  sell: { color: 'red', text: '卖出' },
+};
+
 const OrdersPanel: React.FC<OrdersPanelProps> = ({
   symbol,
   limit = 50,
@@ -40,6 +83,8 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
   const [loading, setLoading] = useState(false);
   const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
   const [isMobile, setIsMobile] = React.useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
@@ -61,8 +106,14 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
         limit,
       });
       setOrders(data);
+      setLastUpdated(new Date());
     } catch (error: any) {
-      Message.error('加载订单失败：' + (error.message || '未知错误'));
+      // Better error categorization
+      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        Message.error('网络连接失败，无法加载订单');
+      } else {
+        Message.error('加载订单失败：' + (error.message || '未知错误'));
+      }
     } finally {
       setLoading(false);
     }
@@ -73,13 +124,20 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
     loadOrders();
   }, [loadOrders]);
 
-  // Handle cancel order
+  // Handle cancel order with better feedback
   const handleCancelOrder = async (orderId: string) => {
     Modal.confirm({
       title: '确认取消订单',
-      content: '确定要取消这个订单吗？此操作不可撤销。',
+      content: (
+        <div>
+          <p>确定要取消这个订单吗？此操作不可撤销。</p>
+          <p style={{ color: '#86909c', fontSize: 12, marginTop: 8 }}>
+            订单ID: {orderId.slice(0, 8)}...
+          </p>
+        </div>
+      ),
       okText: '确认取消',
-      cancelText: '取消',
+      cancelText: '再想想',
       okButtonProps: {
         status: 'danger',
         loading: cancelingOrderId === orderId,
@@ -90,7 +148,11 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
           const result = await api.cancelOrder(orderId);
           
           if (result) {
-            Message.success('订单已取消');
+            setCancelSuccess(orderId);
+            Message.success({
+              content: '订单已取消',
+              icon: <IconCheckCircle />,
+            });
             // Update local state
             setOrders(prev =>
               prev.map(order =>
@@ -99,17 +161,32 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
                   : order
               )
             );
+            
+            // Clear success state after animation
+            setTimeout(() => {
+              setCancelSuccess(null);
+            }, 2000);
           } else {
-            Message.error('取消失败');
+            Message.error('取消失败，请稍后重试');
           }
         } catch (error: any) {
-          Message.error(error.message || '取消失败');
+          // Better error handling
+          if (error.message?.includes('network') || error.message?.includes('timeout')) {
+            Message.error('网络连接失败，无法取消订单');
+          } else if (error.message?.includes('not found')) {
+            Message.error('订单不存在或已被处理');
+          } else {
+            Message.error(error.message || '取消失败');
+          }
         } finally {
           setCancelingOrderId(null);
         }
       },
     });
   };
+
+  // Count pending orders
+  const pendingCount = orders.filter(o => o.status === 'pending').length;
 
   // Table columns
   const columns: TableProps<Order>['columns'] = [
@@ -120,7 +197,11 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       width: isMobile ? 100 : 150,
       render: (text: string) => {
         const date = new Date(text);
-        return date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        return (
+          <Tooltip content={date.toLocaleString('zh-CN')}>
+            <span>{date.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </Tooltip>
+        );
       },
     },
     {
@@ -135,22 +216,24 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       dataIndex: 'side',
       key: 'side',
       width: isMobile ? 60 : 80,
-      render: (side: 'buy' | 'sell') => (
-        <Tag color={side === 'buy' ? 'green' : 'red'}>
-          {side === 'buy' ? '买入' : '卖出'}
-        </Tag>
-      ),
+      render: (side: 'buy' | 'sell') => {
+        const config = SIDE_CONFIG[side];
+        return (
+          <Tag color={config.color} icon={side === 'buy' ? '↑' : '↓'}>
+            {config.text}
+          </Tag>
+        );
+      },
     },
     {
       title: '类型',
       dataIndex: 'type',
       key: 'type',
       width: isMobile ? 60 : 80,
-      render: (type: 'limit' | 'market') => (
-        <Tag color={type === 'limit' ? 'blue' : 'orange'}>
-          {type === 'limit' ? '限价' : '市价'}
-        </Tag>
-      ),
+      render: (type: 'limit' | 'market') => {
+        const config = TYPE_CONFIG[type];
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
     },
     {
       title: '价格',
@@ -170,21 +253,12 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       title: '状态',
       dataIndex: 'status',
       key: 'status',
-      width: isMobile ? 70 : 90,
+      width: isMobile ? 80 : 100,
       render: (status: string) => {
-        const colorMap: Record<string, string> = {
-          pending: 'orange',
-          filled: 'green',
-          cancelled: 'gray',
-        };
-        const textMap: Record<string, string> = {
-          pending: '待成交',
-          filled: '已成交',
-          cancelled: '已取消',
-        };
+        const config = STATUS_CONFIG[status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
         return (
-          <Tag color={colorMap[status] || 'gray'}>
-            {textMap[status] || status}
+          <Tag color={config.color} icon={config.icon}>
+            {config.text}
           </Tag>
         );
       },
@@ -193,33 +267,55 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       title: '操作',
       key: 'actions',
       width: isMobile ? 80 : 100,
-      render: (_: any, record: Order) => (
-        <Button
-          size="small"
-          status="danger"
-          disabled={record.status !== 'pending'}
-          loading={cancelingOrderId === record.id}
-          onClick={() => handleCancelOrder(record.id)}
-        >
-          取消
-        </Button>
-      ),
+      render: (_: any, record: Order) => {
+        if (cancelSuccess === record.id) {
+          return (
+            <Tag color="green" icon={<IconCheckCircle />}>已取消</Tag>
+          );
+        }
+        return (
+          <Button
+            size="small"
+            status="danger"
+            disabled={record.status !== 'pending'}
+            loading={cancelingOrderId === record.id}
+            onClick={() => handleCancelOrder(record.id)}
+          >
+            取消
+          </Button>
+        );
+      },
     },
   ];
 
   return (
     <Card
-      title="我的订单"
+      title={
+        <Space>
+          <span>我的订单</span>
+          {pendingCount > 0 && (
+            <Badge count={pendingCount} style={{ backgroundColor: '#ff7d00' }} />
+          )}
+        </Space>
+      }
       size="small"
       extra={
-        <Button
-          type="text"
-          size="small"
-          onClick={loadOrders}
-          loading={loading}
-        >
-          刷新
-        </Button>
+        <Space>
+          {lastUpdated && (
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              更新于 {lastUpdated.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+            </Text>
+          )}
+          <Tooltip content="刷新订单列表">
+            <Button
+              type="text"
+              size="small"
+              icon={<IconRefresh />}
+              onClick={loadOrders}
+              loading={loading}
+            />
+          </Tooltip>
+        </Space>
       }
     >
       {loading && orders.length === 0 ? (
@@ -228,9 +324,10 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
           <div style={{ marginTop: 16, color: '#86909c' }}>加载订单中...</div>
         </div>
       ) : orders.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '40px 0', color: '#86909c' }}>
-          暂无订单
-        </div>
+        <Empty 
+          description="暂无订单" 
+          style={{ padding: '20px 0' }}
+        />
       ) : (
         <Table
           columns={columns}
@@ -240,7 +337,20 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
           size="small"
           scroll={isMobile ? { x: 600 } : undefined}
           style={isMobile ? { fontSize: 11 } : undefined}
+          rowClassName={(record) => 
+            record.status === 'pending' ? 'row-pending' : 
+            record.status === 'filled' ? 'row-filled' : ''
+          }
         />
+      )}
+      
+      {/* Mobile-optimized order count */}
+      {isMobile && orders.length > 0 && (
+        <div style={{ marginTop: 12, textAlign: 'center' }}>
+          <Text type="secondary" style={{ fontSize: 11 }}>
+            共 {orders.length} 个订单，{pendingCount} 个待成交
+          </Text>
+        </div>
       )}
     </Card>
   );
