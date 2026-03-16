@@ -353,7 +353,7 @@ async function runTests(): Promise<number> {
 
     results.push({
       name: 'Conditional Orders Section',
-      passed: true, // This is informational
+      passed: conditionalOrdersCheck.hasConditionalSection,
       details: 'Conditional orders elements: ' + conditionalOrdersCheck.matchCount,
     });
     console.log(conditionalOrdersCheck.hasConditionalSection 

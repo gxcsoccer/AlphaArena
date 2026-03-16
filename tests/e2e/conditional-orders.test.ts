@@ -151,7 +151,7 @@ async function runTests(): Promise<number> {
 
     results.push({
       name: 'Navigate to Conditional Tab',
-      passed: true, // Not critical if tab doesn't exist
+      passed: navResult.navigated,
       details: navResult.navigated ? 'Successfully navigated' : 'Conditional tab may not exist or already active',
     });
     console.log(navResult.navigated 
