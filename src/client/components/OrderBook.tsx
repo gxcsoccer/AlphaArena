@@ -206,12 +206,21 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
 
   // Memoize prepared data to avoid recalculation on every render
   const preparedData = useMemo((): OrderBookRow[] => {
-    if (!orderBook) return [];
+    if (!orderBook) {
+      console.log('[OrderBook] No orderBook data available');
+      return [];
+    }
+
+    // Validate and ensure bids/asks are arrays
+    const rawBids = Array.isArray(orderBook.bids) ? orderBook.bids : [];
+    const rawAsks = Array.isArray(orderBook.asks) ? orderBook.asks : [];
+
+    console.log('[OrderBook] Processing data - bids:', rawBids.length, 'asks:', rawAsks.length);
 
     const rows: OrderBookRow[] = [];
 
     // Add asks (sell orders) - sorted by price ascending (lowest first)
-    const asks = [...(orderBook.asks || [])]
+    const asks = [...rawAsks]
       .sort((a, b) => a.price - b.price)
       .slice(0, displayLevels);
     
@@ -227,7 +236,7 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     }
 
     // Add bids (buy orders) - sorted by price descending (highest first)
-    const bids = [...(orderBook.bids || [])]
+    const bids = [...rawBids]
       .sort((a, b) => b.price - a.price)
       .slice(0, displayLevels);
     
@@ -242,6 +251,7 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       });
     }
 
+    console.log('[OrderBook] Prepared rows:', rows.length, '(asks:', asks.length, 'bids:', bids.length, ')');
     return rows;
   }, [orderBook, displayLevels]);
 
