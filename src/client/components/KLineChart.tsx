@@ -66,7 +66,10 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [chartError, setChartError] = useState<string | null>(null);
   const [chartReady, setChartReady] = useState(false); // Track when chart is ready for data
-  const { klineData, loading, error } = useKLineData(symbol, timeframe);
+  const { klineData, loading, error, currentSymbol } = useKLineData(symbol, timeframe);
+
+  // Track the current symbol to detect changes and clear chart data
+  const prevSymbolRef = useRef<string>(symbol);
 
   // Mount state tracking to prevent DOM operations after unmount
   const isMountedRef = useRef(true);
@@ -132,6 +135,30 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     candleSeriesRef.current = null;
     volumeSeriesRef.current = null;
   }, []);
+
+  // Clear chart data when symbol changes
+  useEffect(() => {
+    if (prevSymbolRef.current !== symbol) {
+      console.log('[KLineChart] Symbol changed from', prevSymbolRef.current, 'to', symbol, '- clearing chart data');
+      prevSymbolRef.current = symbol;
+      
+      // Clear chart data immediately
+      if (candleSeriesRef.current) {
+        try {
+          candleSeriesRef.current.setData([]);
+        } catch (err) {
+          console.warn('[KLineChart] Error clearing candlestick data:', err);
+        }
+      }
+      if (volumeSeriesRef.current) {
+        try {
+          volumeSeriesRef.current.setData([]);
+        } catch (err) {
+          console.warn('[KLineChart] Error clearing volume data:', err);
+        }
+      }
+    }
+  }, [symbol]);
 
   // Initialize chart - use useLayoutEffect for DOM operations
   // Wait for loading to complete before initializing to avoid DOM conflicts with Spin
@@ -342,6 +369,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
       return;
     }
 
+    // Verify data matches current symbol
+    if (currentSymbol !== symbol) {
+      console.warn('[KLineChart] Data symbol mismatch: got', currentSymbol, 'but expected', symbol, '- skipping update');
+      return;
+    }
+
     if (!Array.isArray(klineData)) {
       console.error('[KLineChart] Invalid klineData: not an array', typeof klineData);
       if (isMountedRef.current) {
@@ -374,6 +407,12 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         }
         return;
       }
+
+      // Log price range for debugging
+      const prices = klineData.map(d => d.close);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      console.log('[KLineChart] Price range for', symbol, ':', { min: minPrice, max: maxPrice, first: firstPoint.close });
 
       const candleData: CandlestickData<Time>[] = klineData.map((point, idx) => {
         const time = point.time as UTCTimestamp;
@@ -420,7 +459,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
         setChartError(`图表数据更新失败：${err.message}`);
       }
     }
-  }, [chartReady, klineData, showVolume, symbol]);
+  }, [chartReady, klineData, showVolume, symbol, currentSymbol]);
 
   // Handle timeframe change
   const handleTimeframeChange = useCallback((value: TimeFrame) => {
