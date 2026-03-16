@@ -233,7 +233,7 @@ export function usePriceAlerts(options: UsePriceAlertsOptions = {}) {
         unsubscribeRef.current();
       }
     };
-  }, [fetchAlerts, autoRefresh, refreshInterval]);
+  }, [fetchAlerts, autoRefresh, refreshInterval, notificationService]);
 
   // Get alerts by status
   const getAlertsByStatus = useCallback((status: PriceAlert['status']) => {

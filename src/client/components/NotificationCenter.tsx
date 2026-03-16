@@ -19,40 +19,35 @@ import {
   Tag,
   Typography,
   Popconfirm,
-  Divider,
 } from '@arco-design/web-react';
 import {
   IconNotification,
   IconCheck,
   IconDelete,
   IconSound,
-  IconClose,
   IconSettings,
 } from '@arco-design/web-react/icon';
 import { getNotificationService, PriceAlertNotification } from '../utils/notificationService';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
+
+// Get the singleton instance once at module level
+const notificationService = getNotificationService();
 
 interface NotificationCenterProps {
   compact?: boolean;
 }
 
 const NotificationCenter: React.FC<NotificationCenterProps> = ({ compact = false }) => {
-  const [notifications, setNotifications] = useState<PriceAlertNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
-  const notificationService = getNotificationService();
+  // Initialize state lazily from the service
+  const [notifications, setNotifications] = useState<PriceAlertNotification[]>(() => notificationService.getHistory());
+  const [unreadCount, setUnreadCount] = useState(() => notificationService.getUnreadCount());
+  const [soundEnabled, setSoundEnabled] = useState(() => notificationService.isSoundEnabled());
+  const [notificationsEnabled, setNotificationsEnabled] = useState(() => notificationService.isNotificationsEnabled());
+  const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>(() => notificationService.getPermissionStatus());
 
-  // Initialize and subscribe to notifications
+  // Subscribe to notification updates
   useEffect(() => {
-    setNotifications(notificationService.getHistory());
-    setUnreadCount(notificationService.getUnreadCount());
-    setSoundEnabled(notificationService.isSoundEnabled());
-    setNotificationsEnabled(notificationService.isNotificationsEnabled());
-    setPermissionStatus(notificationService.getPermissionStatus());
-
     const unsubscribe = notificationService.subscribe((updated) => {
       setNotifications(updated);
       setUnreadCount(notificationService.getUnreadCount());
@@ -65,39 +60,39 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ compact = false
   const handleRequestPermission = useCallback(async () => {
     const status = await notificationService.requestPermission();
     setPermissionStatus(status);
-  }, [notificationService]);
+  }, []);
 
   // Handle sound toggle
   const handleSoundToggle = useCallback((enabled: boolean) => {
     notificationService.setSoundEnabled(enabled);
     setSoundEnabled(enabled);
-  }, [notificationService]);
+  }, []);
 
   // Handle notifications toggle
   const handleNotificationsToggle = useCallback((enabled: boolean) => {
     notificationService.setNotificationsEnabled(enabled);
     setNotificationsEnabled(enabled);
-  }, [notificationService]);
+  }, []);
 
   // Handle mark as read
   const handleMarkAsRead = useCallback((id: string) => {
     notificationService.markAsRead(id);
-  }, [notificationService]);
+  }, []);
 
   // Handle mark all as read
   const handleMarkAllAsRead = useCallback(() => {
     notificationService.markAllAsRead();
-  }, [notificationService]);
+  }, []);
 
   // Handle clear all
   const handleClearAll = useCallback(() => {
     notificationService.clearAll();
-  }, [notificationService]);
+  }, []);
 
   // Play test sound
   const handleTestSound = useCallback(() => {
     notificationService.playAlertSound();
-  }, [notificationService]);
+  }, []);
 
   // Render notification item
   const renderNotificationItem = (item: PriceAlertNotification) => {

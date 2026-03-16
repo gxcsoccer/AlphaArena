@@ -9,7 +9,7 @@
  * - Alert history view
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   Typography,
@@ -41,14 +41,11 @@ import {
   IconBell,
   IconBellOff,
   IconHistory,
-  IconCheck,
-  IconClose,
 } from '@arco-design/web-react/icon';
 import { usePriceAlerts, CreateAlertParams, UpdateAlertParams } from '../hooks/usePriceAlerts';
 import { PriceAlert } from '../utils/api';
-import { getNotificationService } from '../utils/notificationService';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 const { TextArea } = Input;
 
 interface PriceAlertsPanelEnhancedProps {
@@ -65,7 +62,6 @@ const PriceAlertsPanelEnhanced: React.FC<PriceAlertsPanelEnhancedProps> = ({
   const {
     alerts,
     loading,
-    error,
     actionLoading,
     activeCount,
     triggeredCount,
@@ -84,7 +80,6 @@ const PriceAlertsPanelEnhanced: React.FC<PriceAlertsPanelEnhancedProps> = ({
   const [form] = Form.useForm();
   const [editForm] = Form.useForm();
 
-  const notificationService = getNotificationService();
 
   // Detect mobile on mount and resize
   useEffect(() => {
@@ -192,15 +187,6 @@ const PriceAlertsPanelEnhanced: React.FC<PriceAlertsPanelEnhancedProps> = ({
     }
   };
 
-  // Request notification permission
-  const handleRequestNotification = async () => {
-    const status = await notificationService.requestPermission();
-    if (status === 'granted') {
-      Message.success('通知权限已授权');
-    } else if (status === 'denied') {
-      Message.warning('通知权限被拒绝，请在浏览器设置中允许通知');
-    }
-  };
 
   // Table columns
   const columns: TableProps<PriceAlert>['columns'] = [
