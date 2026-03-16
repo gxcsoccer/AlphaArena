@@ -24,7 +24,13 @@
     "test:e2e": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trading-pair-switching.test.ts && E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/page-navigation.test.ts",
     "test:e2e:trading": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trading-pair-switching.test.ts",
     "test:e2e:nav": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/page-navigation.test.ts",
-    "preview": "vite preview --port 3000 --host"
+    "preview": "vite preview --port 3000 --host",
+    "test:e2e:orders": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/order-submission.test.ts",
+    "test:e2e:orderbook": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/orderbook-interaction.test.ts",
+    "test:e2e:holdings": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/holdings-display.test.ts",
+    "test:e2e:trades": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trade-history.test.ts",
+    "test:e2e:conditional": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/conditional-orders.test.ts",
+    "test:e2e:all": "npm run test:e2e:orders && npm run test:e2e:orderbook && npm run test:e2e:holdings && npm run test:e2e:trades && npm run test:e2e:conditional"
   },
   "repository": {
     "type": "git",
