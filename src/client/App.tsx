@@ -32,7 +32,11 @@ const LeaderboardPage = lazy(() => import('./pages/LeaderboardPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+  <div 
+    style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}
+    role="status"
+    aria-label="页面加载中"
+  >
     <Spin size="large" />
   </div>
 );
@@ -77,9 +81,51 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <ErrorBoundary>
       <Layout style={{ minHeight: '100vh' }}>
+        {/* Skip to main content link for keyboard users */}
+        <a 
+          href="#main-content" 
+          className="skip-to-content"
+          style={{
+            position: 'absolute',
+            left: '-9999px',
+            top: 'auto',
+            width: '1px',
+            height: '1px',
+            overflow: 'hidden',
+          }}
+          onFocus={(e) => {
+            e.target.style.left = '8px';
+            e.target.style.top = '8px';
+            e.target.style.width = 'auto';
+            e.target.style.height = 'auto';
+            e.target.style.padding = '8px 16px';
+            e.target.style.background = 'var(--color-primary)';
+            e.target.style.color = 'white';
+            e.target.style.borderRadius = '4px';
+            e.target.style.zIndex = '9999';
+          }}
+          onBlur={(e) => {
+            e.target.style.left = '-9999px';
+            e.target.style.top = 'auto';
+            e.target.style.width = '1px';
+            e.target.style.height = '1px';
+          }}
+        >
+          跳转到主内容
+        </a>
+
         {/* Desktop Sider */}
         {!isMobile && (
-          <Sider width={200} collapsedWidth={48} collapsible collapsed={collapsed} onCollapse={setCollapsed} theme="dark">
+          <Sider 
+            width={200} 
+            collapsedWidth={48} 
+            collapsible 
+            collapsed={collapsed} 
+            onCollapse={setCollapsed} 
+            theme="dark"
+            role="navigation"
+            aria-label="主导航菜单"
+          >
           <div
             style={{
               height: 32,
@@ -94,6 +140,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
             }}
+            role="banner"
+            aria-label="AlphaArena"
           >
             {!collapsed && 'AlphaArena'}
           </div>
@@ -102,13 +150,27 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             mode="inline"
             selectedKeys={[location.pathname]}
             onClickMenuItem={(key) => handleMenuClick({ key })}
+            role="menubar"
+            aria-label="主导航"
           >
-            <MenuItem key="/" icon={<IconHome />}>行情</MenuItem>
-            <MenuItem key="/dashboard" icon={<IconDashboard />}>Dashboard</MenuItem>
-            <MenuItem key="/strategies" icon={<IconApps />}>Strategies</MenuItem>
-            <MenuItem key="/trades" icon={<IconSwap />}>Trades</MenuItem>
-            <MenuItem key="/holdings" icon={<IconSafe />}>Holdings</MenuItem>
-            <MenuItem key="/leaderboard" icon={<IconTrophy />}>Leaderboard</MenuItem>
+            <MenuItem key="/" icon={<IconHome aria-hidden="true" />} role="menuitem">
+              行情
+            </MenuItem>
+            <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
+              Dashboard
+            </MenuItem>
+            <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
+              Strategies
+            </MenuItem>
+            <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
+              Trades
+            </MenuItem>
+            <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+              Holdings
+            </MenuItem>
+            <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
+              Leaderboard
+            </MenuItem>
           </Menu>
         </Sider>
       )}
@@ -122,6 +184,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             alignItems: 'center',
             justifyContent: 'space-between',
           }}
+          role="banner"
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {/* Mobile menu button */}
@@ -131,19 +194,24 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 icon={mobileMenuVisible ? <IconMenuFold /> : <IconMenuUnfold />}
                 onClick={toggleMobileMenu}
                 style={{ fontSize: 20, padding: 8 }}
+                aria-label={mobileMenuVisible ? '关闭导航菜单' : '打开导航菜单'}
+                aria-expanded={mobileMenuVisible}
+                aria-controls="mobile-menu-drawer"
               />
             )}
-            <h2 style={{ margin: 0, lineHeight: '64px', fontSize: isMobile ? 18 : 20 }}>
+            <h1 style={{ margin: 0, lineHeight: '64px', fontSize: isMobile ? 18 : 20 }}>
               AlphaArena
-            </h2>
+            </h1>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="toolbar" aria-label="工具栏">
             <ThemeToggle compact={isMobile} />
             <SettingsPanel compact={isMobile} />
             <BalanceDisplay compact={isMobile} />
           </div>
         </Header>
         <Content
+          id="main-content"
+          tabIndex={-1}
           style={{
             margin: isMobile ? 8 : 16,
             padding: isMobile ? 12 : 24,
@@ -152,6 +220,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             minHeight: 280,
             overflow: 'auto',
           }}
+          role="main"
+          aria-label="主内容区域"
         >
           {children}
         </Content>
@@ -159,12 +229,16 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
       {/* Mobile Drawer Menu */}
       <Drawer
+        id="mobile-menu-drawer"
         title="导航"
         placement="left"
         visible={mobileMenuVisible}
         onClose={() => setMobileMenuVisible(false)}
         width={280}
         bodyStyle={{ padding: 0 }}
+        role="dialog"
+        aria-modal="true"
+        aria-label="导航菜单"
       >
         <Menu
           theme="light"
@@ -172,13 +246,27 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           selectedKeys={[location.pathname]}
           onClickMenuItem={(key) => handleMenuClick({ key })}
           style={{ border: 'none' }}
+          role="menu"
+          aria-label="移动端导航"
         >
-          <MenuItem key="/" icon={<IconHome />}>行情</MenuItem>
-          <MenuItem key="/dashboard" icon={<IconDashboard />}>Dashboard</MenuItem>
-          <MenuItem key="/strategies" icon={<IconApps />}>Strategies</MenuItem>
-          <MenuItem key="/trades" icon={<IconSwap />}>Trades</MenuItem>
-          <MenuItem key="/holdings" icon={<IconSafe />}>Holdings</MenuItem>
-          <MenuItem key="/leaderboard" icon={<IconTrophy />}>Leaderboard</MenuItem>
+          <MenuItem key="/" icon={<IconHome aria-hidden="true" />} role="menuitem">
+            行情
+          </MenuItem>
+          <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
+            Dashboard
+          </MenuItem>
+          <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
+            Strategies
+          </MenuItem>
+          <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
+            Trades
+          </MenuItem>
+          <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+            Holdings
+          </MenuItem>
+          <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
+            Leaderboard
+          </MenuItem>
         </Menu>
       </Drawer>
     </Layout>
