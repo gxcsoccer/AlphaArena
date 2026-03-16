@@ -280,12 +280,16 @@ export class SupabaseRealtimeService {
   /**
    * Listen to broadcast messages on a channel
    */
+/**
+   * Listen to broadcast messages on a channel
+   */
   public onBroadcast(
     topic: string,
     event: string | '*',
     callback: (payload: any) => void
   ): () => void {
     const channel = this.getChannel(topic);
+    const filter = { event };
 
     const handler = (payload: any) => {
       if (event === '*' || payload.event === event) {
@@ -293,16 +297,19 @@ export class SupabaseRealtimeService {
       }
     };
 
-    // Use type assertion to handle API differences
-    (channel as any).on('broadcast', handler);
+    // Use correct Supabase API with filter object
+    channel.on('broadcast', filter, handler);
 
     // Return unsubscribe function
     return () => {
-      (channel as any).off('broadcast', handler);
+      (channel as any)._off('broadcast', filter);
     };
   }
 
   /**
+   * Listen to presence events
+   */
+/**
    * Listen to presence events
    */
   public onPresence(
@@ -320,9 +327,11 @@ export class SupabaseRealtimeService {
     channel.on('presence', { event: 'join' }, presenceHandler);
     channel.on('presence', { event: 'leave' }, presenceHandler);
 
-    // Return unsubscribe function
+    // Return unsubscribe function using _off
     return () => {
-      channel.on('presence', { event: 'sync' }, () => {}); // Clear handlers
+      (channel as any)._off('presence', { event: 'sync' });
+      (channel as any)._off('presence', { event: 'join' });
+      (channel as any)._off('presence', { event: 'leave' });
     };
   }
 

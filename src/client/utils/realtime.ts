@@ -359,8 +359,12 @@ export class RealtimeClient {
   /**
    * Listen to broadcast messages
    */
+/**
+   * Listen to broadcast messages
+   */
   public on(topic: string, event: string, callback: (payload: any) => void): () => void {
     const channel = this.getChannel(topic);
+    const filter = { event };
 
     const handler = (payload: any) => {
       if (payload.event === event) {
@@ -371,7 +375,8 @@ export class RealtimeClient {
       }
     };
 
-    (channel as any).on('broadcast', handler);
+    // Use correct Supabase API with filter object
+    channel.on('broadcast', filter, handler);
 
     const listenerKey = `${topic}:${event}`;
     if (!this.listeners.has(listenerKey)) {
@@ -381,7 +386,8 @@ export class RealtimeClient {
     eventListeners.push({ callback, handler });
 
     return () => {
-      (channel as any).off('broadcast', handler);
+      // Use _off private method with same filter object
+      (channel as any)._off('broadcast', filter);
       const index = eventListeners.findIndex(l => l.callback === callback);
       if (index !== -1) {
         eventListeners.splice(index, 1);
@@ -522,9 +528,9 @@ export class RealtimeClient {
     (channel as any).on('presence', { event: 'leave' }, presenceHandler);
 
     return () => {
-      (channel as any).off('presence', { event: 'sync' }, presenceHandler);
-      (channel as any).off('presence', { event: 'join' }, presenceHandler);
-      (channel as any).off('presence', { event: 'leave' }, presenceHandler);
+      (channel as any)._off('presence', { event: 'sync' });
+      (channel as any)._off('presence', { event: 'join' });
+      (channel as any)._off('presence', { event: 'leave' });
     };
   }
 
