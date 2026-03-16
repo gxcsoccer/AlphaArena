@@ -9,9 +9,9 @@
 import React, { useState } from 'react';
 import { Modal, Button, Radio, Space, Divider, Typography } from '@arco-design/web-react';
 import { IconSettings, IconSun, IconMoonFill, IconLanguage } from '@arco-design/web-react/icon';
-import { useSettings, UserSettings } from '../store/settingsStore';
+import { useSettings } from '../store/settingsStore';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 interface SettingsPanelProps {
   compact?: boolean;
