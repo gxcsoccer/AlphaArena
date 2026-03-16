@@ -22,9 +22,6 @@ import {
 } from '@arco-design/web-react';
 import {
   IconDownload,
-  IconFile,
-  IconCheck,
-  IconClose,
 } from '@arco-design/web-react/icon';
 import type { Trade } from '../utils/api';
 import {
@@ -36,7 +33,7 @@ import {
 } from '../utils/exportUtils';
 
 const { Row, Col } = Grid;
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const FormItem = Form.Item;
 
 interface ExportModalProps {
