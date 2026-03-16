@@ -1,0 +1,25 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Sprint 6 Final Smoke Test"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiAssert: "首页正常显示，没有'组件加载失败'错误"
+      - aiAssert: "页面显示交易对列表"
+      - ai: "点击第一个交易对"
+      - aiWaitFor: "等待 3 秒"
+      - aiAssert: "交易对详情页加载完成，没有卡在'界面加载中'"
+      - aiAssert: "页面显示交易图表和订单簿"
+      - ai: "在交易表单中输入买入价格 100"
+      - ai: "输入买入数量 0.01"
+      - ai: "点击买入按钮"
+      - aiAssert: "订单提交成功，显示确认信息"
+      - ai: "点击'条件单'或'高级订单'选项卡"
+      - ai: "创建止损止盈订单：设置止损价格 90，止盈价格 110"
+      - aiAssert: "条件单创建成功（Issue #95 验证）"
+      - ai: "找到并点击'价格提醒'或'警报'功能"
+      - ai: "创建价格提醒：设置价格 105"
+      - aiAssert: "价格提醒创建成功（Issue #100 验证）"
+      - aiWaitFor: "等待 5 秒观察实时数据"
+      - aiAssert: "价格数据在实时更新，不是静态的"

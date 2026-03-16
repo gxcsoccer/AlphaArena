@@ -1,0 +1,15 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "基础功能验收测试"
+    flow:
+      - ai: "打开页面并等待完全加载"
+      - aiAssert: "页面成功加载，显示了Alpha Arena的主界面"
+      - aiAssert: "没有显示'连接断开'、'WebSocket error'等技术性错误提示"
+      - aiWaitFor: "K线图组件加载完成"
+      - aiAssert: "K线图正常渲染，显示了蜡烛图数据"
+      - aiAssert: "订单簿组件正常显示，有买盘和卖盘数据"
+      - ai: "点击交易对选择器，选择一个不同的交易对"
+      - aiWaitFor: "新交易对的数据加载完成"
+      - aiAssert: "交易对切换成功，K线图和订单簿更新为新交易对的数据"

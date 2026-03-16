@@ -1,0 +1,32 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "页面加载验证"
+    flow:
+      - aiWaitFor: "页面完全加载，显示交易界面"
+      - aiAssert: "页面标题或 Logo 显示 AlphaArena 或相关交易标识"
+      - aiAssert: "主要布局区域完整显示：顶部导航、交易区域、订单簿区域"
+  - name: "K线图渲染验证"
+    flow:
+      - aiWaitFor: "K线图组件加载完成"
+      - aiAssert: "K线图显示蜡烛图数据，有红绿蜡烛表示涨跌"
+      - aiAssert: "K线图有 X 轴时间标签和 Y 轴价格标签"
+  - name: "交易对切换验证"
+    flow:
+      - ai: "找到并点击交易对选择器或下拉菜单"
+      - aiWaitFor: "交易对列表弹出"
+      - aiAssert: "显示多个可选交易对"
+      - ai: "选择一个不同的交易对"
+      - aiWaitFor: "页面更新为新交易对数据"
+      - aiAssert: "K线图和订单簿更新为新交易对的数据"
+  - name: "订单簿显示验证"
+    flow:
+      - aiWaitFor: "订单簿组件可见"
+      - aiAssert: "订单簿显示买单区域（绿色）和卖单区域（红色）"
+      - aiAssert: "订单簿有价格列和数量列"
+      - aiAssert: "订单簿有滚动条或可显示多行订单数据"
+  - name: "控制台错误检查"
+    flow:
+      - aiAssert: "页面无红色错误提示或弹窗"
+      - aiAssert: "页面主要内容正常显示，无白屏或加载失败"

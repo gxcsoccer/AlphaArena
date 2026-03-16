@@ -1,0 +1,28 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Sprint 6 Final Production Smoke Test"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiAssert: "首页正常显示，没有'组件加载失败'错误"
+      - ai: "点击第一个交易对"
+      - aiWaitFor: "交易对详情页加载完成"
+      - aiAssert: "详情页显示交易对信息和图表"
+      - ai: "在交易表单中输入买入价格和数量"
+      - ai: "点击买入按钮"
+      - aiAssert: "交易成功执行，显示确认信息"
+      - ai: "导航到条件单页面"
+      - ai: "点击创建条件单按钮"
+      - ai: "选择止损止盈类型"
+      - ai: "设置触发价格和订单参数"
+      - ai: "提交条件单"
+      - aiAssert: "条件单创建成功，显示在列表中"
+      - ai: "导航到价格提醒页面"
+      - ai: "点击创建价格提醒"
+      - ai: "设置目标价格和提醒条件"
+      - ai: "提交价格提醒"
+      - aiAssert: "价格提醒创建成功"
+      - ai: "返回交易详情页"
+      - aiWaitFor: "等待 5 秒"
+      - aiAssert: "价格数据有实时更新"

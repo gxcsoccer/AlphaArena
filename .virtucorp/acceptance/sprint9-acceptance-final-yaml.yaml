@@ -1,0 +1,21 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "首页加载测试"
+    flow:
+      - aiWaitFor: "页面完成加载，显示主要导航区域"
+      - aiAssert: "首页显示正常，可以看到交易相关内容"
+  - name: "订单簿颜色测试"
+    flow:
+      - aiWaitFor: "订单簿区域可见"
+      - aiAssert: "订单簿显示正常，买单（bid）显示为绿色，卖单（ask）显示为红色"
+  - name: "订单表单测试"
+    flow:
+      - ai: "找到订单提交表单区域，查看价格和数量输入框"
+      - aiAssert: "订单提交表单可见，包含价格和数量输入框"
+  - name: "持仓页面测试"
+    flow:
+      - ai: "导航到持仓页面或点击持仓标签"
+      - aiWaitFor: "持仓页面加载完成"
+      - aiAssert: "持仓页面正常显示，布局和功能正常"

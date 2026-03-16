@@ -1,0 +1,10 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "捕获错误详情"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiWaitFor: "页面中存在错误显示元素，等待最多 10 秒"
+      - aiQuery: "提取页面上显示的错误信息，包括错误标题、错误消息和堆栈跟踪"
+      - ai: "如果页面显示了错误详情，截图保存整个错误区域"

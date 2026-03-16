@@ -1,0 +1,18 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Sprint 6 Production Smoke Test"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiAssert: "首页正确加载，显示交易对列表"
+      - ai: "点击第一个交易对（如 BTC/USD）"
+      - aiWaitFor: "交易详情页面加载完成"
+      - aiAssert: "交易详情组件正确显示，包含价格图表和交易信息"
+      - aiAssert: "页面显示买入/卖出交易按钮"
+      - ai: "点击创建条件订单按钮"
+      - aiAssert: "条件订单表单显示，包含止损和止盈选项"
+      - ai: "点击创建价格提醒按钮"
+      - aiAssert: "价格提醒表单显示"
+      - aiWaitFor: "等待 3 秒观察实时数据更新"
+      - aiAssert: "价格数据有实时更新"
