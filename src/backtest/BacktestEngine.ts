@@ -14,6 +14,7 @@ import { Portfolio } from '../portfolio/Portfolio';
 import { OrderBook } from '../orderbook/OrderBook';
 import { MatchingEngine } from '../matching/MatchingEngine';
 import { SMAStrategy } from '../strategy/SMAStrategy';
+import { RSIStrategy } from '../strategy/RSIStrategy';
 import { Strategy } from '../strategy/Strategy';
 import { OrderType, Order } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
@@ -60,6 +61,17 @@ export class BacktestEngine {
           params: {
             shortPeriod: params?.shortPeriod ?? 5,
             longPeriod: params?.longPeriod ?? 20,
+            tradeQuantity: params?.tradeQuantity ?? 10,
+          },
+        });
+      case 'rsi':
+        return new RSIStrategy({
+          id: 'rsi-strategy',
+          name: 'RSI Strategy',
+          params: {
+            period: params?.period ?? 14,
+            overbought: params?.overbought ?? 70,
+            oversold: params?.oversold ?? 30,
             tradeQuantity: params?.tradeQuantity ?? 10,
           },
         });
