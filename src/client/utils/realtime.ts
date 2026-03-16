@@ -359,9 +359,6 @@ export class RealtimeClient {
   /**
    * Listen to broadcast messages
    */
-/**
-   * Listen to broadcast messages
-   */
   public on(topic: string, event: string, callback: (payload: any) => void): () => void {
     const channel = this.getChannel(topic);
     const filter = { event };

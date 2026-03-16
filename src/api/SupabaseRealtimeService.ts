@@ -280,9 +280,6 @@ export class SupabaseRealtimeService {
   /**
    * Listen to broadcast messages on a channel
    */
-/**
-   * Listen to broadcast messages on a channel
-   */
   public onBroadcast(
     topic: string,
     event: string | '*',
@@ -307,9 +304,6 @@ export class SupabaseRealtimeService {
   }
 
   /**
-   * Listen to presence events
-   */
-/**
    * Listen to presence events
    */
   public onPresence(
