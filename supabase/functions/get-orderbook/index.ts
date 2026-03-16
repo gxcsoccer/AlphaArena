@@ -6,6 +6,17 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Initial prices for simulation - must match get-market-kline function
+const INITIAL_PRICES: Record<string, number> = {
+  'BTC/USD': 67500.00,
+  'ETH/USD': 3450.00,
+  'AAPL': 175.50,
+  'GOOGL': 140.25,
+  'TSLA': 245.00,
+  'MSFT': 415.75,
+  'NVDA': 875.30,
+};
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -43,10 +54,13 @@ serve(async (req) => {
       throw error;
     }
 
-    // Use latest price or default to simulated price
-    let midPrice = 50000; // Default BTC-like price
+    // Use latest price from database, or fallback to INITIAL_PRICES mapping
+    let midPrice: number;
     if (priceData) {
       midPrice = parseFloat(priceData.price.toString());
+    } else {
+      // Fallback to initial prices mapping (same as K-line function)
+      midPrice = INITIAL_PRICES[symbol] || 100; // Default to 100 if symbol not found
     }
     
     const spread = midPrice * 0.001; // 0.1% spread
