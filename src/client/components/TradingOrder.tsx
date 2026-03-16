@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   Card,
   Tabs,
@@ -87,10 +87,34 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   const baseBalance = portfolio?.positions.find(p => p.symbol === baseCurrency)?.quantity || 0;
   const totalPortfolioValue = portfolio?.totalValue || availableBalance;
 
-  // Get current market price
-  const currentPrice = orderBook ? 
-    ((orderBook.bids[0]?.price + orderBook.asks[0]?.price) / 2) : 0;
+  // Get current market price - must find best bid/ask (highest bid, lowest ask)
+  // because API returns unsorted arrays
+  const currentPrice = useMemo(() => {
+    if (!orderBook?.bids?.length || !orderBook?.asks?.length) {
+      return 0;
+    }
 
+    // Find best bid (highest price) and best ask (lowest price)
+    let bestBid = -Infinity;
+    let bestAsk = Infinity;
+
+    for (let i = 0; i < orderBook.bids.length; i++) {
+      const price = orderBook.bids[i].price;
+      if (price > bestBid) bestBid = price;
+    }
+
+    for (let i = 0; i < orderBook.asks.length; i++) {
+      const price = orderBook.asks[i].price;
+      if (price < bestAsk) bestAsk = price;
+    }
+
+    // Validate we found valid prices
+    if (bestBid === -Infinity || bestAsk === Infinity) {
+      return 0;
+    }
+
+    return (bestBid + bestAsk) / 2;
+  }, [orderBook]);
   // Real-time validation function
   const validateField = useCallback((field: 'price' | 'quantity' | 'triggerPrice', value: number | undefined): ValidationError | null => {
     const formData = formRef.current?.getFieldsValue();
