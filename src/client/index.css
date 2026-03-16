@@ -183,7 +183,7 @@ body {
 /* Responsive layout adjustments */
 @media (max-width: 768px) {
   /* Layout adjustments */
-  .ant-layout-sider {
+  .arco-layout-sider {
     position: fixed;
     left: 0;
     top: 0;
@@ -191,7 +191,7 @@ body {
     z-index: 1000;
   }
 
-  .ant-layout-sider-collapsed {
+  .arco-layout-sider-collapsed {
     width: 0 !important;
   }
 
