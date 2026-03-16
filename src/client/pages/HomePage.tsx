@@ -6,6 +6,7 @@ import TradingOrder from '../components/TradingOrder';
 import OrderBook from '../components/OrderBook';
 import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { useMarketData } from '../hooks/useMarketData';
 
 const { Content } = Layout;
 const { Row, Col } = Grid;
@@ -13,6 +14,10 @@ const { Row, Col } = Grid;
 const HomePage: React.FC = () => {
   const [selectedSymbol, setSelectedSymbol] = useState('BTC/USD');
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Get market data to resolve baseCurrency/quoteCurrency for selected symbol
+  const { marketData } = useMarketData();
+  const selectedPair = marketData.find(p => p.symbol === selectedSymbol);
 
   // Stable callback for resize handler to prevent re-creation
   const checkMobile = useCallback(() => {
@@ -55,7 +60,7 @@ const HomePage: React.FC = () => {
           </Card>
           <ErrorBoundary><KLineChart symbol={selectedSymbol} height={300} /></ErrorBoundary>
           <ErrorBoundary><OrderBook symbol={selectedSymbol} levels={10} onPriceClick={handlePriceClick} /></ErrorBoundary>
-          <ErrorBoundary><TradingOrder symbol={selectedSymbol} onOrderPlaced={handleOrderPlaced} /></ErrorBoundary>
+          <ErrorBoundary><TradingOrder symbol={selectedSymbol} baseCurrency={selectedPair?.baseCurrency} quoteCurrency={selectedPair?.quoteCurrency} onOrderPlaced={handleOrderPlaced} /></ErrorBoundary>
           <ErrorBoundary><ConditionalOrdersPanel symbol={selectedSymbol} limit={5} /></ErrorBoundary>
         </div>
       ) : (
@@ -74,7 +79,7 @@ const HomePage: React.FC = () => {
           <Col xs={24} sm={12} md={5}>
             <Row gutter={[0, 16]} style={{ height: '100%', overflow: 'auto' }}>
               <Col span={24}>
-                <ErrorBoundary><TradingOrder symbol={selectedSymbol} onOrderPlaced={handleOrderPlaced} /></ErrorBoundary>
+                <ErrorBoundary><TradingOrder symbol={selectedSymbol} baseCurrency={selectedPair?.baseCurrency} quoteCurrency={selectedPair?.quoteCurrency} onOrderPlaced={handleOrderPlaced} /></ErrorBoundary>
               </Col>
               <Col span={24}>
                 <ErrorBoundary><ConditionalOrdersPanel symbol={selectedSymbol} limit={10} /></ErrorBoundary>
