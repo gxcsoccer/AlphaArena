@@ -41,6 +41,26 @@ function isThirdPartyDOMError(error: Error | null): boolean {
 }
 
 /**
+ * Check if this is a chunk/module loading error
+ * These errors occur when the browser fails to load a JavaScript chunk
+ * Common causes: deployment updates, cache issues, network problems
+ */
+function isChunkLoadError(error: Error | null): boolean {
+  if (!error) return false;
+  
+  const chunkErrorPatterns = [
+    "Failed to fetch dynamically imported module",
+    "Loading chunk",
+    "Loading CSS chunk",
+    "ChunkLoadError",
+    "Unable to resolve module",
+  ];
+  
+  const errorString = `${error.name}: ${error.message}`;
+  return chunkErrorPatterns.some(pattern => errorString.includes(pattern));
+}
+
+/**
  * Error Boundary Component
  * Catches JavaScript errors anywhere in the component tree
  * and displays a fallback UI instead of crashing the whole app
@@ -114,8 +134,27 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Special handling for third-party DOM errors (e.g., Arco Design removeChild errors)
     // These are often transient timing issues during component cleanup
+    // Special handling for chunk loading errors (e.g., "Failed to fetch dynamically imported module")
+    // These occur when deployment updates change chunk hashes - reload to get fresh bundle
+    if (isChunkLoadError(error)) {
+      console.warn("[ErrorBoundary] Detected chunk loading error, will auto-reload...");
+      
+      // Auto-reload after a short delay to get fresh bundle
+      if (!this.isInRetryCycle && this.state.retryCount < 2) {
+        this.isInRetryCycle = true;
+        if (this.retryTimeout) clearTimeout(this.retryTimeout);
+        this.retryTimeout = setTimeout(() => {
+          console.log("[ErrorBoundary] Reloading page to fetch fresh bundle...");
+          window.location.reload();
+        }, 500);
+        return; // Do not show error UI, wait for reload
+      }
+    }
+    
+    // Special handling for third-party DOM errors (e.g., Arco Design removeChild errors)
+    // These are often transient timing issues during component cleanup
     if (isThirdPartyDOMError(error)) {
-      console.warn('[ErrorBoundary] Detected third-party DOM error, will auto-retry...');
+      console.warn("[ErrorBoundary] Detected third-party DOM error, will auto-retry...");
       
       // Auto-retry after a short delay (up to 3 attempts)
       if (!this.isInRetryCycle && this.state.retryCount < 3) {
@@ -129,8 +168,8 @@ export class ErrorBoundary extends Component<Props, State> {
             remountKey: prevState.remountKey + 1,
           }));
         }, 1000);
-        return; // Don't show error UI yet, wait for retry
-      }
+        return; // Do not show error UI yet, wait for retry
+    }
     }
     
     // Store error info for display if not auto-retrying
@@ -161,6 +200,35 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       // Check if this is a third-party DOM error (e.g., Arco Design)
+      // Check if this is a chunk loading error (e.g., "Failed to fetch dynamically imported module")
+      const isChunkError = isChunkLoadError(this.state.error);
+
+      // For chunk loading errors, show a reload prompt
+      // These errors require a page reload to get the latest bundle
+      if (isChunkError) {
+        return (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            minHeight: 300,
+            padding: 24,
+          }}>
+            <Spin size="large" style={{ marginBottom: 16 }} />
+            <Text style={{ marginBottom: 8 }}>页面资源加载中，请稍候...</Text>
+            <Text type="secondary" style={{ fontSize: 12, marginBottom: 16 }}>
+              （系统更新后正在加载最新版本）
+            </Text>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <Button type="primary" onClick={this.handleReload}>
+                刷新页面
+              </Button>
+            </div>
+          </div>
+        );
+      }
+
       const isDOMError = isThirdPartyDOMError(this.state.error);
 
       // For third-party DOM errors, show a graceful loading spinner with retry option
