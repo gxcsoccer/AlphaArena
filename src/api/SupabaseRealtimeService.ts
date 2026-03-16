@@ -1,3 +1,4 @@
+import { createBroadcastUnsubscribe, createPresenceUnsubscribe } from '../shared/realtime';
 /**
  * Supabase Realtime Broadcast Service
  * 
@@ -297,10 +298,9 @@ export class SupabaseRealtimeService {
     // Use correct Supabase API with filter object
     channel.on('broadcast', filter, handler);
 
-    // Return unsubscribe function
-    return () => {
-      (channel as any)._off('broadcast', filter);
-    };
+    // Return unsubscribe function using type-safe utility
+    return createBroadcastUnsubscribe(channel, filter);
+
   }
 
   /**
@@ -321,12 +321,8 @@ export class SupabaseRealtimeService {
     channel.on('presence', { event: 'join' }, presenceHandler);
     channel.on('presence', { event: 'leave' }, presenceHandler);
 
-    // Return unsubscribe function using _off
-    return () => {
-      (channel as any)._off('presence', { event: 'sync' });
-      (channel as any)._off('presence', { event: 'join' });
-      (channel as any)._off('presence', { event: 'leave' });
-    };
+    // Return unsubscribe function using type-safe utility
+    return createPresenceUnsubscribe(channel);
   }
 
   /**
