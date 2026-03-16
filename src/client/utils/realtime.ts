@@ -11,6 +11,7 @@
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
 import { validateConfig, isSupabaseConfigValid, logConfigStatus } from './config';
+import { removeChannelListener, createPresenceUnsubscribe } from '../../shared/realtime';
 
 // Reconnection settings with exponential backoff
 const INITIAL_RECONNECT_DELAY = 1000; // 1 second
@@ -383,8 +384,8 @@ export class RealtimeClient {
     eventListeners.push({ callback, handler });
 
     return () => {
-      // Use _off private method with same filter object
-      (channel as any)._off('broadcast', filter);
+      // Remove listener using type-safe utility
+      removeChannelListener(channel, 'broadcast', filter);
       const index = eventListeners.findIndex(l => l.callback === callback);
       if (index !== -1) {
         eventListeners.splice(index, 1);
@@ -524,11 +525,8 @@ export class RealtimeClient {
     (channel as any).on('presence', { event: 'join' }, presenceHandler);
     (channel as any).on('presence', { event: 'leave' }, presenceHandler);
 
-    return () => {
-      (channel as any)._off('presence', { event: 'sync' });
-      (channel as any)._off('presence', { event: 'join' });
-      (channel as any)._off('presence', { event: 'leave' });
-    };
+    // Return unsubscribe function using type-safe utility
+    return createPresenceUnsubscribe(channel);
   }
 
   /**
