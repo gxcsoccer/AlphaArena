@@ -3,23 +3,62 @@
  * 
  * Displays a banner/toast when WebSocket connection is lost
  * Shows reconnection progress and auto-hides when reconnected
+ * 
+ * Updated for Issue #178: Handle "degraded" state when Realtime fails but REST API works
  */
 
 import React from 'react';
-import { Alert, Tag, Progress } from '@arco-design/web-react';
-import { IconClose, IconSync, IconCheckCircle, IconExclamationCircle } from '@arco-design/web-react/icon';
+import { Alert, Tag, Progress, Button } from '@arco-design/web-react';
+import { IconClose, IconSync, IconCheckCircle, IconExclamationCircle, IconRefresh } from '@arco-design/web-react/icon';
 import { useConnection } from '../store/connectionStore';
 
 const ReconnectingIcon = IconSync;
 const ConnectedIcon = IconCheckCircle;
 const WarningIcon = IconExclamationCircle;
+const RefreshIcon = IconRefresh;
 
 const OfflineIndicator: React.FC = () => {
-  const { status, isOnline, quality, lastDisconnectedAt } = useConnection();
+  const { status, isOnline, quality, lastDisconnectedAt, isRestApiAvailable, checkRestApiHealth } = useConnection();
 
   // Don't show if connected and online
   if (status === 'connected' && isOnline) {
     return null;
+  }
+
+  // Don't show anything if in degraded mode (REST API works, Realtime unavailable)
+  // This is intentional - we want to show the app is functional, just without real-time updates
+  // The user can still see data updates via REST API polling every 3 seconds
+  if (status === 'degraded' && isRestApiAvailable) {
+    return (
+      <Alert
+        type="warning"
+        content={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ flex: 1 }}>
+              ⚠️ 实时推送暂时不可用，数据每 3 秒自动更新
+            </span>
+            <Tag color="orange">降级模式</Tag>
+            <Button 
+              size="small" 
+              icon={<RefreshIcon />}
+              onClick={() => checkRestApiHealth()}
+            >
+              刷新数据
+            </Button>
+          </div>
+        }
+        closable
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          borderRadius: 0,
+          margin: 0,
+        }}
+      />
+    );
   }
 
   // Determine the type of alert based on status
@@ -43,6 +82,8 @@ const OfflineIndicator: React.FC = () => {
         return `连接断开 - 正在重试 (${quality.reconnectAttempts})`;
       case 'disconnected':
         return '连接已断开';
+      case 'degraded':
+        return '实时推送暂停 - API 正常，数据每 3 秒更新';
       default:
         return '连接状态异常';
     }
@@ -79,6 +120,7 @@ const OfflineIndicator: React.FC = () => {
       connecting: { color: 'blue', text: '连接中' },
       reconnecting: { color: 'orange', text: '重连中' },
       disconnected: { color: 'red', text: '已断开' },
+      degraded: { color: 'orange', text: '降级模式' },
     };
 
     const config = statusConfig[status] || { color: 'gray', text: '未知' };

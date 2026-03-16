@@ -3,7 +3,7 @@ import { useConnection } from '../store/connectionStore';
 import { getRealtimeClient } from '../utils/realtime';
 
 export function useRealtimeConnection() {
-  const { setStatus, updateQuality } = useConnection();
+  const { setStatus, updateQuality, setRealtimeConnected } = useConnection();
   const clientRef = useRef<any>(null);
   const isMountedRef = useRef<boolean>(false);
 
@@ -16,6 +16,13 @@ export function useRealtimeConnection() {
     const unsubscribe = client.onConnectionChange((status: string) => {
       if (!isMountedRef.current) return;
       setStatus(status);
+      
+      // Update Realtime connection state based on status
+      if (status === 'connected') {
+        setRealtimeConnected(true);
+      } else if (status === 'disconnected' || status === 'reconnecting') {
+        setRealtimeConnected(false);
+      }
     });
 
     // Subscribe to quality changes
@@ -29,5 +36,5 @@ export function useRealtimeConnection() {
       unsubscribe();
       unsubscribeQuality();
     };
-  }, [setStatus, updateQuality]);
+  }, [setStatus, updateQuality, setRealtimeConnected]);
 }
