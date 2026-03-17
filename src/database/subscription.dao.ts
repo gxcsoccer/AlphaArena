@@ -3,7 +3,7 @@
  * Handles database operations for subscription plans, user subscriptions, and feature usage
  */
 
-import { getSupabaseClient } from './client';
+import { getSupabaseClient, getSupabaseAdminClient } from './client';
 import { createLogger } from '../utils/logger';
 import { SupabaseClient } from '@supabase/supabase-js';
 
@@ -98,21 +98,25 @@ export interface UserSubscriptionStatus {
 
 /**
  * Subscription DAO Class
+ * Uses anon client for reads (RLS enforced) and admin client for writes (bypasses RLS)
  */
 export class SubscriptionDAO {
-  private client: SupabaseClient;
+  private anonClient: SupabaseClient;
+  private adminClient: SupabaseClient;
 
-  constructor(client: SupabaseClient) {
-    this.client = client;
+  constructor(anonClient: SupabaseClient, adminClient: SupabaseClient) {
+    this.anonClient = anonClient;
+    this.adminClient = adminClient;
   }
 
   // ==================== Subscription Plans ====================
 
   /**
    * Get all active subscription plans
+   * Uses anon client - RLS filters visible plans
    */
   async getPlans(): Promise<SubscriptionPlan[]> {
-    const { data, error } = await this.client
+    const { data, error } = await this.anonClient
       .from('subscription_plans')
       .select('*')
       .eq('is_active', true)
@@ -128,9 +132,10 @@ export class SubscriptionDAO {
 
   /**
    * Get a specific plan by ID
+   * Uses anon client - RLS filters visible plans
    */
   async getPlanById(planId: string): Promise<SubscriptionPlan | null> {
-    const { data, error } = await this.client
+    const { data, error } = await this.anonClient
       .from('subscription_plans')
       .select('*')
       .eq('id', planId)
@@ -151,9 +156,10 @@ export class SubscriptionDAO {
 
   /**
    * Get user's current subscription
+   * Uses anon client - RLS filters to user's own subscription
    */
   async getUserSubscription(userId: string): Promise<UserSubscription | null> {
-    const { data, error } = await this.client
+    const { data, error } = await this.anonClient
       .from('user_subscriptions')
       .select('*')
       .eq('user_id', userId)
@@ -171,6 +177,7 @@ export class SubscriptionDAO {
 
   /**
    * Get user's subscription status with plan details
+   * Uses anon client for reads
    */
   async getUserSubscriptionStatus(userId: string): Promise<UserSubscriptionStatus> {
     // First get user's subscription
@@ -206,6 +213,7 @@ export class SubscriptionDAO {
 
   /**
    * Create a new subscription for a user
+   * Uses admin client to bypass RLS for writes
    */
   async createSubscription(data: {
     userId: string;
@@ -222,7 +230,7 @@ export class SubscriptionDAO {
     const currentPeriodEnd = data.currentPeriodEnd || 
       new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-    // Check if user already has a subscription
+    // Check if user already has a subscription (use anon client for read)
     const existing = await this.getUserSubscription(data.userId);
 
     if (existing) {
@@ -230,7 +238,7 @@ export class SubscriptionDAO {
       const action = data.planId === 'free' ? 'canceled' : 
         (fromPlan < data.planId ? 'upgraded' : 'downgraded');
 
-      // Record history
+      // Record history (use admin client for write)
       await this.addHistoryEntry({
         userId: data.userId,
         action,
@@ -240,8 +248,8 @@ export class SubscriptionDAO {
         toStatus: data.status || 'active',
       });
 
-      // Update existing subscription
-      const { data: updated, error } = await this.client
+      // Update existing subscription (use admin client for write)
+      const { data: updated, error } = await this.adminClient
         .from('user_subscriptions')
         .update({
           plan_id: data.planId,
@@ -270,8 +278,8 @@ export class SubscriptionDAO {
       return this.mapUserSubscriptionRow(updated);
     }
 
-    // Create new subscription
-    const { data: inserted, error } = await this.client
+    // Create new subscription (use admin client for write)
+    const { data: inserted, error } = await this.adminClient
       .from('user_subscriptions')
       .insert({
         user_id: data.userId,
@@ -293,7 +301,7 @@ export class SubscriptionDAO {
       throw error;
     }
 
-    // Record history
+    // Record history (use admin client for write)
     await this.addHistoryEntry({
       userId: data.userId,
       action: 'created',
@@ -308,6 +316,7 @@ export class SubscriptionDAO {
 
   /**
    * Update user's subscription
+   * Uses admin client to bypass RLS for writes
    */
   async updateSubscription(userId: string, data: {
     planId?: string;
@@ -342,7 +351,8 @@ export class SubscriptionDAO {
     if (data.canceledAt !== undefined) updateData.canceled_at = data.canceledAt;
     if (data.cancellationReason !== undefined) updateData.cancellation_reason = data.cancellationReason;
 
-    const { data: updated, error } = await this.client
+    // Use admin client for write
+    const { data: updated, error } = await this.adminClient
       .from('user_subscriptions')
       .update(updateData)
       .eq('user_id', userId)
@@ -354,7 +364,7 @@ export class SubscriptionDAO {
       throw error;
     }
 
-    // Record history if plan changed
+    // Record history if plan changed (use admin client for write)
     if (data.planId && data.planId !== existing.planId) {
       await this.addHistoryEntry({
         userId,
@@ -371,6 +381,7 @@ export class SubscriptionDAO {
 
   /**
    * Cancel user's subscription
+   * Uses admin client to bypass RLS for writes
    */
   async cancelSubscription(userId: string, reason?: string): Promise<UserSubscription | null> {
     const existing = await this.getUserSubscription(userId);
@@ -379,7 +390,8 @@ export class SubscriptionDAO {
       return null;
     }
 
-    const { data: updated, error } = await this.client
+    // Use admin client for write
+    const { data: updated, error } = await this.adminClient
       .from('user_subscriptions')
       .update({
         cancel_at_period_end: true,
@@ -396,7 +408,7 @@ export class SubscriptionDAO {
       throw error;
     }
 
-    // Record history
+    // Record history (use admin client for write)
     await this.addHistoryEntry({
       userId,
       action: 'canceled',
@@ -414,6 +426,7 @@ export class SubscriptionDAO {
 
   /**
    * Check if user has access to a feature
+   * Uses anon client for reads
    */
   async checkFeatureAccess(userId: string, featureKey: string): Promise<FeatureAccessResult> {
     // Get user's plan
@@ -421,9 +434,9 @@ export class SubscriptionDAO {
     const limits = status.limits;
     const limit = limits[featureKey] ?? 0;
 
-    // Get current usage today
+    // Get current usage today (use anon client for read)
     const today = new Date().toISOString().split('T')[0];
-    const { data: usageData, error } = await this.client
+    const { data: usageData, error } = await this.anonClient
       .from('feature_usage')
       .select('usage_count')
       .eq('user_id', userId)
@@ -450,12 +463,13 @@ export class SubscriptionDAO {
 
   /**
    * Increment feature usage
+   * Uses admin client to bypass RLS for writes
    */
   async incrementFeatureUsage(userId: string, featureKey: string, increment: number = 1): Promise<void> {
     const today = new Date().toISOString().split('T')[0];
 
-    // Try to update existing record
-    const { error: updateError } = await this.client
+    // Try to update existing record (use admin client for write)
+    const { error: updateError } = await this.adminClient
       .rpc('increment_feature_usage', {
         p_user_id: userId,
         p_feature_key: featureKey,
@@ -463,8 +477,8 @@ export class SubscriptionDAO {
       });
 
     if (updateError) {
-      // If RPC doesn't exist, try direct upsert
-      const { error: upsertError } = await this.client
+      // If RPC doesn't exist, try direct upsert (use admin client for write)
+      const { error: upsertError } = await this.adminClient
         .from('feature_usage')
         .upsert({
           user_id: userId,
@@ -484,11 +498,12 @@ export class SubscriptionDAO {
 
   /**
    * Get user's feature usage for today
+   * Uses anon client for reads
    */
   async getFeatureUsage(userId: string, featureKey: string): Promise<FeatureUsage | null> {
     const today = new Date().toISOString().split('T')[0];
     
-    const { data, error } = await this.client
+    const { data, error } = await this.anonClient
       .from('feature_usage')
       .select('*')
       .eq('user_id', userId)
@@ -508,9 +523,10 @@ export class SubscriptionDAO {
 
   /**
    * Get subscription history for a user
+   * Uses anon client for reads
    */
   async getSubscriptionHistory(userId: string, limit: number = 20): Promise<SubscriptionHistory[]> {
-    const { data, error } = await this.client
+    const { data, error } = await this.anonClient
       .from('subscription_history')
       .select('*')
       .eq('user_id', userId)
@@ -527,6 +543,10 @@ export class SubscriptionDAO {
 
   // ==================== Helper Methods ====================
 
+  /**
+   * Add a history entry
+   * Uses admin client to bypass RLS for writes
+   */
   private async addHistoryEntry(data: {
     userId: string;
     action: string;
@@ -536,7 +556,7 @@ export class SubscriptionDAO {
     toStatus: string;
     reason?: string;
   }): Promise<void> {
-    const { error } = await this.client
+    const { error } = await this.adminClient
       .from('subscription_history')
       .insert({
         user_id: data.userId,
@@ -636,7 +656,7 @@ let subscriptionDAO: SubscriptionDAO | null = null;
 
 export function getSubscriptionDAO(): SubscriptionDAO {
   if (!subscriptionDAO) {
-    subscriptionDAO = new SubscriptionDAO(getSupabaseClient());
+    subscriptionDAO = new SubscriptionDAO(getSupabaseClient(), getSupabaseAdminClient());
   }
   return subscriptionDAO;
 }

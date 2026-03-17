@@ -20,8 +20,13 @@ const createMockChain = () => {
   return chain;
 };
 
-// Mock client
-const mockClient = {
+// Mock clients (anon for reads, admin for writes)
+const mockAnonClient = {
+  from: jest.fn(),
+  rpc: jest.fn(),
+};
+
+const mockAdminClient = {
   from: jest.fn(),
   rpc: jest.fn(),
 };
@@ -31,7 +36,8 @@ describe('SubscriptionDAO', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    dao = new SubscriptionDAO(mockClient as any);
+    // Constructor now takes two clients: anon for reads, admin for writes
+    dao = new SubscriptionDAO(mockAnonClient as any, mockAdminClient as any);
   });
 
   describe('getPlans', () => {
@@ -71,7 +77,7 @@ describe('SubscriptionDAO', () => {
 
       const chain = createMockChain();
       chain.order.mockResolvedValue({ data: mockPlans, error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getPlans();
 
@@ -83,7 +89,7 @@ describe('SubscriptionDAO', () => {
     it('should return empty array when no plans exist', async () => {
       const chain = createMockChain();
       chain.order.mockResolvedValue({ data: [], error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getPlans();
 
@@ -111,7 +117,7 @@ describe('SubscriptionDAO', () => {
 
       const chain = createMockChain();
       chain.single.mockResolvedValue({ data: mockPlan, error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getPlanById('pro');
 
@@ -126,7 +132,7 @@ describe('SubscriptionDAO', () => {
         data: null, 
         error: { code: 'PGRST116' } 
       });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getPlanById('nonexistent');
 
@@ -157,7 +163,7 @@ describe('SubscriptionDAO', () => {
 
       const chain = createMockChain();
       chain.maybeSingle.mockResolvedValue({ data: mockSubscription, error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getUserSubscription('user-1');
 
@@ -169,7 +175,7 @@ describe('SubscriptionDAO', () => {
     it('should return null for user without subscription', async () => {
       const chain = createMockChain();
       chain.maybeSingle.mockResolvedValue({ data: null, error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getUserSubscription('user-without-sub');
 
@@ -202,7 +208,7 @@ describe('SubscriptionDAO', () => {
         error: null 
       });
 
-      mockClient.from
+      mockAnonClient.from
         .mockReturnValueOnce(chain1)
         .mockReturnValueOnce(chain2)
         .mockReturnValueOnce(chain3);
@@ -239,7 +245,7 @@ describe('SubscriptionDAO', () => {
         error: null 
       });
 
-      mockClient.from
+      mockAnonClient.from
         .mockReturnValueOnce(chain1)
         .mockReturnValueOnce(chain2)
         .mockReturnValueOnce(chain3);
@@ -271,7 +277,7 @@ describe('SubscriptionDAO', () => {
 
       const chain = createMockChain();
       chain.limit.mockResolvedValue({ data: mockHistory, error: null });
-      mockClient.from.mockReturnValue(chain);
+      mockAnonClient.from.mockReturnValue(chain);
 
       const result = await dao.getSubscriptionHistory('user-1');
 
@@ -284,11 +290,11 @@ describe('SubscriptionDAO', () => {
 
   describe('createSubscription', () => {
     it('should create a new subscription for new user', async () => {
-      // Mock getUserSubscription (returns null)
+      // Mock getUserSubscription (returns null) - uses anon client
       const chain1 = createMockChain();
       chain1.maybeSingle.mockResolvedValue({ data: null, error: null });
 
-      // Mock insert
+      // Mock insert - uses admin client
       const chain2 = createMockChain();
       chain2.single.mockResolvedValue({
         data: {
@@ -312,12 +318,12 @@ describe('SubscriptionDAO', () => {
         error: null,
       });
 
-      // Mock history insert
+      // Mock history insert - uses admin client
       const chain3 = createMockChain();
       chain3.insert.mockResolvedValue({ error: null });
 
-      mockClient.from
-        .mockReturnValueOnce(chain1)
+      mockAnonClient.from.mockReturnValueOnce(chain1);
+      mockAdminClient.from
         .mockReturnValueOnce(chain2)
         .mockReturnValueOnce(chain3);
 
