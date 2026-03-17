@@ -29,6 +29,7 @@ export { TradingSignalsDAO, type TradingSignal, type CreateSignalInput, type Upd
 export { SignalSubscriptionsDAO, type SignalSubscription, type CreateSubscriptionInput, type UpdateSubscriptionInput, type SubscriptionFilters, type SubscriptionType, type SubscriptionStatus } from './signal-subscriptions.dao';
 export { SignalExecutionsDAO, type SignalExecution, type CreateExecutionInput, type UpdateExecutionInput, type ExecutionFilters, type ExecutionType, type ExecutionStatus } from './signal-executions.dao';
 export { SignalPublisherStatsDAO, type PublisherStats, type CreateStatsInput, type UpdateStatsInput, type StatsFilters } from './signal-publisher-stats.dao';
+export { RiskMonitorDAO, riskMonitorDAO, type RiskAlert, type CreateRiskAlertInput, type UpdateRiskAlertInput, type RiskAlertHistoryEntry, type RiskHistoryEntry, type CreateRiskHistoryInput, type PositionRisk, type CreatePositionRiskInput, type CorrelationEntry, type CreateCorrelationInput, type RiskHistoryFilters, type RiskAlertFilters, type RiskMetric, type AlertOperator, type AlertChannel, type RiskPeriodType } from './risk-monitor.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -50,6 +51,7 @@ import { TradingSignalsDAO } from './trading-signals.dao';
 import { SignalSubscriptionsDAO } from './signal-subscriptions.dao';
 import { SignalExecutionsDAO } from './signal-executions.dao';
 import { SignalPublisherStatsDAO } from './signal-publisher-stats.dao';
+import { RiskMonitorDAO } from './risk-monitor.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -73,6 +75,7 @@ export class DatabaseManager {
   private _signalSubscriptions: SignalSubscriptionsDAO | null = null;
   private _signalExecutions: SignalExecutionsDAO | null = null;
   private _signalPublisherStats: SignalPublisherStatsDAO | null = null;
+  private _riskMonitor: RiskMonitorDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -212,6 +215,13 @@ export class DatabaseManager {
       this._signalPublisherStats = new SignalPublisherStatsDAO();
     }
     return this._signalPublisherStats;
+  }
+
+  get riskMonitor(): RiskMonitorDAO {
+    if (!this._riskMonitor) {
+      this._riskMonitor = new RiskMonitorDAO();
+    }
+    return this._riskMonitor;
   }
 }
 

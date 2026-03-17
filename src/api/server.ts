@@ -41,6 +41,7 @@ import exportRoutes from './exportRoutes';
 import { createTemplateRouter } from './templateRoutes';
 import authRoutes from './authRoutes';
 import userDashboardRoutes from './userDashboardRoutes';
+import { createRiskMonitorRouter } from './riskMonitorRoutes';
 import socialRoutes from './socialRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
 import { createSignalRouter } from './signalRoutes';
@@ -897,6 +898,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/users', socialRoutes);
     this.app.use('/api/multi-timeframe', multiTimeframeRoutes);
     this.app.use('/api/signals', createSignalRouter());
+    this.app.use('/api/risk', createRiskMonitorRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
