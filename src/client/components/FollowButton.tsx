@@ -10,6 +10,7 @@ import {
   IconUser,
 } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
+import { api } from '../utils/api';
 
 interface FollowButtonProps {
   targetUserId: string;
@@ -39,18 +40,10 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/users/${targetUserId}/follow`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      const result = await api.followUser(targetUserId);
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to follow user');
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to follow user');
       }
 
       setIsFollowing(true);
@@ -70,18 +63,10 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/users/${targetUserId}/follow`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
+      const result = await api.unfollowUser(targetUserId);
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to unfollow user');
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to unfollow user');
       }
 
       setIsFollowing(false);

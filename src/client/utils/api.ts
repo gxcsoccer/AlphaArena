@@ -39,7 +39,9 @@ const FUNCTION_MAP: Record<string, string> = {
   '/api/market/tickers': 'get-market-tickers',
   '/api/market/kline': 'get-market-kline',
   '/api/conditional-orders': 'conditional-orders',
-  '/api/orders': 'get-orders'
+  '/api/orders': 'get-orders',
+  '/api/users': 'users',
+  '/api/signals': 'signals'
 };
 
 // Helper to map API paths to Supabase function names
@@ -777,6 +779,163 @@ export const api = {
     const data: ApiResponse<any> = await res.json();
     return data.success ? data.data : null;
   },
+  // ============================================
+  // User Profile API Methods
+  // ============================================
+
+  async getUserProfile(username: string): Promise<any | null> {
+    const res = await apiFetch(`/api/users/${username}`);
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getUserBadges(username: string): Promise<any[]> {
+    const res = await apiFetch(`/api/users/${username}/badges`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getUserStats(username: string): Promise<any | null> {
+    const res = await apiFetch(`/api/users/${username}/stats`);
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getUserStrategies(username: string, limit?: number, offset?: number): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiFetch(`/api/users/${username}/strategies${query}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async followUser(targetUserId: string): Promise<{ success: boolean; message?: string }> {
+    const res = await apiFetch(`/api/users/${targetUserId}/follow`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data: ApiResponse<any> = await res.json();
+    return { success: data.success, message: data.message };
+  },
+
+  async unfollowUser(targetUserId: string): Promise<{ success: boolean; message?: string }> {
+    const res = await apiFetch(`/api/users/${targetUserId}/follow`, {
+      method: 'DELETE',
+    });
+    const data: ApiResponse<any> = await res.json();
+    return { success: data.success, message: data.message };
+  },
+
+  async getUserFollowers(userId: string, limit?: number, offset?: number): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiFetch(`/api/users/${userId}/followers${query}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getUserFollowing(userId: string, limit?: number, offset?: number): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (limit) params.append('limit', limit.toString());
+    if (offset) params.append('offset', offset.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiFetch(`/api/users/${userId}/following${query}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async searchUsers(query: string): Promise<any[]> {
+    const res = await apiFetch(`/api/users/search?q=${encodeURIComponent(query)}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  // ============================================
+  // Trading Signals API Methods
+  // ============================================
+
+  async getSignals(filters?: {
+    publisherId?: string;
+    symbol?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.publisherId) params.append('publisherId', filters.publisherId);
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await apiFetch(`/api/signals${query}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async getSignal(signalId: string): Promise<any | null> {
+    const res = await apiFetch(`/api/signals/${signalId}`);
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async createSignal(signal: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    signalType?: string;
+    entryPrice?: number;
+    targetPrice?: number;
+    stopLossPrice?: number;
+    quantity?: number;
+    title?: string;
+    description?: string;
+    analysis?: string;
+    riskLevel?: string;
+    confidenceScore?: number;
+    expiresAt?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/api/signals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(signal),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async subscribeToSignal(sourceType: string, sourceId: string, settings?: {
+    autoExecute?: boolean;
+    copyRatio?: number;
+    fixedAmount?: number;
+    maxAmount?: number;
+  }): Promise<any | null> {
+    const res = await apiFetch('/api/signals/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sourceType, sourceId, ...settings }),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getSignalSubscriptions(): Promise<any[]> {
+    const res = await apiFetch('/api/signals/subscriptions');
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async unsubscribeFromSignal(subscriptionId: string): Promise<boolean> {
+    const res = await apiFetch(`/api/signals/subscriptions/${subscriptionId}`, {
+      method: 'DELETE',
+    });
+    const data: ApiResponse<void> = await res.json();
+    return data.success;
+  },
+
 };
 
 /**

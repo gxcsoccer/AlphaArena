@@ -27,6 +27,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { api } from '../utils/api';
 import FollowButton from '../components/FollowButton';
 import UserListModal from '../components/UserListModal';
 
@@ -80,26 +81,18 @@ const UserProfilePage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch(`/api/users/${username}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
-        },
-      });
+      const data = await api.getUserProfile(username);
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to fetch profile');
+      if (!data) {
+        throw new Error('Failed to fetch profile');
       }
 
-      setProfile(data.data);
+      setProfile(data);
 
       // Fetch badges
-      const badgesResponse = await fetch(`/api/users/${username}/badges`);
-      const badgesData = await badgesResponse.json();
-      if (badgesData.success) {
-        setBadges(badgesData.data);
+      const badgesData = await api.getUserBadges(username);
+      if (badgesData) {
+        setBadges(badgesData);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load profile';

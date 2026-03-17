@@ -17,6 +17,7 @@ import {
 import { IconUser } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { api } from '../utils/api';
 import FollowButton from './FollowButton';
 
 const { Text } = Typography;
@@ -67,25 +68,15 @@ const UserListModal: React.FC<UserListModalProps> = ({
     const offset = reset ? 0 : page * PAGE_SIZE;
 
     try {
-      const response = await fetch(
-        `/api/users/${userId}/${type}?limit=${PAGE_SIZE}&offset=${offset}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(currentUser?.token ? { Authorization: `Bearer ${currentUser.token}` } : {}),
-          },
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || `Failed to fetch ${type}`);
+      let newUsers: UserListItem[] = [];
+      if (type === 'followers') {
+        newUsers = await api.getUserFollowers(userId, PAGE_SIZE, offset);
+      } else {
+        newUsers = await api.getUserFollowing(userId, PAGE_SIZE, offset);
       }
 
-      const newUsers = data.data;
       setUsers((prev) => (reset ? newUsers : [...prev, ...newUsers]));
-      setHasMore(data.pagination?.hasMore || newUsers.length === PAGE_SIZE);
+      setHasMore(newUsers.length === PAGE_SIZE);
       if (!reset) {
         setPage((prev) => prev + 1);
       } else {
