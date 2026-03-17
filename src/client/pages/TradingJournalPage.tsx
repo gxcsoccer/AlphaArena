@@ -107,54 +107,33 @@ const TradingJournalPage: React.FC = () => {
       if (dateRange?.[0]) params.append('startDate', dateRange[0].format('YYYY-MM-DD'));
       if (dateRange?.[1]) params.append('endDate', dateRange[1].format('YYYY-MM-DD'));
 
-      // For demo, use mock data if API not available
-      const mockEntries: TradeJournal[] = [
-        {
-          id: '1',
-          userId: MOCK_USER_ID,
-          symbol: 'BTC/USDT',
-          type: 'long',
-          status: 'closed',
-          entryPrice: 45000,
-          entryQuantity: 0.1,
-          entryReason: '突破前高阻力位',
-          entryDate: new Date('2024-01-15T10:30:00'),
-          exitPrice: 48000,
-          exitQuantity: 0.1,
-          exitReason: '止盈目标达成',
-          exitDate: new Date('2024-01-16T14:20:00'),
-          pnl: 300,
-          pnlPercent: 6.67,
-          fees: 10,
-          notes: '趋势明确，量能配合良好',
-          tags: ['趋势交易', '突破'],
-          emotion: 'confident',
-          screenshots: [],
-          createdAt: new Date('2024-01-15T10:30:00'),
-          updatedAt: new Date('2024-01-16T14:20:00'),
-        },
-        {
-          id: '2',
-          userId: MOCK_USER_ID,
-          symbol: 'ETH/USDT',
-          type: 'short',
-          status: 'open',
-          entryPrice: 2800,
-          entryQuantity: 1,
-          entryReason: 'RSI超买，看跌背离',
-          entryDate: new Date('2024-01-20T09:00:00'),
-          notes: '等待确认信号',
-          tags: ['反转', 'RSI'],
-          emotion: 'hesitant',
-          screenshots: [],
-          createdAt: new Date('2024-01-20T09:00:00'),
-          updatedAt: new Date('2024-01-20T09:00:00'),
-        },
-      ];
-      setEntries(mockEntries);
+      const response = await fetch(`${API_BASE}/api/trade-journal?${params.toString()}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Convert date strings to Date objects
+        const entries = result.data.map((entry: any) => ({
+          ...entry,
+          entryDate: new Date(entry.entryDate),
+          exitDate: entry.exitDate ? new Date(entry.exitDate) : undefined,
+          createdAt: new Date(entry.createdAt),
+          updatedAt: new Date(entry.updatedAt),
+        }));
+        setEntries(entries);
+      } else {
+        setEntries([]);
+      }
     } catch (error) {
       console.error('Failed to fetch entries:', error);
       Message.error('获取交易日志失败');
+      setEntries([]);
     } finally {
       setLoading(false);
     }
@@ -164,47 +143,29 @@ const TradingJournalPage: React.FC = () => {
   const fetchStats = async () => {
     setStatsLoading(true);
     try {
-      // Mock stats for demo
-      const mockStats: TradeJournalStats = {
-        totalTrades: 50,
-        openTrades: 3,
-        closedTrades: 47,
-        winningTrades: 28,
-        losingTrades: 19,
-        winRate: 59.57,
-        totalPnl: 4520.50,
-        avgPnl: 96.18,
-        avgWin: 280.50,
-        avgLoss: -85.20,
-        profitFactor: 3.29,
-        avgHoldingTime: 18.5,
-        bestTrade: 850,
-        worstTrade: -320,
-        emotionBreakdown: {
-          confident: 15,
-          hesitant: 8,
-          fearful: 5,
-          greedy: 3,
-          regretful: 4,
-          hopeful: 6,
-          anxious: 3,
-          calm: 3,
-        },
-        symbolBreakdown: {
-          'BTC/USDT': { count: 20, pnl: 2500 },
-          'ETH/USDT': { count: 15, pnl: 1200 },
-          'SOL/USDT': { count: 8, pnl: 500 },
-          'DOGE/USDT': { count: 4, pnl: 320 },
-        },
-        strategyBreakdown: {
-          '趋势跟踪': { count: 25, pnl: 3200 },
-          '突破交易': { count: 12, pnl: 800 },
-          '反转交易': { count: 10, pnl: 520 },
-        },
-      };
-      setStats(mockStats);
+      const params = new URLSearchParams();
+      if (filters.symbol) params.append('symbol', filters.symbol);
+      if (dateRange?.[0]) params.append('startDate', dateRange[0].format('YYYY-MM-DD'));
+      if (dateRange?.[1]) params.append('endDate', dateRange[1].format('YYYY-MM-DD'));
+
+      const response = await fetch(`${API_BASE}/api/trade-journal/stats?${params.toString()}`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        setStats(result.data);
+      } else {
+        setStats(null);
+      }
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+      setStats(null);
     } finally {
       setStatsLoading(false);
     }
