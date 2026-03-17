@@ -24,6 +24,12 @@ export { SocialDAO, type User, type UserFollow, type StrategyComment, type UserB
 export { TradeJournalDAO, type TradeJournal, type CreateTradeJournalInput, type UpdateTradeJournalInput, type TradeJournalFilters, type TradeJournalStats, type TradeJournalType, type TradeJournalStatus, type EmotionType } from './trade-journal.dao';
 export { StrategyTemplatesDAO, type StrategyTemplate, type TemplateRating, type TemplateUsage, type CreateTemplateInput, type TemplateFilter } from './strategyTemplates.dao';
 
+// Signal DAOs
+export { TradingSignalsDAO, type TradingSignal, type CreateSignalInput, type UpdateSignalInput, type SignalFilters, type SignalStatus, type SignalType, type RiskLevel } from './trading-signals.dao';
+export { SignalSubscriptionsDAO, type SignalSubscription, type CreateSubscriptionInput, type UpdateSubscriptionInput, type SubscriptionFilters, type SubscriptionType, type SubscriptionStatus } from './signal-subscriptions.dao';
+export { SignalExecutionsDAO, type SignalExecution, type CreateExecutionInput, type UpdateExecutionInput, type ExecutionFilters, type ExecutionType, type ExecutionStatus } from './signal-executions.dao';
+export { SignalPublisherStatsDAO, type PublisherStats, type CreateStatsInput, type UpdateStatsInput, type StatsFilters } from './signal-publisher-stats.dao';
+
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
 import { TradesDAO } from './trades.dao';
@@ -40,6 +46,10 @@ import { CompetitionsDAO } from './competitions.dao';
 import { SocialDAO } from './social.dao';
 import { TradeJournalDAO } from './trade-journal.dao';
 import { StrategyTemplatesDAO } from './strategyTemplates.dao';
+import { TradingSignalsDAO } from './trading-signals.dao';
+import { SignalSubscriptionsDAO } from './signal-subscriptions.dao';
+import { SignalExecutionsDAO } from './signal-executions.dao';
+import { SignalPublisherStatsDAO } from './signal-publisher-stats.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -59,6 +69,10 @@ export class DatabaseManager {
   private _social: SocialDAO | null = null;
   private _tradeJournal: TradeJournalDAO | null = null;
   private _strategyTemplates: StrategyTemplatesDAO | null = null;
+  private _tradingSignals: TradingSignalsDAO | null = null;
+  private _signalSubscriptions: SignalSubscriptionsDAO | null = null;
+  private _signalExecutions: SignalExecutionsDAO | null = null;
+  private _signalPublisherStats: SignalPublisherStatsDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -170,6 +184,34 @@ export class DatabaseManager {
       this._strategyTemplates = new StrategyTemplatesDAO();
     }
     return this._strategyTemplates;
+  }
+
+  get tradingSignals(): TradingSignalsDAO {
+    if (!this._tradingSignals) {
+      this._tradingSignals = new TradingSignalsDAO();
+    }
+    return this._tradingSignals;
+  }
+
+  get signalSubscriptions(): SignalSubscriptionsDAO {
+    if (!this._signalSubscriptions) {
+      this._signalSubscriptions = new SignalSubscriptionsDAO();
+    }
+    return this._signalSubscriptions;
+  }
+
+  get signalExecutions(): SignalExecutionsDAO {
+    if (!this._signalExecutions) {
+      this._signalExecutions = new SignalExecutionsDAO();
+    }
+    return this._signalExecutions;
+  }
+
+  get signalPublisherStats(): SignalPublisherStatsDAO {
+    if (!this._signalPublisherStats) {
+      this._signalPublisherStats = new SignalPublisherStatsDAO();
+    }
+    return this._signalPublisherStats;
   }
 }
 
