@@ -7,6 +7,7 @@ import {
   IconSafe,
   IconUser,
   IconApps,
+  IconExperiment,
 } from '@arco-design/web-react/icon';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './MobileBottomNav.css';
@@ -24,6 +25,7 @@ const navItems: NavItem[] = [
   { key: '/trades', icon: <IconSwap />, label: '交易' },
   { key: '/holdings', icon: <IconSafe />, label: '持仓' },
   { key: '/strategies', icon: <IconApps />, label: '策略' },
+  { key: '/rebalance', icon: <IconExperiment />, label: '再平衡' },
   { key: '/user-dashboard', icon: <IconUser />, label: '我的' },
 ];
 
