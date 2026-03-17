@@ -613,6 +613,59 @@ export const api = {
     const data: ApiResponse<{ id: string; deleted: boolean }> = await res.json();
     return data.success ? data.data.deleted : false;
   },
+
+  // OCO Order API methods
+  async createOCOOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    strategyId?: string;
+    takeProfitTriggerPrice: number;
+    takeProfitQuantity: number;
+    takeProfitOrderType?: 'limit' | 'market';
+    takeProfitLimitPrice?: number;
+    stopLossTriggerPrice: number;
+    stopLossQuantity: number;
+    stopLossOrderType?: 'limit' | 'market';
+    stopLossLimitPrice?: number;
+    expiresAt?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/create-oco-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getOCOOrders(filters?: {
+    symbol?: string;
+    status?: string;
+    strategyId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.strategyId) params.append('strategyId', filters.strategyId);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    const res = await apiFetch(`/functions/v1/oco-orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async cancelOCOOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/functions/v1/cancel-oco-order/${orderId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
 };
 
 /**

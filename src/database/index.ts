@@ -8,6 +8,7 @@ export { PortfoliosDAO, type Portfolio, type PortfolioSnapshot } from './portfol
 export { PriceHistoryDAO, type PriceHistory, type PricePoint } from './price-history.dao';
 export { LeaderboardDAO, type LeaderboardSnapshotRecord, type LeaderboardEntryRecord } from './leaderboard.dao';
 export { ConditionalOrdersDAO, type ConditionalOrder, type ConditionalOrderFilters } from './conditional-orders.dao';
+export { OCOOrdersDAO, type OCOOrder, type CreateOCOOrderInput, type OCOOrderFilters } from './oco-orders.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -16,6 +17,7 @@ import { PortfoliosDAO } from './portfolios.dao';
 import { PriceHistoryDAO } from './price-history.dao';
 import { LeaderboardDAO } from './leaderboard.dao';
 import { ConditionalOrdersDAO } from './conditional-orders.dao';
+import { OCOOrdersDAO } from './oco-orders.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -26,6 +28,7 @@ export class DatabaseManager {
   private _priceHistory: PriceHistoryDAO | null = null;
   private _leaderboard: LeaderboardDAO | null = null;
   private _conditionalOrders: ConditionalOrdersDAO | null = null;
+  private _ocoOrders: OCOOrdersDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -74,6 +77,13 @@ export class DatabaseManager {
       this._conditionalOrders = new ConditionalOrdersDAO();
     }
     return this._conditionalOrders;
+  }
+
+  get ocoOrders(): OCOOrdersDAO {
+    if (!this._ocoOrders) {
+      this._ocoOrders = new OCOOrdersDAO();
+    }
+    return this._ocoOrders;
   }
 }
 
