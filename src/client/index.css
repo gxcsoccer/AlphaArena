@@ -1077,3 +1077,453 @@ a:focus-visible {
 [role="status"] {
   aria-live: "polite";
 }
+
+/* ============================================
+   Mobile Responsive Optimizations - Issue #312
+   ============================================ */
+
+/* Mobile Bottom Navigation Spacer */
+.mobile-nav-spacer {
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Mobile Header Optimization */
+@media (max-width: 768px) {
+  .arco-layout-header {
+    height: 56px !important;
+    line-height: 56px !important;
+    padding: 0 12px !important;
+  }
+
+  .arco-page-header {
+    padding: 12px !important;
+  }
+
+  .arco-page-header-title {
+    font-size: 18px !important;
+  }
+}
+
+/* Mobile Card Optimization */
+@media (max-width: 768px) {
+  .arco-card {
+    margin-bottom: 12px;
+  }
+
+  .arco-card-header {
+    padding: 12px 16px;
+  }
+
+  .arco-card-body {
+    padding: 12px 16px;
+  }
+
+  .arco-card-meta-title {
+    font-size: 14px;
+  }
+
+  .arco-card-meta-description {
+    font-size: 12px;
+  }
+}
+
+/* Mobile Form Optimization */
+@media (max-width: 768px) {
+  .arco-form-item {
+    margin-bottom: 16px;
+  }
+
+  .arco-form-item-label {
+    font-size: 14px;
+    padding-bottom: 4px;
+  }
+
+  .arco-input,
+  .arco-input-password,
+  .arco-textarea,
+  .arco-select .arco-select-view,
+  .arco-picker {
+    font-size: 16px !important; /* Prevents iOS zoom on focus */
+    min-height: 44px;
+  }
+
+  .arco-input-inner-wrapper {
+    min-height: 44px;
+  }
+
+  .arco-btn {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .arco-btn-size-small {
+    min-height: 36px;
+    font-size: 14px;
+  }
+
+  .arco-btn-size-large {
+    min-height: 48px;
+    font-size: 18px;
+  }
+
+  /* Fixed submit button at bottom */
+  .mobile-form-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    background: var(--color-bg-1);
+    border-top: 1px solid var(--color-border-1);
+    z-index: 100;
+  }
+
+  .mobile-form-footer .arco-btn {
+    width: 100%;
+  }
+}
+
+/* Mobile Modal Optimization */
+@media (max-width: 768px) {
+  .arco-modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 10px auto;
+    max-height: 90vh;
+  }
+
+  .arco-modal-header {
+    padding: 12px 16px;
+  }
+
+  .arco-modal-body {
+    padding: 12px 16px;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+  }
+
+  .arco-modal-footer {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Full-screen modal for complex interactions */
+  .arco-modal.mobile-fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin: 0;
+    border-radius: 0;
+  }
+
+  .arco-modal.mobile-fullscreen .arco-modal-body {
+    max-height: calc(100vh - 120px);
+  }
+}
+
+/* Mobile Drawer Optimization */
+@media (max-width: 768px) {
+  .arco-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .arco-drawer-header {
+    padding: 12px 16px;
+  }
+
+  .arco-drawer-body {
+    padding: 12px 16px;
+  }
+
+  .arco-drawer-footer {
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Mobile Table Card View */
+@media (max-width: 768px) {
+  /* Hide table, show cards on mobile */
+  .mobile-table-view .arco-table-wrapper {
+    display: none;
+  }
+
+  .mobile-table-view .mobile-cards-container {
+    display: block;
+  }
+
+  /* Desktop: show table, hide cards */
+  @media (min-width: 769px) {
+    .mobile-table-view .arco-table-wrapper {
+      display: block;
+    }
+
+    .mobile-table-view .mobile-cards-container {
+      display: none;
+    }
+  }
+}
+
+/* Mobile Tabs Optimization */
+@media (max-width: 768px) {
+  .arco-tabs {
+    font-size: 14px;
+  }
+
+  .arco-tabs-tab {
+    padding: 8px 12px;
+    min-height: 44px;
+  }
+
+  .arco-tabs-tab-title {
+    font-size: 13px;
+  }
+
+  /* Scrollable tabs */
+  .arco-tabs-header-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .arco-tabs-header-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Mobile Statistic Cards */
+@media (max-width: 768px) {
+  .arco-statistic {
+    text-align: center;
+  }
+
+  .arco-statistic-title {
+    font-size: 12px;
+  }
+
+  .arco-statistic-value {
+    font-size: 20px;
+  }
+
+  .arco-statistic-suffix,
+  .arco-statistic-prefix {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Chart Optimization */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 280px !important;
+    min-height: 200px;
+  }
+
+  .arco-card .chart-container {
+    height: 250px !important;
+  }
+
+  /* Chart controls */
+  .chart-toolbar {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chart-toolbar .arco-radio-group {
+    flex-wrap: wrap;
+  }
+
+  .chart-toolbar .arco-radio-button {
+    min-height: 36px;
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+/* Mobile Pagination */
+@media (max-width: 768px) {
+  .arco-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .arco-pagination-item,
+  .arco-pagination-item-next,
+  .arco-pagination-item-prev {
+    min-width: 36px;
+    min-height: 36px;
+  }
+
+  .arco-pagination-options {
+    width: 100%;
+    justify-content: center;
+    margin-top: 8px;
+  }
+}
+
+/* Mobile Empty State */
+@media (max-width: 768px) {
+  .arco-empty-description {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Typography */
+@media (max-width: 768px) {
+  .arco-typography-title {
+    font-size: 20px !important;
+  }
+
+  .arco-typography-title.arco-typography-heading-1 {
+    font-size: 24px !important;
+  }
+
+  .arco-typography-title.arco-typography-heading-2 {
+    font-size: 20px !important;
+  }
+
+  .arco-typography-title.arco-typography-heading-3 {
+    font-size: 18px !important;
+  }
+
+  .arco-typography-title.arco-typography-heading-4 {
+    font-size: 16px !important;
+  }
+
+  .arco-typography-paragraph {
+    font-size: 14px;
+  }
+}
+
+/* Mobile Message/Notification */
+@media (max-width: 768px) {
+  .arco-message {
+    top: auto !important;
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+  }
+
+  .arco-notification {
+    width: calc(100% - 24px) !important;
+    right: 12px !important;
+  }
+}
+
+/* Mobile Dropdown */
+@media (max-width: 768px) {
+  .arco-dropdown-menu {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .arco-dropdown-option {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+}
+
+/* Mobile Select Picker */
+@media (max-width: 768px) {
+  .arco-select-popup {
+    max-height: 60vh;
+  }
+
+  .arco-select-option {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+}
+
+/* Touch Feedback */
+@media (hover: none) and (pointer: coarse) {
+  .arco-card:active {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+  }
+
+  .arco-list-item:active {
+    background-color: var(--color-fill-2);
+  }
+
+  .arco-menu-item:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Safe Area Support for All Fixed Elements */
+@supports (padding: max(0px)) {
+  .fixed-bottom {
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
+
+  .fixed-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+
+  .fixed-left {
+    padding-left: max(0px, env(safe-area-inset-left));
+  }
+
+  .fixed-right {
+    padding-right: max(0px, env(safe-area-inset-right));
+  }
+}
+
+/* Utility Classes for Mobile */
+.mobile-hidden {
+  display: none !important;
+}
+
+@media (min-width: 769px) {
+  .mobile-hidden {
+    display: block !important;
+  }
+
+  .desktop-hidden {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .desktop-hidden {
+    display: block !important;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+}
+
+/* Mobile Loading State */
+@media (max-width: 768px) {
+  .arco-spin {
+    font-size: 24px;
+  }
+
+  .arco-spin-tip {
+    font-size: 14px;
+    margin-top: 8px;
+  }
+}
+
+/* Mobile Skeleton */
+@media (max-width: 768px) {
+  .arco-skeleton {
+    padding: 12px;
+  }
+
+  .arco-skeleton-text-row {
+    height: 14px;
+    margin-bottom: 8px;
+  }
+}
+

@@ -1,0 +1,104 @@
+/* Skeleton Loading Styles */
+.skeleton-card,
+.skeleton-table,
+.skeleton-list,
+.skeleton-chart,
+.skeleton-form {
+  background: var(--color-bg-2);
+  border-radius: 8px;
+}
+
+.skeleton-card {
+  padding: 16px;
+}
+
+.skeleton-table {
+  padding: 12px;
+}
+
+.skeleton-table-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border-2);
+}
+
+.skeleton-table-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-list {
+  padding: 8px 0;
+}
+
+.skeleton-list-item {
+  padding: 12px 16px;
+}
+
+.skeleton-chart {
+  padding: 16px;
+  min-height: 200px;
+}
+
+.skeleton-form {
+  padding: 16px;
+}
+
+.skeleton-form-item {
+  margin-bottom: 16px;
+}
+
+.skeleton-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Dashboard skeleton */
+.skeleton-dashboard {
+  padding: 12px;
+}
+
+/* Trading skeleton */
+.skeleton-trading {
+  padding: 12px;
+}
+
+/* Animation */
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.skeleton-card .arco-skeleton,
+.skeleton-table .arco-skeleton,
+.skeleton-list .arco-skeleton,
+.skeleton-chart .arco-skeleton,
+.skeleton-form .arco-skeleton {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Dark mode */
+:root.dark .skeleton-card,
+:root.dark .skeleton-table,
+:root.dark .skeleton-list,
+:root.dark .skeleton-chart,
+:root.dark .skeleton-form,
+:root[data-theme='dark'] .skeleton-card,
+:root[data-theme='dark'] .skeleton-table,
+:root[data-theme='dark'] .skeleton-list,
+:root[data-theme='dark'] .skeleton-chart,
+:root[data-theme='dark'] .skeleton-form {
+  background: var(--color-bg-3);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-card .arco-skeleton,
+  .skeleton-table .arco-skeleton,
+  .skeleton-list .arco-skeleton,
+  .skeleton-chart .arco-skeleton,
+  .skeleton-form .arco-skeleton {
+    animation: none;
+  }
+}

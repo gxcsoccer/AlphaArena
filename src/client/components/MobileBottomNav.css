@@ -1,0 +1,109 @@
+/* Mobile Bottom Navigation */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: calc(56px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: var(--color-bg-1);
+  border-top: 1px solid var(--color-border-1);
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.mobile-bottom-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+  transition: color 0.2s, transform 0.1s;
+  min-height: 44px; /* Touch target size */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-bottom-nav__item:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav__item--active {
+  color: var(--color-primary);
+}
+
+.mobile-bottom-nav__item--active .mobile-bottom-nav__icon {
+  transform: scale(1.1);
+}
+
+.mobile-bottom-nav__icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-bottom-nav__label {
+  font-size: 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Dark mode adjustments */
+:root.dark .mobile-bottom-nav,
+:root[data-theme='dark'] .mobile-bottom-nav {
+  background: var(--color-bg-2);
+  border-top-color: var(--color-border-1);
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
+/* Landscape optimization */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-bottom-nav {
+    height: calc(48px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mobile-bottom-nav__item {
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .mobile-bottom-nav__label {
+    font-size: 11px;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .mobile-bottom-nav {
+    border-top-width: 2px;
+  }
+
+  .mobile-bottom-nav__item--active {
+    background: var(--color-fill-2);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mobile-bottom-nav__item,
+  .mobile-bottom-nav__icon {
+    transition: none;
+  }
+}
