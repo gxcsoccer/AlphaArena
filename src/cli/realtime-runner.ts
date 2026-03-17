@@ -15,6 +15,7 @@ import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
 import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 import { StochasticStrategy } from '../strategy/StochasticStrategy';
+import { ATRStrategy } from '../strategy/ATRStrategy';
 
 /**
  * Real-time Trading Runner Configuration
@@ -28,7 +29,7 @@ export interface RunnerConfig {
   initialCapital: number;
   /** Strategies to run */
   strategies: Array<{
-    type: 'SMA' | 'RSI' | 'MACD' | 'Bollinger' | 'Stochastic';
+    type: 'SMA' | 'RSI' | 'MACD' | 'Bollinger' | 'Stochastic' | 'ATR';
     params: {
       id: string;
       name: string;
@@ -46,6 +47,10 @@ export interface RunnerConfig {
         kPeriod?: number;
         dPeriod?: number;
         smoothPeriod?: number;
+        atrMultiplier?: number;
+        trendPeriod?: number;
+        dynamicPositionSizing?: boolean;
+        riskPerTrade?: number;
         tradeQuantity: number;
       };
     };
@@ -175,6 +180,14 @@ export class RealtimeRunner {
           console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
         } else if (strategyConfig.type === 'Stochastic') {
           const strategy = new StochasticStrategy({
+            id: strategyConfig.params.id,
+            name: strategyConfig.params.name,
+            params: strategyConfig.params.params as any,
+          });
+          this.engine!.addStrategy(strategy);
+          console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
+        } else if (strategyConfig.type === 'ATR') {
+          const strategy = new ATRStrategy({
             id: strategyConfig.params.id,
             name: strategyConfig.params.name,
             params: strategyConfig.params.params as any,
