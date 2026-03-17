@@ -1,13 +1,13 @@
 {
-  "current": 20,
-  "startDate": "2026-03-25",
-  "endDate": "2026-04-01",
-  "milestone": 21,
+  "current": 21,
+  "startDate": "2026-04-01",
+  "endDate": "2026-04-08",
+  "milestone": 22,
   "status": "planning",
-  "issues": [286, 287, 288],
+  "issues": [292, 293, 294],
   "goals": [
-    "用户通知系统",
-    "策略性能比较工具",
-    "数据导出和报表功能"
+    "策略模板市场 (Strategy Template Marketplace)",
+    "多时间框架分析 (Multi-Timeframe Analysis)",
+    "高级订单类型 (Advanced Order Types)"
   ]
 }

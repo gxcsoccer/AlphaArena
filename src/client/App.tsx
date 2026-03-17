@@ -46,6 +46,7 @@ const BacktestVisualizationPage = lazyWithRetry(() => import('./pages/BacktestVi
 const TradingJournalPage = lazyWithRetry(() => import('./pages/TradingJournalPage'));
 const StrategyComparisonPage = lazyWithRetry(() => import('./pages/StrategyComparisonPage'));
 const AttributionPage = lazyWithRetry(() => import('./pages/AttributionPage'));
+const StrategyMarketplacePage = lazyWithRetry(() => import('./pages/StrategyMarketplacePage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -358,6 +359,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/journal" element={<TradingJournalPage />} />
         <Route path="/attribution" element={<AttributionPage />} />
         <Route path="/strategy-comparison" element={<StrategyComparisonPage />} />
+        <Route path="/marketplace" element={<StrategyMarketplacePage />} />
       </Routes>
     </Suspense>
   );

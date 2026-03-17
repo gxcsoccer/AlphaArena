@@ -35,6 +35,7 @@ import { createAttributionRouter } from './attributionRoutes';
 import notificationRoutes from './notificationRoutes.js';
 import strategyComparisonRoutes from './strategyComparisonRoutes';
 import exportRoutes from './exportRoutes';
+import { createTemplateRouter } from './templateRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -864,6 +865,9 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/notifications', notificationRoutes);
     this.app.use('/api/strategies/compare', strategyComparisonRoutes);
     this.app.use('/api/export', exportRoutes);
+
+    // Strategy template marketplace routes
+    this.app.use('/api/templates', createTemplateRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

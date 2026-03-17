@@ -1,0 +1,10 @@
+web:
+  url: "https://alpha-arena-two.vercel.app/trades"
+
+tasks:
+  - name: "验证交易页面导出功能"
+    flow:
+      - ai: "访问 /trades 页面并等待页面完全加载"
+      - aiWaitFor: "交易历史列表加载完成"
+      - aiAssert: "页面上有导出按钮"
+      - aiQuery: "提取导出按钮的位置和文字"
