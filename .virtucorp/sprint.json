@@ -1,14 +1,13 @@
 {
-  "current": 11,
-  "startDate": "2026-04-17",
-  "endDate": "2026-04-24",
-  "milestone": 12,
-  "status": "executing",
-  "issues": [211, 212, 213, 214],
+  "current": 20,
+  "startDate": "2026-03-25",
+  "endDate": "2026-04-01",
+  "milestone": 21,
+  "status": "planning",
+  "issues": [286, 287, 288],
   "goals": [
-    "Add Bollinger Bands trading strategy",
-    "Enhance portfolio analytics with risk metrics and performance charts",
-    "Improve mobile responsiveness across the platform",
-    "Enhance UI accessibility based on Sprint 10 retro findings"
+    "用户通知系统",
+    "策略性能比较工具",
+    "数据导出和报表功能"
   ]
 }
