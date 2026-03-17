@@ -210,10 +210,25 @@ npm run test:watch
 npm run build
 ```
 
+## 📚 文档
+
+### 用户指南
+
+- [快速开始指南](docs/guides/quick-start.md) - 10 分钟快速上手
+- [策略开发指南](docs/guides/strategy-development.md) - 开发自定义交易策略
+- [回测使用说明](docs/guides/backtesting.md) - 策略回测和优化
+- [常见问题解答](docs/guides/faq.md) - 常见问题及解决方案
+
+### 开发者文档
+
+- [架构设计文档](docs/architecture.md) - 系统架构和模块设计
+- [API 文档](docs/api/openapi.yaml) - OpenAPI/Swagger 规范
+- [贡献指南](CONTRIBUTING.md) - 如何参与项目贡献
+
 ## 许可证
 
 ISC
 
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request！
+欢迎提交 Issue 和 Pull Request！请参阅 [贡献指南](CONTRIBUTING.md) 了解详情。
