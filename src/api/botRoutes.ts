@@ -6,7 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { BotManager, BotConfig, BotState, CreateBotRequest, UpdateBotRequest, StrategyType, TradingMode, TimeInterval } from '../bot';
-import { apiKeyAuthMiddleware, requireApiPermission } from './apiKeyMiddleware';
+import { apiKeyAuthMiddleware, requireApiPermission, combinedAuthMiddleware } from './apiKeyMiddleware';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
@@ -26,6 +26,9 @@ function getStringParam(value: any): string | undefined {
  */
 export function createBotRouter(botManager: BotManager): Router {
   const router = Router();
+
+  // Authentication required for all bot routes
+  router.use(combinedAuthMiddleware);
 
   // Apply authentication - support both JWT and API key
   // JWT users can use internal API, API keys for external access

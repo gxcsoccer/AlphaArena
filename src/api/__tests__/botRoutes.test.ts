@@ -11,6 +11,16 @@ import { BotStatus, TradingMode, DEFAULT_RISK_SETTINGS } from '../../bot/BotConf
 // Mock BotManager
 jest.mock('../../bot/BotManager');
 
+// Mock authentication middleware to pass through in tests
+jest.mock('../apiKeyMiddleware', () => ({
+  ...jest.requireActual('../apiKeyMiddleware'),
+  combinedAuthMiddleware: (req: any, res: any, next: any) => {
+    // Simulate authenticated user
+    req.user = { id: 'test-user', email: 'test@example.com' };
+    next();
+  },
+}));
+
 describe('Bot Routes', () => {
   let app: express.Application;
   let mockBotManager: jest.Mocked<BotManager>;

@@ -170,7 +170,7 @@ export async function apiKeyAuthMiddleware(
 
     // Add rate limit headers
     res.set('X-RateLimit-Limit-Minute', apiKey.rateLimitPerMinute.toString());
-    res.set('X-RLimit-Remaining-Minute', rateLimit.remainingMinute.toString());
+    res.set('X-RateLimit-Remaining-Minute', rateLimit.remainingMinute.toString());
     res.set('X-RateLimit-Limit-Day', apiKey.rateLimitPerDay.toString());
     res.set('X-RateLimit-Remaining-Day', rateLimit.remainingDay.toString());
     res.set('X-RateLimit-Reset-Minute', rateLimit.resetAtMinute.toISOString());

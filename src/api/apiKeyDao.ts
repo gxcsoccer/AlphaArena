@@ -1,8 +1,18 @@
 /**
  * API Key Data Access Object
  *
- * Manages API key storage and retrieval using in-memory storage
- * In production, this would be backed by a database
+ * ⚠️ IMPORTANT: In-Memory Storage Limitation
+ * ─────────────────────────────────────────
+ * This implementation uses in-memory storage (Map objects) for API keys.
+ * All API keys and usage data are LOST when the server restarts.
+ *
+ * This is suitable for development and testing only.
+ * For production, replace with a persistent database (PostgreSQL, Redis, etc.).
+ *
+ * Migration path:
+ * 1. Create database tables for api_keys and api_key_usage
+ * 2. Replace Map operations with database queries
+ * 3. Add connection pooling and error handling
  */
 
 import {
