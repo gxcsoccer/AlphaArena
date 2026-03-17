@@ -16,6 +16,9 @@ export { LeaderboardDAO, type LeaderboardSnapshotRecord, type LeaderboardEntryRe
 export { ConditionalOrdersDAO, type ConditionalOrder, type ConditionalOrderFilters } from './conditional-orders.dao';
 export { OCOOrdersDAO, type OCOOrder, type CreateOCOOrderInput, type OCOOrderFilters } from './oco-orders.dao';
 export { RebalanceDAO, rebalanceDAO } from './rebalance.dao';
+export { FollowersDAO, type Follower, type FollowerSettings, type CreateFollowerInput, type UpdateFollowerInput, type FollowerFilters, type FollowerStatus, type CopyMode } from './followers.dao';
+export { CopyTradesDAO, type CopyTrade, type CreateCopyTradeInput, type CopyTradeFilters, type CopyTradeStatus } from './copy-trades.dao';
+export { FollowerStatsDAO, type FollowerStatsRecord, type CreateFollowerStatsInput, type FollowerStatsFilters, type PeriodType } from './follower-stats.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -26,6 +29,9 @@ import { LeaderboardDAO } from './leaderboard.dao';
 import { ConditionalOrdersDAO } from './conditional-orders.dao';
 import { OCOOrdersDAO } from './oco-orders.dao';
 import { RebalanceDAO } from './rebalance.dao';
+import { FollowersDAO } from './followers.dao';
+import { CopyTradesDAO } from './copy-trades.dao';
+import { FollowerStatsDAO } from './follower-stats.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -38,6 +44,9 @@ export class DatabaseManager {
   private _conditionalOrders: ConditionalOrdersDAO | null = null;
   private _ocoOrders: OCOOrdersDAO | null = null;
   private _rebalance: RebalanceDAO | null = null;
+  private _followers: FollowersDAO | null = null;
+  private _copyTrades: CopyTradesDAO | null = null;
+  private _followerStats: FollowerStatsDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -100,6 +109,27 @@ export class DatabaseManager {
       this._rebalance = new RebalanceDAO();
     }
     return this._rebalance;
+  }
+
+  get followers(): FollowersDAO {
+    if (!this._followers) {
+      this._followers = new FollowersDAO();
+    }
+    return this._followers;
+  }
+
+  get copyTrades(): CopyTradesDAO {
+    if (!this._copyTrades) {
+      this._copyTrades = new CopyTradesDAO();
+    }
+    return this._copyTrades;
+  }
+
+  get followerStats(): FollowerStatsDAO {
+    if (!this._followerStats) {
+      this._followerStats = new FollowerStatsDAO();
+    }
+    return this._followerStats;
   }
 }
 

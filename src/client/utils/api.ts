@@ -433,7 +433,7 @@ export const api = {
     let res: Response;
     try {
       res = await apiFetch(url);
-      log.info('Response status:', res.status, res.ok ? '✅' : '❌');
+      log.info('Response status:', { status: res.status, ok: res.ok });
     } catch (networkError: any) {
       log.error('❌ Network error:', networkError.message);
       log.error('This usually means:');
@@ -452,7 +452,7 @@ export const api = {
       throw new Error(`Invalid response format: ${parseError.message}`);
     }
     
-    log.info('Response success:', data.success, 'data length:', data.data?.length);
+    log.info('Response success:', { success: data.success, dataLength: data.data?.length });
     if (!data.success) {
       log.error('❌ API returned error:', data.error);
       log.error('Full response:', data);
@@ -819,3 +819,190 @@ export class WebSocketClient extends RealtimeClient {
     log.warn('WebSocketClient is deprecated. Use RealtimeClient instead.');
   }
 }
+
+// ============================================
+// Copy Trading Types
+// ============================================
+
+export type FollowerStatus = 'active' | 'paused' | 'cancelled';
+export type CopyMode = 'proportional' | 'fixed' | 'mirror';
+
+export interface FollowerSettings {
+  copyMode: CopyMode;
+  copyRatio: number;
+  fixedAmount?: number;
+  maxCopyAmount?: number;
+  stopLossPct?: number;
+  takeProfitPct?: number;
+  maxDailyTrades: number;
+  maxDailyVolume?: number;
+  allowedSymbols?: string[];
+  blockedSymbols?: string[];
+}
+
+export interface Follower {
+  id: string;
+  followerUserId: string;
+  leaderUserId: string;
+  status: FollowerStatus;
+  settings: FollowerSettings;
+  stats: {
+    totalCopiedTrades: number;
+    totalCopiedVolume: number;
+    totalPnl: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CopyTrade {
+  id: string;
+  followerId: string;
+  originalTradeId: string;
+  symbol: string;
+  side: 'buy' | 'sell';
+  originalQuantity: number;
+  copiedQuantity: number;
+  copiedPrice?: number;
+  status: 'pending' | 'executing' | 'filled' | 'partial' | 'failed' | 'cancelled';
+  error?: string;
+  createdAt: string;
+  executedAt?: string;
+}
+
+export interface FollowerStatsRecord {
+  id: string;
+  followerId: string;
+  periodType: 'daily' | 'weekly' | 'monthly' | 'all_time';
+  periodStart: string;
+  periodEnd: string;
+  totalTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  totalPnl: number;
+  totalVolume: number;
+  roiPct: number;
+  avgTradeSize: number;
+  maxDrawdown: number;
+}
+
+// ============================================
+// Copy Trading API Methods
+// ============================================
+
+// Add copy trading methods to api object
+const copyTradingApi = {
+  // Get list of traders the user is following
+  async getFollowing(followerUserId: string, status?: FollowerStatus): Promise<Follower[]> {
+    const params = status ? `?status=${status}` : '';
+    const res = await apiFetch(`/api/copy-trading/follower/${followerUserId}/following${params}`);
+    const data: ApiResponse<Follower[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  // Follow a trader
+  async followTrader(
+    followerUserId: string,
+    leaderUserId: string,
+    settings?: Partial<FollowerSettings>
+  ): Promise<Follower | null> {
+    const res = await apiFetch('/api/copy-trading/follow', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ followerUserId, leaderUserId, settings }),
+    });
+    const data: ApiResponse<Follower> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Unfollow a trader
+  async unfollowTrader(followerId: string): Promise<boolean> {
+    const res = await apiFetch(`/api/copy-trading/follow/${followerId}`, {
+      method: 'DELETE',
+    });
+    const data: ApiResponse<void> = await res.json();
+    return data.success;
+  },
+
+  // Update follower settings
+  async updateFollowerSettings(
+    followerId: string,
+    updates: { status?: FollowerStatus; settings?: Partial<FollowerSettings> }
+  ): Promise<Follower | null> {
+    const res = await apiFetch(`/api/copy-trading/follow/${followerId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    const data: ApiResponse<Follower> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Pause following
+  async pauseFollowing(followerId: string): Promise<Follower | null> {
+    const res = await apiFetch(`/api/copy-trading/follow/${followerId}/pause`, {
+      method: 'POST',
+    });
+    const data: ApiResponse<Follower> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Resume following
+  async resumeFollowing(followerId: string): Promise<Follower | null> {
+    const res = await apiFetch(`/api/copy-trading/follow/${followerId}/resume`, {
+      method: 'POST',
+    });
+    const data: ApiResponse<Follower> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Get copy trades
+  async getCopyTrades(filters?: {
+    followerUserId?: string;
+    leaderUserId?: string;
+    symbol?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<CopyTrade[]> {
+    const params = new URLSearchParams();
+    if (filters?.followerUserId) params.append('followerUserId', filters.followerUserId);
+    if (filters?.leaderUserId) params.append('leaderUserId', filters.leaderUserId);
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    const res = await apiFetch(`/api/copy-trading/trades?${params}`);
+    const data: ApiResponse<CopyTrade[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  // Get a single copy trade
+  async getCopyTrade(tradeId: string): Promise<CopyTrade | null> {
+    const res = await apiFetch(`/api/copy-trading/trades/${tradeId}`);
+    const data: ApiResponse<CopyTrade> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  // Cancel a copy trade
+  async cancelCopyTrade(tradeId: string): Promise<boolean> {
+    const res = await apiFetch(`/api/copy-trading/trades/${tradeId}/cancel`, {
+      method: 'POST',
+    });
+    const data: ApiResponse<void> = await res.json();
+    return data.success;
+  },
+
+  // Get copy trading leaderboard
+  async getCopyTradingLeaderboard(
+    periodType: 'daily' | 'weekly' | 'monthly' | 'all_time' = 'monthly',
+    limit: number = 10
+  ): Promise<FollowerStatsRecord[]> {
+    const res = await apiFetch(`/api/copy-trading/leaderboard?periodType=${periodType}&limit=${limit}`);
+    const data: ApiResponse<FollowerStatsRecord[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+};
+
+// Extend the api object with copy trading methods
+Object.assign(api, copyTradingApi);

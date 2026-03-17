@@ -38,6 +38,7 @@ const LeaderboardPage = lazyWithRetry(() => import('./pages/LeaderboardPage'));
 const PerformancePage = lazyWithRetry(() => import('./pages/PerformancePage'));
 const RiskPage = lazyWithRetry(() => import('./pages/RiskPage'));
 const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
+const CopyTradingPage = lazyWithRetry(() => import('./pages/CopyTradingPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -186,6 +187,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
               Holdings
             </MenuItem>
+            <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
+              Copy Trading
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
               Leaderboard
             </MenuItem>
@@ -292,7 +296,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Holdings
           </MenuItem>
-          <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
+              Copy Trading
+            </MenuItem>
+            <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
         </Menu>
@@ -314,6 +321,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/strategies" element={<StrategiesPage />} />
         <Route path="/trades" element={<TradesPage />} />
         <Route path="/holdings" element={<HoldingsPage />} />
+        <Route path="/copy-trading" element={<CopyTradingPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
       </Routes>
     </Suspense>

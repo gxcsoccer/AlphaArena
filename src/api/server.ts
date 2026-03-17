@@ -25,6 +25,7 @@ import { SupabaseRealtimeService } from './SupabaseRealtimeService';
 import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService } from '../monitoring';
 import { WebhookManager } from '../webhook';
 import { createWebhookRouter } from './webhookRoutes';
+import { createCopyTradingRouter } from './copyTradingRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -835,6 +836,9 @@ export class APIServer extends EventEmitter {
 
     // Webhook routes
     this.app.use('/api/webhooks', createWebhookRouter(this.webhookManager));
+
+    // Copy Trading routes
+    this.app.use('/api/copy-trading', createCopyTradingRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
