@@ -6,20 +6,18 @@ import {
   Table,
   Tag,
   Space,
-  Button,
+  
   Grid,
   Select,
-  DatePicker,
-  Spin,
+  
   Empty,
   Tooltip,
 } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { Title, Text } = Typography;
-const { RangePicker } = DatePicker;
 
 import {
-  LineChart,
+  
   Line,
   BarChart,
   Bar,
@@ -44,14 +42,14 @@ import {
 import { useStats, useStrategies, useTrades, usePortfolio } from '../hooks/useData';
 import { usePortfolioAnalytics } from '../hooks/usePortfolioAnalytics';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { api, Strategy, Trade, StrategyMetrics } from '../utils/api';
+import { api, Trade, StrategyMetrics } from '../utils/api';
 import {
   formatPercent,
   formatCurrency,
   formatDuration,
-  calculateRiskMetrics,
-  calculatePerformanceMetrics,
-  calculateMaxDrawdown,
+  
+  
+  
 } from '../utils/portfolioAnalytics';
 import type { HistoricalDataPoint } from '../utils/portfolioAnalytics';
 
@@ -138,7 +136,7 @@ const PerformancePage: React.FC = () => {
   }, []);
 
   // Fetch data
-  const { stats, loading: statsLoading } = useStats();
+  const { stats: _stats, loading: statsLoading } = useStats();
   const { strategies, loading: strategiesLoading } = useStrategies();
   const { trades, loading: tradesLoading } = useTrades(undefined, 1000);
   const { portfolio, loading: portfolioLoading } = usePortfolio();
@@ -191,7 +189,7 @@ const PerformancePage: React.FC = () => {
     
     sortedDates.forEach(date => {
       const entry = tradesByDate.get(date)!;
-      const buyVolume = entry.buys.reduce((sum, t) => sum + t.total, 0);
+      const _buyVolume = entry.buys.reduce((sum, t) => sum + t.total, 0);
       const sellVolume = entry.sells.reduce((sum, t) => sum + t.total, 0);
       
       // Simplified P&L calculation
@@ -211,8 +209,8 @@ const PerformancePage: React.FC = () => {
   const {
     riskMetrics,
     performanceMetrics,
-    positionAnalysis,
-    pnlBreakdown,
+    positionAnalysis: _positionAnalysis,
+    pnlBreakdown: _pnlBreakdown,
     isLoading: analyticsLoading,
   } = usePortfolioAnalytics({
     trades,

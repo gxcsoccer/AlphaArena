@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 // Mock ResizeObserver first
@@ -223,6 +223,7 @@ jest.mock('../../utils/api', () => ({
 
 // Import after mocks
 import PerformancePage from '../PerformancePage';
+import { useTrades } from '../../hooks/useData';
 
 describe('PerformancePage', () => {
   beforeEach(() => {
@@ -269,7 +270,6 @@ describe('PerformancePage', () => {
   });
 
   it('should handle empty trades data gracefully', () => {
-    const { useTrades } = require('../../hooks/useData');
     useTrades.mockReturnValueOnce({ trades: [], loading: false });
 
     render(<PerformancePage />);
