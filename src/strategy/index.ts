@@ -13,6 +13,7 @@ export * from './BollingerBandsStrategy';
 export * from './StochasticStrategy';
 export * from './ATRStrategy';
 export * from './IchimokuCloudStrategy';
+export * from './FibonacciStrategy';
 export * from './StrategyManager';
 export * from './LeaderboardService';
 export * from './LLMClient';
