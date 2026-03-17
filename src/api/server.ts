@@ -1,3 +1,6 @@
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 /**
  * AlphaArena API Server
  *
@@ -233,7 +236,22 @@ export class APIServer extends EventEmitter {
    * Setup REST API routes
    */
   private setupRoutes(): void {
-    // Basic health check
+    // API Documentation with Swagger UI
+    try {
+      const swaggerDocument = YAML.load(path.join(__dirname, '../../docs/api/openapi.yaml'));
+      this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'AlphaArena API Documentation',
+      }));
+      // Also serve the raw OpenAPI spec
+      this.app.get('/api-docs/openapi.yaml', (req: Request, res: Response) => {
+        res.sendFile(path.join(__dirname, '../../docs/api/openapi.yaml'));
+      });
+      log.info('Swagger UI available at /api-docs');
+    } catch (error: any) {
+      log.warn('Failed to load OpenAPI spec:', error.message);
+    }
+
     this.app.get('/health', (req: Request, res: Response) => {
       res.json({ status: 'ok', timestamp: Date.now() });
     });
