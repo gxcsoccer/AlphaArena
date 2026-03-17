@@ -30,6 +30,9 @@ import {
 import './StrategyMarketplacePage.css';
 
 const { Search } = Input;
+
+// API base URL - use VITE_API_URL from environment or fallback
+const API_BASE = import.meta.env.VITE_API_URL || '';
 const { Option } = Select;
 const TabPane = Tabs.TabPane;
 
@@ -227,7 +230,7 @@ const TemplateDetailModal: React.FC<TemplateDetailModalProps> = ({
     if (!template) return;
     setLoadingRatings(true);
     try {
-      const response = await fetch(`/api/templates/\${template.id}/ratings?limit=10`);
+      const response = await fetch(`${API_BASE}/templates/${template.id}/ratings?limit=10`);
       const data = await response.json();
       if (data.success) {
         setRatings(data.data);
@@ -401,7 +404,7 @@ const StrategyMarketplacePage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<StrategyTemplate | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const [userRating, setUserRating] = useState<TemplateRating | null>(null);
-  const [userId] = useState(`user_\${Date.now()}`); // In real app, get from auth
+  const [userId] = useState(`user_${Date.now()}`); // In real app, get from auth
 
   // Fetch templates
   const fetchTemplates = async () => {
@@ -415,7 +418,7 @@ const StrategyMarketplacePage: React.FC = () => {
       params.append('sortBy', sortBy);
       params.append('limit', '50');
 
-      const response = await fetch(`/api/templates?\${params}`);
+      const response = await fetch(`${API_BASE}/templates?${params}`);
       const data = await response.json();
 
       if (data.success) {
@@ -433,8 +436,8 @@ const StrategyMarketplacePage: React.FC = () => {
   const fetchFilters = async () => {
     try {
       const [categoriesRes, tagsRes] = await Promise.all([
-        fetch('/api/templates/categories'),
-        fetch('/api/templates/tags'),
+        fetch(`${API_BASE}/templates/categories`),
+        fetch(`${API_BASE}/templates/tags`),
       ]);
 
       const categoriesData = await categoriesRes.json();
@@ -461,7 +464,7 @@ const StrategyMarketplacePage: React.FC = () => {
     setDetailVisible(true);
     // Fetch user's rating for this template
     try {
-      const response = await fetch(`/api/templates/\${template.id}?userId=\${userId}`);
+      const response = await fetch(`${API_BASE}/templates/${template.id}?userId=${userId}`);
       const data = await response.json();
       if (data.success && data.userRating) {
         setUserRating(data.userRating);
@@ -476,12 +479,12 @@ const StrategyMarketplacePage: React.FC = () => {
   // Handle use template
   const handleUseTemplate = async (template: StrategyTemplate) => {
     try {
-      const response = await fetch(`/api/templates/\${template.id}/use`, {
+      const response = await fetch(`${API_BASE}/templates/${template.id}/use`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          strategyName: `\${template.name} (Copy)`,
+          strategyName: `${template.name} (Copy)`,
         }),
       });
 
@@ -503,7 +506,7 @@ const StrategyMarketplacePage: React.FC = () => {
   // Handle rate template
   const handleRateTemplate = async (templateId: string, rating: number, comment?: string) => {
     try {
-      const response = await fetch(`/api/templates/\${templateId}/rate`, {
+      const response = await fetch(`${API_BASE}/templates/${templateId}/rate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
