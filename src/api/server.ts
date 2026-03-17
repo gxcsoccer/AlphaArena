@@ -43,6 +43,7 @@ import authRoutes from './authRoutes';
 import userDashboardRoutes from './userDashboardRoutes';
 import socialRoutes from './socialRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
+import { createSignalRouter } from './signalRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -895,6 +896,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/user/dashboard', userDashboardRoutes);
     this.app.use('/api/users', socialRoutes);
     this.app.use('/api/multi-timeframe', multiTimeframeRoutes);
+    this.app.use('/api/signals', createSignalRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
