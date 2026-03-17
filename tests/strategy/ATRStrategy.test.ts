@@ -190,7 +190,7 @@ describe('ATRStrategy', () => {
 
   describe('ATR Calculation', () => {
     test('should return null before enough data points', () => {
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
       expect(signal).toBeNull();
       expect(strategy.getPriceHistoryLength()).toBe(1);
 
@@ -341,7 +341,7 @@ describe('ATRStrategy', () => {
       
       // Create a breakout - price well above upper band
       mockOrderBook.setPrices(upperBand! + 20, upperBand! + 21);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       expect(signal).not.toBeNull();
       expect(signal!.side).toBe('buy');
@@ -365,7 +365,7 @@ describe('ATRStrategy', () => {
       
       // Create a breakdown - price well below lower band
       mockOrderBook.setPrices(lowerBand! - 20, lowerBand! - 19);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       expect(signal).not.toBeNull();
       expect(signal!.side).toBe('sell');
@@ -403,7 +403,7 @@ describe('ATRStrategy', () => {
 
       // Even if price moves, no signal should be generated in neutral trend
       mockOrderBook.setPrices(100, 101);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
       expect(signal).toBeNull();
     });
 
@@ -441,7 +441,7 @@ describe('ATRStrategy', () => {
 
       // Price drops below stop loss
       mockOrderBook.setPrices(stopLoss! - 5, stopLoss! - 4);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       expect(signal).not.toBeNull();
       expect(signal!.side).toBe('sell');
@@ -465,7 +465,7 @@ describe('ATRStrategy', () => {
 
       // Price rises above take profit
       mockOrderBook.setPrices(takeProfit! + 5, takeProfit! + 6);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       expect(signal).not.toBeNull();
       expect(signal!.side).toBe('sell');
@@ -514,7 +514,7 @@ describe('ATRStrategy', () => {
       // Create a breakout
       const upperBand = strategy.getUpperBand();
       mockOrderBook.setPrices(upperBand! + 20, upperBand! + 21);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       // Position size should be calculated based on risk
       expect(signal!.quantity).toBeGreaterThan(0);
@@ -552,7 +552,7 @@ describe('ATRStrategy', () => {
 
       const upperBand = strategy.getUpperBand();
       mockOrderBook.setPrices(upperBand! + 20, upperBand! + 21);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       // Confidence should be high (aligned with uptrend)
       expect(signal!.confidence).toBeGreaterThan(0.6);
@@ -571,7 +571,7 @@ describe('ATRStrategy', () => {
       if (strategy.getTrend() === 'up') {
         const upperBand = strategy.getUpperBand();
         mockOrderBook.setPrices(upperBand! + 20, upperBand! + 21);
-        const _signal = strategy.onTick(mockContext);
+        const signal = strategy.onTick(mockContext);
         if (signal) {
           expect(signal.confidence).toBeGreaterThan(0.5);
         }
@@ -740,7 +740,7 @@ describe('ATRStrategy', () => {
 
       // Suddenly double the price
       mockOrderBook.setPrices(200, 201);
-      const _signal = strategy.onTick(mockContext);
+      const signal = strategy.onTick(mockContext);
 
       // Should handle large movement without crashing
       expect(strategy.isReady()).toBe(true);
