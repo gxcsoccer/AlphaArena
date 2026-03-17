@@ -192,10 +192,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
-            <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
+            <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
               Leaderboard
             </MenuItem>
           </Menu>
