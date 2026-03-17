@@ -3,8 +3,12 @@
   "framework": "vite",
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/api/users/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/users/:path*"
+    },
+    {
+      "source": "/api/signals/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/signals/:path*"
     },
     {
       "source": "/socket.io/(.*)",
@@ -16,6 +20,23 @@
     }
   ],
   "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization, apikey, x-client-info"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

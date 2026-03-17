@@ -470,3 +470,13 @@ entrypoint = "./functions/get-strategy-rank/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/get-strategy-rank/*.html" ]
+
+[functions.users]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/users/index.ts"
+
+[functions.signals]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/signals/index.ts"
