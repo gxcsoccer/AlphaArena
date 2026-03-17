@@ -124,7 +124,7 @@ router.get('/summary', authMiddleware, async (req: Request, res: Response, next:
     let riskScore = 0;
     if (latestSnapshot) {
       // Weight different factors
-      const varScore = Math.min(latestSnapshot.var95 || 0 / 100, 30);
+      const varScore = Math.min((latestSnapshot.var95 || 0) / 100, 30);
       const drawdownScore = Math.min((latestSnapshot.maxDrawdown || 0) * 3, 30);
       const volatilityScore = Math.min((latestSnapshot.volatility || 0) * 2, 20);
       const concentrationScore = Math.min((latestSnapshot.concentrationRisk || 0) * 100, 20);
