@@ -31,6 +31,7 @@ import { createWebhookRouter } from './webhookRoutes';
 import { createCopyTradingRouter } from './copyTradingRoutes';
 import { createLeaderboardRouter } from './leaderboardRoutes';
 import backtestRoutes from './backtestRoutes';
+import aiRoutes from './aiRoutes.js';
 import { BotManager } from '../bot';
 import { createBotRouter } from './botRoutes';
 import { createApiKeyRouter } from './apiKeyRoutes';
@@ -905,6 +906,9 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/rebalance', createRebalanceRouter());
     this.app.use('/api/risk', createRiskMonitorRouter());
     this.app.use('/api/subscriptions', subscriptionRoutes);
+
+    // AI Strategy Assistant routes
+    this.app.use('/api/ai', aiRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

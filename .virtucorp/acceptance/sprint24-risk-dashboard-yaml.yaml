@@ -1,0 +1,23 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "风险监控仪表板页面加载"
+    flow:
+      - ai: "Navigate to /risk page"
+      - aiAssert: "页面成功加载，显示了风险监控仪表板"
+      - aiAssert: "页面标题包含 '风险' 或 'Risk' 字样"
+      - aiAssert: "页面显示了风险指标卡片或图表"
+  - name: "风险指标展示"
+    flow:
+      - ai: "Navigate to /risk page"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示了至少一个风险指标（如 VaR、夏普比率、最大回撤等）"
+      - aiAssert: "指标以图表或数值形式展示"
+      - ai: "检查是否有风险趋势图表"
+  - name: "风险预警功能"
+    flow:
+      - ai: "Navigate to /risk page"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面上有预警区域或预警提示"
+      - ai: "检查是否有预警规则或预警级别设置"

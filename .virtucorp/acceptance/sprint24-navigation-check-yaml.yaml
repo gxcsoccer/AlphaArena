@@ -1,0 +1,11 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "检查导航栏菜单项"
+    flow:
+      - ai: "Navigate to https://alpha-arena-two.vercel.app"
+      - aiWaitFor: "页面加载完成"
+      - ai: "查看并记录左侧导航栏的所有菜单项"
+      - aiAssert: "导航栏可见"
+      - aiQuery: "列出所有导航菜单项的名称"
