@@ -4,12 +4,374 @@
 
 ## 目录
 
-1. [策略基础](#策略基础)
-2. [策略接口](#策略接口)
-3. [内置策略分析](#内置策略分析)
-4. [开发自定义策略](#开发自定义策略)
-5. [策略测试](#策略测试)
-6. [最佳实践](#最佳实践)
+1. [内置策略概览](#内置策略概览)
+2. [策略选择指南](#策略选择指南)
+3. [策略组合建议](#策略组合建议)
+4. [策略基础](#策略基础)
+5. [策略接口](#策略接口)
+6. [内置策略分析](#内置策略分析)
+7. [开发自定义策略](#开发自定义策略)
+8. [策略测试](#策略测试)
+9. [最佳实践](#最佳实践)
+
+## 内置策略概览
+
+AlphaArena 提供了 6 种经过验证的内置策略，覆盖趋势跟踪、震荡交易和波动率管理等多种交易场景。
+
+### 策略列表
+
+| 策略 | 类型 | 适用市场 | 信号特点 |
+|------|------|----------|----------|
+| [SMA](../strategies/SMA.md) | 趋势跟踪 | 趋势市场 | 金叉买入，死叉卖出 |
+| [RSI](../strategies/RSI.md) | 震荡指标 | 震荡市场 | 超买卖入，超买卖出 |
+| [MACD](../strategies/MACD.md) | 趋势动量 | 趋势市场 | 动量确认，趋势判断 |
+| [Bollinger Bands](../strategies/BollingerBands.md) | 波动率 | 震荡市场 | 轨道回归，带宽突破 |
+| [Stochastic](../strategies/Stochastic.md) | 震荡指标 | 震荡市场 | 超买超卖，金叉死叉 |
+| [ATR](../strategies/ATR.md) | 波动率 | 所有市场 | 止损设置，仓位管理 |
+
+### 策略特性对比
+
+```
+趋势跟踪能力:
+SMA ★★★★★  MACD ★★★★☆  Bollinger ★★★☆☆  Stochastic ★★☆☆☆  RSI ★★☆☆☆  ATR ★☆☆☆☆
+
+震荡市场表现:
+RSI ★★★★★  Stochastic ★★★★☆  Bollinger ★★★★☆  SMA ★★☆☆☆  MACD ★★☆☆☆  ATR ☆☆☆☆☆
+
+波动率管理:
+ATR ★★★★★  Bollinger ★★★★☆  其他 ☆☆☆☆☆
+
+信号频率:
+Stochastic ★★★★★  RSI ★★★★☆  SMA ★★★☆☆  MACD ★★☆☆☆  Bollinger ★★☆☆☆  ATR ☆☆☆☆☆
+
+滞后性:
+ATR ★☆☆☆☆  Stochastic ★★☆☆☆  RSI ★★☆☆☆  Bollinger ★★★☆☆  MACD ★★★★☆  SMA ★★★★★
+```
+
+## 策略选择指南
+
+### 按市场环境选择
+
+#### 趋势市场
+
+当市场呈现明显的上涨或下跌趋势时：
+
+```typescript
+// 首选：SMA 交叉策略
+const strategy = new SMAStrategy({
+  shortPeriod: 10,
+  longPeriod: 50
+});
+
+// 备选：MACD 策略
+const macdStrategy = new MACDStrategy({
+  fastPeriod: 12,
+  slowPeriod: 26,
+  signalPeriod: 9
+});
+```
+
+**特点**：
+- 顺势交易，不抄底逃顶
+- 信号可靠但滞后
+- 设置较宽的止损
+
+#### 震荡市场
+
+当价格在一定区间内波动时：
+
+```typescript
+// 首选：RSI 策略
+const strategy = new RSIStrategy({
+  period: 14,
+  overbought: 70,
+  oversold: 30
+});
+
+// 备选：Stochastic 策略
+const stochStrategy = new StochasticStrategy({
+  kPeriod: 14,
+  dPeriod: 3,
+  smooth: 3
+});
+
+// 备选：Bollinger Bands 策略
+const bbStrategy = new BollingerBandsStrategy({
+  period: 20,
+  stdDev: 2
+});
+```
+
+**特点**：
+- 低买高卖，均值回归
+- 信号频繁但需要过滤
+- 设置较紧的止损
+
+#### 高波动市场
+
+当市场波动剧烈时：
+
+```typescript
+// 使用 ATR 管理风险
+const atrStrategy = new ATRStrategy({ period: 14 });
+
+// 动态调整止损
+const stopLoss = currentPrice - (atr * 2);
+
+// 减小仓位
+const positionSize = riskAmount / (atr * 2);
+```
+
+**特点**：
+- 放宽止损距离
+- 减小仓位
+- 选择低频信号策略
+
+### 按交易风格选择
+
+| 交易风格 | 推荐策略 | 参数建议 |
+|----------|----------|----------|
+| 日内交易 | Stochastic, RSI | 短周期参数，紧止损 |
+| 短线交易（数天） | RSI, SMA | 中等周期参数 |
+| 中线交易（数周） | SMA, MACD | 标准参数 |
+| 长线投资（数月） | SMA(50/200), MACD | 长周期参数 |
+
+### 按交易品种选择
+
+| 交易品种 | 推荐策略 | 注意事项 |
+|----------|----------|----------|
+| 股票 | SMA, MACD | 关注基本面，低波动时用震荡策略 |
+| 加密货币 | RSI, Bollinger | 高波动市场，ATR 止损很重要 |
+| 外汇 | Stochastic, RSI | 流动性好，震荡策略表现佳 |
+| 期货 | MACD, SMA | 关注合约到期，趋势策略适用 |
+
+### 选择决策树
+
+```
+开始
+  │
+  ├─ 市场有明确趋势吗？
+  │   ├─ 是 → SMA 或 MACD
+  │   └─ 否 → 继续判断
+  │
+  ├─ 价格在一定区间波动吗？
+  │   ├─ 是 → RSI 或 Stochastic 或 Bollinger
+  │   └─ 否 → 继续判断
+  │
+  ├─ 波动率如何？
+  │   ├─ 高波动 → 用 ATR 管理风险，减小仓位
+  │   ├─ 低波动 → 等待突破信号
+  │   └─ 正常 → 选择适合的策略
+  │
+  └─ 你的交易频率偏好？
+      ├─ 高频 → Stochastic, RSI（短周期）
+      ├─ 中频 → SMA, MACD（标准周期）
+      └─ 低频 → SMA, MACD（长周期）
+```
+
+## 策略组合建议
+
+### 为什么组合策略？
+
+单一策略存在局限性：
+- **SMA**：震荡市场频繁止损
+- **RSI**：趋势市场过早反向操作
+- **MACD**：信号滞后
+- **Bollinger**：强趋势中假信号多
+
+策略组合可以：
+1. **互补缺陷**：趋势策略 + 震荡策略
+2. **确认信号**：多指标共振
+3. **过滤噪音**：减少假信号
+4. **分散风险**：不依赖单一策略
+
+### 推荐组合
+
+#### 1. 趋势 + 震荡组合
+
+```typescript
+class TrendOscillatorCombo {
+  private sma = new SMAStrategy({ shortPeriod: 10, longPeriod: 50 });
+  private rsi = new RSIStrategy({ period: 14, overbought: 70, oversold: 30 });
+
+  generateSignal(): Signal | null {
+    const smaSignal = this.sma.generateSignal();
+    const rsiValue = this.rsi.getCurrentRSI();
+    
+    // 趋势方向由 SMA 判断
+    const trend = this.sma.getTrendDirection(); // 'up' | 'down' | 'neutral'
+    
+    // 入场时机由 RSI 判断
+    if (trend === 'up' && rsiValue < 40) {
+      // 上涨趋势中 RSI 回调，买入机会
+      return { type: 'buy', strength: 0.85, reason: '趋势向上 + RSI 回调' };
+    }
+    
+    if (trend === 'down' && rsiValue > 60) {
+      // 下跌趋势中 RSI 反弹，卖出机会
+      return { type: 'sell', strength: 0.85, reason: '趋势向下 + RSI 反弹' };
+    }
+    
+    return null;
+  }
+}
+```
+
+#### 2. 多指标确认组合
+
+```typescript
+class MultiIndicatorConfirmation {
+  private rsi = new RSIStrategy({ period: 14 });
+  private macd = new MACDStrategy({ fastPeriod: 12, slowPeriod: 26, signalPeriod: 9 });
+  private bb = new BollingerBandsStrategy({ period: 20, stdDev: 2 });
+
+  generateSignal(): Signal | null {
+    const rsiSignal = this.rsi.generateSignal();
+    const macdSignal = this.macd.generateSignal();
+    const bbValues = this.bb.getBollingerBands();
+    const price = bbValues.price;
+    
+    // 买入确认：多个指标同时看涨
+    const buyConfirmations = [
+      rsiSignal?.type === 'buy',
+      macdSignal?.type === 'buy',
+      price <= bbValues.lower
+    ].filter(Boolean).length;
+    
+    // 卖出确认：多个指标同时看跌
+    const sellConfirmations = [
+      rsiSignal?.type === 'sell',
+      macdSignal?.type === 'sell',
+      price >= bbValues.upper
+    ].filter(Boolean).length;
+    
+    // 至少 2 个确认才交易
+    if (buyConfirmations >= 2) {
+      return { type: 'buy', strength: buyConfirmations / 3, reason: '多指标买入确认' };
+    }
+    
+    if (sellConfirmations >= 2) {
+      return { type: 'sell', strength: sellConfirmations / 3, reason: '多指标卖出确认' };
+    }
+    
+    return null;
+  }
+}
+```
+
+#### 3. 趋势过滤 + 震荡入场
+
+```typescript
+class TrendFilteredOscillator {
+  private sma200 = new SMAStrategy({ shortPeriod: 200, longPeriod: 200 }); // 用于判断趋势
+  private stoch = new StochasticStrategy({ kPeriod: 14, dPeriod: 3 });
+
+  generateSignal(): Signal | null {
+    const price = this.getLastPrice();
+    const smaValue = this.sma200.getCurrentMA();
+    const stochSignal = this.stoch.generateSignal();
+    
+    // 趋势判断
+    const isUptrend = price > smaValue;
+    const isDowntrend = price < smaValue;
+    
+    if (!stochSignal) return null;
+    
+    // 只在趋势方向交易
+    if (isUptrend && stochSignal.type === 'buy') {
+      return { ...stochSignal, reason: '上涨趋势 + Stochastic 超卖' };
+    }
+    
+    if (isDowntrend && stochSignal.type === 'sell') {
+      return { ...stochSignal, reason: '下跌趋势 + Stochastic 超买' };
+    }
+    
+    return null; // 忽略逆势信号
+  }
+}
+```
+
+#### 4. 波动率自适应组合
+
+```typescript
+class VolatilityAdaptiveCombo {
+  private atr = new ATRStrategy({ period: 14 });
+  private sma = new SMAStrategy({ shortPeriod: 10, longPeriod: 50 });
+  private rsi = new RSIStrategy({ period: 14 });
+
+  generateSignal(): Signal | null {
+    const atr = this.atr.getCurrentATR();
+    const price = this.atr.getLastPrice();
+    const volatility = atr / price; // ATR 百分比
+    
+    // 高波动：使用趋势策略
+    if (volatility > 0.03) {
+      return this.sma.generateSignal();
+    }
+    
+    // 低波动：使用震荡策略
+    if (volatility < 0.01) {
+      return this.rsi.generateSignal();
+    }
+    
+    // 中等波动：组合信号
+    const smaSignal = this.sma.generateSignal();
+    const rsiSignal = this.rsi.generateSignal();
+    
+    if (smaSignal?.type === rsiSignal?.type && smaSignal) {
+      return { ...smaSignal, strength: smaSignal.strength * 1.2 };
+    }
+    
+    return null;
+  }
+}
+```
+
+### 组合策略注意事项
+
+1. **避免过度组合**：3-4 个指标足够，过多会增加复杂性
+2. **信号一致性**：确保组合的策略逻辑不冲突
+3. **参数独立性**：各策略参数应独立优化
+4. **回测验证**：组合策略必须在样本外验证
+5. **权重分配**：可以给不同策略分配不同权重
+
+```typescript
+class WeightedComboStrategy {
+  private strategies: { strategy: Strategy; weight: number }[] = [];
+
+  addStrategy(strategy: Strategy, weight: number) {
+    this.strategies.push({ strategy, weight });
+  }
+
+  generateSignal(): Signal | null {
+    let buyScore = 0;
+    let sellScore = 0;
+    let totalWeight = 0;
+
+    for (const { strategy, weight } of this.strategies) {
+      const signal = strategy.generateSignal();
+      totalWeight += weight;
+      
+      if (signal?.type === 'buy') {
+        buyScore += weight * signal.strength;
+      } else if (signal?.type === 'sell') {
+        sellScore += weight * signal.strength;
+      }
+    }
+
+    const threshold = totalWeight * 0.6; // 60% 权重阈值
+
+    if (buyScore > threshold && buyScore > sellScore) {
+      return { type: 'buy', strength: buyScore / totalWeight };
+    }
+    if (sellScore > threshold && sellScore > buyScore) {
+      return { type: 'sell', strength: sellScore / totalWeight };
+    }
+    
+    return null;
+  }
+}
+```
 
 ## 策略基础
 
@@ -656,6 +1018,22 @@ class AdaptiveStrategy implements Strategy {
 
 ## 相关资源
 
-- [回测使用说明](./backtesting.md)
-- [API 文档](../api/openapi.yaml)
-- [常见问题解答](./faq.md)
+### 策略详细文档
+
+- [SMA 策略](../strategies/SMA.md) - 简单移动平均交叉策略
+- [RSI 策略](../strategies/RSI.md) - 相对强弱指数策略
+- [MACD 策略](../strategies/MACD.md) - 指数平滑异同移动平均策略
+- [Bollinger Bands 策略](../strategies/BollingerBands.md) - 布林带策略
+- [Stochastic 策略](../strategies/Stochastic.md) - 随机振荡器策略
+- [ATR 策略](../strategies/ATR.md) - 平均真实波幅策略
+
+### 使用指南
+
+- [策略调优指南](./strategy-tuning.md) - 如何优化策略参数
+- [回测使用说明](./backtesting.md) - 如何进行回测验证
+- [快速开始](./quick-start.md) - 新手入门指南
+- [常见问题解答](./faq.md) - 常见问题解答
+
+### API 文档
+
+- [API 文档](../api/openapi.yaml) - API 接口文档
