@@ -36,6 +36,7 @@ import notificationRoutes from './notificationRoutes.js';
 import strategyComparisonRoutes from './strategyComparisonRoutes';
 import exportRoutes from './exportRoutes';
 import { createTemplateRouter } from './templateRoutes';
+import multiTimeframeRoutes from '../multi-timeframe/routes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -868,6 +869,7 @@ export class APIServer extends EventEmitter {
 
     // Strategy template marketplace routes
     this.app.use('/api/templates', createTemplateRouter());
+    this.app.use('/api/multi-timeframe', multiTimeframeRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
