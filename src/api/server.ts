@@ -42,6 +42,7 @@ import { createTemplateRouter } from './templateRoutes';
 import authRoutes from './authRoutes';
 import userDashboardRoutes from './userDashboardRoutes';
 import { createRiskMonitorRouter } from './riskMonitorRoutes';
+import subscriptionRoutes from './subscriptionRoutes';
 import socialRoutes from './socialRoutes';
 import commentRoutes from './commentRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
@@ -903,6 +904,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/signals', createSignalRouter());
     this.app.use('/api/rebalance', createRebalanceRouter());
     this.app.use('/api/risk', createRiskMonitorRouter());
+    this.app.use('/api/subscriptions', subscriptionRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
