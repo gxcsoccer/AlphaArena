@@ -203,42 +203,31 @@ export class TradingSignalsDAO {
     return this.mapToSignal(data);
   }
 
+  /**
+   * Atomically increment views_count
+   * Uses PostgreSQL RPC function for concurrent safety
+   */
   async incrementViews(id: string): Promise<void> {
     const supabase = getSupabaseClient();
 
-    const { error } = await supabase.rpc('increment_signal_views', { signal_id: id });
+    const { error } = await supabase.rpc('increment_signal_views', { signal_uuid: id });
 
-    // If the RPC doesn't exist, use a direct update
     if (error) {
-      const { data: current } = await supabase
-        .from('trading_signals')
-        .select('views_count')
-        .eq('id', id)
-        .single();
-
-      if (current) {
-        await supabase
-          .from('trading_signals')
-          .update({ views_count: (current.views_count || 0) + 1 })
-          .eq('id', id);
-      }
+      console.error('Failed to increment signal views:', error);
     }
   }
 
+  /**
+   * Atomically increment executions_count
+   * Uses PostgreSQL RPC function for concurrent safety
+   */
   async incrementExecutions(id: string): Promise<void> {
     const supabase = getSupabaseClient();
 
-    const { data: current } = await supabase
-      .from('trading_signals')
-      .select('executions_count')
-      .eq('id', id)
-      .single();
+    const { error } = await supabase.rpc('increment_signal_executions', { signal_uuid: id });
 
-    if (current) {
-      await supabase
-        .from('trading_signals')
-        .update({ executions_count: (current.executions_count || 0) + 1 })
-        .eq('id', id);
+    if (error) {
+      console.error('Failed to increment signal executions:', error);
     }
   }
 
