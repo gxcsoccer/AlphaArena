@@ -1,0 +1,216 @@
+/**
+ * Register Page
+ * New user registration form
+ */
+
+import React, { useState } from 'react';
+import { Form, Input, Button, Message, Typography, Space, Link } from '@arco-design/web-react';
+import { IconUser, IconLock, IconEmail } from '@arco-design/web-react/icon';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
+
+const { Title, Text } = Typography;
+const FormItem = Form.Item;
+
+interface RegisterFormValues {
+  email: string;
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const RegisterPage: React.FC = () => {
+  const { register } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const handleSubmit = async (values: RegisterFormValues) => {
+    // Check password confirmation
+    if (values.password !== values.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setErrors([]);
+
+    try {
+      await register({
+        email: values.email,
+        username: values.username || undefined,
+        password: values.password,
+      });
+      navigate('/dashboard');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Registration failed';
+      setError(message);
+      
+      if ((err as any).details) {
+        setErrors((err as any).details);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div style={styles.container}>
+      <div style={styles.card}>
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          <div style={styles.header}>
+            <Title heading={3} style={{ margin: 0 }}>
+              Create Account
+            </Title>
+            <Text type="secondary">Join AlphaArena today</Text>
+          </div>
+
+          {error && (
+            <Message type="error">
+              {error}
+              {errors.length > 0 && (
+                <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px' }}>
+                  {errors.map((err, idx) => (
+                    <li key={idx}>{err}</li>
+                  ))}
+                </ul>
+              )}
+            </Message>
+          )}
+
+          <Form
+            layout="vertical"
+            autoComplete="off"
+            onSubmit={handleSubmit as any}
+            style={{ width: '100%' }}
+          >
+            <FormItem
+              label="Email"
+              field="email"
+              rules={[
+                { required: true, message: 'Please enter your email' },
+                { type: 'email', message: 'Please enter a valid email' },
+              ]}
+            >
+              <Input
+                prefix={<IconEmail />}
+                placeholder="Enter your email"
+                size="large"
+              />
+            </FormItem>
+
+            <FormItem
+              label="Username (optional)"
+              field="username"
+              rules={[
+                { minLength: 3, message: 'Username must be at least 3 characters' },
+                { maxLength: 50, message: 'Username must be at most 50 characters' },
+                {
+                  validator: (value, callback) => {
+                    if (value && !/^[a-zA-Z0-9_]+$/.test(value)) {
+                      callback('Username can only contain letters, numbers, and underscores');
+                    } else {
+                      callback();
+                    }
+                  },
+                },
+              ]}
+            >
+              <Input
+                prefix={<IconUser />}
+                placeholder="Choose a username"
+                size="large"
+              />
+            </FormItem>
+
+            <FormItem
+              label="Password"
+              field="password"
+              rules={[
+                { required: true, message: 'Please enter your password' },
+                { minLength: 8, message: 'Password must be at least 8 characters' },
+              ]}
+              extra={
+                <Text type="secondary" style={{ fontSize: '12px' }}>
+                  Must contain: 8+ characters, uppercase, lowercase, and number
+                </Text>
+              }
+            >
+              <Input.Password
+                prefix={<IconLock />}
+                placeholder="Create a password"
+                size="large"
+              />
+            </FormItem>
+
+            <FormItem
+              label="Confirm Password"
+              field="confirmPassword"
+              rules={[
+                { required: true, message: 'Please confirm your password' },
+              ]}
+            >
+              <Input.Password
+                prefix={<IconLock />}
+                placeholder="Confirm your password"
+                size="large"
+              />
+            </FormItem>
+
+            <FormItem>
+              <Button
+                type="primary"
+                htmlType="submit"
+                long
+                size="large"
+                loading={loading}
+              >
+                Create Account
+              </Button>
+            </FormItem>
+          </Form>
+
+          <div style={styles.footer}>
+            <Text type="secondary">
+              Already have an account?{' '}
+              <Link>
+                <RouterLink to="/login">Sign in</RouterLink>
+              </Link>
+            </Text>
+          </div>
+        </Space>
+      </div>
+    </div>
+  );
+};
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    padding: '20px',
+    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  },
+  card: {
+    width: '100%',
+    maxWidth: '400px',
+    padding: '32px',
+    borderRadius: '8px',
+    background: 'var(--color-bg-2)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.1)',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '24px',
+  },
+  footer: {
+    textAlign: 'center',
+    marginTop: '16px',
+  },
+};
+
+export default RegisterPage;
