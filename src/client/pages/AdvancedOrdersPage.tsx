@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Typography, Space, Tabs, Card, Grid } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import { IconExperiment, IconClockCircle } from '@arco-design/web-react/icon';
@@ -14,7 +15,18 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const AdvancedOrdersPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('iceberg');
+  const [searchParams] = useSearchParams();
+  
+  // Get initial tab from URL parameter
+  const getInitialTab = (): string => {
+    const tab = searchParams.get('tab');
+    if (tab && ['iceberg', 'twap', 'oco', 'conditional'].includes(tab)) {
+      return tab;
+    }
+    return 'iceberg';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const [symbol] = useState('BTC/USD');
 
   return (

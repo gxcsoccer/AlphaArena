@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Card,
   Tabs,
@@ -20,6 +21,7 @@ import {
   IconCheckCircle, 
   IconInfoCircle,
   IconDelete,
+  IconExperiment,
 } from '@arco-design/web-react/icon';
 import { useOrderBook } from '../hooks/useData';
 import { usePortfolio } from '../hooks/useData';
@@ -28,7 +30,7 @@ import { api } from '../utils/api';
 const { Text } = Typography;
 const { TabPane } = Tabs;
 
-export type OrderType = 'limit' | 'market' | 'stop_loss' | 'take_profit';
+export type OrderType = 'limit' | 'market' | 'stop_loss' | 'take_profit' | 'advanced';
 export type OrderSide = 'buy' | 'sell';
 
 interface OrderFormData {
@@ -157,6 +159,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   const [orderSuccess, setOrderSuccess] = useState(false);
   const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
   const [formPrice, setFormPrice] = useState<number | undefined>(undefined);
+  const navigate = useNavigate();
   const formRef = React.useRef<FormInstance>(null);
 
   // Inject success animation style
@@ -751,6 +754,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
               { label: '限价单', value: 'limit' },
               { label: '止损单', value: 'stop_loss' },
               { label: '止盈单', value: 'take_profit' },
+              { label: '高级订单', value: 'advanced' },
             ]}
             direction={isMobile ? 'vertical' : 'horizontal'}
           />
@@ -769,6 +773,58 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
               direction={isMobile ? 'vertical' : 'horizontal'}
             />
           </Form.Item>
+        )}
+
+        {/* Advanced Order Selection */}
+        {orderType === 'advanced' && (
+          <Card 
+            style={{ 
+              marginTop: 16, 
+              background: 'var(--color-fill-1)', 
+              border: '1px dashed var(--color-border)' 
+            }}
+          >
+            <Space direction="vertical" size="medium" style={{ width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <IconExperiment style={{ fontSize: 20, color: 'var(--color-primary)' }} />
+                <Text bold>高级订单类型</Text>
+              </div>
+              <Text type="secondary">
+                使用专业工具优化大额交易执行，减少市场冲击
+              </Text>
+              <Space wrap>
+                <Button 
+                  type="outline" 
+                  size="small"
+                  onClick={() => navigate('/advanced-orders?tab=iceberg')}
+                >
+                  冰山订单
+                </Button>
+                <Button 
+                  type="outline" 
+                  size="small"
+                  onClick={() => navigate('/advanced-orders?tab=twap')}
+                >
+                  TWAP 订单
+                </Button>
+                <Button 
+                  type="outline" 
+                  size="small"
+                  onClick={() => navigate('/advanced-orders?tab=oco')}
+                >
+                  OCO 订单
+                </Button>
+              </Space>
+              <Divider style={{ margin: '8px 0' }} />
+              <Button 
+                type="primary" 
+                long
+                onClick={() => navigate('/advanced-orders')}
+              >
+                前往高级订单页面
+              </Button>
+            </Space>
+          </Card>
         )}
 
         {/* Price Input (for limit orders) */}
