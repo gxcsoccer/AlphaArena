@@ -14,6 +14,7 @@ import {
   IconExclamationCircle,
   IconUserAdd,
   IconHeart,
+  IconExperiment,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -39,6 +40,7 @@ const PerformancePage = lazyWithRetry(() => import('./pages/PerformancePage'));
 const RiskPage = lazyWithRetry(() => import('./pages/RiskPage'));
 const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
 const CopyTradingPage = lazyWithRetry(() => import('./pages/CopyTradingPage'));
+const BacktestVisualizationPage = lazyWithRetry(() => import('./pages/BacktestVisualizationPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -191,6 +193,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               Copy Trading
             </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
+            <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              回测
+            </MenuItem>
               Leaderboard
             </MenuItem>
           </Menu>
@@ -299,6 +304,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
+            <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              回测
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
@@ -323,6 +331,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/holdings" element={<HoldingsPage />} />
         <Route path="/copy-trading" element={<CopyTradingPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/backtest" element={<BacktestVisualizationPage />} />
       </Routes>
     </Suspense>
   );
