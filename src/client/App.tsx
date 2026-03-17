@@ -53,6 +53,7 @@ const AdvancedOrdersPage = lazyWithRetry(() => import('./pages/AdvancedOrdersPag
 const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
 const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
 const UserDashboardPage = lazyWithRetry(() => import('./pages/UserDashboardPage'));
+const ApiDocsPage = lazyWithRetry(() => import('./pages/ApiDocsPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -222,6 +223,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
+            <MenuItem key="/api-docs" icon={<IconBook aria-hidden="true" />} role="menuitem">
+              API 文档
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
               Leaderboard
             </MenuItem>
@@ -349,6 +353,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
+            <MenuItem key="/api-docs" icon={<IconBook aria-hidden="true" />} role="menuitem">
+              API 文档
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
@@ -382,6 +389,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/user-dashboard" element={<UserDashboardPage />} />
+        <Route path="/api-docs" element={<ApiDocsPage />} />
       </Routes>
     </Suspense>
   );
