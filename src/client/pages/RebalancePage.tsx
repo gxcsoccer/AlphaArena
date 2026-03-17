@@ -145,7 +145,7 @@ const api = {
   async getAllocations(): Promise<TargetAllocation[]> {
     const response = await fetch('/api/rebalance/allocations', {
       headers: {
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
     });
     const data = await response.json();
@@ -158,7 +158,7 @@ const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify(allocation),
     });
@@ -168,11 +168,11 @@ const api = {
   },
 
   async updateAllocation(id: string, updates: Partial<TargetAllocation>): Promise<TargetAllocation> {
-    const response = await fetch(`/api/rebalance/allocations/\${id}`, {
+    const response = await fetch(`/api/rebalance/allocations/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify(updates),
     });
@@ -182,10 +182,10 @@ const api = {
   },
 
   async deleteAllocation(id: string): Promise<void> {
-    const response = await fetch(`/api/rebalance/allocations/\${id}`, {
+    const response = await fetch(`/api/rebalance/allocations/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
     });
     const data = await response.json();
@@ -196,7 +196,7 @@ const api = {
     const url = activeOnly ? '/api/rebalance/plans?activeOnly=true' : '/api/rebalance/plans';
     const response = await fetch(url, {
       headers: {
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
     });
     const data = await response.json();
@@ -209,7 +209,7 @@ const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify(plan),
     });
@@ -219,11 +219,11 @@ const api = {
   },
 
   async updatePlan(id: string, updates: Partial<RebalancePlan>): Promise<RebalancePlan> {
-    const response = await fetch(`/api/rebalance/plans/\${id}`, {
+    const response = await fetch(`/api/rebalance/plans/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify(updates),
     });
@@ -233,10 +233,10 @@ const api = {
   },
 
   async deletePlan(id: string): Promise<void> {
-    const response = await fetch(`/api/rebalance/plans/\${id}`, {
+    const response = await fetch(`/api/rebalance/plans/${id}`, {
       method: 'DELETE',
       headers: {
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
     });
     const data = await response.json();
@@ -248,7 +248,7 @@ const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify({ planId, positions, portfolioValue }),
     });
@@ -262,7 +262,7 @@ const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
       body: JSON.stringify({ planId }),
     });
@@ -272,9 +272,9 @@ const api = {
   },
 
   async getHistory(planId: string): Promise<RebalanceExecution[]> {
-    const response = await fetch(`/api/rebalance/history?planId=\${planId}`, {
+    const response = await fetch(`/api/rebalance/history?planId=${planId}`, {
       headers: {
-        'Authorization': `Bearer \${localStorage.getItem('token')}`,
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
       },
     });
     const data = await response.json();
@@ -406,10 +406,10 @@ const AllocationEditor: React.FC<{
                   cx="50%"
                   cy="50%"
                   outerRadius={80}
-                  label={({ name, value }) => `\${name}: \${value}%`}
+                  label={({ name, value }) => `${name}: ${value}%`}
                 >
                   {pieData.map((entry, index) => (
-                    <Cell key={`cell-\${index}`} fill={entry.fill} />
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
                   ))}
                 </Pie>
                 <RechartsTooltip />
@@ -466,7 +466,7 @@ const RebalancePage: React.FC = () => {
       setAllocations(allocationsData);
       setPlans(plansData);
     } catch (error: any) {
-      Message.error(`加载数据失败: \${error.message}`);
+      Message.error(`加载数据失败: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -493,7 +493,7 @@ const RebalancePage: React.FC = () => {
       resetAllocationForm();
       loadData();
     } catch (error: any) {
-      Message.error(`创建失败: \${error.message}`);
+      Message.error(`创建失败: ${error.message}`);
     }
   };
 
@@ -514,7 +514,7 @@ const RebalancePage: React.FC = () => {
       resetAllocationForm();
       loadData();
     } catch (error: any) {
-      Message.error(`更新失败: \${error.message}`);
+      Message.error(`更新失败: ${error.message}`);
     }
   };
 
@@ -524,7 +524,7 @@ const RebalancePage: React.FC = () => {
       Message.success('删除成功');
       loadData();
     } catch (error: any) {
-      Message.error(`删除失败: \${error.message}`);
+      Message.error(`删除失败: ${error.message}`);
     }
   };
 
@@ -550,7 +550,7 @@ const RebalancePage: React.FC = () => {
       resetPlanForm();
       loadData();
     } catch (error: any) {
-      Message.error(`创建失败: \${error.message}`);
+      Message.error(`创建失败: ${error.message}`);
     }
   };
 
@@ -571,7 +571,7 @@ const RebalancePage: React.FC = () => {
       resetPlanForm();
       loadData();
     } catch (error: any) {
-      Message.error(`更新失败: \${error.message}`);
+      Message.error(`更新失败: ${error.message}`);
     }
   };
 
@@ -581,7 +581,7 @@ const RebalancePage: React.FC = () => {
       Message.success('删除成功');
       loadData();
     } catch (error: any) {
-      Message.error(`删除失败: \${error.message}`);
+      Message.error(`删除失败: ${error.message}`);
     }
   };
 
@@ -599,7 +599,7 @@ const RebalancePage: React.FC = () => {
       const preview = await api.previewRebalance(planId, mockPositions, mockPortfolioValue);
       setPreviewData(preview);
     } catch (error: any) {
-      Message.error(`预览失败: \${error.message}`);
+      Message.error(`预览失败: ${error.message}`);
       setPreviewModalVisible(false);
     } finally {
       setPreviewLoading(false);
@@ -611,11 +611,11 @@ const RebalancePage: React.FC = () => {
     
     try {
       const result = await api.executeRebalance(selectedPlanId);
-      Message.success(`执行已开始，执行ID: \${result.executionId}`);
+      Message.success(`执行已开始，执行ID: ${result.executionId}`);
       setPreviewModalVisible(false);
       loadData();
     } catch (error: any) {
-      Message.error(`执行失败: \${error.message}`);
+      Message.error(`执行失败: ${error.message}`);
     }
   };
 
@@ -718,7 +718,7 @@ const RebalancePage: React.FC = () => {
       render: (trigger: string, record: RebalancePlan) => {
         const triggerMap: Record<string, string> = {
           'manual': '手动',
-          'threshold': `阈值 (\${record.threshold}%)`,
+          'threshold': `阈值 (${record.threshold}%)`,
           'scheduled': '定时',
         };
         return <Tag>{triggerMap[trigger] || trigger}</Tag>;
@@ -947,13 +947,13 @@ const RebalancePage: React.FC = () => {
 
               <Descriptions column={2} bordered>
                 <Descriptions.Item label="组合价值">
-                  \${previewData.portfolioValue.toLocaleString()}
+                  ${previewData.portfolioValue.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="预估成本">
-                  \${previewData.totalEstimatedCost.toLocaleString()}
+                  ${previewData.totalEstimatedCost.toLocaleString()}
                 </Descriptions.Item>
                 <Descriptions.Item label="预估手续费">
-                  \${previewData.totalEstimatedFees.toFixed(2)}
+                  ${previewData.totalEstimatedFees.toFixed(2)}
                 </Descriptions.Item>
                 <Descriptions.Item label="预估滑点">
                   {(previewData.estimatedSlippage * 100).toFixed(2)}%
@@ -978,8 +978,8 @@ const RebalancePage: React.FC = () => {
                   { title: '数量', dataIndex: 'quantity', render: (v: number) => v.toFixed(4) },
                   { title: '当前数量', dataIndex: 'currentQuantity', render: (v: number) => v.toFixed(4) },
                   { title: '目标数量', dataIndex: 'targetQuantity', render: (v: number) => v.toFixed(4) },
-                  { title: '预估价格', dataIndex: 'estimatedPrice', render: (v: number) => `$\${v.toFixed(2)}` },
-                  { title: '预估金额', dataIndex: 'estimatedValue', render: (v: number) => `$\${v.toFixed(2)}` },
+                  { title: '预估价格', dataIndex: 'estimatedPrice', render: (v: number) => `$${v.toFixed(2)}` },
+                  { title: '预估金额', dataIndex: 'estimatedValue', render: (v: number) => `$${v.toFixed(2)}` },
                 ]}
                 rowKey="symbol"
                 empty={<Empty description="无需调整" />}
