@@ -18,7 +18,7 @@ import {
   Cell,
   Legend,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tabs, TabPane } from '@arco-design/web-react';
+import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tabs } from '@arco-design/web-react';
 
 const { Text, Title } = Typography;
 const { Row, Col } = Grid;
@@ -154,7 +154,7 @@ export const HoldingTimeChart: React.FC<HoldingTimeChartProps> = ({
       )}
       
       <Tabs defaultActiveTab="bar">
-        <TabPane key="bar" title="柱状图">
+        <Tabs.TabPane key="bar" title="柱状图">
           <ResponsiveContainer width="100%" height={height}>
             <BarChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -164,9 +164,9 @@ export const HoldingTimeChart: React.FC<HoldingTimeChartProps> = ({
               <Bar dataKey="count" fill="rgb(var(--primary-6))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </TabPane>
+        </Tabs.TabPane>
         
-        <TabPane key="pie" title="饼图">
+        <Tabs.TabPane key="pie" title="饼图">
           <ResponsiveContainer width="100%" height={height}>
             <PieChart>
               <Pie
@@ -187,7 +187,7 @@ export const HoldingTimeChart: React.FC<HoldingTimeChartProps> = ({
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </TabPane>
+        </Tabs.TabPane>
       </Tabs>
     </Card>
   );

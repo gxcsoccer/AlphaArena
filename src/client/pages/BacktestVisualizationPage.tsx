@@ -20,7 +20,7 @@ import {
   Spin,
   Divider,
   Tabs,
-  TabPane,
+
   Tag,
   Modal,
   Descriptions,
@@ -31,9 +31,9 @@ import {
   IconDownload,
   IconRefresh,
   IconSettings,
-  IconLineChart,
-  IconBarChart,
-  IconPieChart,
+  IconExperiment,
+  
+  
 } from '@arco-design/web-react/icon';
 import { EquityCurveChart, EquityDataPoint } from '../components/EquityCurveChart';
 import { DrawdownChart, DrawdownDataPoint } from '../components/DrawdownChart';
@@ -71,7 +71,7 @@ const PerformanceDashboard: React.FC<{ stats: BacktestResult['stats'] }> = ({ st
   ];
   
   return (
-    <Card title="绩效指标" extra={<IconLineChart />}>
+    <Card title="绩效指标" extra={<IconExperiment />}>
       <Row gutter={[16, 16]}>
         {metrics.map((metric) => (
           <Col span={6} key={metric.label}>
@@ -359,7 +359,7 @@ const BacktestVisualizationPage: React.FC = () => {
         <Row justify="space-between" align="center">
           <Col>
             <Title heading={4} style={{ margin: 0 }}>
-              <IconLineChart style={{ marginRight: 8 }} />
+              <IconExperiment style={{ marginRight: 8 }} />
               高级回测可视化
             </Title>
           </Col>
@@ -439,7 +439,7 @@ const BacktestVisualizationPage: React.FC = () => {
           
           {/* Main charts */}
           <Tabs defaultActiveTab="overview">
-            <TabPane key="overview" title="概览">
+            <Tabs.TabPane key="overview" title="概览">
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <EquityCurveChart
@@ -455,9 +455,9 @@ const BacktestVisualizationPage: React.FC = () => {
                   <ReturnsDistributionChart data={returnsDistributionData} height={250} />
                 </Col>
               </Row>
-            </TabPane>
+            </Tabs.TabPane>
             
-            <TabPane key="trades" title="交易分析">
+            <Tabs.TabPane key="trades" title="交易分析">
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <TradeAnalysisChart trades={tradeAnalysisData} height={400} />
@@ -478,13 +478,13 @@ const BacktestVisualizationPage: React.FC = () => {
                   </Card>
                 </Col>
               </Row>
-            </TabPane>
+            </Tabs.TabPane>
             
-            <TabPane key="heatmap" title="收益热力图">
+            <Tabs.TabPane key="heatmap" title="收益热力图">
               <ReturnsHeatmapChart data={monthlyReturnsData} />
-            </TabPane>
+            </Tabs.TabPane>
             
-            <TabPane key="comparison" title="策略对比">
+            <Tabs.TabPane key="comparison" title="策略对比">
               <StrategyComparisonChart
                 strategies={[
                   {
@@ -502,7 +502,7 @@ const BacktestVisualizationPage: React.FC = () => {
                 ]}
                 height={400}
               />
-            </TabPane>
+            </Tabs.TabPane>
           </Tabs>
         </>
       )}
@@ -510,7 +510,7 @@ const BacktestVisualizationPage: React.FC = () => {
       {/* Empty state */}
       {!loading && !result && (
         <Card style={{ textAlign: 'center', padding: 48 }}>
-          <IconLineChart style={{ fontSize: 64, color: 'var(--color-text-3)' }} />
+          <IconExperiment style={{ fontSize: 64, color: 'var(--color-text-3)' }} />
           <div style={{ marginTop: 16 }}>
             <Title heading={5}>开始回测</Title>
             <Text type="secondary">

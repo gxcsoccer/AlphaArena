@@ -22,7 +22,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Select, Tabs, TabPane } from '@arco-design/web-react';
+import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Select, Tabs } from '@arco-design/web-react';
 
 const { Text, Title } = Typography;
 const { Row, Col } = Grid;
@@ -194,7 +194,7 @@ export const StrategyComparisonChart: React.FC<StrategyComparisonChartProps> = (
   return (
     <Card title={title}>
       <Tabs defaultActiveTab="bar">
-        <TabPane key="bar" title="柱状对比">
+        <Tabs.TabPane key="bar" title="柱状对比">
           <ResponsiveContainer width="100%" height={height}>
             <BarChart data={barData} layout="vertical" margin={{ left: 60, right: 30 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -207,9 +207,9 @@ export const StrategyComparisonChart: React.FC<StrategyComparisonChartProps> = (
               <Bar dataKey="胜率" fill="#00C49F" />
             </BarChart>
           </ResponsiveContainer>
-        </TabPane>
+        </Tabs.TabPane>
         
-        <TabPane key="radar" title="雷达图">
+        <Tabs.TabPane key="radar" title="雷达图">
           <ResponsiveContainer width="100%" height={height}>
             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
               <PolarGrid stroke="var(--color-border)" />
@@ -229,10 +229,10 @@ export const StrategyComparisonChart: React.FC<StrategyComparisonChartProps> = (
               <Tooltip content={<RadarTooltip />} />
             </RadarChart>
           </ResponsiveContainer>
-        </TabPane>
+        </Tabs.TabPane>
         
         {equityChartData && (
-          <TabPane key="equity" title="资金曲线">
+          <Tabs.TabPane key="equity" title="资金曲线">
             <ResponsiveContainer width="100%" height={height}>
               <LineChart data={equityChartData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
@@ -252,7 +252,7 @@ export const StrategyComparisonChart: React.FC<StrategyComparisonChartProps> = (
                 ))}
               </LineChart>
             </ResponsiveContainer>
-          </TabPane>
+          </Tabs.TabPane>
         )}
       </Tabs>
       
