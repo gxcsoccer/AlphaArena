@@ -20,6 +20,7 @@ export * from './StrategyManager';
 export * from './LeaderboardService';
 export * from './LLMClient';
 export * from './LLMStrategy';
+export * from './StrategyComparisonService';
 
 // ML Strategy Templates
 export * from './ml';
