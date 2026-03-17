@@ -33,5 +33,14 @@ module.exports = {
     '^lightweight-charts$': '<rootDir>/tests/__mocks__/lightweight-charts.ts',
     '^recharts$': '<rootDir>/tests/__mocks__/recharts.tsx',
     '^uuid$': '<rootDir>/tests/__mocks__/uuid.ts',
+    // Handle .js extensions in imports
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+    // Mock config for import.meta.env
+    '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
+    '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
+    '^./config$': '<rootDir>/tests/__mocks__/config.ts',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!( @testing-library/react|@testing-library/dom)/)',
+  ],
 };

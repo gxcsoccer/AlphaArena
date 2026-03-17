@@ -4,7 +4,7 @@
  * Manages strategy comparison execution and data retrieval
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { api } from '../utils/api';
 import { createLogger } from '../../utils/logger';
 
@@ -14,7 +14,7 @@ const log = createLogger('useStrategyComparison');
 export interface StrategyConfig {
   id: string;
   name: string;
-  params?: Record<string, any>;
+  params?: Record<string, unknown>;
 }
 
 export interface ComparisonConfig {
@@ -138,171 +138,6 @@ export const AVAILABLE_SYMBOLS = [
 ];
 
 /**
- * Generate mock comparison result for demo
- */
-function generateMockComparisonResult(config: ComparisonConfig): StrategyComparisonResult {
-  const results: StrategyResult[] = config.strategies.map((strategy, index) => {
-    const baseReturn = (Math.random() - 0.3) * 50; // Slight positive bias
-    const volatility = Math.random() * 20 + 10;
-    const winRate = Math.random() * 30 + 40;
-    const trades = Math.floor(Math.random() * 200) + 50;
-    
-    // Generate equity curve
-    const numDays = Math.floor((config.endTime - config.startTime) / (24 * 60 * 60 * 1000));
-    const equityCurve: EquityPoint[] = [];
-    let equity = config.capital;
-    
-    for (let i = 0; i <= numDays; i++) {
-      const timestamp = config.startTime + i * 24 * 60 * 60 * 1000;
-      const dailyReturn = (Math.random() - 0.45) * (volatility / 100);
-      equity *= (1 + dailyReturn);
-      
-      equityCurve.push({
-        timestamp,
-        equity,
-        return: ((equity - config.capital) / config.capital) * 100,
-      });
-    }
-    
-    // Generate drawdown curve
-    let peak = config.capital;
-    const drawdownCurve: DrawdownPoint[] = equityCurve.map((point, i) => {
-      peak = Math.max(peak, point.equity);
-      const drawdown = ((peak - point.equity) / peak) * 100;
-      return {
-        timestamp: point.timestamp,
-        drawdown,
-        duration: Math.floor(Math.random() * 30),
-      };
-    });
-    
-    // Generate monthly returns
-    const monthlyReturns: MonthlyReturn[] = [];
-    const startDate = new Date(config.startTime);
-    const endDate = new Date(config.endTime);
-    
-    for (let year = startDate.getFullYear(); year <= endDate.getFullYear(); year++) {
-      const startMonth = year === startDate.getFullYear() ? startDate.getMonth() : 0;
-      const endMonth = year === endDate.getFullYear() ? endDate.getMonth() : 11;
-      
-      for (let month = startMonth; month <= endMonth; month++) {
-        monthlyReturns.push({
-          year,
-          month: month + 1,
-          return: (Math.random() - 0.4) * 15,
-          trades: Math.floor(Math.random() * 20) + 5,
-        });
-      }
-    }
-    
-    const stats: BacktestStats = {
-      totalReturn: baseReturn,
-      annualizedReturn: baseReturn * (365 / numDays),
-      sharpeRatio: (baseReturn / volatility) * Math.sqrt(252) / 100,
-      maxDrawdown: Math.max(...drawdownCurve.map((d) => d.drawdown)),
-      totalTrades: trades,
-      winningTrades: Math.floor(trades * winRate / 100),
-      losingTrades: Math.floor(trades * (100 - winRate) / 100),
-      winRate,
-      avgWin: config.capital * 0.02 * (1 + Math.random()),
-      avgLoss: config.capital * 0.015 * (1 + Math.random()),
-      profitFactor: 0.8 + Math.random() * 1.5,
-      initialCapital: config.capital,
-      finalCapital: config.capital * (1 + baseReturn / 100),
-      totalPnL: config.capital * baseReturn / 100,
-    };
-    
-    const result: StrategyResult = {
-      strategyId: strategy.id,
-      strategyName: strategy.name,
-      stats,
-      equityCurve,
-      drawdownCurve,
-      monthlyReturns,
-    };
-    
-    // Add relative performance for non-first strategies
-    if (index > 0) {
-      result.relativePerformance = {
-        excessReturn: baseReturn - results[0].stats.totalReturn,
-        informationRatio: Math.random() * 2 - 0.5,
-        trackingError: Math.random() * 10 + 5,
-      };
-    }
-    
-    return result;
-  });
-  
-  // Calculate rankings
-  const rankings = calculateRankings(results);
-  
-  return {
-    id: `comparison-${Date.now()}`,
-    config,
-    results,
-    rankings,
-    executionTime: Math.random() * 3000 + 1000,
-    createdAt: Date.now(),
-  };
-}
-
-/**
- * Calculate strategy rankings
- */
-function calculateRankings(results: StrategyResult[]): StrategyRanking[] {
-  const byReturn = [...results].sort((a, b) => b.stats.totalReturn - a.stats.totalReturn);
-  const bySharpe = [...results].sort((a, b) => b.stats.sharpeRatio - a.stats.sharpeRatio);
-  const byDrawdown = [...results].sort((a, b) => a.stats.maxDrawdown - b.stats.maxDrawdown);
-  const byWinRate = [...results].sort((a, b) => b.stats.winRate - a.stats.winRate);
-  const byProfitFactor = [...results].sort((a, b) => b.stats.profitFactor - a.stats.profitFactor);
-
-  const getRank = (sorted: StrategyResult[], id: string): number => {
-    return sorted.findIndex((s) => s.strategyId === id) + 1;
-  };
-
-  const rankings: StrategyRanking[] = results.map((result) => {
-    const metricRanks = {
-      totalReturn: getRank(byReturn, result.strategyId),
-      sharpeRatio: getRank(bySharpe, result.strategyId),
-      maxDrawdown: getRank(byDrawdown, result.strategyId),
-      winRate: getRank(byWinRate, result.strategyId),
-      profitFactor: getRank(byProfitFactor, result.strategyId),
-    };
-
-    const weights = {
-      totalReturn: 0.3,
-      sharpeRatio: 0.25,
-      maxDrawdown: 0.2,
-      winRate: 0.15,
-      profitFactor: 0.1,
-    };
-
-    const maxRank = results.length;
-    const compositeScore =
-      ((maxRank - metricRanks.totalReturn + 1) / maxRank) * 100 * weights.totalReturn +
-      ((maxRank - metricRanks.sharpeRatio + 1) / maxRank) * 100 * weights.sharpeRatio +
-      ((maxRank - metricRanks.maxDrawdown + 1) / maxRank) * 100 * weights.maxDrawdown +
-      ((maxRank - metricRanks.winRate + 1) / maxRank) * 100 * weights.winRate +
-      ((maxRank - metricRanks.profitFactor + 1) / maxRank) * 100 * weights.profitFactor;
-
-    return {
-      strategyId: result.strategyId,
-      strategyName: result.strategyName,
-      overallRank: 0,
-      metricRanks,
-      compositeScore,
-    };
-  });
-
-  rankings.sort((a, b) => b.compositeScore - a.compositeScore);
-  rankings.forEach((ranking, index) => {
-    ranking.overallRank = index + 1;
-  });
-
-  return rankings;
-}
-
-/**
  * Hook for strategy comparison
  */
 export function useStrategyComparison(): UseStrategyComparisonReturn {
@@ -317,17 +152,23 @@ export function useStrategyComparison(): UseStrategyComparisonReturn {
     try {
       log.info('Running strategy comparison with config:', config);
 
-      // For now, generate mock data
-      // In production, this would call the actual API
-      await new Promise((resolve) => setTimeout(resolve, 2000 + Math.random() * 2000));
+      // Call the actual API endpoint
+      const response = await api.post<{ success: boolean; result: StrategyComparisonResult }>(
+        '/api/strategies/compare',
+        config
+      );
 
-      const mockResult = generateMockComparisonResult(config);
-      setResult(mockResult);
+      if (!response.data.success || !response.data.result) {
+        throw new Error('Strategy comparison failed: invalid response');
+      }
 
-      log.info('Strategy comparison completed:', mockResult.rankings);
-    } catch (err: any) {
+      setResult(response.data.result);
+
+      log.info('Strategy comparison completed:', response.data.result.rankings);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '策略比较执行失败';
       log.error('Strategy comparison failed:', err);
-      setError(err.message || '策略比较执行失败');
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -335,10 +176,16 @@ export function useStrategyComparison(): UseStrategyComparisonReturn {
 
   const getComparison = useCallback(async (id: string): Promise<StrategyComparisonResult | null> => {
     try {
-      // In production, this would fetch from the API
-      const response = await api.get(`/api/strategies/compare/${id}`);
+      const response = await api.get<{ success: boolean; result: StrategyComparisonResult }>(
+        `/api/strategies/compare/${id}`
+      );
+      
+      if (!response.data.success || !response.data.result) {
+        return null;
+      }
+      
       return response.data.result;
-    } catch (err: any) {
+    } catch (err) {
       log.error('Failed to get comparison:', err);
       return null;
     }
