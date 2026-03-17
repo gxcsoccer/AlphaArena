@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { ConditionalOrdersDAO } from '../database/conditional-orders.dao';
+import { OCOOrdersDAO, OCOOrder } from '../database/oco-orders.dao';
 import { TradesDAO } from '../database/trades.dao';
 import { getMonitoringService } from './MonitoringService';
 
@@ -7,12 +8,13 @@ import { getMonitoringService } from './MonitoringService';
  * Price Monitoring Service
  * 
  * Monitors market prices and triggers conditional orders (stop-loss/take-profit)
- * when price conditions are met.
+ * and OCO (One-Cancels-Other) orders when price conditions are met.
  */
 export class PriceMonitoringService extends EventEmitter {
   private checkInterval: NodeJS.Timeout | null = null;
   private readonly checkIntervalMs: number = 5000; // Check every 5 seconds
   private conditionalOrdersDAO: ConditionalOrdersDAO;
+  private ocoOrdersDAO: OCOOrdersDAO;
   private tradesDAO: TradesDAO;
   private monitoring = getMonitoringService();
   private isRunning: boolean = false;
@@ -21,6 +23,7 @@ export class PriceMonitoringService extends EventEmitter {
   constructor() {
     super();
     this.conditionalOrdersDAO = new ConditionalOrdersDAO();
+    this.ocoOrdersDAO = new OCOOrdersDAO();
     this.tradesDAO = new TradesDAO();
   }
 
@@ -99,7 +102,6 @@ export class PriceMonitoringService extends EventEmitter {
    */
   private async checkSymbolPrices(symbol: string): Promise<void> {
     // Get current market price (in production, this would come from a price feed)
-    // For now, we'll fetch from the order book service
     const currentPrice = await this.getCurrentPrice(symbol);
     
     if (!currentPrice) {
@@ -107,13 +109,42 @@ export class PriceMonitoringService extends EventEmitter {
       return;
     }
 
-    // Get conditional orders that should be triggered
+    // Process OCO orders first (they have higher priority due to linked cancellation)
+    await this.checkOCOOrders(symbol, currentPrice);
+
+    // Then process regular conditional orders
+    await this.checkConditionalOrders(symbol, currentPrice);
+  }
+
+  /**
+   * Check and trigger OCO orders for a symbol
+   */
+  private async checkOCOOrders(symbol: string, currentPrice: number): Promise<void> {
+    const ordersToTrigger = await this.ocoOrdersDAO.getOrdersToTrigger(symbol, currentPrice);
+
+    if (ordersToTrigger.length > 0) {
+      console.log(`[PriceMonitoring] Found ${ordersToTrigger.length} OCO orders to trigger for ${symbol} @ ${currentPrice}`);
+      
+      for (const { ocoOrder, triggerType } of ordersToTrigger) {
+        await this.triggerOCOOrder(ocoOrder, triggerType, currentPrice);
+      }
+
+      this.emit('oco-orders-triggered', { symbol, price: currentPrice, count: ordersToTrigger.length });
+    }
+  }
+
+  /**
+   * Check and trigger regular conditional orders for a symbol
+   */
+  private async checkConditionalOrders(symbol: string, currentPrice: number): Promise<void> {
     const ordersToTrigger = await this.conditionalOrdersDAO.getOrdersToTrigger(symbol, currentPrice);
 
     if (ordersToTrigger.length > 0) {
-      console.log(`[PriceMonitoring] Found ${ordersToTrigger.length} orders to trigger for ${symbol} @ ${currentPrice}`);
+      console.log(`[PriceMonitoring] Found ${ordersToTrigger.length} conditional orders to trigger for ${symbol} @ ${currentPrice}`);
       
       for (const order of ordersToTrigger) {
+        // Skip if this conditional order is part of an OCO order
+        // OCO orders are handled separately above
         await this.triggerOrder(order, currentPrice);
       }
 
@@ -144,6 +175,94 @@ export class PriceMonitoringService extends EventEmitter {
     } catch (error) {
       console.error(`[PriceMonitoring] Failed to get price for ${symbol}:`, error);
       return null;
+    }
+  }
+
+  /**
+   * Trigger an OCO order
+   * 
+   * When one leg of an OCO order triggers, the other leg is automatically cancelled
+   */
+  private async triggerOCOOrder(
+    ocoOrder: OCOOrder,
+    triggerType: 'take_profit' | 'stop_loss',
+    currentPrice: number
+  ): Promise<void> {
+    try {
+      console.log(`[PriceMonitoring] Triggering OCO order ${ocoOrder.id}: ${triggerType} @ ${currentPrice}`);
+
+      // Determine which leg to execute and which to cancel
+      const triggeredLeg = triggerType === 'take_profit' ? {
+        triggerPrice: ocoOrder.takeProfitTriggerPrice,
+        quantity: ocoOrder.takeProfitQuantity,
+        orderType: ocoOrder.takeProfitOrderType,
+        limitPrice: ocoOrder.takeProfitLimitPrice,
+      } : {
+        triggerPrice: ocoOrder.stopLossTriggerPrice,
+        quantity: ocoOrder.stopLossQuantity,
+        orderType: ocoOrder.stopLossOrderType,
+        limitPrice: ocoOrder.stopLossLimitPrice,
+      };
+
+      // Create a market order when the condition is triggered
+      const executionPrice = triggeredLeg.orderType === 'limit' && triggeredLeg.limitPrice
+        ? triggeredLeg.limitPrice
+        : currentPrice;
+
+      const trade = {
+        symbol: ocoOrder.symbol,
+        side: ocoOrder.side,
+        price: executionPrice,
+        quantity: triggeredLeg.quantity,
+        total: executionPrice * triggeredLeg.quantity,
+        fee: executionPrice * triggeredLeg.quantity * 0.001, // 0.1% fee
+        feeCurrency: ocoOrder.symbol.split('/')[1],
+        orderId: `oco_triggered_${ocoOrder.id}_${triggerType}`,
+        tradeId: `trade_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        executedAt: new Date(),
+      };
+
+      // Save the trade
+      await this.tradesDAO.create(trade);
+
+      // Cancel the other leg's conditional order if it exists
+      let cancelledOrderId: string | null = null;
+      if (triggerType === 'take_profit' && ocoOrder.stopLossConditionalOrderId) {
+        await this.conditionalOrdersDAO.cancel(ocoOrder.stopLossConditionalOrderId);
+        cancelledOrderId = ocoOrder.stopLossConditionalOrderId;
+      } else if (triggerType === 'stop_loss' && ocoOrder.takeProfitConditionalOrderId) {
+        await this.conditionalOrdersDAO.cancel(ocoOrder.takeProfitConditionalOrderId);
+        cancelledOrderId = ocoOrder.takeProfitConditionalOrderId;
+      }
+
+      // Update the OCO order status
+      await this.ocoOrdersDAO.trigger(
+        ocoOrder.id,
+        triggerType,
+        trade.orderId!,
+        cancelledOrderId || `cancelled_${triggerType === 'take_profit' ? 'stop_loss' : 'take_profit'}_${ocoOrder.id}`
+      );
+
+      // Emit event for notification
+      this.emit('oco-order-triggered', {
+        ocoOrderId: ocoOrder.id,
+        triggerType,
+        symbol: ocoOrder.symbol,
+        side: ocoOrder.side,
+        triggeredLeg,
+        executedPrice: executionPrice,
+        quantity: triggeredLeg.quantity,
+        tradeId: trade.tradeId,
+      });
+
+      console.log(`[PriceMonitoring] OCO order ${ocoOrder.id} triggered successfully via ${triggerType}`);
+    } catch (error: any) {
+      console.error(`[PriceMonitoring] Failed to trigger OCO order ${ocoOrder.id}:`, error);
+      this.monitoring.trackError(error, { 
+        operation: 'trigger-oco-order',
+        metadata: { ocoOrderId: ocoOrder.id, triggerType },
+      }, 'critical');
+      this.emit('error', { ocoOrderId: ocoOrder.id, error });
     }
   }
 
