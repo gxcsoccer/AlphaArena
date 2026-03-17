@@ -25,6 +25,7 @@ import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsProvider } from './store/settingsStore';
+import { AuthProvider } from './hooks/useAuth';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
@@ -48,6 +49,8 @@ const StrategyComparisonPage = lazyWithRetry(() => import('./pages/StrategyCompa
 const AttributionPage = lazyWithRetry(() => import('./pages/AttributionPage'));
 const StrategyMarketplacePage = lazyWithRetry(() => import('./pages/StrategyMarketplacePage'));
 const AdvancedOrdersPage = lazyWithRetry(() => import('./pages/AdvancedOrdersPage'));
+const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
+const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -368,6 +371,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/strategy-comparison" element={<StrategyComparisonPage />} />
         <Route path="/marketplace" element={<StrategyMarketplacePage />} />
         <Route path="/advanced-orders" element={<AdvancedOrdersPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </Suspense>
   );
@@ -409,6 +414,7 @@ function App() {
   });
 
   return (
+    <AuthProvider>
     <SettingsProvider>
       <ConnectionProvider>
         <RealtimeConnectionSync />
@@ -429,6 +435,7 @@ function App() {
         </BrowserRouter>
       </ConnectionProvider>
     </SettingsProvider>
+    </AuthProvider>
   );
 }
 
