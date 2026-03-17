@@ -34,7 +34,7 @@ const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
 const StrategiesPage = lazyWithRetry(() => import('./pages/StrategiesPage'));
 const TradesPage = lazyWithRetry(() => import('./pages/TradesPage'));
 const HoldingsPage = lazyWithRetry(() => import('./pages/HoldingsPage'));
-const LeaderboardPage = lazyWithRetry(() => import('./pages/LeaderboardPage'));
+const LeaderboardPage = lazyWithRetry(() => import('./pages/EnhancedLeaderboardPage'));
 const PerformancePage = lazyWithRetry(() => import('./pages/PerformancePage'));
 const RiskPage = lazyWithRetry(() => import('./pages/RiskPage'));
 const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
