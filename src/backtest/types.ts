@@ -71,6 +71,47 @@ export interface BacktestStats {
 }
 
 /**
+ * Performance timing metrics
+ */
+export interface TimingMetrics {
+  avg: number;
+  min: number;
+  max: number;
+  count: number;
+}
+
+/**
+ * Memory usage metrics
+ */
+export interface MemoryUsage {
+  heapUsed: number;
+  heapTotal: number;
+  external: number;
+  rss: number;
+}
+
+/**
+ * Memory snapshot
+ */
+export interface MemorySnapshot {
+  timestamp: number;
+  heapUsed: number;
+  heapTotal: number;
+}
+
+/**
+ * Performance metrics collected during backtest
+ */
+export interface PerformanceMetrics {
+  /** Timing metrics for various operations */
+  timings: Record<string, TimingMetrics>;
+  /** Current memory usage */
+  memoryUsage: MemoryUsage;
+  /** Memory snapshots during execution */
+  memorySnapshots: MemorySnapshot[];
+}
+
+/**
  * Backtest result
  */
 export interface BacktestResult {
@@ -88,6 +129,8 @@ export interface BacktestResult {
   endTime: number;
   /** Duration in ms */
   duration: number;
+  /** Performance metrics (optional, for optimized version) */
+  performanceMetrics?: PerformanceMetrics;
 }
 
 /**
@@ -104,4 +147,24 @@ export interface RealtimeConfig {
   symbol: string;
   /** Data source URL or provider */
   dataSource?: string;
+}
+
+/**
+ * Benchmark result
+ */
+export interface BenchmarkResult {
+  /** Number of data points */
+  dataPoints: number;
+  /** Duration in ms */
+  duration: number;
+  /** Memory before (bytes) */
+  memoryBefore: number;
+  /** Memory after (bytes) */
+  memoryAfter: number;
+  /** Memory delta (bytes) */
+  memoryDelta: number;
+  /** Ticks per second */
+  ticksPerSecond: number;
+  /** Bytes per tick */
+  bytesPerTick: number;
 }
