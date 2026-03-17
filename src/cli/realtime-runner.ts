@@ -14,6 +14,7 @@ import { SMAStrategy } from '../strategy/SMAStrategy';
 import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
 import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
+import { StochasticStrategy } from '../strategy/StochasticStrategy';
 
 /**
  * Real-time Trading Runner Configuration
@@ -27,7 +28,7 @@ export interface RunnerConfig {
   initialCapital: number;
   /** Strategies to run */
   strategies: Array<{
-    type: 'SMA' | 'RSI' | 'MACD' | 'Bollinger';
+    type: 'SMA' | 'RSI' | 'MACD' | 'Bollinger' | 'Stochastic';
     params: {
       id: string;
       name: string;
@@ -42,6 +43,9 @@ export interface RunnerConfig {
         signalPeriod?: number;
         stdDevMultiplier?: number;
         squeezeThreshold?: number;
+        kPeriod?: number;
+        dPeriod?: number;
+        smoothPeriod?: number;
         tradeQuantity: number;
       };
     };
@@ -163,6 +167,14 @@ export class RealtimeRunner {
           console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
         } else if (strategyConfig.type === 'Bollinger') {
           const strategy = new BollingerBandsStrategy({
+            id: strategyConfig.params.id,
+            name: strategyConfig.params.name,
+            params: strategyConfig.params.params as any,
+          });
+          this.engine!.addStrategy(strategy);
+          console.log(`[${new Date().toISOString()}]   ✓ Strategy added: ${strategyConfig.params.id}`);
+        } else if (strategyConfig.type === 'Stochastic') {
+          const strategy = new StochasticStrategy({
             id: strategyConfig.params.id,
             name: strategyConfig.params.name,
             params: strategyConfig.params.params as any,
