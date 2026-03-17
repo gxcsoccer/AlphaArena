@@ -77,7 +77,6 @@ describe('ElliottWaveStrategy', () => {
           tradeQuantity: 20,
           minWaveAmplitude: 0.01,
           baseConfidence: 0.7,
-          multiDegree: false,
           analysisDegree: 'minute',
         },
       });

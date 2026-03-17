@@ -25,6 +25,7 @@
  */
 
 import { Strategy } from './Strategy';
+import { OrderBook } from '../orderbook';
 import { StrategyConfig, StrategyContext, OrderSignal } from './types';
 
 /**
@@ -130,8 +131,6 @@ export interface ElliottWaveStrategyConfig extends StrategyConfig {
     minWaveAmplitude?: number;
     /** Signal confidence base (default: 0.6) */
     baseConfidence?: number;
-    /** Enable multi-degree analysis (default: true) */
-    multiDegree?: boolean;
     /** Wave degree for analysis (default: 'minor') */
     analysisDegree?: WaveDegree;
   };
@@ -159,7 +158,7 @@ export class ElliottWaveStrategy extends Strategy {
   private tradeQuantity: number;
   private minWaveAmplitude: number;
   private baseConfidence: number;
-  private multiDegree: boolean;
+  
   private analysisDegree: WaveDegree;
 
   // Price history
@@ -193,7 +192,6 @@ export class ElliottWaveStrategy extends Strategy {
     this.tradeQuantity = config.params?.tradeQuantity ?? 10;
     this.minWaveAmplitude = config.params?.minWaveAmplitude ?? 0.005;
     this.baseConfidence = config.params?.baseConfidence ?? 0.6;
-    this.multiDegree = config.params?.multiDegree ?? true;
     this.analysisDegree = config.params?.analysisDegree ?? 'minor';
 
     // Validate parameters
@@ -263,7 +261,7 @@ export class ElliottWaveStrategy extends Strategy {
   /**
    * Get mid price from order book
    */
-  private getMidPrice(orderBook: any): number | null {
+  private getMidPrice(orderBook: OrderBook): number | null {
     const bestBid = orderBook.getBestBid?.();
     const bestAsk = orderBook.getBestAsk?.();
 
