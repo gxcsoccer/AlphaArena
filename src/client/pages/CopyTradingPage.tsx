@@ -12,8 +12,8 @@ import {
   Select,
   Tabs,
   Statistic,
-  Row,
-  Col,
+  Grid,
+
   Message,
   Drawer,
   InputNumber,
@@ -26,12 +26,13 @@ import {
   IconSettings,
   IconDelete,
   IconPause,
-  IconPlay,
+  IconPlayArrow,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { api, Follower, CopyTrade, FollowerSettings, FollowerStatsRecord } from '../utils/api';
 
 const { Title, Text } = Typography;
+const { Row, Col } = Grid;
 const { TabPane } = Tabs;
 
 const CURRENT_USER_ID = 'user_demo_001';
@@ -263,7 +264,7 @@ const CopyTradingPage: React.FC = () => {
         <Space>
           <Button
             size="small"
-            icon={record.status === 'active' ? <IconPause /> : <IconPlay />}
+            icon={record.status === 'active' ? <IconPause /> : <IconPlayArrow />}
             onClick={() => handleTogglePause(record)}
           />
           <Button

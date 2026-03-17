@@ -5,7 +5,7 @@
  * Implements industry-standard risk metrics including VaR, CVaR, Beta, and more.
  */
 
-import type { Trade } from '../client/utils/api';
+import type { Trade } from '../database/trades.dao';
 
 /**
  * Risk metrics interface as specified in the issue
