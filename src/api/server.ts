@@ -33,6 +33,7 @@ import { createBotRouter } from './botRoutes';
 import { createApiKeyRouter } from './apiKeyRoutes';
 import { createAttributionRouter } from './attributionRoutes';
 import notificationRoutes from './notificationRoutes.js';
+import strategyComparisonRoutes from './strategyComparisonRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -860,6 +861,7 @@ export class APIServer extends EventEmitter {
 
     // Notification routes
     this.app.use('/api/notifications', notificationRoutes);
+    this.app.use('/api/strategies/compare', strategyComparisonRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

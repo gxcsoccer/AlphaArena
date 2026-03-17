@@ -2,35 +2,40 @@
  * Tests for useNotifications Hook
  */
 
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useNotifications } from '../useNotifications.js';
+import { useNotifications } from '../useNotifications';
+import { getSupabaseClient } from '../../../database/client';
 
 // Mock supabase
-jest.mock('../../database/client.js', () => ({
-  supabase: {
-    auth: {
-      getSession: jest.fn(),
-    },
-    channel: jest.fn(() => ({
-      on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn().mockReturnThis(),
-    })),
-    removeChannel: jest.fn(),
-  },
+vi.mock('../../../database/client', () => ({
+  getSupabaseClient: vi.fn(),
 }));
 
 // Mock fetch
-global.fetch = jest.fn();
+global.fetch = vi.fn();
 
-const mockSupabase = require('../../database/client.js').supabase;
+const mockSupabase = {
+  auth: {
+    getSession: vi.fn(),
+  },
+  channel: vi.fn(() => ({
+    on: vi.fn().mockReturnThis(),
+    subscribe: vi.fn().mockReturnThis(),
+  })),
+  removeChannel: vi.fn(),
+};
+
+// Setup mock
+vi.mocked(getSupabaseClient).mockReturnValue(mockSupabase as any);
 
 describe('useNotifications Hook', () => {
   const mockUserId = 'user-123';
   const mockToken = 'valid-token';
 
   beforeEach(() => {
-    jest.clearAllMocks();
-    (global.fetch as jest.Mock).mockReset();
+    vi.clearAllMocks();
+    (global.fetch as any).mockReset();
   });
 
   describe('initialization', () => {
@@ -39,7 +44,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [] }),
@@ -73,7 +78,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: mockNotifications }),
@@ -114,7 +119,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [] }),
@@ -155,7 +160,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [{ id: 'notif-1' }] }),
@@ -203,7 +208,7 @@ describe('useNotifications Hook', () => {
         email_enabled: true,
       };
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [] }),
@@ -253,7 +258,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [] }),
@@ -291,7 +296,7 @@ describe('useNotifications Hook', () => {
         data: { session: { access_token: mockToken } },
       });
 
-      (global.fetch as jest.Mock)
+      (global.fetch as any)
         .mockResolvedValueOnce({
           ok: true,
           json: () => Promise.resolve({ success: true, data: [] }),

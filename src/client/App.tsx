@@ -44,6 +44,7 @@ const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
 const CopyTradingPage = lazyWithRetry(() => import('./pages/CopyTradingPage'));
 const BacktestVisualizationPage = lazyWithRetry(() => import('./pages/BacktestVisualizationPage'));
 const TradingJournalPage = lazyWithRetry(() => import('./pages/TradingJournalPage'));
+const StrategyComparisonPage = lazyWithRetry(() => import('./pages/StrategyComparisonPage'));
 const AttributionPage = lazyWithRetry(() => import('./pages/AttributionPage'));
 
 // Loading component for lazy routes
@@ -205,6 +206,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
+            <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
+              策略比较
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
               Leaderboard
             </MenuItem>
@@ -323,6 +327,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
+            <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
+              策略比较
+            </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
@@ -350,6 +357,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/backtest" element={<BacktestVisualizationPage />} />
         <Route path="/journal" element={<TradingJournalPage />} />
         <Route path="/attribution" element={<AttributionPage />} />
+        <Route path="/strategy-comparison" element={<StrategyComparisonPage />} />
       </Routes>
     </Suspense>
   );
