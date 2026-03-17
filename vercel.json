@@ -3,8 +3,16 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/users",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/users"
+    },
+    {
       "source": "/api/users/:path*",
       "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/users/:path*"
+    },
+    {
+      "source": "/api/signals",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/signals"
     },
     {
       "source": "/api/signals/:path*",
