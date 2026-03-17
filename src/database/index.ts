@@ -21,6 +21,7 @@ export { CopyTradesDAO, type CopyTrade, type CreateCopyTradeInput, type CopyTrad
 export { FollowerStatsDAO, type FollowerStatsRecord, type CreateFollowerStatsInput, type FollowerStatsFilters, type PeriodType } from './follower-stats.dao';
 export { CompetitionsDAO, type Competition, type CompetitionParticipant, type CompetitionWithStats, type CreateCompetitionInput } from './competitions.dao';
 export { SocialDAO, type User, type UserFollow, type StrategyComment, type UserBadge, type StrategyStats, type CreateUserInput } from './social.dao';
+export { TradeJournalDAO, type TradeJournal, type CreateTradeJournalInput, type UpdateTradeJournalInput, type TradeJournalFilters, type TradeJournalStats, type TradeJournalType, type TradeJournalStatus, type EmotionType } from './trade-journal.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -36,6 +37,7 @@ import { CopyTradesDAO } from './copy-trades.dao';
 import { FollowerStatsDAO } from './follower-stats.dao';
 import { CompetitionsDAO } from './competitions.dao';
 import { SocialDAO } from './social.dao';
+import { TradeJournalDAO } from './trade-journal.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -53,6 +55,7 @@ export class DatabaseManager {
   private _followerStats: FollowerStatsDAO | null = null;
   private _competitions: CompetitionsDAO | null = null;
   private _social: SocialDAO | null = null;
+  private _tradeJournal: TradeJournalDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -150,6 +153,13 @@ export class DatabaseManager {
       this._social = new SocialDAO();
     }
     return this._social;
+  }
+
+  get tradeJournal(): TradeJournalDAO {
+    if (!this._tradeJournal) {
+      this._tradeJournal = new TradeJournalDAO();
+    }
+    return this._tradeJournal;
   }
 }
 
