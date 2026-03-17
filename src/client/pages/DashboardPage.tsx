@@ -1,6 +1,8 @@
-import React from 'react';
-import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid } from '@arco-design/web-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Skeleton, Spin } from '@arco-design/web-react';
 const { Row, Col } = Grid;
+const { TabPane } = Tabs;
+const CollapseItem = Collapse.Item;
 import {
   LineChart,
   Line,
@@ -22,10 +24,12 @@ import OrdersPanel from '../components/OrdersPanel';
 import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 import PriceAlertsPanel from '../components/PriceAlertsPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { DashboardSkeleton } from '../components/Skeleton';
+import MobileTableCard from '../components/MobileTableCard';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -33,10 +37,11 @@ const DashboardPage: React.FC = () => {
   const { stats, loading: statsLoading } = useStats();
   const { strategies, loading: strategiesLoading } = useStrategies();
   const { trades, loading: tradesLoading } = useTrades(undefined, 10);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeMobileTab, setActiveMobileTab] = useState<string>('overview');
 
   // Detect mobile on mount and resize
-  React.useEffect(() => {
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -102,7 +107,7 @@ const DashboardPage: React.FC = () => {
       title: 'Price',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number) => `$${price.toLocaleString()}`,
+      render: (price: number) => '$' + price.toLocaleString(),
       width: 100,
     },
     {
@@ -115,7 +120,7 @@ const DashboardPage: React.FC = () => {
       title: 'Total',
       dataIndex: 'total',
       key: 'total',
-      render: (total: number) => `$${total.toLocaleString()}`,
+      render: (total: number) => '$' + total.toLocaleString(),
       width: 100,
     },
   ];
@@ -171,168 +176,282 @@ const DashboardPage: React.FC = () => {
     },
   ];
 
+  // Mobile card fields for trades
+  const tradeCardFields = [
+    { key: 'symbol', label: 'Symbol', priority: 1 },
+    { key: 'side', label: 'Side', priority: 2, render: (v: string) => (
+      <Tag color={v === 'buy' ? 'green' : 'red'}>{v}</Tag>
+    )},
+    { key: 'price', label: 'Price', priority: 3, render: (v: number) => '$' + v.toLocaleString() },
+    { key: 'quantity', label: 'Qty', priority: 4 },
+    { key: 'total', label: 'Total', priority: 5, render: (v: number) => '$' + v.toLocaleString() },
+  ];
+
+  // Mobile card fields for strategies
+  const strategyCardFields = [
+    { key: 'name', label: 'Name', priority: 1 },
+    { key: 'symbol', label: 'Symbol', priority: 2 },
+    { key: 'status', label: 'Status', priority: 3, render: (v: string) => {
+      const colorMap: Record<string, string> = { active: 'green', paused: 'orange', stopped: 'red' };
+      return <Tag color={colorMap[v] || 'gray'}>{v}</Tag>;
+    }},
+  ];
+
+  // Stats grid component for reusability
+  const StatsGrid = () => (
+    <Row gutter={isMobile ? 8 : 16}>
+      <Col xs={12} sm={12} md={6}>
+        <Card loading={statsLoading} className="stats-card">
+          <Statistic
+            title="Total Strategies"
+            value={stats?.totalStrategies || 0}
+            suffixText={'(' + (stats?.activeStrategies || 0) + ' active)'}
+          />
+        </Card>
+      </Col>
+      <Col xs={12} sm={12} md={6}>
+        <Card loading={statsLoading} className="stats-card">
+          <Statistic
+            title="Total Trades"
+            value={stats?.totalTrades || 0}
+          />
+        </Card>
+      </Col>
+      <Col xs={12} sm={12} md={6}>
+        <Card loading={statsLoading} className="stats-card">
+          <Statistic
+            title="Total Volume"
+            value={stats?.totalVolume ? (stats.totalVolume / 1000).toFixed(1) + 'K' : '0'}
+            prefixText="$"
+          />
+        </Card>
+      </Col>
+      <Col xs={12} sm={12} md={6}>
+        <Card loading={statsLoading} className="stats-card">
+          <Statistic
+            title="Buy/Sell Ratio"
+            value={
+              stats?.buyTrades && stats.sellTrades
+                ? (stats.buyTrades / stats.sellTrades).toFixed(2)
+                : '0'
+            }
+          />
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  // Charts section
+  const ChartsSection = () => (
+    <Row gutter={isMobile ? 8 : 16}>
+      <Col xs={24} md={12}>
+        <Card title="Strategy Status Distribution" loading={strategiesLoading} className="chart-card">
+          <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                labelLine
+                label={({ name, percent }) => name + ': ' + ((percent || 0) * 100).toFixed(0) + '%'}
+                outerRadius={isMobile ? 60 : 80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </Card>
+      </Col>
+      <Col xs={24} md={12}>
+        <Card title="Trading Volume by Strategy" loading={strategiesLoading} className="chart-card">
+          <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
+            <BarChart data={tradeVolumeData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="volume" fill="#8884d8" />
+            </BarChart>
+          </ResponsiveContainer>
+        </Card>
+      </Col>
+    </Row>
+  );
+
+  // Mobile layout with tabs
+  if (isMobile) {
+    return (
+      <ErrorBoundary>
+        <div className="dashboard-mobile">
+          <Title heading={4} style={{ marginBottom: 12, padding: '0 4px' }}>
+            Dashboard
+          </Title>
+
+          <Tabs
+            activeTab={activeMobileTab}
+            onChange={setActiveMobileTab}
+            type="rounded"
+            size="small"
+            style={{ marginBottom: 12 }}
+          >
+            <TabPane key="overview" title="Overview" />
+            <TabPane key="trades" title="Trades" />
+            <TabPane key="strategies" title="Strategies" />
+            <TabPane key="alerts" title="Alerts" />
+          </Tabs>
+
+          {activeMobileTab === 'overview' && (
+            <div style={{ padding: '0 4px' }}>
+              <StatsGrid />
+              <div style={{ marginTop: 12 }}>
+                <ChartsSection />
+              </div>
+            </div>
+          )}
+
+          {activeMobileTab === 'trades' && (
+            <div style={{ padding: '0 4px' }}>
+              <Collapse accordion defaultActiveKey={['history']}>
+                <CollapseItem header="Real-time Trade History" name="history">
+                  <div style={{ height: 300 }}>
+                    <TradeHistoryPanel limit={50} autoScroll={true} />
+                  </div>
+                </CollapseItem>
+                <CollapseItem header="Orders" name="orders">
+                  <OrdersPanel limit={20} />
+                </CollapseItem>
+                <CollapseItem header="Conditional Orders" name="conditional">
+                  <ConditionalOrdersPanel limit={20} />
+                </CollapseItem>
+              </Collapse>
+
+              {/* Mobile card view for recent trades */}
+              <Card title="Recent Trades" style={{ marginTop: 12 }} loading={tradesLoading}>
+                {trades.slice(0, 5).map((trade) => (
+                  <MobileTableCard
+                    key={trade.id}
+                    data={trade}
+                    fields={tradeCardFields}
+                    titleField="symbol"
+                  />
+                ))}
+              </Card>
+            </div>
+          )}
+
+          {activeMobileTab === 'strategies' && (
+            <div style={{ padding: '0 4px' }}>
+              <Card title="Active Strategies" loading={strategiesLoading}>
+                {strategies.slice(0, 5).map((strategy) => (
+                  <MobileTableCard
+                    key={strategy.id}
+                    data={strategy}
+                    fields={strategyCardFields}
+                    titleField="name"
+                    actions={
+                      <Space>
+                        <Button size="mini" disabled={strategy.status === 'active'}>Start</Button>
+                        <Button size="mini" disabled={strategy.status !== 'active'}>Stop</Button>
+                      </Space>
+                    }
+                  />
+                ))}
+              </Card>
+            </div>
+          )}
+
+          {activeMobileTab === 'alerts' && (
+            <div style={{ padding: '0 4px' }}>
+              <PriceAlertsPanel limit={20} />
+            </div>
+          )}
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // Desktop layout
   return (
     <ErrorBoundary>
       <div>
         {/* Page Title */}
-        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+        <Title heading={3} style={{ marginBottom: 24 }}>
           Dashboard
         </Title>
 
         {/* Stats Overview */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
-          <Col xs={12} sm={12} md={6}>
-            <Card loading={statsLoading}>
-              <Statistic
-                title="Total Strategies"
-                value={stats?.totalStrategies || 0}
-                suffixText={`(${stats?.activeStrategies || 0} active)`}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={12} md={6}>
-            <Card loading={statsLoading}>
-              <Statistic
-                title="Total Trades"
-                value={stats?.totalTrades || 0}
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={12} md={6}>
-            <Card loading={statsLoading}>
-              <Statistic
-                title="Total Volume"
-                value={stats?.totalVolume ? (stats.totalVolume / 1000).toFixed(1) + 'K' : '0'}
-                prefixText="$"
-              />
-            </Card>
-          </Col>
-          <Col xs={12} sm={12} md={6}>
-            <Card loading={statsLoading}>
-              <Statistic
-                title="Buy/Sell Ratio"
-                value={
-                  stats?.buyTrades && stats.sellTrades
-                    ? (stats.buyTrades / stats.sellTrades).toFixed(2)
-                    : '0'
-                }
-              />
-            </Card>
-          </Col>
-        </Row>
+        <div style={{ marginBottom: 24 }}>
+          <StatsGrid />
+        </div>
 
         {/* Charts */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
-          <Col xs={24} md={12}>
-            <Card title="Strategy Status Distribution" loading={strategiesLoading}>
-              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine
-                    label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {pieData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-          <Col xs={24} md={12}>
-            <Card title="Trading Volume by Strategy" loading={strategiesLoading}>
-              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
-                <BarChart data={tradeVolumeData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="volume" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
-          </Col>
-        </Row>
+        <div style={{ marginBottom: 24 }}>
+          <ChartsSection />
+        </div>
 
         {/* Real-time Trade History Panel */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
-            <div style={{ height: isMobile ? 400 : 500 }}>
+            <div style={{ height: 500 }}>
               <TradeHistoryPanel limit={100} autoScroll={true} />
             </div>
           </Col>
         </Row>
 
         {/* Orders Panel */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
             <OrdersPanel limit={50} />
           </Col>
         </Row>
 
         {/* Conditional Orders Panel */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
             <ConditionalOrdersPanel limit={50} />
           </Col>
         </Row>
 
         {/* Price Alerts Panel */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
             <PriceAlertsPanel limit={50} />
           </Col>
         </Row>
 
-        {/* Recent Trades - Scrollable on mobile */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        {/* Recent Trades */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
-            <Card
-              title="Recent Trades"
-              loading={tradesLoading}
-              bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
-            >
-              <div className={isMobile ? 'mobile-table-container' : ''}>
-                <Table
-                  columns={tradeColumns}
-                  dataSource={trades}
-                  rowKey="id"
-                  pagination={false}
-                  size="small"
-                  scroll={isMobile ? { x: 800 } : undefined}
-                />
-              </div>
+            <Card title="Recent Trades" loading={tradesLoading}>
+              <Table
+                columns={tradeColumns}
+                dataSource={trades}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
             </Card>
           </Col>
         </Row>
 
-        {/* Active Strategies - Scrollable on mobile */}
-        <Row gutter={isMobile ? 8 : 16}>
+        {/* Active Strategies */}
+        <Row gutter={16}>
           <Col span={24}>
-            <Card
-              title="Active Strategies"
-              loading={strategiesLoading}
-              bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
-            >
-              <div className={isMobile ? 'mobile-table-container' : ''}>
-                <Table
-                  columns={strategyColumns}
-                  dataSource={strategies}
-                  rowKey="id"
-                  pagination={false}
-                  size="small"
-                  scroll={isMobile ? { x: 1000 } : undefined}
-                />
-              </div>
+            <Card title="Active Strategies" loading={strategiesLoading}>
+              <Table
+                columns={strategyColumns}
+                dataSource={strategies}
+                rowKey="id"
+                pagination={false}
+                size="small"
+              />
             </Card>
           </Col>
         </Row>

@@ -24,6 +24,7 @@ import ThemeToggle from './components/ThemeToggle';
 import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
+import MobileBottomNav from './components/MobileBottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
@@ -362,6 +363,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </MenuItem>
         </Menu>
       </Drawer>
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav visible={isMobile && !['/login', '/register'].includes(location.pathname)} />
+      {/* Spacer for bottom nav */}
+      {isMobile && <div className="mobile-nav-spacer" />}
     </Layout>
     </ErrorBoundary>
   );
