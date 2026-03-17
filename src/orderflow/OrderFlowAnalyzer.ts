@@ -36,6 +36,8 @@ export class OrderFlowAnalyzer extends EventEmitter {
   private updateTimer: NodeJS.Timeout | null = null;
   private pendingTrades: Trade[] = [];
   private pendingOrderBook: OrderBookSnapshot | null = null;
+  private lastOrderBook: OrderBookSnapshot | null = null;
+  private lastQueueAnalysis: OrderQueueAnalysis | null = null;
 
   constructor(symbol: string, config: Partial<OrderFlowAnalysisConfig> = {}) {
     super();
@@ -106,7 +108,6 @@ export class OrderFlowAnalyzer extends EventEmitter {
         price: trade.price,
         quantity: trade.quantity,
         side: trade.side === 'buy' ? 'bid' : 'ask',
-        type: trade.side === 'buy' ? 'bid' : 'ask',
         timestamp: trade.timestamp,
         notionalValue,
         isIceberg: false,
@@ -131,7 +132,6 @@ export class OrderFlowAnalyzer extends EventEmitter {
             price: level.price,
             quantity: level.totalQuantity,
             side: 'bid',
-            type: 'bid',
             timestamp: snapshot.timestamp,
             notionalValue,
             isIceberg: this.detectIcebergOrder(level.price, 'bid'),
@@ -150,7 +150,6 @@ export class OrderFlowAnalyzer extends EventEmitter {
             price: level.price,
             quantity: level.totalQuantity,
             side: 'ask',
-            type: 'ask',
             timestamp: snapshot.timestamp,
             notionalValue,
             isIceberg: this.detectIcebergOrder(level.price, 'ask'),
@@ -190,6 +189,42 @@ export class OrderFlowAnalyzer extends EventEmitter {
     const buyVolume = trades.filter(t => t.side === 'buy').reduce((sum, t) => sum + t.quantity, 0);
     const sellVolume = trades.filter(t => t.side === 'sell').reduce((sum, t) => sum + t.quantity, 0);
     return { timestamp: Date.now(), delta: buyVolume - sellVolume, cumulative: this.cumulativeDelta, buyVolume, sellVolume };
+  }
+
+  /**
+   * 计算委托队列分析
+   * 分析买卖队列长度和变化速度
+   */
+  calculateOrderQueueAnalysis(snapshot: OrderBookSnapshot): OrderQueueAnalysis {
+    const bidQueue = snapshot.bids.length;
+    const askQueue = snapshot.asks.length;
+    const now = Date.now();
+    
+    let bidVelocity = 0;
+    let askVelocity = 0;
+    
+    // 如果有上一次的订单簿快照，计算变化速度
+    if (this.lastOrderBook && this.lastQueueAnalysis) {
+      const timeDiff = now - this.lastQueueAnalysis.timestamp;
+      if (timeDiff > 0) {
+        const bidQueueDiff = bidQueue - this.lastOrderBook.bids.length;
+        const askQueueDiff = askQueue - this.lastOrderBook.asks.length;
+        // 队列变化速度 = 每秒变化的订单数
+        bidVelocity = bidQueueDiff / (timeDiff / 1000);
+        askVelocity = askQueueDiff / (timeDiff / 1000);
+      }
+    }
+    
+    const analysis: OrderQueueAnalysis = {
+      bidQueue,
+      askQueue,
+      bidVelocity,
+      askVelocity,
+      timestamp: now,
+    };
+    
+    this.lastQueueAnalysis = analysis;
+    return analysis;
   }
 
   calculateTradeFlow(timeWindowMs: number = 60000): TradeFlow {
@@ -233,13 +268,13 @@ export class OrderFlowAnalyzer extends EventEmitter {
     for (const level of snapshot.bids) {
       const notionalValue = level.price * level.totalQuantity;
       if (notionalValue >= largeOrderThreshold) {
-        this.emitAlert({ id: `large-order-bid-${level.price}-${Date.now()}`, type: 'large_order_buy', message: `检测到大额买单：价格 ${level.price}，数量 ${level.totalQuantity.toFixed(4)}`, data: { price: level.price, quantity: level.totalQuantity, value: notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false });
+        this.emitAlert({ id: `large-order-bid-${level.price}-${Date.now()}`, type: 'large_order_buy', message: `检测到大额买单：价格 ${level.price}，数量 ${level.totalQuantity.toFixed(4)}`, data: { price: level.price, quantity: level.totalQuantity, value: notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false }, level.price);
       }
     }
     for (const level of snapshot.asks) {
       const notionalValue = level.price * level.totalQuantity;
       if (notionalValue >= largeOrderThreshold) {
-        this.emitAlert({ id: `large-order-ask-${level.price}-${Date.now()}`, type: 'large_order_sell', message: `检测到大额卖单：价格 ${level.price}，数量 ${level.totalQuantity.toFixed(4)}`, data: { price: level.price, quantity: level.totalQuantity, value: notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false });
+        this.emitAlert({ id: `large-order-ask-${level.price}-${Date.now()}`, type: 'large_order_sell', message: `检测到大额卖单：价格 ${level.price}，数量 ${level.totalQuantity.toFixed(4)}`, data: { price: level.price, quantity: level.totalQuantity, value: notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false }, level.price);
       }
     }
   }
@@ -247,11 +282,17 @@ export class OrderFlowAnalyzer extends EventEmitter {
   private emitLargeOrderAlert(order: LargeOrder): void {
     if (!this.config.alert.enabled) return;
     const alertType = order.side === 'bid' ? 'large_order_buy' : 'large_order_sell';
-    this.emitAlert({ id: `large-order-${order.id}`, type: alertType, message: `检测到大额${order.side === 'bid' ? '买' : '卖'}单：价格 ${order.price}，数量 ${order.quantity.toFixed(4)}`, data: { price: order.price, quantity: order.quantity, value: order.notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false });
+    this.emitAlert({ id: `large-order-${order.id}`, type: alertType, message: `检测到大额${order.side === 'bid' ? '买' : '卖'}单：价格 ${order.price}，数量 ${order.quantity.toFixed(4)}`, data: { price: order.price, quantity: order.quantity, value: order.notionalValue }, timestamp: Date.now(), severity: 'info', acknowledged: false }, order.price);
   }
 
-  private emitAlert(alert: OrderFlowAlert): void {
-    const key = alert.type;
+  /**
+   * 发出警报
+   * @param alert 警报对象
+   * @param price 价格级别（可选，用于去重）
+   */
+  private emitAlert(alert: OrderFlowAlert, price?: number): void {
+    // 使用 type 和 price 组合作为去重 key，确保同一价格级别的大单能触发多个警报
+    const key = price !== undefined ? `${alert.type}:${price}` : alert.type;
     const lastTime = this.lastAlertTime.get(key) || 0;
     const now = Date.now();
     if (now - lastTime < this.config.alert.cooldownMs) return;
@@ -297,6 +338,8 @@ export class OrderFlowAnalyzer extends EventEmitter {
     this.lastAlertTime.clear();
     this.pendingTrades = [];
     this.pendingOrderBook = null;
+    this.lastOrderBook = null;
+    this.lastQueueAnalysis = null;
     if (this.updateTimer) { clearTimeout(this.updateTimer); this.updateTimer = null; }
   }
 

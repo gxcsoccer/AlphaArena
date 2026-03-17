@@ -57,7 +57,6 @@ export interface LargeOrder {
   price: number;
   quantity: number;
   side: 'bid' | 'ask';
-  type: 'bid' | 'ask';
   timestamp: number;
   notionalValue: number;   // 名义价值 (价格 * 数量)
   isIceberg: boolean;      // 是否可能是冰山订单
