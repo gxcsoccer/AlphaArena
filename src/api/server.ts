@@ -28,6 +28,9 @@ import { createWebhookRouter } from './webhookRoutes';
 import { createCopyTradingRouter } from './copyTradingRoutes';
 import { createLeaderboardRouter } from './leaderboardRoutes';
 import backtestRoutes from './backtestRoutes';
+import { BotManager } from '../bot';
+import { createBotRouter } from './botRoutes';
+import { createApiKeyRouter } from './apiKeyRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -109,6 +112,7 @@ export class APIServer extends EventEmitter {
   private isRunning: boolean = false;
   private clientErrors: any[] = [];
   private webhookManager: WebhookManager;
+  private botManager: BotManager;
 
   constructor(config: APIServerConfig) {
     super();
@@ -143,6 +147,7 @@ export class APIServer extends EventEmitter {
     this.conditionalOrdersDAO = new ConditionalOrdersDAO();
     this.leaderboardService = new LeaderboardService();
     this.webhookManager = new WebhookManager();
+    this.botManager = new BotManager();
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -843,6 +848,12 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/copy-trading', createCopyTradingRouter());
     this.app.use('/api/leaderboard', createLeaderboardRouter());
     this.app.use('/api/backtest', backtestRoutes);
+
+    // Bot API routes
+    this.app.use('/api/bot', createBotRouter(this.botManager));
+
+    // API Key management routes
+    this.app.use('/api/keys', createApiKeyRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
