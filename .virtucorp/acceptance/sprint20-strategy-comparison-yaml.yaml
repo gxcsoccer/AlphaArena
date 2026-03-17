@@ -1,0 +1,11 @@
+web:
+  url: "https://alpha-arena-two.vercel.app/strategy-comparison"
+
+tasks:
+  - name: "验证策略比较工具功能"
+    flow:
+      - ai: "访问策略比较页面并等待加载完成"
+      - aiAssert: "页面显示策略比较工具界面"
+      - aiAssert: "页面有策略选择或比较功能"
+      - ai: "检查页面上是否有策略列表或选择器"
+      - aiQuery: "提取页面上显示的策略比较相关元素和功能"

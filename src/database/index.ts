@@ -22,6 +22,7 @@ export { FollowerStatsDAO, type FollowerStatsRecord, type CreateFollowerStatsInp
 export { CompetitionsDAO, type Competition, type CompetitionParticipant, type CompetitionWithStats, type CreateCompetitionInput } from './competitions.dao';
 export { SocialDAO, type User, type UserFollow, type StrategyComment, type UserBadge, type StrategyStats, type CreateUserInput } from './social.dao';
 export { TradeJournalDAO, type TradeJournal, type CreateTradeJournalInput, type UpdateTradeJournalInput, type TradeJournalFilters, type TradeJournalStats, type TradeJournalType, type TradeJournalStatus, type EmotionType } from './trade-journal.dao';
+export { StrategyTemplatesDAO, type StrategyTemplate, type TemplateRating, type TemplateUsage, type CreateTemplateInput, type TemplateFilter } from './strategyTemplates.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -38,6 +39,7 @@ import { FollowerStatsDAO } from './follower-stats.dao';
 import { CompetitionsDAO } from './competitions.dao';
 import { SocialDAO } from './social.dao';
 import { TradeJournalDAO } from './trade-journal.dao';
+import { StrategyTemplatesDAO } from './strategyTemplates.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -56,6 +58,7 @@ export class DatabaseManager {
   private _competitions: CompetitionsDAO | null = null;
   private _social: SocialDAO | null = null;
   private _tradeJournal: TradeJournalDAO | null = null;
+  private _strategyTemplates: StrategyTemplatesDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -160,6 +163,13 @@ export class DatabaseManager {
       this._tradeJournal = new TradeJournalDAO();
     }
     return this._tradeJournal;
+  }
+
+  get strategyTemplates(): StrategyTemplatesDAO {
+    if (!this._strategyTemplates) {
+      this._strategyTemplates = new StrategyTemplatesDAO();
+    }
+    return this._strategyTemplates;
   }
 }
 
