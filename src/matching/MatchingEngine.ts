@@ -1,4 +1,4 @@
-import { Order, OrderType } from '../orderbook/types';
+import { Order, OrderType, IcebergOrder, isIcebergOrder, AnyOrder } from '../orderbook/types';
 import { OrderBook } from '../orderbook/OrderBook';
 import { Trade, TradeStatus, OrderWithFill, MatchResult } from './types';
 
@@ -8,9 +8,11 @@ import { Trade, TradeStatus, OrderWithFill, MatchResult } from './types';
  * Features:
  * - 基于订单簿进行撮合
  * - 支持市价单 (market order) 和限价单 (limit order)
+ * - 支持冰山订单 (iceberg order)
  * - 实现价格优先、时间优先的撮合逻辑
  * - 生成成交记录 (trade record)
  * - 支持部分成交 (partial fill)
+ * - 冰山订单自动补充可见数量
  */
 export class MatchingEngine {
   private orderBook: OrderBook;
@@ -25,21 +27,22 @@ export class MatchingEngine {
 
   /**
    * 提交订单并进行撮合
-   * @param order 订单对象
+   * @param order 订单对象（支持普通订单和冰山订单）
    * @returns 撮合结果
    */
-  submitOrder(order: Order): MatchResult {
+  submitOrder(order: AnyOrder): MatchResult {
     const result: MatchResult = {
       trades: [],
       remainingOrder: null,
     };
 
+    // 获取订单的总数量（冰山订单为 totalQuantity）
+    const totalQuantity = isIcebergOrder(order) ? order.totalQuantity : order.quantity;
+    let remainingQuantity = totalQuantity;
+    let filledQuantity = 0;
+
     // 根据订单类型确定对手方
     const oppositeType = order.type === OrderType.BID ? OrderType.ASK : OrderType.BID;
-
-    // 查找可撮合的订单
-    let remainingQuantity = order.quantity;
-    const currentPrice = order.price;
 
     // 撮合循环
     while (remainingQuantity > 0) {
@@ -55,10 +58,10 @@ export class MatchingEngine {
       // 检查价格是否匹配
       // 买单：订单价格 >= 卖单价格
       // 卖单：订单价格 <= 买单价格
-      if (order.type === OrderType.BID && currentPrice < bestOppositePrice) {
+      if (order.type === OrderType.BID && order.price < bestOppositePrice) {
         break; // 买价不够高
       }
-      if (order.type === OrderType.ASK && currentPrice > bestOppositePrice) {
+      if (order.type === OrderType.ASK && order.price > bestOppositePrice) {
         break; // 卖价不够低
       }
 
@@ -78,8 +81,22 @@ export class MatchingEngine {
           break;
         }
 
+        // 检查对手方订单是否为冰山订单
+        const isOppositeIceberg = this.orderBook.isIcebergOrder(oppositeOrder.id);
+        
+        // 获取对手方订单的可成交数量
+        let oppositeAvailableQuantity = oppositeOrder.quantity;
+        
+        if (isOppositeIceberg) {
+          // 对于冰山订单，获取当前可见数量
+          const internalOrder = this.orderBook.getInternalOrder(oppositeOrder.id);
+          if (internalOrder) {
+            oppositeAvailableQuantity = internalOrder.visibleQuantity;
+          }
+        }
+
         // 计算成交量
-        const fillQuantity = Math.min(remainingQuantity, oppositeOrder.quantity);
+        const fillQuantity = Math.min(remainingQuantity, oppositeAvailableQuantity);
 
         // 生成成交记录
         const trade = this.createTrade(
@@ -94,14 +111,28 @@ export class MatchingEngine {
 
         // 更新剩余数量
         remainingQuantity -= fillQuantity;
+        filledQuantity += fillQuantity;
 
-        // 更新对手方订单
-        if (fillQuantity >= oppositeOrder.quantity) {
-          // 完全成交，取消订单
-          this.orderBook.cancel(oppositeOrder.id);
+        // 处理对手方订单（冰山订单需要特殊处理）
+        if (isOppositeIceberg) {
+          // 冰山订单填充处理
+          const fillResult = this.orderBook.fillIcebergOrder(oppositeOrder.id, fillQuantity);
+          
+          if (fillResult === null) {
+            // 订单完全成交，已从订单簿移除
+          } else if (fillResult.isVisibleRefilled) {
+            // 可见部分被填充后从隐藏部分补充，继续等待下次撮合
+            // 订单仍在订单簿中，已更新可见数量
+          }
         } else {
-          // 部分成交，修改订单数量
-          this.orderBook.modify(oppositeOrder.id, oppositeOrder.quantity - fillQuantity);
+          // 普通订单处理
+          if (fillQuantity >= oppositeOrder.quantity) {
+            // 完全成交，取消订单
+            this.orderBook.cancel(oppositeOrder.id);
+          } else {
+            // 部分成交，修改订单数量
+            this.orderBook.modify(oppositeOrder.id, oppositeOrder.quantity - fillQuantity);
+          }
         }
       }
     }
@@ -113,24 +144,39 @@ export class MatchingEngine {
         order: {
           ...order,
           quantity: remainingQuantity,
-        },
-        filledQuantity: order.quantity - remainingQuantity,
+        } as Order,
+        filledQuantity: filledQuantity,
         remainingQuantity: remainingQuantity,
         status:
-          remainingQuantity === order.quantity ? TradeStatus.PENDING : TradeStatus.PARTIALLY_FILLED,
+          filledQuantity === 0 ? TradeStatus.PENDING : TradeStatus.PARTIALLY_FILLED,
       };
 
       // 将剩余订单添加到订单簿
-      if (remainingQuantity > 0) {
-        this.orderBook.add(remainingOrder.order);
+      if (isIcebergOrder(order)) {
+        // 冰山订单：创建新的冰山订单对象
+        const icebergOrder = order as IcebergOrder;
+        const newIceberg: IcebergOrder = {
+          ...icebergOrder,
+          totalQuantity: remainingQuantity,
+          visibleQuantity: Math.min(icebergOrder.displayQuantity, remainingQuantity),
+          hiddenQuantity: remainingQuantity - Math.min(icebergOrder.displayQuantity, remainingQuantity),
+        };
+        this.orderBook.addIceberg(newIceberg);
+      } else {
+        // 普通订单
+        const remainingOrderToAdd: Order = {
+          ...order,
+          quantity: remainingQuantity,
+        };
+        this.orderBook.add(remainingOrderToAdd);
       }
 
       result.remainingOrder = remainingOrder;
     } else if (result.trades.length > 0) {
       // 完全成交
       const remainingOrder: OrderWithFill = {
-        order,
-        filledQuantity: order.quantity,
+        order: order as Order,
+        filledQuantity: filledQuantity,
         remainingQuantity: 0,
         status: TradeStatus.FILLED,
       };
@@ -141,9 +187,18 @@ export class MatchingEngine {
   }
 
   /**
+   * 提交冰山订单
+   * @param icebergOrder 冰山订单对象
+   * @returns 撮合结果
+   */
+  submitIcebergOrder(icebergOrder: IcebergOrder): MatchResult {
+    return this.submitOrder(icebergOrder);
+  }
+
+  /**
    * 创建成交记录
    */
-  private createTrade(buyOrder: Order, sellOrder: Order, quantity: number, price: number): Trade {
+  private createTrade(buyOrder: AnyOrder, sellOrder: AnyOrder, quantity: number, price: number): Trade {
     this.tradeCounter++;
     return {
       id: `trade-${this.tradeCounter}`,
