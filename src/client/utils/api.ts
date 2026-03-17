@@ -722,6 +722,61 @@ export const api = {
     const data: ApiResponse<any> = await res.json();
     return data.success ? data.data : null;
   },
+
+  // TWAP Order API methods
+  async createTWAPOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    totalQuantity: number;
+    startTime: string;
+    endTime: string;
+    intervalSeconds: number;
+    priceLimit?: number;
+    priceLimitType?: 'max' | 'min' | 'none';
+    strategyId?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/create-twap-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getTWAPOrders(filters?: {
+    symbol?: string;
+    status?: string;
+    strategyId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.strategyId) params.append('strategyId', filters.strategyId);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    const res = await apiFetch(`/functions/v1/twap-orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async cancelTWAPOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/functions/v1/cancel-twap-order/${orderId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getTWAPOrderProgress(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/functions/v1/twap-order-progress/${orderId}`);
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**

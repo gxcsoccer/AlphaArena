@@ -47,6 +47,7 @@ const TradingJournalPage = lazyWithRetry(() => import('./pages/TradingJournalPag
 const StrategyComparisonPage = lazyWithRetry(() => import('./pages/StrategyComparisonPage'));
 const AttributionPage = lazyWithRetry(() => import('./pages/AttributionPage'));
 const StrategyMarketplacePage = lazyWithRetry(() => import('./pages/StrategyMarketplacePage'));
+const AdvancedOrdersPage = lazyWithRetry(() => import('./pages/AdvancedOrdersPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -207,6 +208,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
+            <MenuItem key="/advanced-orders" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              高级订单
+            </MenuItem>
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
@@ -328,6 +332,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
+            <MenuItem key="/advanced-orders" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              高级订单
+            </MenuItem>
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
@@ -360,6 +367,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/attribution" element={<AttributionPage />} />
         <Route path="/strategy-comparison" element={<StrategyComparisonPage />} />
         <Route path="/marketplace" element={<StrategyMarketplacePage />} />
+        <Route path="/advanced-orders" element={<AdvancedOrdersPage />} />
       </Routes>
     </Suspense>
   );
