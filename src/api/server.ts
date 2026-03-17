@@ -26,6 +26,7 @@ import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService 
 import { WebhookManager } from '../webhook';
 import { createWebhookRouter } from './webhookRoutes';
 import { createCopyTradingRouter } from './copyTradingRoutes';
+import { createLeaderboardRouter } from './leaderboardRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -839,6 +840,7 @@ export class APIServer extends EventEmitter {
 
     // Copy Trading routes
     this.app.use('/api/copy-trading', createCopyTradingRouter());
+    this.app.use('/api/leaderboard', createLeaderboardRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

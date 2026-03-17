@@ -19,6 +19,8 @@ export { RebalanceDAO, rebalanceDAO } from './rebalance.dao';
 export { FollowersDAO, type Follower, type FollowerSettings, type CreateFollowerInput, type UpdateFollowerInput, type FollowerFilters, type FollowerStatus, type CopyMode } from './followers.dao';
 export { CopyTradesDAO, type CopyTrade, type CreateCopyTradeInput, type CopyTradeFilters, type CopyTradeStatus } from './copy-trades.dao';
 export { FollowerStatsDAO, type FollowerStatsRecord, type CreateFollowerStatsInput, type FollowerStatsFilters, type PeriodType } from './follower-stats.dao';
+export { CompetitionsDAO, type Competition, type CompetitionParticipant, type CompetitionWithStats, type CreateCompetitionInput } from './competitions.dao';
+export { SocialDAO, type User, type UserFollow, type StrategyComment, type UserBadge, type StrategyStats, type CreateUserInput } from './social.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -32,6 +34,8 @@ import { RebalanceDAO } from './rebalance.dao';
 import { FollowersDAO } from './followers.dao';
 import { CopyTradesDAO } from './copy-trades.dao';
 import { FollowerStatsDAO } from './follower-stats.dao';
+import { CompetitionsDAO } from './competitions.dao';
+import { SocialDAO } from './social.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -47,6 +51,8 @@ export class DatabaseManager {
   private _followers: FollowersDAO | null = null;
   private _copyTrades: CopyTradesDAO | null = null;
   private _followerStats: FollowerStatsDAO | null = null;
+  private _competitions: CompetitionsDAO | null = null;
+  private _social: SocialDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -130,6 +136,20 @@ export class DatabaseManager {
       this._followerStats = new FollowerStatsDAO();
     }
     return this._followerStats;
+  }
+
+  get competitions(): CompetitionsDAO {
+    if (!this._competitions) {
+      this._competitions = new CompetitionsDAO();
+    }
+    return this._competitions;
+  }
+
+  get social(): SocialDAO {
+    if (!this._social) {
+      this._social = new SocialDAO();
+    }
+    return this._social;
   }
 }
 
