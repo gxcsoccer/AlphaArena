@@ -1,5 +1,5 @@
 import React, { Suspense, useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Spin, Drawer, Button } from '@arco-design/web-react';
 import {
   IconDashboard,
@@ -10,6 +10,7 @@ import {
   IconHome,
   IconMenuFold,
   IconMenuUnfold,
+  IconDashboard as IconPerformance,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -31,6 +32,7 @@ const StrategiesPage = lazyWithRetry(() => import('./pages/StrategiesPage'));
 const TradesPage = lazyWithRetry(() => import('./pages/TradesPage'));
 const HoldingsPage = lazyWithRetry(() => import('./pages/HoldingsPage'));
 const LeaderboardPage = lazyWithRetry(() => import('./pages/LeaderboardPage'));
+const PerformancePage = lazyWithRetry(() => import('./pages/PerformancePage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -161,6 +163,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
               Dashboard
             </MenuItem>
+            <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
+              绩效
+            </MenuItem>
             <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
               Strategies
             </MenuItem>
@@ -258,6 +263,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
             Dashboard
           </MenuItem>
+          <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
+            绩效
+          </MenuItem>
           <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
             Strategies
           </MenuItem>
@@ -283,6 +291,7 @@ const AppRoutes: React.FC = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/performance" element={<PerformancePage />} />
         <Route path="/strategies" element={<StrategiesPage />} />
         <Route path="/trades" element={<TradesPage />} />
         <Route path="/holdings" element={<HoldingsPage />} />

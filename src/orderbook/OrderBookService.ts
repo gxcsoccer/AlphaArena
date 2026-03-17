@@ -9,7 +9,7 @@
 
 import { EventEmitter } from 'events';
 import { OrderBook } from './OrderBook';
-import { Order, OrderType, OrderBookSnapshot, OrderBookDelta, OrderBookUpdate } from './types';
+import { Order, OrderType, OrderBookSnapshot, OrderBookDelta } from './types';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -104,8 +104,8 @@ export class OrderBookService extends EventEmitter {
   /**
    * 连接模拟市场数据源
    */
-  connect(config?: MarketDataSourceConfig): Promise<void> {
-    return new Promise((resolve, reject) => {
+  connect(_config?: MarketDataSourceConfig): Promise<void> {
+    return new Promise((resolve, _reject) => {
       // 模拟连接延迟
       setTimeout(() => {
         this.connected = true;
@@ -190,8 +190,8 @@ export class OrderBookService extends EventEmitter {
    * 模拟市场数据更新（用于测试和演示）
    */
   private startSimulatedUpdates(): void {
-    let basePrice = 50000;
-    let sequenceNumber = 0;
+    const basePrice = 50000;
+    const _sequenceNumber = 0;
     
     // 初始快照
     const initialOrders: MarketOrderBookUpdate = {
