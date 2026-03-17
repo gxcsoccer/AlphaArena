@@ -15,6 +15,7 @@ import {
   IconUserAdd,
   IconHeart,
   IconExperiment,
+  IconBook,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -41,6 +42,7 @@ const RiskPage = lazyWithRetry(() => import('./pages/RiskPage'));
 const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
 const CopyTradingPage = lazyWithRetry(() => import('./pages/CopyTradingPage'));
 const BacktestVisualizationPage = lazyWithRetry(() => import('./pages/BacktestVisualizationPage'));
+const TradingJournalPage = lazyWithRetry(() => import('./pages/TradingJournalPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -192,6 +194,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
+            <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
+              交易日志
+            </MenuItem>
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
@@ -304,6 +309,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
+            <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
+              交易日志
+            </MenuItem>
             <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
               回测
             </MenuItem>
@@ -332,6 +340,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/copy-trading" element={<CopyTradingPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/backtest" element={<BacktestVisualizationPage />} />
+        <Route path="/journal" element={<TradingJournalPage />} />
       </Routes>
     </Suspense>
   );
