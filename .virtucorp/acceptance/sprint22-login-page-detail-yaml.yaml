@@ -1,0 +1,9 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "登录页面详情检查"
+    flow:
+      - ai: "导航到 https://alpha-arena-two.vercel.app/login"
+      - aiWaitFor: "页面加载完成，等待 3 秒"
+      - aiQuery: "页面标题和主要元素是什么？列出所有可见的文本内容和输入框"

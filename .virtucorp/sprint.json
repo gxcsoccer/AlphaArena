@@ -1,10 +1,14 @@
 {
-  "current": 21,
+  "current": 24,
   "startDate": "2026-04-01",
   "endDate": "2026-04-08",
   "milestone": 22,
   "status": "planning",
-  "issues": [292, 293, 294],
+  "issues": [
+    292,
+    293,
+    294
+  ],
   "goals": [
     "策略模板市场 (Strategy Template Marketplace)",
     "多时间框架分析 (Multi-Timeframe Analysis)",

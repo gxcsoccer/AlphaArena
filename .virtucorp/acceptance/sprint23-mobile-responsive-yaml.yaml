@@ -1,0 +1,16 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "移动端底部导航测试"
+    flow:
+      - ai: "设置视口为移动端尺寸 (iPhone 14: 390x844)"
+      - aiAssert: "页面底部显示了移动端导航栏"
+      - aiAssert: "底部导航栏包含至少3个导航项"
+      - ai: "点击底部导航栏的首页图标"
+      - aiWaitFor: "页面跳转或内容更新"
+  - name: "移动端布局响应式测试"
+    flow:
+      - ai: "检查页面内容是否适配移动端屏幕宽度"
+      - aiAssert: "没有水平滚动条或内容溢出"
+      - aiAssert: "按钮和交互元素大小适合触摸操作"
