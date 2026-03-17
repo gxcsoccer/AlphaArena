@@ -32,6 +32,7 @@ import { BotManager } from '../bot';
 import { createBotRouter } from './botRoutes';
 import { createApiKeyRouter } from './apiKeyRoutes';
 import { createAttributionRouter } from './attributionRoutes';
+import notificationRoutes from './notificationRoutes.js';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -856,6 +857,9 @@ export class APIServer extends EventEmitter {
     // API Key management routes
     this.app.use('/api/keys', createApiKeyRouter());
     this.app.use('/api/attribution', createAttributionRouter());
+
+    // Notification routes
+    this.app.use('/api/notifications', notificationRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
