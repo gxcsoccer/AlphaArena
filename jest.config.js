@@ -27,6 +27,7 @@ module.exports = {
   setupFilesAfterEnv: [
     '@testing-library/jest-dom',
     '<rootDir>/tests/__mocks__/resizeObserver.ts',
+    '<rootDir>/tests/__mocks__/apiSetup.ts',
   ],
   moduleNameMapper: {
     '^lightweight-charts$': '<rootDir>/tests/__mocks__/lightweight-charts.ts',

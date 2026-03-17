@@ -1,167 +1,269 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: AlphaArena API
+  title: AlphaArena Trading Bot API
   description: |
-    AlphaArena 是一个算法交易平台，提供订单簿模拟、撮合引擎、投资组合跟踪、策略开发和回测功能。
+    External API for integrating with AlphaArena trading bot system.
     
-    ## 认证
+    ## Authentication
+    All API endpoints require authentication via API Key.
+    Include your API key in the `X-API-Key` header.
     
-    当前版本 API 默认不需要认证。如需启用认证，请在请求头中添加 `Authorization: Bearer <token>`。
+    ## Rate Limits
+    - **read** permission: 60 requests/minute, 10,000 requests/day
+    - **trade** permission: 120 requests/minute, 20,000 requests/day
+    - **admin** permission: 300 requests/minute, 50,000 requests/day
     
-    ## 响应格式
-    
-    所有 API 响应均为 JSON 格式，包含以下字段：
-    - `success`: 布尔值，表示请求是否成功
-    - `data`: 响应数据（成功时）
-    - `error`: 错误信息（失败时）
-    - `timestamp`: 响应时间戳（毫秒）
-    
-    ## 错误码
-    
-    | 状态码 | 说明 |
-    |-------|------|
-    | 200 | 请求成功 |
-    | 400 | 请求参数错误 |
-    | 401 | 未授权 |
-    | 404 | 资源不存在 |
-    | 500 | 服务器内部错误 |
+    Rate limit headers are included in every response:
+    - `X-RateLimit-Limit-Minute`: Maximum requests per minute
+    - `X-RateLimit-Remaining-Minute`: Remaining requests this minute
+    - `X-RateLimit-Limit-Day`: Maximum requests per day
+    - `X-RateLimit-Remaining-Day`: Remaining requests today
     
   version: 1.0.0
   contact:
-    name: AlphaArena Team
-    url: https://github.com/gxcsoccer/AlphaArena
-  license:
-    name: ISC
-    url: https://opensource.org/licenses/ISC
+    name: AlphaArena Support
+    email: support@alphaarena.io
 
 servers:
-  - url: http://localhost:3001
-    description: 本地开发服务器
-  - url: https://alphaarena-production.up.railway.app
-    description: 生产服务器
+  - url: https://alphaarena-production.up.railway.app/api
+    description: Production server
+  - url: http://localhost:3001/api
+    description: Development server
 
-tags:
-  - name: Health
-    description: 健康检查和系统状态
-  - name: Strategies
-    description: 策略管理
-  - name: Trades
-    description: 交易记录
-  - name: Portfolios
-    description: 投资组合
-  - name: Orders
-    description: 订单管理
-  - name: Conditional Orders
-    description: 条件单（止损/止盈）
-  - name: OrderBook
-    description: 订单簿
-  - name: Market Data
-    description: 市场数据
-  - name: Leaderboard
-    description: 排行榜
-  - name: Metrics
-    description: 系统指标
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API Key for authentication (format: aa_live_xxx or aa_test_xxx)
+
+  schemas:
+    TradingPair:
+      type: object
+      required:
+        - base
+        - quote
+        - symbol
+      properties:
+        base:
+          type: string
+          description: Base currency symbol (e.g., 'BTC')
+          example: BTC
+        quote:
+          type: string
+          description: Quote currency symbol (e.g., 'USDT')
+          example: USDT
+        symbol:
+          type: string
+          description: Full trading pair symbol
+          example: BTCUSDT
+
+    RiskSettings:
+      type: object
+      properties:
+        maxCapitalPerTrade:
+          type: number
+          description: Maximum capital per trade (absolute or percentage)
+          default: 0.1
+        usePercentageCapital:
+          type: boolean
+          description: Use percentage for maxCapitalPerTrade
+          default: true
+        stopLossPercent:
+          type: number
+          description: Stop loss percentage (0-1)
+          default: 0.05
+        takeProfitPercent:
+          type: number
+          description: Take profit percentage (0-1)
+          default: 0.15
+        maxPositionSize:
+          type: number
+          description: Maximum position size
+          default: 1000
+        maxOrdersPerMinute:
+          type: number
+          description: Maximum orders per minute
+          default: 10
+        maxDailyLoss:
+          type: number
+          description: Maximum daily loss (0-1)
+          default: 0.1
+        riskControlEnabled:
+          type: boolean
+          description: Enable risk controls
+          default: true
+
+    BotConfig:
+      type: object
+      required:
+        - id
+        - name
+        - strategy
+        - tradingPair
+        - interval
+        - mode
+        - initialCapital
+      properties:
+        id:
+          type: string
+          description: Unique bot identifier
+        name:
+          type: string
+          description: Bot name
+        description:
+          type: string
+          description: Bot description
+        strategy:
+          type: string
+          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
+          description: Trading strategy type
+        strategyParams:
+          type: object
+          description: Strategy-specific parameters
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        interval:
+          type: string
+          enum: [1m, 5m, 15m, 1h, 4h, 1d]
+          description: Time interval for strategy execution
+        mode:
+          type: string
+          enum: [paper, live]
+          description: Trading mode
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        initialCapital:
+          type: number
+          description: Initial capital allocation
+        enabled:
+          type: boolean
+          description: Whether bot is enabled
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BotState:
+      type: object
+      properties:
+        botId:
+          type: string
+        status:
+          type: string
+          enum: [stopped, running, paused, error]
+        portfolioValue:
+          type: number
+        initialCapital:
+          type: number
+        realizedPnL:
+          type: number
+        unrealizedPnL:
+          type: number
+        totalPnL:
+          type: number
+        tradeCount:
+          type: integer
+        winCount:
+          type: integer
+        lossCount:
+          type: integer
+        positionQuantity:
+          type: number
+        positionAveragePrice:
+          type: number
+        lastSignalTime:
+          type: string
+          format: date-time
+        lastTradeTime:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        totalRuntimeMs:
+          type: integer
+
+    CreateBotRequest:
+      type: object
+      required:
+        - name
+        - strategy
+        - tradingPair
+        - initialCapital
+      properties:
+        name:
+          type: string
+          description: Bot name
+        description:
+          type: string
+          description: Bot description
+        strategy:
+          type: string
+          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
+        strategyParams:
+          type: object
+          description: Strategy-specific parameters
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        interval:
+          type: string
+          enum: [1m, 5m, 15m, 1h, 4h, 1d]
+          default: 1h
+        mode:
+          type: string
+          enum: [paper, live]
+          default: paper
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        initialCapital:
+          type: number
+          minimum: 0
+
+    UpdateBotRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        strategyParams:
+          type: object
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        enabled:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        code:
+          type: string
 
 paths:
-  # ============ Health ============
-  /health:
+  /bot:
     get:
+      summary: List all bots
+      description: Retrieve a list of all trading bots
+      operationId: listBots
       tags:
-        - Health
-      summary: 健康检查
-      description: 返回服务器的健康状态
-      operationId: getHealth
+        - Bot Management
       responses:
         '200':
-          description: 服务健康
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                  timestamp:
-                    type: integer
-                    format: int64
-                    example: 1704067200000
-
-  /health/status:
-    get:
-      tags:
-        - Health
-      summary: 详细健康状态
-      description: 返回包含数据库、实时连接等详细状态的健康检查
-      operationId: getHealthStatus
-      responses:
-        '200':
-          description: 详细健康状态
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HealthStatus'
-
-  # ============ Metrics ============
-  /metrics:
-    get:
-      tags:
-        - Metrics
-      summary: 系统指标
-      description: 返回系统性能指标，包括内存、CPU、响应时间等
-      operationId: getMetrics
-      responses:
-        '200':
-          description: 系统指标
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SystemMetrics'
-
-  /metrics/errors:
-    get:
-      tags:
-        - Metrics
-      summary: 错误日志
-      description: 返回最近的错误日志
-      operationId: getErrors
-      parameters:
-        - name: limit
-          in: query
-          description: 返回的错误数量
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: 错误日志列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ErrorLog'
-                  bySeverity:
-                    type: object
-                    additionalProperties:
-                      type: integer
-                  total:
-                    type: integer
-
-  # ============ Strategies ============
-  /api/strategies:
-    get:
-      tags:
-        - Strategies
-      summary: 获取所有策略
-      description: 返回所有已创建的交易策略列表
-      operationId: getStrategies
-      responses:
-        '200':
-          description: 策略列表
+          description: Successful response
           content:
             application/json:
               schema:
@@ -172,578 +274,59 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Strategy'
+                      $ref: '#/components/schemas/BotConfig'
+                  count:
+                    type: integer
 
-  /api/strategies/{id}:
-    get:
+    post:
+      summary: Create a new bot
+      description: Create a new trading bot with the specified configuration
+      operationId: createBot
       tags:
-        - Strategies
-      summary: 获取策略详情
-      description: 根据ID获取单个策略的详细信息
-      operationId: getStrategyById
+        - Bot Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBotRequest'
+      responses:
+        '201':
+          description: Bot created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BotConfig'
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bot/{id}:
+    get:
+      summary: Get bot details
+      description: Retrieve details for a specific bot including its current state
+      operationId: getBot
+      tags:
+        - Bot Management
       parameters:
         - name: id
           in: path
           required: true
-          description: 策略ID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: 策略详情
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Strategy'
-        '404':
-          description: 策略不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============ Trades ============
-  /api/trades:
-    get:
-      tags:
-        - Trades
-      summary: 获取交易记录
-      description: 获取交易记录列表，支持多种筛选条件
-      operationId: getTrades
-      parameters:
-        - name: strategyId
-          in: query
-          description: 按策略ID筛选
-          schema:
-            type: string
-            format: uuid
-        - name: symbol
-          in: query
-          description: 按交易对筛选
-          schema:
-            type: string
-            example: BTC/USD
-        - name: side
-          in: query
-          description: 按买卖方向筛选
-          schema:
-            type: string
-            enum: [buy, sell]
-        - name: limit
-          in: query
-          description: 返回数量限制
-          schema:
-            type: integer
-            default: 100
-        - name: offset
-          in: query
-          description: 偏移量（分页）
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: 交易记录列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Trade'
-
-  /api/trades/export:
-    get:
-      tags:
-        - Trades
-      summary: 导出交易记录
-      description: 导出交易记录为CSV格式
-      operationId: exportTrades
-      parameters:
-        - name: strategyId
-          in: query
-          description: 按策略ID筛选
-          schema:
-            type: string
-            format: uuid
-        - name: symbol
-          in: query
-          description: 按交易对筛选
-          schema:
-            type: string
-        - name: side
-          in: query
-          description: 按买卖方向筛选
-          schema:
-            type: string
-            enum: [buy, sell]
-        - name: startDate
-          in: query
-          description: 开始日期
-          schema:
-            type: string
-            format: date-time
-        - name: endDate
-          in: query
-          description: 结束日期
-          schema:
-            type: string
-            format: date-time
-      responses:
-        '200':
-          description: CSV文件
-          content:
-            text/csv:
-              schema:
-                type: string
-
-  # ============ Portfolios ============
-  /api/portfolios:
-    get:
-      tags:
-        - Portfolios
-      summary: 获取投资组合
-      description: 获取最新的投资组合信息
-      operationId: getPortfolios
-      parameters:
-        - name: strategyId
-          in: query
-          description: 按策略ID筛选
-          schema:
-            type: string
-            format: uuid
-        - name: symbol
-          in: query
-          description: 按交易对筛选
           schema:
             type: string
       responses:
         '200':
-          description: 投资组合信息
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Portfolio'
-
-  /api/portfolios/history:
-    get:
-      tags:
-        - Portfolios
-      summary: 获取投资组合历史
-      description: 获取投资组合的盈亏历史数据
-      operationId: getPortfolioHistory
-      parameters:
-        - name: strategyId
-          in: query
-          required: true
-          description: 策略ID
-          schema:
-            type: string
-            format: uuid
-        - name: timeRange
-          in: query
-          description: 时间范围
-          schema:
-            type: string
-            enum: [1d, 1w, 1m, all]
-            default: 1w
-      responses:
-        '200':
-          description: 投资组合历史
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/PortfolioSnapshot'
-        '400':
-          description: 缺少必需参数
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============ Orders ============
-  /api/orders:
-    get:
-      tags:
-        - Orders
-      summary: 获取订单列表
-      description: 获取订单列表，支持按交易对和状态筛选
-      operationId: getOrders
-      parameters:
-        - name: symbol
-          in: query
-          description: 按交易对筛选
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: 按订单状态筛选
-          schema:
-            type: string
-            enum: [pending, filled, cancelled]
-        - name: limit
-          in: query
-          description: 返回数量限制
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: 订单列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Order'
-                  timestamp:
-                    type: integer
-
-    post:
-      tags:
-        - Orders
-      summary: 创建订单
-      description: 创建新的交易订单（限价单或市价单）
-      operationId: createOrder
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateOrderRequest'
-            examples:
-              limit_order:
-                summary: 限价买单
-                value:
-                  symbol: BTC/USD
-                  side: buy
-                  type: limit
-                  price: 50000
-                  quantity: 0.1
-              market_order:
-                summary: 市价卖单
-                value:
-                  symbol: BTC/USD
-                  side: sell
-                  type: market
-                  quantity: 0.1
-      responses:
-        '200':
-          description: 订单创建成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Order'
-                  timestamp:
-                    type: integer
-        '400':
-          description: 请求参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/orders/{orderId}/cancel:
-    post:
-      tags:
-        - Orders
-      summary: 取消订单
-      description: 取消一个待处理的订单
-      operationId: cancelOrder
-      parameters:
-        - name: orderId
-          in: path
-          required: true
-          description: 订单ID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 订单取消成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Order'
-                  timestamp:
-                    type: integer
-        '400':
-          description: 订单状态不允许取消
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 订单不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============ Conditional Orders ============
-  /api/conditional-orders:
-    get:
-      tags:
-        - Conditional Orders
-      summary: 获取条件单列表
-      description: 获取止损/止盈条件单列表
-      operationId: getConditionalOrders
-      parameters:
-        - name: symbol
-          in: query
-          description: 按交易对筛选
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: 按状态筛选
-          schema:
-            type: string
-            enum: [active, triggered, cancelled, expired]
-        - name: orderType
-          in: query
-          description: 按类型筛选
-          schema:
-            type: string
-            enum: [stop_loss, take_profit]
-        - name: limit
-          in: query
-          description: 返回数量限制
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: 条件单列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ConditionalOrder'
-                  timestamp:
-                    type: integer
-
-    post:
-      tags:
-        - Conditional Orders
-      summary: 创建条件单
-      description: 创建止损或止盈条件单
-      operationId: createConditionalOrder
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateConditionalOrderRequest'
-            examples:
-              stop_loss:
-                summary: 止损单
-                value:
-                  symbol: BTC/USD
-                  side: sell
-                  orderType: stop_loss
-                  triggerPrice: 45000
-                  quantity: 0.1
-              take_profit:
-                summary: 止盈单
-                value:
-                  symbol: BTC/USD
-                  side: sell
-                  orderType: take_profit
-                  triggerPrice: 55000
-                  quantity: 0.1
-      responses:
-        '200':
-          description: 条件单创建成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/ConditionalOrder'
-                  timestamp:
-                    type: integer
-        '400':
-          description: 请求参数错误
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/conditional-orders/stats:
-    get:
-      tags:
-        - Conditional Orders
-      summary: 获取条件单统计
-      description: 获取条件单的统计数据
-      operationId: getConditionalOrderStats
-      parameters:
-        - name: strategyId
-          in: query
-          description: 按策略ID筛选
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: 条件单统计
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/ConditionalOrderStats'
-                  timestamp:
-                    type: integer
-
-  /api/conditional-orders/{orderId}/cancel:
-    post:
-      tags:
-        - Conditional Orders
-      summary: 取消条件单
-      description: 取消一个活跃的条件单
-      operationId: cancelConditionalOrder
-      parameters:
-        - name: orderId
-          in: path
-          required: true
-          description: 条件单ID
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 条件单取消成功
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/ConditionalOrder'
-                  timestamp:
-                    type: integer
-        '400':
-          description: 条件单状态不允许取消
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        '404':
-          description: 条件单不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  # ============ OrderBook ============
-  /api/orderbook/{symbol}:
-    get:
-      tags:
-        - OrderBook
-      summary: 获取订单簿快照
-      description: 获取指定交易对的订单簿快照
-      operationId: getOrderBook
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          description: 交易对符号
-          schema:
-            type: string
-            example: BTC/USD
-        - name: levels
-          in: query
-          description: 返回的价格层级数量
-          schema:
-            type: integer
-      responses:
-        '200':
-          description: 订单簿快照
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/OrderBookSnapshot'
-                  timestamp:
-                    type: integer
-        '404':
-          description: 交易对不存在
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
-  /api/orderbook/{symbol}/best:
-    get:
-      tags:
-        - OrderBook
-      summary: 获取最优价格
-      description: 获取指定交易对的最优买卖价格
-      operationId: getBestPrices
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          description: 交易对符号
-          schema:
-            type: string
-      responses:
-        '200':
-          description: 最优价格
+          description: Successful response
           content:
             application/json:
               schema:
@@ -754,63 +337,38 @@ paths:
                   data:
                     type: object
                     properties:
-                      bestBid:
-                        type: number
-                      bestAsk:
-                        type: number
-                      spread:
-                        type: number
-                  timestamp:
-                    type: integer
+                      config:
+                        $ref: '#/components/schemas/BotConfig'
+                      state:
+                        $ref: '#/components/schemas/BotState'
         '404':
-          description: 交易对不存在
+          description: Bot not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
 
-  # ============ Market Data ============
-  /api/market/tickers:
-    get:
+    put:
+      summary: Update bot configuration
+      description: Update configuration for a specific bot
+      operationId: updateBot
       tags:
-        - Market Data
-      summary: 获取所有行情
-      description: 获取所有交易对的行情数据
-      operationId: getTickers
-      responses:
-        '200':
-          description: 行情列表
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Ticker'
-                  timestamp:
-                    type: integer
-
-  /api/market/tickers/{symbol}:
-    get:
-      tags:
-        - Market Data
-      summary: 获取单个行情
-      description: 获取指定交易对的行情数据
-      operationId: getTicker
+        - Bot Management
       parameters:
-        - name: symbol
+        - name: id
           in: path
           required: true
-          description: 交易对符号
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBotRequest'
       responses:
         '200':
-          description: 行情数据
+          description: Bot updated successfully
           content:
             application/json:
               schema:
@@ -819,46 +377,29 @@ paths:
                   success:
                     type: boolean
                   data:
-                    $ref: '#/components/schemas/Ticker'
-                  timestamp:
-                    type: integer
+                    $ref: '#/components/schemas/BotConfig'
         '404':
-          description: 交易对不存在
+          description: Bot not found
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/Error'
 
-  /api/market/kline/{symbol}:
-    get:
+    delete:
+      summary: Delete a bot
+      description: Stop and delete a trading bot
+      operationId: deleteBot
       tags:
-        - Market Data
-      summary: 获取K线数据
-      description: 获取指定交易对的K线（蜡烛图）数据
-      operationId: getKLine
+        - Bot Management
       parameters:
-        - name: symbol
+        - name: id
           in: path
           required: true
-          description: 交易对符号
           schema:
             type: string
-        - name: timeframe
-          in: query
-          description: K线周期
-          schema:
-            type: string
-            enum: [1m, 5m, 15m, 1h, 4h, 1d]
-            default: 1h
-        - name: limit
-          in: query
-          description: 返回的K线数量
-          schema:
-            type: integer
-            default: 1000
       responses:
         '200':
-          description: K线数据
+          description: Bot deleted successfully
           content:
             application/json:
               schema:
@@ -866,98 +407,135 @@ paths:
                 properties:
                   success:
                     type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/KLine'
-                  timestamp:
-                    type: integer
-
-  # ============ Leaderboard ============
-  /api/leaderboard:
-    get:
-      tags:
-        - Leaderboard
-      summary: 获取排行榜
-      description: 获取策略排行榜，支持按不同指标排序
-      operationId: getLeaderboard
-      parameters:
-        - name: sortBy
-          in: query
-          description: 排序指标
-          schema:
-            type: string
-            enum: [roi, total_return, sharpe_ratio, win_rate, total_trades]
-            default: roi
-      responses:
-        '200':
-          description: 排行榜数据
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LeaderboardEntry'
-                  timestamp:
-                    type: integer
-
-  /api/leaderboard/{strategyId}:
-    get:
-      tags:
-        - Leaderboard
-      summary: 获取策略排名
-      description: 获取指定策略在排行榜中的位置
-      operationId: getStrategyRank
-      parameters:
-        - name: strategyId
-          in: path
-          required: true
-          description: 策略ID
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: 策略排名信息
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/LeaderboardEntry'
+                  message:
+                    type: string
         '404':
-          description: 策略不在排行榜中
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          description: Bot not found
 
-  /api/leaderboard/refresh:
+  /bot/{id}/start:
     post:
+      summary: Start a bot
+      description: Start a stopped or paused bot
+      operationId: startBot
       tags:
-        - Leaderboard
-      summary: 刷新排行榜
-      description: 重新计算排行榜数据
-      operationId: refreshLeaderboard
+        - Bot Control
       parameters:
-        - name: sortBy
-          in: query
-          description: 排序指标
+        - name: id
+          in: path
+          required: true
           schema:
             type: string
-            enum: [roi, total_return, sharpe_ratio, win_rate, total_trades]
-            default: roi
       responses:
         '200':
-          description: 刷新后的排行榜
+          description: Bot started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: Bot not found
+
+  /bot/{id}/stop:
+    post:
+      summary: Stop a bot
+      description: Stop a running bot
+      operationId: stopBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot stopped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /bot/{id}/pause:
+    post:
+      summary: Pause a bot
+      description: Pause a running bot (can be resumed later)
+      operationId: pauseBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot paused successfully
+
+  /bot/{id}/resume:
+    post:
+      summary: Resume a bot
+      description: Resume a paused bot
+      operationId: resumeBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot resumed successfully
+
+  /bot/{id}/state:
+    get:
+      summary: Get bot state
+      description: Retrieve the current runtime state of a bot
+      operationId: getBotState
+      tags:
+        - Bot Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BotState'
+
+  /bot/running/list:
+    get:
+      summary: List running bots
+      description: Get a list of all currently running bots
+      operationId: listRunningBots
+      tags:
+        - Bot Management
+      responses:
+        '200':
+          description: Successful response
           content:
             application/json:
               schema:
@@ -968,501 +546,34 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/LeaderboardEntry'
-                  timestamp:
+                      type: string
+                  count:
                     type: integer
 
-  /api/leaderboard/snapshot:
-    get:
+  /bot/start-all:
+    post:
+      summary: Start all bots
+      description: Start all stopped bots (requires admin permission)
+      operationId: startAllBots
       tags:
-        - Leaderboard
-      summary: 获取排行榜快照
-      description: 获取当前排行榜的快照数据
-      operationId: getLeaderboardSnapshot
+        - Bot Control
       responses:
         '200':
-          description: 排行榜快照
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/LeaderboardSnapshot'
+          description: All bots started successfully
 
-  # ============ Stats ============
-  /api/stats:
-    get:
+  /bot/stop-all:
+    post:
+      summary: Stop all bots
+      description: Stop all running bots (requires admin permission)
+      operationId: stopAllBots
       tags:
-        - Metrics
-      summary: 获取统计数据
-      description: 获取系统整体的统计数据
-      operationId: getStats
+        - Bot Control
       responses:
         '200':
-          description: 统计数据
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Stats'
+          description: All bots stopped successfully
 
-components:
-  schemas:
-    # ============ Common ============
-    ErrorResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          example: false
-        error:
-          type: string
-          example: Resource not found
-
-    # ============ Health ============
-    HealthStatus:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: [healthy, degraded, unhealthy]
-        timestamp:
-          type: integer
-        checks:
-          type: object
-          properties:
-            database:
-              type: boolean
-            realtime:
-              type: boolean
-            orderbook:
-              type: boolean
-        metrics:
-          type: object
-          properties:
-            uptime:
-              type: number
-            memoryUsage:
-              type: number
-            avgResponseTime:
-              type: number
-
-    # ============ Metrics ============
-    SystemMetrics:
-      type: object
-      properties:
-        uptime:
-          type: number
-        memory:
-          type: object
-          properties:
-            heapUsed:
-              type: number
-            heapTotal:
-              type: number
-            rss:
-              type: number
-        cpu:
-          type: object
-          properties:
-            user:
-              type: number
-            system:
-              type: number
-        activeStrategies:
-          type: integer
-        totalTrades:
-          type: integer
-        orderBooks:
-          type: integer
-
-    ErrorLog:
-      type: object
-      properties:
-        message:
-          type: string
-        severity:
-          type: string
-          enum: [low, medium, high, critical]
-        timestamp:
-          type: integer
-        context:
-          type: object
-          additionalProperties: true
-
-    # ============ Strategy ============
-    Strategy:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        type:
-          type: string
-          enum: [sma, rsi, macd, bollinger, stochastic, atr, llm]
-        status:
-          type: string
-          enum: [active, paused, stopped]
-        symbol:
-          type: string
-        params:
-          type: object
-          additionalProperties: true
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    # ============ Trade ============
-    Trade:
-      type: object
-      properties:
-        id:
-          type: string
-        strategyId:
-          type: string
-          format: uuid
-        symbol:
-          type: string
-        side:
-          type: string
-          enum: [buy, sell]
-        price:
-          type: number
-        quantity:
-          type: number
-        total:
-          type: number
-        timestamp:
-          type: integer
-        status:
-          type: string
-          enum: [filled, partially_filled, pending]
-
-    # ============ Portfolio ============
-    Portfolio:
-      type: object
-      properties:
-        id:
-          type: string
-        strategyId:
-          type: string
-          format: uuid
-        cash:
-          type: number
-        positions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Position'
-        totalValue:
-          type: number
-        unrealizedPnL:
-          type: number
-        realizedPnL:
-          type: number
-        timestamp:
-          type: integer
-
-    Position:
-      type: object
-      properties:
-        symbol:
-          type: string
-        quantity:
-          type: number
-        averageCost:
-          type: number
-        currentPrice:
-          type: number
-        unrealizedPnL:
-          type: number
-
-    PortfolioSnapshot:
-      type: object
-      properties:
-        cash:
-          type: number
-        positions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Position'
-        totalValue:
-          type: number
-        unrealizedPnL:
-          type: number
-        timestamp:
-          type: integer
-
-    # ============ Order ============
-    Order:
-      type: object
-      properties:
-        id:
-          type: string
-        symbol:
-          type: string
-        side:
-          type: string
-          enum: [buy, sell]
-        type:
-          type: string
-          enum: [limit, market]
-        price:
-          type: number
-        quantity:
-          type: number
-        status:
-          type: string
-          enum: [pending, filled, cancelled]
-        createdAt:
-          type: string
-          format: date-time
-        cancelledAt:
-          type: string
-          format: date-time
-
-    CreateOrderRequest:
-      type: object
-      required:
-        - symbol
-        - side
-        - type
-        - quantity
-      properties:
-        symbol:
-          type: string
-          example: BTC/USD
-        side:
-          type: string
-          enum: [buy, sell]
-        type:
-          type: string
-          enum: [limit, market]
-        price:
-          type: number
-          description: 限价单必填
-        quantity:
-          type: number
-          minimum: 0
-
-    # ============ Conditional Order ============
-    ConditionalOrder:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        symbol:
-          type: string
-        side:
-          type: string
-          enum: [buy, sell]
-        orderType:
-          type: string
-          enum: [stop_loss, take_profit]
-        triggerPrice:
-          type: number
-        quantity:
-          type: number
-        status:
-          type: string
-          enum: [active, triggered, cancelled, expired]
-        triggeredAt:
-          type: string
-          format: date-time
-        expiresAt:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    CreateConditionalOrderRequest:
-      type: object
-      required:
-        - symbol
-        - side
-        - orderType
-        - triggerPrice
-        - quantity
-      properties:
-        symbol:
-          type: string
-          example: BTC/USD
-        side:
-          type: string
-          enum: [buy, sell]
-        orderType:
-          type: string
-          enum: [stop_loss, take_profit]
-        triggerPrice:
-          type: number
-          minimum: 0
-        quantity:
-          type: number
-          minimum: 0
-        expiresAt:
-          type: string
-          format: date-time
-
-    ConditionalOrderStats:
-      type: object
-      properties:
-        total:
-          type: integer
-        active:
-          type: integer
-        triggered:
-          type: integer
-        cancelled:
-          type: integer
-        expired:
-          type: integer
-        stopLossCount:
-          type: integer
-        takeProfitCount:
-          type: integer
-
-    # ============ OrderBook ============
-    OrderBookSnapshot:
-      type: object
-      properties:
-        bids:
-          type: array
-          items:
-            $ref: '#/components/schemas/PriceLevel'
-        asks:
-          type: array
-          items:
-            $ref: '#/components/schemas/PriceLevel'
-        timestamp:
-          type: integer
-
-    PriceLevel:
-      type: object
-      properties:
-        price:
-          type: number
-        totalQuantity:
-          type: number
-        orders:
-          type: array
-          items:
-            $ref: '#/components/schemas/Order'
-
-    # ============ Market Data ============
-    Ticker:
-      type: object
-      properties:
-        symbol:
-          type: string
-        price:
-          type: number
-        priceChange24h:
-          type: number
-        priceChangePercent24h:
-          type: number
-        high24h:
-          type: number
-        low24h:
-          type: number
-        volume24h:
-          type: number
-        quoteVolume24h:
-          type: number
-        bid:
-          type: number
-        ask:
-          type: number
-        timestamp:
-          type: integer
-
-    KLine:
-      type: object
-      properties:
-        time:
-          type: integer
-          description: Unix时间戳（秒）
-        open:
-          type: number
-        high:
-          type: number
-        low:
-          type: number
-        close:
-          type: number
-        volume:
-          type: number
-
-    # ============ Leaderboard ============
-    LeaderboardEntry:
-      type: object
-      properties:
-        rank:
-          type: integer
-        strategyId:
-          type: string
-          format: uuid
-        strategyName:
-          type: string
-        strategyType:
-          type: string
-        symbol:
-          type: string
-        roi:
-          type: number
-        totalReturn:
-          type: number
-        sharpeRatio:
-          type: number
-        maxDrawdown:
-          type: number
-        winRate:
-          type: number
-        totalTrades:
-          type: integer
-        totalPnL:
-          type: number
-
-    LeaderboardSnapshot:
-      type: object
-      properties:
-        entries:
-          type: array
-          items:
-            $ref: '#/components/schemas/LeaderboardEntry'
-        timestamp:
-          type: integer
-        sortBy:
-          type: string
-
-    # ============ Stats ============
-    Stats:
-      type: object
-      properties:
-        totalStrategies:
-          type: integer
-        activeStrategies:
-          type: integer
-        totalTrades:
-          type: integer
-        totalVolume:
-          type: number
-        buyTrades:
-          type: integer
-        sellTrades:
-          type: integer
+tags:
+  - name: Bot Management
+    description: Operations for managing trading bots
+  - name: Bot Control
+    description: Operations for controlling bot execution
