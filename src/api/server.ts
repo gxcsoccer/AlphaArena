@@ -1181,6 +1181,14 @@ export class APIServer extends EventEmitter {
         log.info(`Listening on port ${this.config.port}`);
         log.info(`REST API: http://localhost:${this.config.port}/api`);
         log.info(`Realtime: Supabase Realtime enabled`);
+
+        // Start WebhookManager for retry and cleanup loops
+        try {
+          await this.webhookManager.start();
+          log.info('WebhookManager started');
+        } catch (error: any) {
+          log.error('Failed to start WebhookManager:', error.message);
+        }
         
         // Initialize Realtime presence tracking
         if (this.realtime) {
