@@ -31,6 +31,7 @@ import backtestRoutes from './backtestRoutes';
 import { BotManager } from '../bot';
 import { createBotRouter } from './botRoutes';
 import { createApiKeyRouter } from './apiKeyRoutes';
+import { createAttributionRouter } from './attributionRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -854,6 +855,7 @@ export class APIServer extends EventEmitter {
 
     // API Key management routes
     this.app.use('/api/keys', createApiKeyRouter());
+    this.app.use('/api/attribution', createAttributionRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

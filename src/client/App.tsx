@@ -16,6 +16,7 @@ import {
   IconHeart,
   IconExperiment,
   IconBook,
+  IconList,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -43,6 +44,7 @@ const SentimentPage = lazyWithRetry(() => import('./pages/SentimentPage'));
 const CopyTradingPage = lazyWithRetry(() => import('./pages/CopyTradingPage'));
 const BacktestVisualizationPage = lazyWithRetry(() => import('./pages/BacktestVisualizationPage'));
 const TradingJournalPage = lazyWithRetry(() => import('./pages/TradingJournalPage'));
+const AttributionPage = lazyWithRetry(() => import('./pages/AttributionPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -176,6 +178,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
               绩效
             </MenuItem>
+            <MenuItem key="/attribution" icon={<IconList aria-hidden="true" />} role="menuitem">
+              绩效归因
+            </MenuItem>
             <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
               风险
             </MenuItem>
@@ -292,6 +297,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             绩效
           </MenuItem>
           <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/attribution" icon={<IconList aria-hidden="true" />} role="menuitem">
+            绩效归因
+          </MenuItem>
             风险
           </MenuItem>
           <MenuItem key="/sentiment" icon={<IconHeart aria-hidden="true" />} role="menuitem">
@@ -341,6 +349,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/backtest" element={<BacktestVisualizationPage />} />
         <Route path="/journal" element={<TradingJournalPage />} />
+        <Route path="/attribution" element={<AttributionPage />} />
       </Routes>
     </Suspense>
   );
