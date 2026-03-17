@@ -2,7 +2,7 @@
  * Comment Routes - Strategy Comments and Discussion System
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { CommentsDAO, StrategyComment, CommentReport } from '../database/comments.dao';
 import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
@@ -15,6 +15,31 @@ const commentsDAO = new CommentsDAO();
 const getStringParam = (value: any): string | undefined => {
   if (Array.isArray(value)) return value[0];
   return value;
+};
+
+/**
+ * Admin authorization middleware
+ * Requires the authenticated user to have admin role
+ * Must be used after authMiddleware
+ */
+const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+    return;
+  }
+
+  if (req.user.role !== 'admin') {
+    res.status(403).json({
+      success: false,
+      error: 'Admin access required',
+    });
+    return;
+  }
+
+  next();
 };
 
 // ============ Comment Routes ============
@@ -172,8 +197,11 @@ router.put('/comments/:commentId', authMiddleware, async (req: Request, res: Res
     });
   } catch (error: any) {
     log.error('Error updating comment:', error);
-    if (error.message === 'Comment not found or not authorized') {
-      return res.status(404).json({ success: false, error: 'Comment not found or not authorized' });
+    if (error.message === 'Comment not found') {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+    if (error.message === 'Not authorized to update this comment') {
+      return res.status(403).json({ success: false, error: 'Not authorized to update this comment' });
     }
     res.status(500).json({ success: false, error: 'Failed to update comment' });
   }
@@ -193,6 +221,12 @@ router.delete('/comments/:commentId', authMiddleware, async (req: Request, res: 
     res.json({ success: true, message: 'Comment deleted successfully' });
   } catch (error: any) {
     log.error('Error deleting comment:', error);
+    if (error.message === 'Comment not found') {
+      return res.status(404).json({ success: false, error: 'Comment not found' });
+    }
+    if (error.message === 'Not authorized to delete this comment') {
+      return res.status(403).json({ success: false, error: 'Not authorized to delete this comment' });
+    }
     res.status(500).json({ success: false, error: 'Failed to delete comment' });
   }
 });
@@ -399,9 +433,10 @@ router.post('/comments/:commentId/report', authMiddleware, async (req: Request, 
   }
 });
 
-// ============ Moderation Routes ============
+// ============ Admin Moderation Routes ============
+// All admin routes require authentication AND admin role
 
-router.get('/admin/comments/reports', authMiddleware, async (req: Request, res: Response) => {
+router.get('/admin/comments/reports', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const status = getStringParam(req.query.status) as CommentReport['status'] | undefined;
     const limit = parseInt(getStringParam(req.query.limit) || '50', 10);
@@ -420,7 +455,7 @@ router.get('/admin/comments/reports', authMiddleware, async (req: Request, res: 
   }
 });
 
-router.post('/admin/comments/:commentId/moderate', authMiddleware, async (req: Request, res: Response) => {
+router.post('/admin/comments/:commentId/moderate', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const commentId = req.params.commentId as string;
     const userId = req.user?.id;

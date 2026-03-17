@@ -4,6 +4,13 @@
  */
 
 import { getSupabaseClient } from './client';
+import { marked } from 'marked';
+import createDOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+
+// Initialize DOMPurify with a virtual DOM for server-side use
+const window = new JSDOM('').window;
+const DOMPurify = createDOMPurify(window as any);
 
 /**
  * StrategyComment - 策略评论
@@ -165,8 +172,12 @@ export class CommentsDAO {
         *,
         user:app_users!strategy_comments_user_id_fkey(username, display_name, avatar_url)
       `, { count: 'exact' })
-      .eq('strategy_id', strategyId)
       .eq('is_hidden', false);
+
+    // Only filter by strategyId if it's provided and non-empty
+    if (strategyId && strategyId.trim() !== '') {
+      query = query.eq('strategy_id', strategyId);
+    }
 
     if (parentId === null || parentId === undefined) {
       query = query.is('parent_id', null);
@@ -218,13 +229,30 @@ export class CommentsDAO {
 
   /**
    * Get replies for a comment
+   * Uses the parent comment's strategyId for the query
    */
   async getReplies(
     commentId: string,
     options: { limit?: number; offset?: number; currentUserId?: string } = {}
   ): Promise<{ replies: StrategyComment[]; total: number }> {
+    const supabase = getSupabaseClient();
+
+    // First get the parent comment to find its strategyId
+    const { data: parentComment, error: parentError } = await supabase
+      .from('strategy_comments')
+      .select('strategy_id')
+      .eq('id', commentId)
+      .single();
+
+    if (parentError || !parentComment) {
+      // Parent comment doesn't exist, return empty
+      return { replies: [], total: 0 };
+    }
+
+    const strategyId = parentComment.strategy_id;
+
     const { comments, total } = await this.getComments({
-      strategyId: '',
+      strategyId,
       parentId: commentId,
       sortBy: 'oldest',
       limit: options.limit || 10,
@@ -237,10 +265,30 @@ export class CommentsDAO {
 
   /**
    * Update a comment
+   * Returns different errors for 404 (not found) vs 403 (not authorized)
    */
   async updateComment(id: string, userId: string, input: UpdateCommentInput): Promise<StrategyComment> {
     const supabase = getSupabaseClient();
     const contentHtml = this.markdownToHtml(input.content);
+
+    // First check if comment exists
+    const { data: existingComment, error: fetchError } = await supabase
+      .from('strategy_comments')
+      .select('id, user_id, is_deleted')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !existingComment) {
+      throw new Error('Comment not found');
+    }
+
+    if (existingComment.is_deleted) {
+      throw new Error('Comment not found');
+    }
+
+    if (existingComment.user_id !== userId) {
+      throw new Error('Not authorized to update this comment');
+    }
 
     const { data, error } = await supabase
       .from('strategy_comments')
@@ -256,16 +304,36 @@ export class CommentsDAO {
       .single();
 
     if (error) throw error;
-    if (!data) throw new Error('Comment not found or not authorized');
+    if (!data) throw new Error('Comment not found');
 
     return this.mapToComment(data);
   }
 
   /**
    * Soft delete a comment
+   * Returns different errors for 404 (not found) vs 403 (not authorized)
    */
   async deleteComment(id: string, userId: string): Promise<void> {
     const supabase = getSupabaseClient();
+
+    // First check if comment exists
+    const { data: existingComment, error: fetchError } = await supabase
+      .from('strategy_comments')
+      .select('id, user_id, is_deleted')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !existingComment) {
+      throw new Error('Comment not found');
+    }
+
+    if (existingComment.is_deleted) {
+      throw new Error('Comment not found');
+    }
+
+    if (existingComment.user_id !== userId) {
+      throw new Error('Not authorized to delete this comment');
+    }
 
     const { error } = await supabase
       .from('strategy_comments')
@@ -545,25 +613,47 @@ export class CommentsDAO {
     };
   }
 
+  /**
+   * Convert Markdown to sanitized HTML using marked + DOMPurify
+   * This provides robust XSS protection compared to hand-rolled parsers
+   */
   private markdownToHtml(markdown: string): string {
     if (!markdown) return '';
 
-    let html = markdown
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+    try {
+      // Configure marked for safe parsing
+      marked.setOptions({
+        breaks: true,        // Convert line breaks to <br>
+        gfm: true,           // GitHub Flavored Markdown
+      });
 
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
-    html = html.replace(/_(.+?)_/g, '<em>$1</em>');
-    html = html.replace(/`(.+?)`/g, '<code>$1</code>');
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    html = html.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-    html = html.replace(/\n\n/g, '</p><p>');
-    html = html.replace(/\n/g, '<br>');
-    html = '<p>' + html + '</p>';
+      // Parse markdown to HTML
+      const rawHtml = marked.parse(markdown) as string;
 
-    return html;
+      // Sanitize with DOMPurify to remove any XSS vectors
+      // Allow a safe subset of HTML tags
+      const cleanHtml = DOMPurify.sanitize(rawHtml, {
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'b', 'em', 'i', 'u',
+          'code', 'pre', 'blockquote',
+          'ul', 'ol', 'li',
+          'a', 'hr',
+          'h1', 'h2', 'h3', 'h4', 'h5', 'h6'
+        ],
+        ALLOWED_ATTR: ['href', 'title', 'rel', 'target'],
+        // Force all links to open in new tab and not have referrer
+        ADD_ATTR: ['target', 'rel'],
+      });
+
+      // Ensure all links have safe attributes
+      return cleanHtml.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
+    } catch (error) {
+      // If parsing fails, return escaped plain text
+      return markdown
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
   }
 }
 

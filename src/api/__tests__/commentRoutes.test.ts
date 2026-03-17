@@ -31,15 +31,21 @@ jest.mock('../../database/comments.dao', () => {
   };
 });
 
-// Mock auth middleware
+// Mock auth middleware - with admin role for admin tests
 jest.mock('../authMiddleware', () => ({
   authMiddleware: (req: any, res: any, next: any) => {
-    req.user = { id: 'test-user-id', email: 'test@example.com' };
+    // Set admin role for admin endpoints
+    const isAdminEndpoint = req.path.includes('/admin/');
+    req.user = { 
+      id: 'test-user-id', 
+      email: 'test@example.com',
+      role: isAdminEndpoint ? 'admin' : 'user'
+    };
     next();
   },
   optionalAuthMiddleware: (req: any, res: any, next: any) => {
     if (req.headers.authorization) {
-      req.user = { id: 'test-user-id', email: 'test@example.com' };
+      req.user = { id: 'test-user-id', email: 'test@example.com', role: 'user' };
     }
     next();
   },
