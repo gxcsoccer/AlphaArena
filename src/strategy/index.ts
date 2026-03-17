@@ -14,6 +14,7 @@ export * from './StochasticStrategy';
 export * from './ATRStrategy';
 export * from './IchimokuCloudStrategy';
 export * from './FibonacciStrategy';
+export * from './ElliottWaveStrategy';
 export * from './StrategyManager';
 export * from './LeaderboardService';
 export * from './LLMClient';

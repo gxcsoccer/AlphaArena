@@ -17,6 +17,7 @@ import { SMAStrategy } from '../strategy/SMAStrategy';
 import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
 import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
+import { ElliottWaveStrategy } from '../strategy/ElliottWaveStrategy';
 import { Strategy } from '../strategy/Strategy';
 import { OrderType, Order, IcebergOrder, OrderCategory, AnyOrder } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
@@ -309,6 +310,21 @@ export class BacktestEngine {
             slowPeriod: params?.slowPeriod ?? 26,
             signalPeriod: params?.signalPeriod ?? 9,
             tradeQuantity: params?.tradeQuantity ?? 10,
+          },
+        });
+      case 'elliottwave':
+      case 'elliott':
+      case 'ew':
+        return new ElliottWaveStrategy({
+          id: 'elliottwave-strategy',
+          name: 'Elliott Wave Strategy',
+          params: {
+            swingPeriod: params?.swingPeriod ?? 5,
+            minDataPoints: params?.minDataPoints ?? 100,
+            fibTolerance: params?.fibTolerance ?? 0.1,
+            tradeQuantity: params?.tradeQuantity ?? 10,
+            minWaveAmplitude: params?.minWaveAmplitude ?? 0.005,
+            baseConfidence: params?.baseConfidence ?? 0.6,
           },
         });
       case 'bollinger':
