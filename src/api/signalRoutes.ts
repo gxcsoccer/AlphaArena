@@ -51,6 +51,27 @@ async function authenticateUser(req: Request, res: Response, next: Function) {
   }
 }
 
+/**
+ * Input validation helpers
+ */
+function validatePositiveNumber(value: unknown, fieldName: string): { valid: boolean; error?: string } {
+  if (value === undefined || value === null) return { valid: true };
+  const num = Number(value);
+  if (isNaN(num) || num <= 0) {
+    return { valid: false, error: `${fieldName} must be a positive number` };
+  }
+  return { valid: true };
+}
+
+function validateRange(value: unknown, min: number, max: number, fieldName: string): { valid: boolean; error?: string } {
+  if (value === undefined || value === null) return { valid: true };
+  const num = Number(value);
+  if (isNaN(num) || num < min || num > max) {
+    return { valid: false, error: `${fieldName} must be between ${min} and ${max}` };
+  }
+  return { valid: true };
+}
+
 export function createSignalRouter(): Router {
   const router = Router();
   const signalService = getTradingSignalService();
@@ -91,6 +112,21 @@ export function createSignalRouter(): Router {
           success: false,
           error: 'symbol and side are required',
         });
+      }
+
+      // Input validation
+      const validations = [
+        validatePositiveNumber(quantity, 'quantity'),
+        validatePositiveNumber(entryPrice, 'entryPrice'),
+        validatePositiveNumber(targetPrice, 'targetPrice'),
+        validatePositiveNumber(stopLossPrice, 'stopLossPrice'),
+        validateRange(confidenceScore, 0, 100, 'confidenceScore'),
+      ];
+
+      for (const validation of validations) {
+        if (!validation.valid) {
+          return res.status(400).json({ success: false, error: validation.error });
+        }
       }
 
       const signal = await signalService.publishSignal({
@@ -149,6 +185,10 @@ export function createSignalRouter(): Router {
     }
   });
 
+  // ============================================
+  // IMPORTANT: Static routes MUST come BEFORE /:id
+  // ============================================
+
   /**
    * GET /api/signals/feed
    * Get personalized signal feed for authenticated user
@@ -176,49 +216,45 @@ export function createSignalRouter(): Router {
   });
 
   /**
-   * GET /api/signals/:id
-   * Get a specific signal
+   * GET /api/signals/executions
+   * Get user's execution history
    */
-  router.get('/:id', async (req: Request, res: Response) => {
+  router.get('/executions', authenticateUser, async (req: Request, res: Response) => {
     try {
-      const signalId = getParam(req.params.id) || '';
+      const userId = (req as any).userId;
+      const { limit } = req.query;
 
-      const signal = await signalService.getSignal(signalId);
-
-      if (!signal) {
-        return res.status(404).json({
-          success: false,
-          error: 'Signal not found',
-        });
-      }
+      const executions = await subscriptionService.getUserExecutions(
+        userId,
+        limit ? parseInt(String(limit), 10) : 50
+      );
 
       res.json({
         success: true,
-        data: signal,
+        data: executions,
       });
     } catch (error: any) {
-      log.error('Error getting signal:', error);
+      log.error('Error getting user executions:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   });
 
   /**
-   * DELETE /api/signals/:id
-   * Cancel a signal
+   * GET /api/signals/executions/stats
+   * Get user's execution statistics
    */
-  router.delete('/:id', authenticateUser, async (req: Request, res: Response) => {
+  router.get('/executions/stats', authenticateUser, async (req: Request, res: Response) => {
     try {
       const userId = (req as any).userId;
-      const signalId = getParam(req.params.id) || '';
 
-      const signal = await signalService.cancelSignal(signalId, userId);
+      const stats = await subscriptionService.getExecutionStats(userId);
 
       res.json({
         success: true,
-        data: signal,
+        data: stats,
       });
     } catch (error: any) {
-      log.error('Error cancelling signal:', error);
+      log.error('Error getting execution stats:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   });
@@ -269,6 +305,58 @@ export function createSignalRouter(): Router {
   });
 
   // ============================================
+  // Dynamic routes with :id parameter come LAST
+  // ============================================
+
+  /**
+   * GET /api/signals/:id
+   * Get a specific signal
+   */
+  router.get('/:id', async (req: Request, res: Response) => {
+    try {
+      const signalId = getParam(req.params.id) || '';
+
+      const signal = await signalService.getSignal(signalId);
+
+      if (!signal) {
+        return res.status(404).json({
+          success: false,
+          error: 'Signal not found',
+        });
+      }
+
+      res.json({
+        success: true,
+        data: signal,
+      });
+    } catch (error: any) {
+      log.error('Error getting signal:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * DELETE /api/signals/:id
+   * Cancel a signal
+   */
+  router.delete('/:id', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const signalId = getParam(req.params.id) || '';
+
+      const signal = await signalService.cancelSignal(signalId, userId);
+
+      res.json({
+        success: true,
+        data: signal,
+      });
+    } catch (error: any) {
+      log.error('Error cancelling signal:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ============================================
   // Subscription Routes
   // ============================================
 
@@ -299,6 +387,32 @@ export function createSignalRouter(): Router {
           success: false,
           error: 'sourceType and sourceId are required',
         });
+      }
+
+      // Input validation
+      if (copyRatio !== undefined) {
+        const ratioValidation = validateRange(copyRatio, 0, 10, 'copyRatio');
+        if (!ratioValidation.valid) {
+          return res.status(400).json({ success: false, error: ratioValidation.error });
+        }
+      }
+      if (fixedAmount !== undefined) {
+        const amountValidation = validatePositiveNumber(fixedAmount, 'fixedAmount');
+        if (!amountValidation.valid) {
+          return res.status(400).json({ success: false, error: amountValidation.error });
+        }
+      }
+      if (maxAmount !== undefined) {
+        const maxValidation = validatePositiveNumber(maxAmount, 'maxAmount');
+        if (!maxValidation.valid) {
+          return res.status(400).json({ success: false, error: maxValidation.error });
+        }
+      }
+      if (maxRiskPerTrade !== undefined) {
+        const riskValidation = validatePositiveNumber(maxRiskPerTrade, 'maxRiskPerTrade');
+        if (!riskValidation.valid) {
+          return res.status(400).json({ success: false, error: riskValidation.error });
+        }
       }
 
       const subscription = await subscriptionService.subscribe({
@@ -347,6 +461,26 @@ export function createSignalRouter(): Router {
       });
     } catch (error: any) {
       log.error('Error getting subscriptions:', error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/signals/subscriptions/stats
+   * Get user's subscription statistics
+   */
+  router.get('/subscriptions/stats', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+
+      const stats = await subscriptionService.getSubscriptionStats(userId);
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      log.error('Error getting subscription stats:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   });
@@ -460,26 +594,6 @@ export function createSignalRouter(): Router {
     }
   });
 
-  /**
-   * GET /api/signals/subscriptions/stats
-   * Get user's subscription statistics
-   */
-  router.get('/subscriptions/stats', authenticateUser, async (req: Request, res: Response) => {
-    try {
-      const userId = (req as any).userId;
-
-      const stats = await subscriptionService.getSubscriptionStats(userId);
-
-      res.json({
-        success: true,
-        data: stats,
-      });
-    } catch (error: any) {
-      log.error('Error getting subscription stats:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
   // ============================================
   // Execution Routes
   // ============================================
@@ -499,6 +613,16 @@ export function createSignalRouter(): Router {
           success: false,
           error: 'quantity and price are required',
         });
+      }
+
+      // Input validation
+      const qtyValidation = validatePositiveNumber(quantity, 'quantity');
+      if (!qtyValidation.valid) {
+        return res.status(400).json({ success: false, error: qtyValidation.error });
+      }
+      const priceValidation = validatePositiveNumber(price, 'price');
+      if (!priceValidation.valid) {
+        return res.status(400).json({ success: false, error: priceValidation.error });
       }
 
       const execution = await subscriptionService.executeSignal({
@@ -535,50 +659,6 @@ export function createSignalRouter(): Router {
       });
     } catch (error: any) {
       log.error('Error getting signal executions:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  /**
-   * GET /api/signals/executions
-   * Get user's execution history
-   */
-  router.get('/executions', authenticateUser, async (req: Request, res: Response) => {
-    try {
-      const userId = (req as any).userId;
-      const { limit } = req.query;
-
-      const executions = await subscriptionService.getUserExecutions(
-        userId,
-        limit ? parseInt(String(limit), 10) : 50
-      );
-
-      res.json({
-        success: true,
-        data: executions,
-      });
-    } catch (error: any) {
-      log.error('Error getting user executions:', error);
-      res.status(500).json({ success: false, error: error.message });
-    }
-  });
-
-  /**
-   * GET /api/signals/executions/stats
-   * Get user's execution statistics
-   */
-  router.get('/executions/stats', authenticateUser, async (req: Request, res: Response) => {
-    try {
-      const userId = (req as any).userId;
-
-      const stats = await subscriptionService.getExecutionStats(userId);
-
-      res.json({
-        success: true,
-        data: stats,
-      });
-    } catch (error: any) {
-      log.error('Error getting execution stats:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   });

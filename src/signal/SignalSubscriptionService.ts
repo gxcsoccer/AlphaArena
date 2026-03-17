@@ -193,6 +193,12 @@ export class SignalSubscriptionService extends EventEmitter {
       throw new Error('Not subscribed to this signal source');
     }
 
+    // Validate execution against risk limits
+    const validation = this.validateExecution(subscription, quantity, price);
+    if (!validation.valid) {
+      throw new Error(`Risk validation failed: ${validation.reason}`);
+    }
+
     // Create execution record
     const execution = await this.executionsDAO.create({
       signalId,
@@ -203,7 +209,7 @@ export class SignalSubscriptionService extends EventEmitter {
       price,
     });
 
-    // Update stats
+    // Update stats atomically
     await this.signalsDAO.incrementExecutions(signalId);
 
     this.emit('signalExecuted', { signal, execution, subscription });
@@ -222,7 +228,7 @@ export class SignalSubscriptionService extends EventEmitter {
   ): Promise<SignalExecution> {
     const execution = await this.executionsDAO.markFilled(executionId, details);
 
-    // Update subscription stats
+    // Update subscription stats atomically
     await this.subscriptionsDAO.incrementSignalsExecuted(execution.subscriptionId, 0);
 
     this.emit('executionFilled', execution);
@@ -251,7 +257,7 @@ export class SignalSubscriptionService extends EventEmitter {
   ): Promise<SignalExecution> {
     const execution = await this.executionsDAO.closeExecution(executionId, pnl, pnlPercent);
 
-    // Update subscription stats
+    // Update subscription stats atomically
     await this.subscriptionsDAO.incrementSignalsExecuted(execution.subscriptionId, pnl);
 
     this.emit('executionClosed', execution);

@@ -264,44 +264,38 @@ export class SignalSubscriptionsDAO {
     });
   }
 
+  /**
+   * Atomically increment signals_received counter
+   * Uses PostgreSQL RPC function for concurrent safety
+   */
   async incrementSignalsReceived(id: string): Promise<void> {
     const supabase = getSupabaseClient();
 
-    const { data: current } = await supabase
-      .from('signal_subscriptions')
-      .select('signals_received')
-      .eq('id', id)
-      .single();
+    // Use RPC for atomic increment
+    const { error } = await supabase.rpc('increment_signals_received', { sub_id: id });
 
-    if (current) {
-      await supabase
-        .from('signal_subscriptions')
-        .update({
-          signals_received: (current.signals_received || 0) + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id);
+    if (error) {
+      // Log the error but don't throw - counter updates are not critical
+      console.error('Failed to increment signals_received:', error);
     }
   }
 
+  /**
+   * Atomically increment signals_executed counter and update total_pnl
+   * Uses PostgreSQL RPC function for concurrent safety
+   */
   async incrementSignalsExecuted(id: string, pnl: number): Promise<void> {
     const supabase = getSupabaseClient();
 
-    const { data: current } = await supabase
-      .from('signal_subscriptions')
-      .select('signals_executed, total_pnl')
-      .eq('id', id)
-      .single();
+    // Use RPC for atomic increment
+    const { error } = await supabase.rpc('increment_signals_executed', {
+      sub_id: id,
+      pnl_value: pnl
+    });
 
-    if (current) {
-      await supabase
-        .from('signal_subscriptions')
-        .update({
-          signals_executed: (current.signals_executed || 0) + 1,
-          total_pnl: (current.total_pnl || 0) + pnl,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id);
+    if (error) {
+      // Log the error but don't throw - counter updates are not critical
+      console.error('Failed to increment signals_executed:', error);
     }
   }
 
