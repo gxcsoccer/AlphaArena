@@ -6,13 +6,20 @@ import request from 'supertest';
 import express from 'express';
 import notificationRoutes from '../notificationRoutes';
 import { NotificationService } from '../../notification/NotificationService';
-import * as dbClient from '../../database/client';
+import { getSupabaseClient } from '../../database/client';
 
 // Mock dependencies
 jest.mock('../../notification/NotificationService');
 jest.mock('../../database/client');
 
-const mockSupabase = dbClient.supabase;
+const mockSupabase = {
+  auth: {
+    getUser: jest.fn(),
+  },
+};
+
+// Mock getSupabaseClient to return our mock
+(getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
 // Create test app
 const app = express();
