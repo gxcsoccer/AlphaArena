@@ -4,13 +4,13 @@
 
 import request from 'supertest';
 import express from 'express';
-import notificationRoutes from '../notificationRoutes';
-import { NotificationService } from '../../notification/NotificationService';
-import { getSupabaseClient } from '../../database/client';
+import notificationRoutes from '../notificationRoutes.js';
+import { NotificationService } from '../../notification/NotificationService.js';
+import { getSupabaseClient } from '../../database/client.js';
 
 // Mock dependencies
-jest.mock('../../notification/NotificationService');
-jest.mock('../../database/client');
+jest.mock('../../notification/NotificationService.js');
+jest.mock('../../database/client.js');
 
 const mockSupabase = {
   auth: {
@@ -36,7 +36,7 @@ describe('Notification Routes', () => {
 
   describe('GET /api/notifications', () => {
     it('should return notifications for authenticated user', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -67,7 +67,7 @@ describe('Notification Routes', () => {
 
   describe('GET /api/notifications/unread-count', () => {
     it('should return unread count', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -85,7 +85,7 @@ describe('Notification Routes', () => {
 
   describe('PUT /api/notifications/:id/read', () => {
     it('should mark notification as read', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -104,7 +104,7 @@ describe('Notification Routes', () => {
     });
 
     it('should return 404 for non-existent notification', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -121,7 +121,7 @@ describe('Notification Routes', () => {
 
   describe('PUT /api/notifications/read-all', () => {
     it('should mark all notifications as read', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -139,7 +139,7 @@ describe('Notification Routes', () => {
 
   describe('DELETE /api/notifications/:id', () => {
     it('should delete notification', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -157,7 +157,7 @@ describe('Notification Routes', () => {
 
   describe('GET /api/notifications/preferences', () => {
     it('should return user preferences', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -180,7 +180,7 @@ describe('Notification Routes', () => {
 
   describe('PUT /api/notifications/preferences', () => {
     it('should update user preferences', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -201,7 +201,7 @@ describe('Notification Routes', () => {
     });
 
     it('should reject invalid fields', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
@@ -217,7 +217,7 @@ describe('Notification Routes', () => {
 
   describe('POST /api/notifications/test', () => {
     it('should create test notification', async () => {
-      (mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({
+      mockSupabase.auth.getUser.mockResolvedValue({
         data: { user: { id: mockUserId } },
         error: null,
       });
