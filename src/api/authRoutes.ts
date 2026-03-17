@@ -16,10 +16,15 @@ const log = createLogger('AuthRoutes');
 const router = Router();
 
 // Configuration
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error('FATAL: JWT_SECRET environment variable is required. Set it before starting the server.');
+function getRequiredEnvVar(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`FATAL: ${name} environment variable is required. Set it before starting the server.`);
+  }
+  return value;
 }
+
+const JWT_SECRET = getRequiredEnvVar('JWT_SECRET');
 const JWT_EXPIRES_IN = '1h';
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 7;
 const BCRYPT_SALT_ROUNDS = 12;
