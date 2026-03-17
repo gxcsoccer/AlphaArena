@@ -8,13 +8,35 @@ import {
   OrderBookUpdate,
   OrderBookDelta,
   OrderBookEvent,
+  IcebergOrder,
+  AnyOrder,
+  OrderCategory,
+  isIcebergOrder,
 } from './types';
+
+/**
+ * Internal order wrapper that tracks both visible and hidden quantities
+ */
+interface InternalOrder {
+  order: AnyOrder;
+  /**
+   * For iceberg orders, this is the currently visible quantity
+   * For regular orders, this equals order.quantity
+   */
+  visibleQuantity: number;
+  /**
+   * For iceberg orders, this is the hidden quantity
+   * For regular orders, this is 0
+   */
+  hiddenQuantity: number;
+}
 
 /**
  * OrderBook - 高性能模拟订单簿
  *
  * Features:
  * - 支持买单 (bid) 和卖单 (ask) 两种订单类型
+ * - 支持冰山订单 (iceberg order) - 只显示部分数量，隐藏剩余数量
  * - 订单按价格优先、时间优先排序
  * - 支持订单的添加、取消、修改操作
  * - 支持查询最优买卖价 (best bid/ask)
@@ -25,7 +47,7 @@ import {
 export class OrderBook extends EventEmitter {
   private bids: Map<number, PriceLevel>; // 买单 - 价格映射
   private asks: Map<number, PriceLevel>; // 卖单 - 价格映射
-  private orders: Map<string, Order>; // 订单 ID - 订单映射
+  private orders: Map<string, InternalOrder>; // 订单 ID - 内部订单映射
   private sequenceNumber: number; // 用于增量更新的序列号
 
   constructor() {
@@ -51,17 +73,33 @@ export class OrderBook extends EventEmitter {
   }
 
   /**
-   * 添加订单
+   * 添加订单（支持普通订单和冰山订单）
    * @param order 订单对象
    */
-  add(order: Order): void {
+  add(order: AnyOrder): void {
     // 如果订单已存在，先取消
     if (this.orders.has(order.id)) {
       this.cancel(order.id);
     }
 
+    // 创建内部订单包装
+    const internalOrder: InternalOrder = isIcebergOrder(order)
+      ? {
+          order,
+          visibleQuantity: order.visibleQuantity,
+          hiddenQuantity: order.hiddenQuantity,
+        }
+      : {
+          order,
+          visibleQuantity: order.quantity,
+          hiddenQuantity: 0,
+        };
+
     // 存储订单
-    this.orders.set(order.id, order);
+    this.orders.set(order.id, internalOrder);
+
+    // 获取用于显示的订单（冰山订单只显示可见部分）
+    const displayOrder = this.getDisplayOrder(internalOrder);
 
     // 根据订单类型添加到对应的价格层级
     const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
@@ -76,8 +114,8 @@ export class OrderBook extends EventEmitter {
     }
 
     const level = priceLevels.get(order.price)!;
-    level.orders.push(order);
-    level.totalQuantity += order.quantity;
+    level.orders.push(displayOrder);
+    level.totalQuantity += displayOrder.quantity;
 
     // 排序：价格优先，时间优先
     this.sortOrders(level.orders);
@@ -105,10 +143,18 @@ export class OrderBook extends EventEmitter {
     // 同时发射详细更新事件
     const update: OrderBookUpdate = {
       action: 'add',
-      order,
+      order: displayOrder,
       timestamp: Date.now(),
     };
     this.emitEvent({ type: 'update', data: update });
+  }
+
+  /**
+   * 添加冰山订单
+   * @param icebergOrder 冰山订单对象
+   */
+  addIceberg(icebergOrder: IcebergOrder): void {
+    this.add(icebergOrder);
   }
 
   /**
@@ -117,11 +163,12 @@ export class OrderBook extends EventEmitter {
    * @returns 是否成功取消
    */
   cancel(orderId: string): boolean {
-    const order = this.orders.get(orderId);
-    if (!order) {
+    const internalOrder = this.orders.get(orderId);
+    if (!internalOrder) {
       return false;
     }
 
+    const order = internalOrder.order;
     const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
     const level = priceLevels.get(order.price);
     const isLastOrderAtLevel = level ? level.orders.length === 1 : false;
@@ -131,7 +178,7 @@ export class OrderBook extends EventEmitter {
       const index = level.orders.findIndex((o) => o.id === orderId);
       if (index !== -1) {
         level.orders.splice(index, 1);
-        level.totalQuantity -= order.quantity;
+        level.totalQuantity -= internalOrder.visibleQuantity;
 
         // 如果价格层级为空，删除该层级
         if (level.orders.length === 0) {
@@ -175,13 +222,19 @@ export class OrderBook extends EventEmitter {
    * @returns 是否成功修改
    */
   modify(orderId: string, newQuantity: number, newPrice?: number): boolean {
-    const order = this.orders.get(orderId);
-    if (!order) {
+    const internalOrder = this.orders.get(orderId);
+    if (!internalOrder) {
+      return false;
+    }
+
+    const order = internalOrder.order;
+
+    // 冰山订单不支持修改，需要取消后重新下单
+    if (isIcebergOrder(order)) {
       return false;
     }
 
     const oldPrice = order.price;
-    const oldQuantity = order.quantity;
 
     // 如果价格改变，先取消再添加
     if (newPrice !== undefined && newPrice !== order.price) {
@@ -207,6 +260,7 @@ export class OrderBook extends EventEmitter {
 
     // 更新订单
     order.quantity = newQuantity;
+    internalOrder.visibleQuantity = newQuantity;
     order.timestamp = Date.now();
 
     // 重新排序
@@ -235,6 +289,123 @@ export class OrderBook extends EventEmitter {
     this.emitEvent({ type: 'update', data: update });
 
     return true;
+  }
+
+  /**
+   * 填充冰山订单的可见部分
+   * 当可见部分被完全成交后，从隐藏部分补充
+   * 
+   * @param orderId 订单 ID
+   * @param fillQuantity 成交数量
+   * @returns 剩余订单信息，如果订单完全成交则返回 null
+   */
+  fillIcebergOrder(
+    orderId: string,
+    fillQuantity: number
+  ): { remainingQuantity: number; isVisibleRefilled: boolean } | null {
+    const internalOrder = this.orders.get(orderId);
+    if (!internalOrder) {
+      return null;
+    }
+
+    const order = internalOrder.order;
+
+    // 普通订单直接返回
+    if (!isIcebergOrder(order)) {
+      const remaining = order.quantity - fillQuantity;
+      if (remaining <= 0) {
+        this.cancel(orderId);
+        return null;
+      }
+      return { remainingQuantity: remaining, isVisibleRefilled: false };
+    }
+
+    // 冰山订单处理
+    const totalRemaining = order.totalQuantity - fillQuantity;
+    
+    if (totalRemaining <= 0) {
+      // 完全成交，取消订单
+      this.cancel(orderId);
+      return null;
+    }
+
+    // 更新总数量
+    order.totalQuantity = totalRemaining;
+
+    // 计算新的可见和隐藏数量
+    if (fillQuantity >= internalOrder.visibleQuantity) {
+      // 可见部分被完全成交，从隐藏部分补充
+      const displayQty = order.displayQuantity;
+      
+      // 应用随机方差（如果配置了）
+      let newVisibleQty = displayQty;
+      if (order.variance && order.variance > 0) {
+        const minVisible = displayQty - order.variance;
+        newVisibleQty = minVisible + Math.random() * order.variance;
+      }
+      
+      // 确保不超过剩余总量
+      newVisibleQty = Math.min(newVisibleQty, totalRemaining);
+      const newHiddenQty = totalRemaining - newVisibleQty;
+
+      internalOrder.visibleQuantity = newVisibleQty;
+      internalOrder.hiddenQuantity = newHiddenQty;
+      order.visibleQuantity = newVisibleQty;
+      order.hiddenQuantity = newHiddenQty;
+
+      // 更新订单簿中的显示
+      this.updateIcebergDisplay(orderId);
+
+      return { remainingQuantity: totalRemaining, isVisibleRefilled: true };
+    } else {
+      // 部分成交可见部分
+      internalOrder.visibleQuantity -= fillQuantity;
+      order.visibleQuantity = internalOrder.visibleQuantity;
+      
+      // 更新订单簿中的显示
+      this.updateIcebergDisplay(orderId);
+
+      return { remainingQuantity: totalRemaining, isVisibleRefilled: false };
+    }
+  }
+
+  /**
+   * 更新冰山订单在订单簿中的显示
+   */
+  private updateIcebergDisplay(orderId: string): void {
+    const internalOrder = this.orders.get(orderId);
+    if (!internalOrder || !isIcebergOrder(internalOrder.order)) {
+      return;
+    }
+
+    const order = internalOrder.order as IcebergOrder;
+    const priceLevels = order.type === OrderType.BID ? this.bids : this.asks;
+    const level = priceLevels.get(order.price);
+
+    if (level) {
+      // 找到并更新订单
+      const index = level.orders.findIndex((o) => o.id === orderId);
+      if (index !== -1) {
+        // 更新总数量
+        level.totalQuantity -= level.orders[index].quantity;
+        level.orders[index].quantity = internalOrder.visibleQuantity;
+        level.totalQuantity += internalOrder.visibleQuantity;
+      }
+    }
+  }
+
+  /**
+   * 获取订单的显示版本（冰山订单只显示可见部分）
+   */
+  private getDisplayOrder(internalOrder: InternalOrder): Order {
+    const order = internalOrder.order;
+    return {
+      id: order.id,
+      price: order.price,
+      quantity: internalOrder.visibleQuantity,
+      timestamp: order.timestamp,
+      type: order.type,
+    };
   }
 
   /**
@@ -308,12 +479,32 @@ export class OrderBook extends EventEmitter {
   }
 
   /**
-   * 根据 ID 获取订单
+   * 根据 ID 获取订单（返回原始订单，包含冰山订单的完整信息）
    * @param orderId 订单 ID
    * @returns 订单对象，如果不存在则返回 null
    */
-  getOrder(orderId: string): Order | null {
+  getOrder(orderId: string): AnyOrder | null {
+    const internalOrder = this.orders.get(orderId);
+    return internalOrder ? internalOrder.order : null;
+  }
+
+  /**
+   * 根据 ID 获取内部订单（包含可见/隐藏数量信息）
+   * @param orderId 订单 ID
+   * @returns 内部订单对象，如果不存在则返回 null
+   */
+  getInternalOrder(orderId: string): InternalOrder | null {
     return this.orders.get(orderId) || null;
+  }
+
+  /**
+   * 检查订单是否为冰山订单
+   * @param orderId 订单 ID
+   * @returns 是否为冰山订单
+   */
+  isIcebergOrder(orderId: string): boolean {
+    const internalOrder = this.orders.get(orderId);
+    return internalOrder ? isIcebergOrder(internalOrder.order) : false;
   }
 
   /**
@@ -379,7 +570,12 @@ export class OrderBook extends EventEmitter {
       // 应用买单
       for (const level of delta.bids) {
         for (const order of level.orders) {
-          this.orders.set(order.id, order);
+          const internalOrder: InternalOrder = {
+            order,
+            visibleQuantity: order.quantity,
+            hiddenQuantity: 0,
+          };
+          this.orders.set(order.id, internalOrder);
         }
         this.bids.set(level.price, level);
       }
@@ -387,7 +583,12 @@ export class OrderBook extends EventEmitter {
       // 应用卖单
       for (const level of delta.asks) {
         for (const order of level.orders) {
-          this.orders.set(order.id, order);
+          const internalOrder: InternalOrder = {
+            order,
+            visibleQuantity: order.quantity,
+            hiddenQuantity: 0,
+          };
+          this.orders.set(order.id, internalOrder);
         }
         this.asks.set(level.price, level);
       }
@@ -407,7 +608,7 @@ export class OrderBook extends EventEmitter {
    * 批量添加订单（用于快照初始化）
    * @param orders 订单列表
    */
-  batchAdd(orders: Order[]): void {
+  batchAdd(orders: AnyOrder[]): void {
     for (const order of orders) {
       this.add(order);
     }

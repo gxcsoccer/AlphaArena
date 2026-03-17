@@ -666,6 +666,61 @@ export const api = {
     return data.success ? data.data : null;
   },
 
+
+  // Iceberg Order API methods
+  async createIcebergOrder(order: {
+    symbol: string;
+    side: 'buy' | 'sell';
+    price: number;
+    totalQuantity: number;
+    displayQuantity: number;
+    hiddenQuantity: number;
+    variance?: number;
+    strategyId?: string;
+    expiresAt?: string;
+  }): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/create-iceberg-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getIcebergOrders(filters?: {
+    symbol?: string;
+    status?: string;
+    strategyId?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<any[]> {
+    const params = new URLSearchParams();
+    if (filters?.symbol) params.append('symbol', filters.symbol);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.strategyId) params.append('strategyId', filters.strategyId);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+    const res = await apiFetch(`/functions/v1/iceberg-orders?${params}`);
+    const data: ApiResponse<any[]> = await res.json();
+    return data.success ? data.data : [];
+  },
+
+  async cancelIcebergOrder(orderId: string): Promise<any | null> {
+    const res = await apiFetch(`/functions/v1/cancel-iceberg-order/${orderId}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
+
+  async getIcebergOrderStats(): Promise<any | null> {
+    const res = await apiFetch('/functions/v1/iceberg-orders/stats');
+    const data: ApiResponse<any> = await res.json();
+    return data.success ? data.data : null;
+  },
 };
 
 /**

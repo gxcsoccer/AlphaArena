@@ -35,6 +35,24 @@ export enum OrderSide {
 }
 
 /**
+ * Order category enumeration
+ * 
+ * Defines the category of an order:
+ * - STANDARD: Regular limit/market order
+ * - ICEBERG: Iceberg order with hidden quantity
+ * 
+ * @example
+ * ```typescript
+ * const category = OrderCategory.ICEBERG;
+ * console.log(category); // 'iceberg'
+ * ```
+ */
+export enum OrderCategory {
+  STANDARD = 'standard',
+  ICEBERG = 'iceberg',
+}
+
+/**
  * Order interface
  * 
  * Represents a single order in the order book.
@@ -62,6 +80,70 @@ export interface Order {
   quantity: number;
   timestamp: number;
   type: OrderType;
+}
+
+/**
+ * Iceberg Order interface
+ * 
+ * Represents an iceberg order with hidden quantity.
+ * Only a portion (visible quantity) is shown in the order book,
+ * while the rest (hidden quantity) is kept secret.
+ * 
+ * @property {string} id - Unique identifier for the order
+ * @property {number} price - Order price (in quote currency)
+ * @property {number} totalQuantity - Total order quantity (visible + hidden)
+ * @property {number} visibleQuantity - Quantity shown in the order book
+ * @property {number} hiddenQuantity - Quantity hidden from the market
+ * @property {number} timestamp - Unix timestamp in milliseconds
+ * @property {OrderType} type - Order type (bid or ask)
+ * @property {OrderCategory.ICEBERG} category - Always 'iceberg' for iceberg orders
+ * 
+ * @example
+ * ```typescript
+ * const icebergOrder: IcebergOrder = {
+ *   id: 'iceberg-123',
+ *   price: 50000,
+ *   totalQuantity: 10,      // Total amount to buy/sell
+ *   visibleQuantity: 2,     // Only show 2 in the order book
+ *   hiddenQuantity: 8,      // 8 is hidden
+ *   timestamp: Date.now(),
+ *   type: OrderType.BID,
+ *   category: OrderCategory.ICEBERG,
+ * };
+ * ```
+ */
+export interface IcebergOrder {
+  id: string;
+  price: number;
+  totalQuantity: number;
+  visibleQuantity: number;
+  hiddenQuantity: number;
+  timestamp: number;
+  type: OrderType;
+  category: OrderCategory.ICEBERG;
+  /**
+   * When visible portion is filled, this determines how much becomes visible next
+   * Usually equals to the initial visibleQuantity
+   */
+  displayQuantity: number;
+  /**
+   * Minimum quantity variance to randomize visible quantity
+   * Helps prevent detection of iceberg orders
+   * If set, visibleQuantity will vary between (displayQuantity - variance) and displayQuantity
+   */
+  variance?: number;
+}
+
+/**
+ * Union type for all order types
+ */
+export type AnyOrder = Order | IcebergOrder;
+
+/**
+ * Type guard to check if an order is an iceberg order
+ */
+export function isIcebergOrder(order: AnyOrder): order is IcebergOrder {
+  return (order as IcebergOrder).category === OrderCategory.ICEBERG;
 }
 
 /**
