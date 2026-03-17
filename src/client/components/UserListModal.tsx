@@ -29,6 +29,7 @@ interface UserListItem {
   bio?: string;
   followersCount: number;
   followingCount: number;
+  isFollowing: boolean;
 }
 
 interface UserListModalProps {
@@ -119,6 +120,12 @@ const UserListModal: React.FC<UserListModalProps> = ({
     }
   };
 
+  const handleFollowChange = (userId: string, isFollowing: boolean) => {
+    setUsers((prev) =>
+      prev.map((u) => (u.id === userId ? { ...u, isFollowing } : u))
+    );
+  };
+
   return (
     <Modal
       visible={visible}
@@ -180,7 +187,8 @@ const UserListModal: React.FC<UserListModalProps> = ({
                   {currentUser && currentUser.id !== user.id && (
                     <FollowButton
                       targetUserId={user.id}
-                      isFollowing={false} // TODO: Track actual follow status
+                      isFollowing={user.isFollowing}
+                      onFollowChange={(isFollowing) => handleFollowChange(user.id, isFollowing)}
                       size="small"
                     />
                   )}
