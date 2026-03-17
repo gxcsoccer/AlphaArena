@@ -18,9 +18,24 @@ import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
 import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 import { Strategy } from '../strategy/Strategy';
-import { OrderType, Order } from '../orderbook/types';
+import { OrderType, Order, IcebergOrder, OrderCategory, AnyOrder } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
 import { MarketData, StrategyContext } from '../strategy/types';
+
+/**
+ * 冰山订单信号接口
+ * 用于策略生成冰山订单信号
+ */
+interface IcebergOrderSignal {
+  id: string;
+  side: 'buy' | 'sell';
+  price: number;
+  totalQuantity: number;
+  displayQuantity: number;
+  variance?: number;
+  timestamp: number;
+}
+
 
 /**
  * TypedArray 价格数据存储 - 高效内存使用
@@ -583,6 +598,131 @@ export class BacktestEngine {
         realizedPnL: result.realizedPnL,
       });
     }
+  }
+
+  /**
+   * Execute iceberg order signal
+   * 创建并提交冰山订单进行回测
+   * 
+   * @param signal 冰山订单信号
+   * @param price 当前价格
+   * @param timestamp 时间戳
+   */
+  private executeIcebergSignal(signal: IcebergOrderSignal, price: number, timestamp: number): void {
+    const displayQty = signal.displayQuantity || Math.floor(signal.totalQuantity * 0.2);
+    const visibleQty = Math.min(displayQty, signal.totalQuantity);
+    const hiddenQty = signal.totalQuantity - visibleQty;
+
+    const icebergOrder: IcebergOrder = {
+      id: 'iceberg-' + timestamp + '-' + signal.side,
+      type: signal.side === 'buy' ? OrderType.BID : OrderType.ASK,
+      price: signal.price,
+      totalQuantity: signal.totalQuantity,
+      visibleQuantity: visibleQty,
+      hiddenQuantity: hiddenQty,
+      displayQuantity: displayQty,
+      variance: signal.variance,
+      timestamp,
+      category: OrderCategory.ICEBERG,
+    };
+
+    const matchResult = this.matchingEngine.submitIcebergOrder(icebergOrder);
+
+    for (const trade of matchResult.trades) {
+      const portfolioOrderId = signal.side === 'buy' ? trade.buyOrderId : trade.sellOrderId;
+      const result = this.portfolio.onTrade(trade, portfolioOrderId);
+
+      this.trades.push({
+        ...trade,
+        side: signal.side,
+        realizedPnL: result.realizedPnL,
+      });
+    }
+  }
+
+  /**
+   * Submit an iceberg order directly during backtesting
+   * 在回测中直接提交冰山订单
+   * 
+   * @param side 订单方向 ('buy' | 'sell')
+   * @param price 订单价格
+   * @param totalQuantity 总数量（可见 + 隐藏）
+   * @param displayQuantity 显示数量（每次填充后从隐藏部分补充的数量）
+   * @param variance 可选的方差，用于随机化可见数量
+   * @returns 撮合结果
+   */
+  submitIcebergOrder(
+    side: 'buy' | 'sell',
+    price: number,
+    totalQuantity: number,
+    displayQuantity: number,
+    variance?: number
+  ): { trades: any[]; remainingQuantity: number } {
+    const timestamp = Date.now();
+    const visibleQty = Math.min(displayQuantity, totalQuantity);
+    const hiddenQty = totalQuantity - visibleQty;
+
+    const icebergOrder: IcebergOrder = {
+      id: 'iceberg-backtest-' + timestamp,
+      type: side === 'buy' ? OrderType.BID : OrderType.ASK,
+      price,
+      totalQuantity,
+      visibleQuantity: visibleQty,
+      hiddenQuantity: hiddenQty,
+      displayQuantity,
+      variance,
+      timestamp,
+      category: OrderCategory.ICEBERG,
+    };
+
+    const matchResult = this.matchingEngine.submitIcebergOrder(icebergOrder);
+
+    for (const trade of matchResult.trades) {
+      const portfolioOrderId = side === 'buy' ? trade.buyOrderId : trade.sellOrderId;
+      const result = this.portfolio.onTrade(trade, portfolioOrderId);
+
+      this.trades.push({
+        ...trade,
+        side,
+        realizedPnL: result.realizedPnL,
+      });
+    }
+
+    const remainingQuantity = matchResult.remainingOrder?.remainingQuantity ?? 0;
+
+    return {
+      trades: matchResult.trades,
+      remainingQuantity,
+    };
+  }
+
+  /**
+   * Create an iceberg order signal for strategy use
+   * 创建冰山订单信号供策略使用
+   * 
+   * @param side 订单方向
+   * @param price 订单价格
+   * @param totalQuantity 总数量
+   * @param displayQuantity 显示数量
+   * @param variance 可选方差
+   * @returns 冰山订单信号
+   */
+  createIcebergSignal(
+    side: 'buy' | 'sell',
+    price: number,
+    totalQuantity: number,
+    displayQuantity: number,
+    variance?: number
+  ): IcebergOrderSignal {
+    return {
+      id: 'iceberg-signal-' + Date.now(),
+      side,
+      price,
+      totalQuantity,
+      displayQuantity,
+      variance,
+      timestamp: Date.now(),
+    };
   }
 
   /**
