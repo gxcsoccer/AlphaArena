@@ -13,6 +13,7 @@ import {
   IconDashboard as IconPerformance,
   IconExclamationCircle,
   IconUserAdd,
+  IconUser,
   IconHeart,
   IconExperiment,
   IconBook,
@@ -51,6 +52,7 @@ const StrategyMarketplacePage = lazyWithRetry(() => import('./pages/StrategyMark
 const AdvancedOrdersPage = lazyWithRetry(() => import('./pages/AdvancedOrdersPage'));
 const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
 const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
+const UserDashboardPage = lazyWithRetry(() => import('./pages/UserDashboardPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -181,6 +183,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
               Dashboard
             </MenuItem>
+            <MenuItem key="/user-dashboard" icon={<IconUser aria-hidden="true" />} role="menuitem">
+              我的仪表板
+            </MenuItem>
             <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
               绩效
             </MenuItem>
@@ -303,8 +308,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             行情
           </MenuItem>
           <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
-            Dashboard
-          </MenuItem>
+              Dashboard
+            </MenuItem>
+            <MenuItem key="/user-dashboard" icon={<IconUser aria-hidden="true" />} role="menuitem">
+              我的仪表板
+            </MenuItem>
           <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
             绩效
           </MenuItem>
@@ -373,6 +381,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/advanced-orders" element={<AdvancedOrdersPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/user-dashboard" element={<UserDashboardPage />} />
       </Routes>
     </Suspense>
   );

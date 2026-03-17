@@ -37,6 +37,7 @@ import strategyComparisonRoutes from './strategyComparisonRoutes';
 import exportRoutes from './exportRoutes';
 import { createTemplateRouter } from './templateRoutes';
 import authRoutes from './authRoutes';
+import userDashboardRoutes from './userDashboardRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
 import { createLogger } from '../utils/logger';
 
@@ -872,6 +873,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/templates', createTemplateRouter());
     // Auth routes
     this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/user/dashboard', userDashboardRoutes);
     this.app.use('/api/multi-timeframe', multiTimeframeRoutes);
 
     // 404 handler

@@ -135,8 +135,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading: false,
       });
 
-      // Verify token is still valid
-      refreshAuth().catch(() => {
+      // Verify token is still valid by making a refresh request
+      authFetch<{ accessToken: string }>('/refresh', {
+        method: 'POST',
+        body: JSON.stringify({ refreshToken }),
+      }).then(result => {
+        if (result.data) {
+          localStorage.setItem(ACCESS_TOKEN_KEY, result.data.accessToken);
+          setState(prev => ({ ...prev, accessToken: result.data!.accessToken }));
+        } else {
+          // Token invalid, clear state
+          tokenStorage.clearTokens();
+          setState({
+            user: null,
+            accessToken: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
+      }).catch(() => {
         // Token invalid, clear state
         tokenStorage.clearTokens();
         setState({
