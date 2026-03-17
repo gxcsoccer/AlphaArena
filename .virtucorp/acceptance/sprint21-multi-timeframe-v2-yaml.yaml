@@ -1,0 +1,16 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "导航到交易页面"
+    flow:
+      - ai: "查看页面导航菜单，找到交易或 Trade 相关的链接"
+      - ai: "点击交易或 Trade 菜单"
+      - aiWaitFor: "交易页面或 K 线图表加载"
+      - aiAssert: "页面显示了 K 线图表或交易对选择器"
+  - name: "切换时间框架"
+    flow:
+      - ai: "在 K 线图表上方寻找时间框架选择器"
+      - aiAssert: "存在时间框架选项，如 1m, 5m, 15m, 1h, 4h, 1d 等"
+      - ai: "点击 5m 或 15m 时间框架选项"
+      - aiWaitFor: "图表更新为新的时间框架"

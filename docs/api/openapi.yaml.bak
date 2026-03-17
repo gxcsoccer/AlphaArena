@@ -1,0 +1,579 @@
+openapi: 3.0.0
+info:
+  title: AlphaArena Trading Bot API
+  description: |
+    External API for integrating with AlphaArena trading bot system.
+    
+    ## Authentication
+    All API endpoints require authentication via API Key.
+    Include your API key in the `X-API-Key` header.
+    
+    ## Rate Limits
+    - **read** permission: 60 requests/minute, 10,000 requests/day
+    - **trade** permission: 120 requests/minute, 20,000 requests/day
+    - **admin** permission: 300 requests/minute, 50,000 requests/day
+    
+    Rate limit headers are included in every response:
+    - `X-RateLimit-Limit-Minute`: Maximum requests per minute
+    - `X-RateLimit-Remaining-Minute`: Remaining requests this minute
+    - `X-RateLimit-Limit-Day`: Maximum requests per day
+    - `X-RateLimit-Remaining-Day`: Remaining requests today
+    
+  version: 1.0.0
+  contact:
+    name: AlphaArena Support
+    email: support@alphaarena.io
+
+servers:
+  - url: https://alphaarena-production.up.railway.app/api
+    description: Production server
+  - url: http://localhost:3001/api
+    description: Development server
+
+security:
+  - ApiKeyAuth: []
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API Key for authentication (format: aa_live_xxx or aa_test_xxx)
+
+  schemas:
+    TradingPair:
+      type: object
+      required:
+        - base
+        - quote
+        - symbol
+      properties:
+        base:
+          type: string
+          description: Base currency symbol (e.g., 'BTC')
+          example: BTC
+        quote:
+          type: string
+          description: Quote currency symbol (e.g., 'USDT')
+          example: USDT
+        symbol:
+          type: string
+          description: Full trading pair symbol
+          example: BTCUSDT
+
+    RiskSettings:
+      type: object
+      properties:
+        maxCapitalPerTrade:
+          type: number
+          description: Maximum capital per trade (absolute or percentage)
+          default: 0.1
+        usePercentageCapital:
+          type: boolean
+          description: Use percentage for maxCapitalPerTrade
+          default: true
+        stopLossPercent:
+          type: number
+          description: Stop loss percentage (0-1)
+          default: 0.05
+        takeProfitPercent:
+          type: number
+          description: Take profit percentage (0-1)
+          default: 0.15
+        maxPositionSize:
+          type: number
+          description: Maximum position size
+          default: 1000
+        maxOrdersPerMinute:
+          type: number
+          description: Maximum orders per minute
+          default: 10
+        maxDailyLoss:
+          type: number
+          description: Maximum daily loss (0-1)
+          default: 0.1
+        riskControlEnabled:
+          type: boolean
+          description: Enable risk controls
+          default: true
+
+    BotConfig:
+      type: object
+      required:
+        - id
+        - name
+        - strategy
+        - tradingPair
+        - interval
+        - mode
+        - initialCapital
+      properties:
+        id:
+          type: string
+          description: Unique bot identifier
+        name:
+          type: string
+          description: Bot name
+        description:
+          type: string
+          description: Bot description
+        strategy:
+          type: string
+          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
+          description: Trading strategy type
+        strategyParams:
+          type: object
+          description: Strategy-specific parameters
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        interval:
+          type: string
+          enum: [1m, 5m, 15m, 1h, 4h, 1d]
+          description: Time interval for strategy execution
+        mode:
+          type: string
+          enum: [paper, live]
+          description: Trading mode
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        initialCapital:
+          type: number
+          description: Initial capital allocation
+        enabled:
+          type: boolean
+          description: Whether bot is enabled
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    BotState:
+      type: object
+      properties:
+        botId:
+          type: string
+        status:
+          type: string
+          enum: [stopped, running, paused, error]
+        portfolioValue:
+          type: number
+        initialCapital:
+          type: number
+        realizedPnL:
+          type: number
+        unrealizedPnL:
+          type: number
+        totalPnL:
+          type: number
+        tradeCount:
+          type: integer
+        winCount:
+          type: integer
+        lossCount:
+          type: integer
+        positionQuantity:
+          type: number
+        positionAveragePrice:
+          type: number
+        lastSignalTime:
+          type: string
+          format: date-time
+        lastTradeTime:
+          type: string
+          format: date-time
+        lastError:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        totalRuntimeMs:
+          type: integer
+
+    CreateBotRequest:
+      type: object
+      required:
+        - name
+        - strategy
+        - tradingPair
+        - initialCapital
+      properties:
+        name:
+          type: string
+          description: Bot name
+        description:
+          type: string
+          description: Bot description
+        strategy:
+          type: string
+          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
+        strategyParams:
+          type: object
+          description: Strategy-specific parameters
+        tradingPair:
+          $ref: '#/components/schemas/TradingPair'
+        interval:
+          type: string
+          enum: [1m, 5m, 15m, 1h, 4h, 1d]
+          default: 1h
+        mode:
+          type: string
+          enum: [paper, live]
+          default: paper
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        initialCapital:
+          type: number
+          minimum: 0
+
+    UpdateBotRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        strategyParams:
+          type: object
+        riskSettings:
+          $ref: '#/components/schemas/RiskSettings'
+        enabled:
+          type: boolean
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: string
+        code:
+          type: string
+
+paths:
+  /bot:
+    get:
+      summary: List all bots
+      description: Retrieve a list of all trading bots
+      operationId: listBots
+      tags:
+        - Bot Management
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BotConfig'
+                  count:
+                    type: integer
+
+    post:
+      summary: Create a new bot
+      description: Create a new trading bot with the specified configuration
+      operationId: createBot
+      tags:
+        - Bot Management
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBotRequest'
+      responses:
+        '201':
+          description: Bot created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BotConfig'
+                  message:
+                    type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /bot/{id}:
+    get:
+      summary: Get bot details
+      description: Retrieve details for a specific bot including its current state
+      operationId: getBot
+      tags:
+        - Bot Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      config:
+                        $ref: '#/components/schemas/BotConfig'
+                      state:
+                        $ref: '#/components/schemas/BotState'
+        '404':
+          description: Bot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update bot configuration
+      description: Update configuration for a specific bot
+      operationId: updateBot
+      tags:
+        - Bot Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBotRequest'
+      responses:
+        '200':
+          description: Bot updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BotConfig'
+        '404':
+          description: Bot not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a bot
+      description: Stop and delete a trading bot
+      operationId: deleteBot
+      tags:
+        - Bot Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: Bot not found
+
+  /bot/{id}/start:
+    post:
+      summary: Start a bot
+      description: Start a stopped or paused bot
+      operationId: startBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '404':
+          description: Bot not found
+
+  /bot/{id}/stop:
+    post:
+      summary: Stop a bot
+      description: Stop a running bot
+      operationId: stopBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot stopped successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /bot/{id}/pause:
+    post:
+      summary: Pause a bot
+      description: Pause a running bot (can be resumed later)
+      operationId: pauseBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot paused successfully
+
+  /bot/{id}/resume:
+    post:
+      summary: Resume a bot
+      description: Resume a paused bot
+      operationId: resumeBot
+      tags:
+        - Bot Control
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Bot resumed successfully
+
+  /bot/{id}/state:
+    get:
+      summary: Get bot state
+      description: Retrieve the current runtime state of a bot
+      operationId: getBotState
+      tags:
+        - Bot Management
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/BotState'
+
+  /bot/running/list:
+    get:
+      summary: List running bots
+      description: Get a list of all currently running bots
+      operationId: listRunningBots
+      tags:
+        - Bot Management
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+
+  /bot/start-all:
+    post:
+      summary: Start all bots
+      description: Start all stopped bots (requires admin permission)
+      operationId: startAllBots
+      tags:
+        - Bot Control
+      responses:
+        '200':
+          description: All bots started successfully
+
+  /bot/stop-all:
+    post:
+      summary: Stop all bots
+      description: Stop all running bots (requires admin permission)
+      operationId: stopAllBots
+      tags:
+        - Bot Control
+      responses:
+        '200':
+          description: All bots stopped successfully
+
+tags:
+  - name: Bot Management
+    description: Operations for managing trading bots
+  - name: Bot Control
+    description: Operations for controlling bot execution

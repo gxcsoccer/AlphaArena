@@ -1,0 +1,21 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "策略模板市场页面访问"
+    flow:
+      - ai: "导航到 /strategy-marketplace 页面"
+      - aiAssert: "页面标题包含 '策略模板' 或 'Strategy' 或 'Marketplace'"
+      - aiAssert: "页面显示了策略模板列表或卡片"
+      - ai: "滚动页面查看策略模板内容"
+  - name: "策略模板详情查看"
+    flow:
+      - ai: "点击第一个策略模板卡片"
+      - aiWaitFor: "策略模板详情弹窗或详情页面出现"
+      - aiAssert: "显示了策略模板的详细信息，包括策略名称、描述、参数等"
+      - ai: "查看策略参数配置区域"
+  - name: "策略模板搜索和筛选"
+    flow:
+      - ai: "如果有搜索框，输入 '均线' 或 'MA' 进行搜索"
+      - aiWaitFor: "搜索结果更新"
+      - aiAssert: "显示了搜索结果或筛选后的策略列表"

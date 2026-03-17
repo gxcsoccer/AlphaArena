@@ -4,7 +4,7 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import { CommentsDAO, StrategyComment, CommentReport } from '../database/comments.dao';
-import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
+import { authMiddleware, optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('CommentRoutes');
@@ -16,32 +16,6 @@ const getStringParam = (value: any): string | undefined => {
   if (Array.isArray(value)) return value[0];
   return value;
 };
-
-/**
- * Admin authorization middleware
- * Requires the authenticated user to have admin role
- * Must be used after authMiddleware
- */
-const requireAdmin = (req: Request, res: Response, next: NextFunction): void => {
-  if (!req.user) {
-    res.status(401).json({
-      success: false,
-      error: 'Authentication required',
-    });
-    return;
-  }
-
-  if (req.user.role !== 'admin') {
-    res.status(403).json({
-      success: false,
-      error: 'Admin access required',
-    });
-    return;
-  }
-
-  next();
-};
-
 // ============ Comment Routes ============
 
 router.get('/templates/:templateId/comments', optionalAuthMiddleware, async (req: Request, res: Response) => {
