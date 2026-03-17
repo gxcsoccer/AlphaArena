@@ -1,3 +1,9 @@
+/**
+ * Database Module
+ * 
+ * Exports database client and DAOs for all data entities.
+ */
+
 // Database client
 export { getSupabaseClient, type Database } from './client';
 
@@ -9,6 +15,7 @@ export { PriceHistoryDAO, type PriceHistory, type PricePoint } from './price-his
 export { LeaderboardDAO, type LeaderboardSnapshotRecord, type LeaderboardEntryRecord } from './leaderboard.dao';
 export { ConditionalOrdersDAO, type ConditionalOrder, type ConditionalOrderFilters } from './conditional-orders.dao';
 export { OCOOrdersDAO, type OCOOrder, type CreateOCOOrderInput, type OCOOrderFilters } from './oco-orders.dao';
+export { RebalanceDAO, rebalanceDAO } from './rebalance.dao';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
@@ -18,6 +25,7 @@ import { PriceHistoryDAO } from './price-history.dao';
 import { LeaderboardDAO } from './leaderboard.dao';
 import { ConditionalOrdersDAO } from './conditional-orders.dao';
 import { OCOOrdersDAO } from './oco-orders.dao';
+import { RebalanceDAO } from './rebalance.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -29,6 +37,7 @@ export class DatabaseManager {
   private _leaderboard: LeaderboardDAO | null = null;
   private _conditionalOrders: ConditionalOrdersDAO | null = null;
   private _ocoOrders: OCOOrdersDAO | null = null;
+  private _rebalance: RebalanceDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -84,6 +93,13 @@ export class DatabaseManager {
       this._ocoOrders = new OCOOrdersDAO();
     }
     return this._ocoOrders;
+  }
+
+  get rebalance(): RebalanceDAO {
+    if (!this._rebalance) {
+      this._rebalance = new RebalanceDAO();
+    }
+    return this._rebalance;
   }
 }
 
