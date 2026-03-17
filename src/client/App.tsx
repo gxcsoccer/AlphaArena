@@ -56,6 +56,7 @@ const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
 const UserDashboardPage = lazyWithRetry(() => import('./pages/UserDashboardPage'));
 const ApiDocsPage = lazyWithRetry(() => import('./pages/ApiDocsPage'));
 const UserProfilePage = lazyWithRetry(() => import('./pages/UserProfilePage'));
+const RebalancePage = lazyWithRetry(() => import('./pages/RebalancePage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -207,6 +208,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
               Trades
             </MenuItem>
+            <MenuItem key="/rebalance" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              再平衡
+            </MenuItem>
             <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
               Holdings
             </MenuItem>
@@ -337,7 +341,10 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
             Trades
           </MenuItem>
-          <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/rebalance" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+              再平衡
+            </MenuItem>
+            <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Holdings
           </MenuItem>
           <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
@@ -396,6 +403,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/user-dashboard" element={<UserDashboardPage />} />
         <Route path="/api-docs" element={<ApiDocsPage />} />
+        <Route path="/rebalance" element={<RebalancePage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
       </Routes>
     </Suspense>
