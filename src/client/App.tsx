@@ -11,6 +11,7 @@ import {
   IconMenuFold,
   IconMenuUnfold,
   IconDashboard as IconPerformance,
+  IconExclamationCircle,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -33,6 +34,7 @@ const TradesPage = lazyWithRetry(() => import('./pages/TradesPage'));
 const HoldingsPage = lazyWithRetry(() => import('./pages/HoldingsPage'));
 const LeaderboardPage = lazyWithRetry(() => import('./pages/LeaderboardPage'));
 const PerformancePage = lazyWithRetry(() => import('./pages/PerformancePage'));
+const RiskPage = lazyWithRetry(() => import('./pages/RiskPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -166,6 +168,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
               绩效
             </MenuItem>
+            <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
+              风险
+            </MenuItem>
             <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
               Strategies
             </MenuItem>
@@ -266,6 +271,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
             绩效
           </MenuItem>
+          <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
+            风险
+          </MenuItem>
           <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
             Strategies
           </MenuItem>
@@ -292,6 +300,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/performance" element={<PerformancePage />} />
+        <Route path="/risk" element={<RiskPage />} />
         <Route path="/strategies" element={<StrategiesPage />} />
         <Route path="/trades" element={<TradesPage />} />
         <Route path="/holdings" element={<HoldingsPage />} />
