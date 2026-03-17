@@ -23,6 +23,8 @@ import { OrderBookService } from '../orderbook/OrderBookService';
 import { OrderBookSnapshot, OrderBookDelta } from '../orderbook/types';
 import { SupabaseRealtimeService } from './SupabaseRealtimeService';
 import { getMonitoringService, getFeishuAlertService, getPriceMonitoringService } from '../monitoring';
+import { WebhookManager } from '../webhook';
+import { createWebhookRouter } from './webhookRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -103,6 +105,7 @@ export class APIServer extends EventEmitter {
   private priceMonitoring = getPriceMonitoringService();
   private isRunning: boolean = false;
   private clientErrors: any[] = [];
+  private webhookManager: WebhookManager;
 
   constructor(config: APIServerConfig) {
     super();
@@ -136,6 +139,7 @@ export class APIServer extends EventEmitter {
     this.portfoliosDAO = new PortfoliosDAO();
     this.conditionalOrdersDAO = new ConditionalOrdersDAO();
     this.leaderboardService = new LeaderboardService();
+    this.webhookManager = new WebhookManager();
 
     this.setupMiddleware();
     this.setupRoutes();
@@ -829,6 +833,9 @@ export class APIServer extends EventEmitter {
       }
     });
 
+    // Webhook routes
+    this.app.use('/api/webhooks', createWebhookRouter(this.webhookManager));
+
     // 404 handler
     this.app.use((req: Request, res: Response) => {
       res.status(404).json({ error: 'Not found' });
@@ -1204,6 +1211,9 @@ export class APIServer extends EventEmitter {
    * Stop the API server
    */
   public async stop(): Promise<void> {
+    // Stop webhook manager
+    await this.webhookManager.stop();
+
     // Cleanup Realtime connections
     if (this.realtime) {
       try {
