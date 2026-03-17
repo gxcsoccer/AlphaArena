@@ -236,3 +236,16 @@ export class DatabaseManager {
 }
 
 export const db = DatabaseManager.getInstance();
+
+// Subscription DAO
+export { 
+  SubscriptionDAO, 
+  getSubscriptionDAO, 
+  type SubscriptionPlan, 
+  type PlanLimits,
+  type UserSubscription, 
+  type SubscriptionHistory,
+  type FeatureUsage,
+  type FeatureAccessResult,
+  type UserSubscriptionStatus 
+} from './subscription.dao';
