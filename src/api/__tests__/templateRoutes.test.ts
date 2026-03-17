@@ -1,5 +1,5 @@
 import { createTemplateRouter } from '../templateRoutes';
-import { StrategyTemplatesDAO } from '../../database/strategyTemplates.dao';
+import { StrategyTemplatesDAO, StrategyTemplate } from '../../database/strategyTemplates.dao';
 import express from 'express';
 import request from 'supertest';
 
@@ -19,21 +19,40 @@ describe('Template Routes', () => {
   let mockTemplatesDAO: jest.Mocked<StrategyTemplatesDAO>;
 
   beforeEach(() => {
+    // Reset all mocks
+    jest.resetAllMocks();
+    
+    // Create mock DAO instance before router is created
+    mockTemplatesDAO = {
+      getTemplates: jest.fn(),
+      getById: jest.fn(),
+      getFeatured: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+      delete: jest.fn(),
+      rateTemplate: jest.fn(),
+      getUserRating: jest.fn(),
+      recordUsage: jest.fn(),
+    } as unknown as jest.Mocked<StrategyTemplatesDAO>;
+    
+    // Mock the DAO constructor to return our mock instance
+    (StrategyTemplatesDAO as jest.Mock).mockImplementation(() => mockTemplatesDAO);
+    
+    // Now create the app and router (DAO will be created with our mock)
     app = express();
     app.use(express.json());
     app.use('/api/templates', createTemplateRouter());
-    
-    mockTemplatesDAO = new StrategyTemplatesDAO() as jest.Mocked<StrategyTemplatesDAO>;
-    (StrategyTemplatesDAO as jest.Mock).mockImplementation(() => mockTemplatesDAO);
   });
 
   describe('GET /api/templates', () => {
     it('should return a list of templates', async () => {
-      const mockTemplates = [
+      const mockTemplates: StrategyTemplate[] = [
         {
           id: 'template-1',
           name: 'RSI Strategy',
           description: 'RSI-based trading strategy',
+          authorUserId: 'system',
+          authorName: 'System',
           strategyType: 'rsi',
           category: 'mean_reversion',
           symbol: 'BTC-USDT',
@@ -95,7 +114,25 @@ describe('Template Routes', () => {
         {
           id: 'template-1',
           name: 'Featured Template',
+          description: 'Featured template',
+          authorUserId: 'system',
+          authorName: 'System',
+          strategyType: 'rsi',
+          category: 'mean_reversion',
+          symbol: 'BTC-USDT',
+          config: {},
+          riskParams: {},
+          tags: [],
+          isPublic: true,
           isFeatured: true,
+          isBuiltin: true,
+          performanceMetrics: {},
+          backtestPeriod: null,
+          useCount: 50,
+          ratingAvg: 4.0,
+          ratingCount: 10,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       ];
 
@@ -116,6 +153,8 @@ describe('Template Routes', () => {
         id: 'template-1',
         name: 'RSI Strategy',
         description: 'RSI-based trading strategy',
+        authorUserId: 'system',
+        authorName: 'System',
         strategyType: 'rsi',
         category: 'mean_reversion',
         symbol: 'BTC-USDT',
@@ -162,6 +201,9 @@ describe('Template Routes', () => {
       const mockTemplate = {
         id: 'template-new',
         name: 'New Strategy',
+        description: 'A new MACD strategy',
+        authorUserId: 'user-1',
+        authorName: 'Test User',
         strategyType: 'macd',
         config: { fast_period: 12, slow_period: 26 },
         category: 'momentum',
@@ -211,6 +253,9 @@ describe('Template Routes', () => {
       const mockTemplate = {
         id: 'template-1',
         name: 'RSI Strategy',
+        description: 'RSI-based trading strategy',
+        authorUserId: 'system',
+        authorName: 'System',
         strategyType: 'rsi',
         category: 'mean_reversion',
         symbol: 'BTC-USDT',
