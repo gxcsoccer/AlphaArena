@@ -20,7 +20,7 @@ export { FollowersDAO, type Follower, type FollowerSettings, type CreateFollower
 export { CopyTradesDAO, type CopyTrade, type CreateCopyTradeInput, type CopyTradeFilters, type CopyTradeStatus } from './copy-trades.dao';
 export { FollowerStatsDAO, type FollowerStatsRecord, type CreateFollowerStatsInput, type FollowerStatsFilters, type PeriodType } from './follower-stats.dao';
 export { CompetitionsDAO, type Competition, type CompetitionParticipant, type CompetitionWithStats, type CreateCompetitionInput } from './competitions.dao';
-export { SocialDAO, type User, type UserFollow, type StrategyComment, type UserBadge, type StrategyStats, type CreateUserInput } from './social.dao';
+export { SocialDAO, type User, type UserFollow, type UserBadge, type StrategyStats, type CreateUserInput } from './social.dao';
 export { TradeJournalDAO, type TradeJournal, type CreateTradeJournalInput, type UpdateTradeJournalInput, type TradeJournalFilters, type TradeJournalStats, type TradeJournalType, type TradeJournalStatus, type EmotionType } from './trade-journal.dao';
 export { StrategyTemplatesDAO, type StrategyTemplate, type TemplateRating, type TemplateUsage, type CreateTemplateInput, type TemplateFilter } from './strategyTemplates.dao';
 
@@ -29,6 +29,7 @@ export { TradingSignalsDAO, type TradingSignal, type CreateSignalInput, type Upd
 export { SignalSubscriptionsDAO, type SignalSubscription, type CreateSubscriptionInput, type UpdateSubscriptionInput, type SubscriptionFilters, type SubscriptionType, type SubscriptionStatus } from './signal-subscriptions.dao';
 export { SignalExecutionsDAO, type SignalExecution, type CreateExecutionInput, type UpdateExecutionInput, type ExecutionFilters, type ExecutionType, type ExecutionStatus } from './signal-executions.dao';
 export { SignalPublisherStatsDAO, type PublisherStats, type CreateStatsInput, type UpdateStatsInput, type StatsFilters } from './signal-publisher-stats.dao';
+export { CommentsDAO, commentsDAO, StrategyComment, CommentLike, CommentReport, CreateCommentInput, UpdateCommentInput, CommentListOptions } from './comments.dao';
 export { RiskMonitorDAO, riskMonitorDAO, type RiskAlert, type CreateRiskAlertInput, type UpdateRiskAlertInput, type RiskAlertHistoryEntry, type RiskHistoryEntry, type CreateRiskHistoryInput, type PositionRisk, type CreatePositionRiskInput, type CorrelationEntry, type CreateCorrelationInput, type RiskHistoryFilters, type RiskAlertFilters, type RiskMetric, type AlertOperator, type AlertChannel, type RiskPeriodType } from './risk-monitor.dao';
 
 // Database manager for easy access
@@ -52,6 +53,7 @@ import { SignalSubscriptionsDAO } from './signal-subscriptions.dao';
 import { SignalExecutionsDAO } from './signal-executions.dao';
 import { SignalPublisherStatsDAO } from './signal-publisher-stats.dao';
 import { RiskMonitorDAO } from './risk-monitor.dao';
+import { CommentsDAO } from './comments.dao';
 
 export class DatabaseManager {
   private static instance: DatabaseManager;
@@ -76,6 +78,7 @@ export class DatabaseManager {
   private _signalExecutions: SignalExecutionsDAO | null = null;
   private _signalPublisherStats: SignalPublisherStatsDAO | null = null;
   private _riskMonitor: RiskMonitorDAO | null = null;
+  private _comments: CommentsDAO | null = null;
 
   static getInstance(): DatabaseManager {
     if (!DatabaseManager.instance) {
@@ -222,6 +225,13 @@ export class DatabaseManager {
       this._riskMonitor = new RiskMonitorDAO();
     }
     return this._riskMonitor;
+  }
+
+  get comments(): CommentsDAO {
+    if (!this._comments) {
+      this._comments = new CommentsDAO();
+    }
+    return this._comments;
   }
 }
 
