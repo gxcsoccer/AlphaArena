@@ -54,6 +54,7 @@ const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
 const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
 const UserDashboardPage = lazyWithRetry(() => import('./pages/UserDashboardPage'));
 const ApiDocsPage = lazyWithRetry(() => import('./pages/ApiDocsPage'));
+const UserProfilePage = lazyWithRetry(() => import('./pages/UserProfilePage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -390,6 +391,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/user-dashboard" element={<UserDashboardPage />} />
         <Route path="/api-docs" element={<ApiDocsPage />} />
+        <Route path="/user/:username" element={<UserProfilePage />} />
       </Routes>
     </Suspense>
   );
