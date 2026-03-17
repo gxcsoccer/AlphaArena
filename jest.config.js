@@ -31,5 +31,6 @@ module.exports = {
   moduleNameMapper: {
     '^lightweight-charts$': '<rootDir>/tests/__mocks__/lightweight-charts.ts',
     '^recharts$': '<rootDir>/tests/__mocks__/recharts.tsx',
+    '^uuid$': '<rootDir>/tests/__mocks__/uuid.ts',
   },
 };
