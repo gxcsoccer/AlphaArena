@@ -4,7 +4,7 @@
  * Tests for the Stochastic Oscillator strategy
  */
 
-import { StochasticStrategy, StochasticStrategyConfig, StochasticData } from '../../src/strategy/StochasticStrategy';
+import { StochasticStrategy, StochasticStrategyConfig } from '../../src/strategy/StochasticStrategy';
 import { StrategyContext, OrderSignal } from '../../src/strategy/types';
 
 /**
@@ -213,6 +213,8 @@ describe('StochasticStrategy', () => {
 
       // With rising prices, %K should be close to 100 (highest recent price)
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       expect(k).toBeGreaterThan(90);
     });
 
@@ -225,6 +227,8 @@ describe('StochasticStrategy', () => {
 
       // With falling prices, %K should be close to 0 (lowest recent price)
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       expect(k).toBeLessThan(10);
     });
 
@@ -237,6 +241,8 @@ describe('StochasticStrategy', () => {
 
       // With constant prices, %K should be 50 (no range)
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       expect(k).toBeCloseTo(50, 0);
     });
 
@@ -278,7 +284,11 @@ describe('StochasticStrategy', () => {
       // Note: This test may not always trigger a signal due to the specific
       // price pattern requirements, so we verify the strategy state
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       const d = strategy.getD();
+      expect(d).toBeGreaterThanOrEqual(0);
+      expect(d).toBeLessThanOrEqual(100);
       
       // If %K crossed above %D in oversold zone, we should have a buy signal
       if (signals.length > 0) {
@@ -320,6 +330,8 @@ describe('StochasticStrategy', () => {
       }
 
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       // %K should be in the middle range
       expect(k).toBeGreaterThan(20);
       expect(k).toBeLessThan(80);
@@ -335,6 +347,8 @@ describe('StochasticStrategy', () => {
 
       // %K should be 50 with constant prices
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       expect(k).toBeCloseTo(50, 0);
     });
   });
@@ -362,7 +376,11 @@ describe('StochasticStrategy', () => {
       }
 
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       const d = strategy.getD();
+      expect(d).toBeGreaterThanOrEqual(0);
+      expect(d).toBeLessThanOrEqual(100);
       const rawK = strategy.getRawK();
       const highestHigh = strategy.getHighestHigh();
       const lowestLow = strategy.getLowestLow();
@@ -466,6 +484,8 @@ describe('StochasticStrategy', () => {
       const k = strategy.getK();
       expect(k).toBeGreaterThanOrEqual(0);
       expect(k).toBeLessThanOrEqual(100);
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
     });
 
     test('should handle large price movements', () => {
@@ -478,6 +498,8 @@ describe('StochasticStrategy', () => {
       // Strategy should still function
       expect(strategy.isReady()).toBe(true);
       const k = strategy.getK();
+      expect(k).toBeGreaterThanOrEqual(0);
+      expect(k).toBeLessThanOrEqual(100);
       expect(k).toBeGreaterThanOrEqual(0);
       expect(k).toBeLessThanOrEqual(100);
     });

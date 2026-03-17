@@ -23,39 +23,6 @@ import { PortfolioSnapshot } from '../portfolio/types';
 import { MarketData, StrategyContext } from '../strategy/types';
 
 /**
- * 对象池 - 减少对象创建和 GC 压力
- */
-class ObjectPool<T> {
-  private pool: T[] = [];
-  private factory: () => T;
-  private reset: (obj: T) => void;
-
-  constructor(factory: () => T, reset: (obj: T) => void, initialSize: number = 100) {
-    this.factory = factory;
-    this.reset = reset;
-    for (let i = 0; i < initialSize; i++) {
-      this.pool.push(factory());
-    }
-  }
-
-  acquire(): T {
-    if (this.pool.length > 0) {
-      return this.pool.pop()!;
-    }
-    return this.factory();
-  }
-
-  release(obj: T): void {
-    this.reset(obj);
-    this.pool.push(obj);
-  }
-
-  getPoolSize(): number {
-    return this.pool.length;
-  }
-}
-
-/**
  * TypedArray 价格数据存储 - 高效内存使用
  */
 class TypedPriceDataBuffer {
@@ -141,42 +108,6 @@ class TypedPriceDataBuffer {
     this.closes = newCloses;
     this.volumes = newVolumes;
     this.capacity = newCapacity;
-  }
-}
-
-/**
- * SMA 计算优化器 - 使用增量计算
- */
-class OptimizedSMACalculator {
-  private sum: number = 0;
-  private window: number[];
-  private period: number;
-
-  constructor(period: number) {
-    this.period = period;
-    this.window = [];
-  }
-
-  add(price: number): number | null {
-    if (this.window.length < this.period) {
-      this.sum += price;
-      this.window.push(price);
-      if (this.window.length === this.period) {
-        return this.sum / this.period;
-      }
-      return null;
-    }
-
-    // Incremental update
-    const oldest = this.window.shift()!;
-    this.sum = this.sum - oldest + price;
-    this.window.push(price);
-    return this.sum / this.period;
-  }
-
-  reset(): void {
-    this.sum = 0;
-    this.window = [];
   }
 }
 
