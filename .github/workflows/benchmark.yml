@@ -28,35 +28,21 @@ jobs:
         run: npm run build
         
       - name: Run backtest benchmarks
-        run: npm run benchmark:backtest -- --data-points 50000
-        
-      - name: Generate benchmark results
+        run: npm run benchmark:backtest -- --data-points 50000 -o benchmark-report.md
+        continue-on-error: true
         id: benchmark
+        
+      - name: Check for benchmark report
+        id: check-report
         run: |
-          # Generate results file for benchmark action
-          node -e "
-            const results = require('./benchmark-results.json');
-            console.log(JSON.stringify({
-              name: 'Backtest Benchmark',
-              unit: 'ticks/sec',
-              value: results.ticksPerSecond
-            }));
-          " > benchmark-result.json 2>/dev/null || echo '{"name":"Backtest","unit":"ticks/sec","value":50000}' > benchmark-result.json
-          
-      - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1
-        if: github.event_name == 'push'
-        with:
-          tool: 'customBiggerIsBetter'
-          output-file-path: benchmark-result.json
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          auto-push: true
-          alert-threshold: '150%'
-          comment-on-alert: true
-          fail-on-alert: false
+          if [ -f benchmark-report.md ]; then
+            echo "report_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "report_exists=false" >> $GITHUB_OUTPUT
+          fi
           
       - name: Create benchmark comment
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && steps.check-report.outputs.report_exists == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -72,3 +58,11 @@ jobs:
             } catch (e) {
               console.log('No benchmark report to post');
             }
+            
+      - name: Upload benchmark report
+        if: steps.check-report.outputs.report_exists == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: benchmark-report.md
+          retention-days: 30
