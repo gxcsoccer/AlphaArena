@@ -30,7 +30,12 @@
     "test:e2e:holdings": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/holdings-display.test.ts",
     "test:e2e:trades": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/trade-history.test.ts",
     "test:e2e:conditional": "E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/conditional-orders.test.ts",
-    "test:e2e:all": "npm run test:e2e:orders && npm run test:e2e:orderbook && npm run test:e2e:holdings && npm run test:e2e:trades && npm run test:e2e:conditional"
+    "test:e2e:all": "npm run test:e2e:orders && npm run test:e2e:orderbook && npm run test:e2e:holdings && npm run test:e2e:trades && npm run test:e2e:conditional",
+    "benchmark": "ts-node --transpile-only scripts/benchmark/run.ts",
+    "benchmark:backtest": "ts-node --transpile-only scripts/benchmark/run.ts --backtest",
+    "benchmark:api": "ts-node --transpile-only scripts/benchmark/run.ts --api",
+    "benchmark:realtime": "ts-node --transpile-only scripts/benchmark/run.ts --realtime",
+    "benchmark:update": "ts-node --transpile-only scripts/benchmark/run.ts --update-baselines"
   },
   "repository": {
     "type": "git",
