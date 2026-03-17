@@ -18,6 +18,7 @@ import { RSIStrategy } from '../strategy/RSIStrategy';
 import { MACDStrategy } from '../strategy/MACDStrategy';
 import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 import { ElliottWaveStrategy } from '../strategy/ElliottWaveStrategy';
+import { VWAPStrategy } from '../strategy/VWAPStrategy';
 import { Strategy } from '../strategy/Strategy';
 import { OrderType, Order, IcebergOrder, OrderCategory, AnyOrder } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
@@ -338,6 +339,21 @@ export class BacktestEngine {
             stdDevMultiplier: params?.stdDevMultiplier ?? 2,
             tradeQuantity: params?.tradeQuantity ?? 10,
             squeezeThreshold: params?.squeezeThreshold ?? 0.02,
+          },
+        });
+      case 'vwap':
+      case 'volumeweightedaverageprice':
+        return new VWAPStrategy({
+          id: 'vwap-strategy',
+          name: 'VWAP Strategy',
+          params: {
+            mode: params?.mode ?? 'session',
+            windowSize: params?.windowSize ?? 20,
+            deviationThreshold: params?.deviationThreshold ?? 0.005,
+            tradeQuantity: params?.tradeQuantity ?? 10,
+            sessionStartHour: params?.sessionStartHour ?? 0,
+            enableBands: params?.enableBands ?? true,
+            bandMultiplier: params?.bandMultiplier ?? 1.5,
           },
         });
       default:
