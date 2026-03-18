@@ -1,14 +1,13 @@
 {
-  "current": 26,
-  "startDate": "2026-05-06",
-  "endDate": "2026-05-13",
-  "milestone": 27,
+  "current": 28,
+  "startDate": "2026-03-19",
+  "endDate": "2026-03-26",
+  "milestone": 29,
   "status": "planning",
-  "issues": [335, 336, 337, 338],
+  "issues": [351, 352, 353],
   "goals": [
-    "Stripe 支付集成 (Stripe Payment Integration)",
-    "AI 助手前端集成 (AI Assistant Frontend Integration)",
-    "监控告警系统 (Monitoring & Alerting System)",
-    "权限控制 UI 完善 (Permission Control UI Enhancement)"
+    "WebSocket 模块集成测试 - 补充调度器实时状态的测试覆盖",
+    "仪表板大数据量性能测试和优化 - 收入分析仪表板等页面的性能优化",
+    "API 文档自动化 - OpenAPI/Swagger 生成"
   ]
 }

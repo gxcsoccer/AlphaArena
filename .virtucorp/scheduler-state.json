@@ -1,10 +1,10 @@
 {
   "lastDispatch": {
-    "digestHash": "spawn_dev|prs:0|ready:4|planning",
-    "timestamp": 1773797313530,
+    "digestHash": "spawn_qa|prs:1|ready:3|planning",
+    "timestamp": 1773875684879,
     "consecutiveCount": 1
   },
-  "highWaterMark": 26,
+  "highWaterMark": 28,
   "paused": false,
   "pauseReason": ""
 }
