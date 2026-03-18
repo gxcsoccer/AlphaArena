@@ -1,0 +1,2215 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "AlphaArena Trading Platform API",
+    "description": "\nComprehensive API for the AlphaArena algorithmic trading platform.\n\n## Authentication\nMost API endpoints require authentication. Use one of the following methods:\n- **API Key**: Include `X-API-Key` header with your API key\n- **JWT Token**: Include `Authorization: Bearer <token>` header\n\n## Rate Limits\nRate limits are based on API key permissions:\n- **read**: 60 requests/minute, 10,000 requests/day\n- **trade**: 120 requests/minute, 20,000 requests/day\n- **admin**: 300 requests/minute, 50,000 requests/day\n\nRate limit headers are included in every response:\n- `X-RateLimit-Limit-Minute`: Maximum requests per minute\n- `X-RateLimit-Remaining-Minute`: Remaining requests this minute\n- `X-RateLimit-Limit-Day`: Maximum requests per day\n- `X-RateLimit-Remaining-Day`: Remaining requests today\n\n## Error Handling\nAll errors follow a consistent format:\n```json\n{\n  \"success\": false,\n  \"error\": \"Error message\",\n  \"code\": \"ERROR_CODE\"\n}\n```\n      ",
+    "version": "1.0.0",
+    "contact": {
+      "name": "AlphaArena Support",
+      "email": "support@alphaarena.io"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Current server (relative path)"
+    },
+    {
+      "url": "https://alphaarena-production.up.railway.app/api",
+      "description": "Production server"
+    },
+    {
+      "url": "http://localhost:3001/api",
+      "description": "Development server"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "System health and status endpoints"
+    },
+    {
+      "name": "Authentication",
+      "description": "User authentication and authorization"
+    },
+    {
+      "name": "Strategies",
+      "description": "Trading strategy management"
+    },
+    {
+      "name": "Trades",
+      "description": "Trade history and execution"
+    },
+    {
+      "name": "Orders",
+      "description": "Order management"
+    },
+    {
+      "name": "Conditional Orders",
+      "description": "Stop-loss, take-profit, and OCO orders"
+    },
+    {
+      "name": "Portfolios",
+      "description": "Portfolio management"
+    },
+    {
+      "name": "Market Data",
+      "description": "Market ticker and price data"
+    },
+    {
+      "name": "Orderbook",
+      "description": "Order book data"
+    },
+    {
+      "name": "Leaderboard",
+      "description": "Strategy performance rankings"
+    },
+    {
+      "name": "Backtest",
+      "description": "Strategy backtesting"
+    },
+    {
+      "name": "Bot Management",
+      "description": "Trading bot configuration"
+    },
+    {
+      "name": "Bot Control",
+      "description": "Trading bot execution control"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook configuration"
+    },
+    {
+      "name": "API Keys",
+      "description": "API key management"
+    },
+    {
+      "name": "Templates",
+      "description": "Strategy templates marketplace"
+    },
+    {
+      "name": "Copy Trading",
+      "description": "Copy trading features"
+    },
+    {
+      "name": "Notifications",
+      "description": "User notifications"
+    },
+    {
+      "name": "Export",
+      "description": "Data export functionality"
+    },
+    {
+      "name": "AI",
+      "description": "AI-powered features"
+    },
+    {
+      "name": "Subscriptions",
+      "description": "Subscription management"
+    },
+    {
+      "name": "User Dashboard",
+      "description": "User dashboard and profile"
+    },
+    {
+      "name": "Schedules",
+      "description": "Scheduled tasks management"
+    },
+    {
+      "name": "Alerts",
+      "description": "Alert management"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key for authentication (format: aa_live_xxx or aa_test_xxx)"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained from login/register"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          }
+        }
+      },
+      "Success": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "Strategy": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "SMA",
+              "RSI",
+              "MACD",
+              "Bollinger",
+              "custom"
+            ]
+          },
+          "params": {
+            "type": "object"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "paused",
+              "stopped"
+            ]
+          },
+          "capital": {
+            "type": "number"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Trade": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "strategyId": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ]
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "fee": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Portfolio": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "strategyId": {
+            "type": "string"
+          },
+          "totalValue": {
+            "type": "number"
+          },
+          "cashBalance": {
+            "type": "number"
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "symbol": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number"
+                },
+                "averagePrice": {
+                  "type": "number"
+                },
+                "currentValue": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "realizedPnL": {
+            "type": "number"
+          },
+          "unrealizedPnL": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "strategyId": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "sell"
+            ]
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "market",
+              "limit",
+              "stop_market",
+              "stop_limit"
+            ]
+          },
+          "quantity": {
+            "type": "number"
+          },
+          "price": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "open",
+              "filled",
+              "partially_filled",
+              "cancelled"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Ticker": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "priceChange24h": {
+            "type": "number"
+          },
+          "priceChangePercent24h": {
+            "type": "number"
+          },
+          "high24h": {
+            "type": "number"
+          },
+          "low24h": {
+            "type": "number"
+          },
+          "volume24h": {
+            "type": "number"
+          },
+          "timestamp": {
+            "type": "integer"
+          }
+        }
+      },
+      "OrderBook": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "bids": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "description": "[price, quantity] pairs"
+          },
+          "asks": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            },
+            "description": "[price, quantity] pairs"
+          },
+          "timestamp": {
+            "type": "integer"
+          }
+        }
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "integer"
+          },
+          "strategyId": {
+            "type": "string"
+          },
+          "strategyName": {
+            "type": "string"
+          },
+          "totalReturn": {
+            "type": "number"
+          },
+          "winRate": {
+            "type": "number"
+          },
+          "profitFactor": {
+            "type": "number"
+          },
+          "sharpeRatio": {
+            "type": "number"
+          },
+          "maxDrawdown": {
+            "type": "number"
+          },
+          "tradeCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "BotConfig": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "strategy",
+          "tradingPair",
+          "interval",
+          "mode",
+          "initialCapital"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique bot identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Bot name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Bot description"
+          },
+          "strategy": {
+            "type": "string",
+            "enum": [
+              "SMA",
+              "RSI",
+              "MACD",
+              "Bollinger",
+              "Stochastic",
+              "ATR"
+            ],
+            "description": "Trading strategy type"
+          },
+          "tradingPair": {
+            "type": "object",
+            "properties": {
+              "base": {
+                "type": "string",
+                "example": "BTC"
+              },
+              "quote": {
+                "type": "string",
+                "example": "USDT"
+              },
+              "symbol": {
+                "type": "string",
+                "example": "BTCUSDT"
+              }
+            }
+          },
+          "interval": {
+            "type": "string",
+            "enum": [
+              "1m",
+              "5m",
+              "15m",
+              "1h",
+              "4h",
+              "1d"
+            ],
+            "description": "Time interval for strategy execution"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "paper",
+              "live"
+            ],
+            "description": "Trading mode"
+          },
+          "initialCapital": {
+            "type": "number",
+            "description": "Initial capital allocation"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether bot is enabled"
+          }
+        }
+      },
+      "BotState": {
+        "type": "object",
+        "properties": {
+          "botId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "stopped",
+              "running",
+              "paused",
+              "error"
+            ]
+          },
+          "portfolioValue": {
+            "type": "number"
+          },
+          "initialCapital": {
+            "type": "number"
+          },
+          "realizedPnL": {
+            "type": "number"
+          },
+          "unrealizedPnL": {
+            "type": "number"
+          },
+          "totalPnL": {
+            "type": "number"
+          },
+          "tradeCount": {
+            "type": "integer"
+          },
+          "winCount": {
+            "type": "integer"
+          },
+          "lossCount": {
+            "type": "integer"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "username": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "trade",
+              "signal",
+              "alert",
+              "error",
+              "system"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "read": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    },
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "description": "Check if the API server is running",
+        "operationId": "healthCheck",
+        "tags": [
+          "Health"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Server is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "timestamp": {
+                      "type": "integer",
+                      "example": 1710844800000
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/status": {
+      "get": {
+        "summary": "Detailed health status",
+        "description": "Get detailed system health status including database, realtime, and order book status",
+        "operationId": "healthStatus",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "System status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "healthy",
+                        "degraded",
+                        "unhealthy"
+                      ]
+                    },
+                    "uptime": {
+                      "type": "number",
+                      "description": "Server uptime in seconds"
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "checks": {
+                      "type": "object",
+                      "properties": {
+                        "database": {
+                          "type": "boolean"
+                        },
+                        "realtime": {
+                          "type": "boolean"
+                        },
+                        "orderbooks": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "summary": "System metrics",
+        "description": "Get system performance metrics including memory, CPU, and request statistics",
+        "operationId": "getMetrics",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "Metrics data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "memory": {
+                      "type": "object",
+                      "properties": {
+                        "used": {
+                          "type": "integer"
+                        },
+                        "total": {
+                          "type": "integer"
+                        },
+                        "percentage": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "cpu": {
+                      "type": "object",
+                      "properties": {
+                        "usage": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "requests": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "perMinute": {
+                          "type": "number"
+                        },
+                        "avgResponseTime": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics/errors": {
+      "get": {
+        "summary": "Recent errors",
+        "description": "Get recent system errors for debugging",
+        "operationId": "getErrors",
+        "tags": [
+          "Health"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Maximum number of errors to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "errors": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string"
+                          },
+                          "severity": {
+                            "type": "string",
+                            "enum": [
+                              "low",
+                              "medium",
+                              "high",
+                              "critical"
+                            ]
+                          },
+                          "timestamp": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "bySeverity": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "integer"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api": {
+      "get": {
+        "summary": "API information",
+        "description": "Get API version and available endpoints",
+        "operationId": "getApiInfo",
+        "tags": [
+          "Health"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "example": "AlphaArena API"
+                    },
+                    "version": {
+                      "type": "string",
+                      "example": "1.0.0"
+                    },
+                    "endpoints": {
+                      "type": "object",
+                      "properties": {
+                        "strategies": {
+                          "type": "string"
+                        },
+                        "trades": {
+                          "type": "string"
+                        },
+                        "portfolios": {
+                          "type": "string"
+                        },
+                        "stats": {
+                          "type": "string"
+                        },
+                        "leaderboard": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "realtime": {
+                      "type": "string",
+                      "example": "Supabase Realtime"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/strategies": {
+      "get": {
+        "summary": "List all strategies",
+        "description": "Retrieve a list of all trading strategies",
+        "operationId": "listStrategies",
+        "tags": [
+          "Strategies"
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Strategy"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/strategies/{id}": {
+      "get": {
+        "summary": "Get strategy details",
+        "description": "Retrieve details for a specific strategy",
+        "operationId": "getStrategy",
+        "tags": [
+          "Strategies"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Strategy ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Strategy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Strategy not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trades": {
+      "get": {
+        "summary": "List all trades",
+        "description": "Retrieve a list of all trades with optional filtering",
+        "operationId": "listTrades",
+        "tags": [
+          "Trades"
+        ],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by strategy ID"
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by trading symbol"
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "buy",
+                "sell"
+              ]
+            },
+            "description": "Filter by trade side"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Trade"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trades/export": {
+      "get": {
+        "summary": "Export trades",
+        "description": "Export trades to CSV format",
+        "operationId": "exportTrades",
+        "tags": [
+          "Trades"
+        ],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "buy",
+                "sell"
+              ]
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Exported trades file",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/portfolios": {
+      "get": {
+        "summary": "List portfolios",
+        "description": "Retrieve all portfolios",
+        "operationId": "listPortfolios",
+        "tags": [
+          "Portfolios"
+        ],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Portfolio"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/portfolios/history": {
+      "get": {
+        "summary": "Get portfolio history",
+        "description": "Retrieve portfolio value history over time",
+        "operationId": "getPortfolioHistory",
+        "tags": [
+          "Portfolios"
+        ],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeRange",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1d",
+                "1w",
+                "1m",
+                "all"
+              ],
+              "default": "1w"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "timestamp": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          "value": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing strategyId parameter"
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "summary": "Get system statistics",
+        "description": "Retrieve aggregate statistics about strategies, trades, and volumes",
+        "operationId": "getStats",
+        "tags": [
+          "Strategies"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "totalStrategies": {
+                          "type": "integer"
+                        },
+                        "activeStrategies": {
+                          "type": "integer"
+                        },
+                        "totalTrades": {
+                          "type": "integer"
+                        },
+                        "totalVolume": {
+                          "type": "number"
+                        },
+                        "buyTrades": {
+                          "type": "integer"
+                        },
+                        "sellTrades": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/leaderboard": {
+      "get": {
+        "summary": "Get leaderboard",
+        "description": "Retrieve the strategy leaderboard with rankings",
+        "operationId": "getLeaderboard",
+        "tags": [
+          "Leaderboard"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "roi",
+                "winRate",
+                "profitFactor",
+                "sharpeRatio"
+              ],
+              "default": "roi"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeaderboardEntry"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/leaderboard/{strategyId}": {
+      "get": {
+        "summary": "Get strategy rank",
+        "description": "Get ranking information for a specific strategy",
+        "operationId": "getStrategyRank",
+        "tags": [
+          "Leaderboard"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/LeaderboardEntry"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Strategy not found in leaderboard"
+          }
+        }
+      }
+    },
+    "/api/leaderboard/refresh": {
+      "post": {
+        "summary": "Refresh leaderboard",
+        "description": "Trigger a leaderboard recalculation",
+        "operationId": "refreshLeaderboard",
+        "tags": [
+          "Leaderboard"
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/LeaderboardEntry"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orders": {
+      "get": {
+        "summary": "List orders",
+        "description": "Retrieve all orders with optional filtering",
+        "operationId": "listOrders",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "filled",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Order"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new order",
+        "description": "Submit a new order",
+        "operationId": "createOrder",
+        "tags": [
+          "Orders"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol",
+                  "side",
+                  "type",
+                  "quantity"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "example": "BTCUSDT"
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "buy",
+                      "sell"
+                    ]
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "market",
+                      "limit"
+                    ]
+                  },
+                  "price": {
+                    "type": "number",
+                    "description": "Required for limit orders"
+                  },
+                  "quantity": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          }
+        }
+      }
+    },
+    "/api/orders/{orderId}/cancel": {
+      "post": {
+        "summary": "Cancel an order",
+        "description": "Cancel an open order",
+        "operationId": "cancelOrder",
+        "tags": [
+          "Orders"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Order"
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Only pending orders can be cancelled"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        }
+      }
+    },
+    "/api/conditional-orders": {
+      "get": {
+        "summary": "List conditional orders",
+        "description": "Retrieve all conditional orders (stop-loss, take-profit)",
+        "operationId": "listConditionalOrders",
+        "tags": [
+          "Conditional Orders"
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "triggered",
+                "cancelled"
+              ]
+            }
+          },
+          {
+            "name": "orderType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "stop_loss",
+                "take_profit"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "symbol": {
+                            "type": "string"
+                          },
+                          "side": {
+                            "type": "string",
+                            "enum": [
+                              "buy",
+                              "sell"
+                            ]
+                          },
+                          "orderType": {
+                            "type": "string",
+                            "enum": [
+                              "stop_loss",
+                              "take_profit"
+                            ]
+                          },
+                          "triggerPrice": {
+                            "type": "number"
+                          },
+                          "quantity": {
+                            "type": "number"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "triggered",
+                              "cancelled"
+                            ]
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create conditional order",
+        "description": "Create a new conditional order (stop-loss, take-profit)",
+        "operationId": "createConditionalOrder",
+        "tags": [
+          "Conditional Orders"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol",
+                  "side",
+                  "orderType",
+                  "triggerPrice",
+                  "quantity"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string"
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "buy",
+                      "sell"
+                    ]
+                  },
+                  "orderType": {
+                    "type": "string",
+                    "enum": [
+                      "stop_loss",
+                      "take_profit"
+                    ]
+                  },
+                  "triggerPrice": {
+                    "type": "number"
+                  },
+                  "quantity": {
+                    "type": "number"
+                  },
+                  "expiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Conditional order created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "symbol": {
+                          "type": "string"
+                        },
+                        "orderType": {
+                          "type": "string"
+                        },
+                        "triggerPrice": {
+                          "type": "number"
+                        },
+                        "quantity": {
+                          "type": "number"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          }
+        }
+      }
+    },
+    "/api/conditional-orders/{orderId}/cancel": {
+      "post": {
+        "summary": "Cancel conditional order",
+        "description": "Cancel an active conditional order",
+        "operationId": "cancelConditionalOrder",
+        "tags": [
+          "Conditional Orders"
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Conditional order cancelled successfully"
+          },
+          "400": {
+            "description": "Only active conditional orders can be cancelled"
+          },
+          "404": {
+            "description": "Conditional order not found"
+          }
+        }
+      }
+    },
+    "/api/conditional-orders/stats": {
+      "get": {
+        "summary": "Get conditional order statistics",
+        "description": "Retrieve statistics about conditional orders",
+        "operationId": "getConditionalOrderStats",
+        "tags": [
+          "Conditional Orders"
+        ],
+        "parameters": [
+          {
+            "name": "strategyId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "active": {
+                          "type": "integer"
+                        },
+                        "triggered": {
+                          "type": "integer"
+                        },
+                        "cancelled": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/market/tickers": {
+      "get": {
+        "summary": "Get all market tickers",
+        "description": "Retrieve ticker data for all trading pairs",
+        "operationId": "getAllTickers",
+        "tags": [
+          "Market Data"
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Ticker"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/market/tickers/{symbol}": {
+      "get": {
+        "summary": "Get ticker for symbol",
+        "description": "Retrieve ticker data for a specific trading pair",
+        "operationId": "getTicker",
+        "tags": [
+          "Market Data"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTCUSDT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Ticker"
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Ticker not found for symbol"
+          }
+        }
+      }
+    },
+    "/api/market/kline/{symbol}": {
+      "get": {
+        "summary": "Get K-line (candlestick) data",
+        "description": "Retrieve candlestick/OHLCV data for a trading pair",
+        "operationId": "getKlineData",
+        "tags": [
+          "Market Data"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTCUSDT"
+          },
+          {
+            "name": "timeframe",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "1m",
+                "5m",
+                "15m",
+                "1h",
+                "4h",
+                "1d"
+              ],
+              "default": "1h"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Candle"
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/orderbook/{symbol}": {
+      "get": {
+        "summary": "Get orderbook snapshot",
+        "description": "Retrieve current orderbook (bids and asks) for a trading pair",
+        "operationId": "getOrderbook",
+        "tags": [
+          "Orderbook"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTCUSDT"
+          },
+          {
+            "name": "levels",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "description": "Number of price levels to return"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/OrderBook"
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order book not found for symbol"
+          }
+        }
+      }
+    },
+    "/api/orderbook/{symbol}/best": {
+      "get": {
+        "summary": "Get best bid/ask prices",
+        "description": "Retrieve the best bid and ask prices for a trading pair",
+        "operationId": "getBestPrices",
+        "tags": [
+          "Orderbook"
+        ],
+        "security": [],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "BTCUSDT"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "bestBid": {
+                          "type": "number"
+                        },
+                        "bestAsk": {
+                          "type": "number"
+                        },
+                        "spread": {
+                          "type": "number"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order book not found for symbol"
+          }
+        }
+      }
+    }
+  }
+}
