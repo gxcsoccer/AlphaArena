@@ -13,6 +13,7 @@ import {
 import { getSupabaseClient } from '../database/client';
 import { createLogger } from '../utils/logger';
 import { getAlertService } from '../alerting';
+import { getSchedulerRealtimeService } from '../realtime/SchedulerRealtimeService';
 
 const log = createLogger('SchedulerService');
 
@@ -36,6 +37,9 @@ export class SchedulerService {
   private isRunning: boolean = false;
   private checkInterval?: NodeJS.Timeout;
   private alertService = getAlertService();
+  private realtimeService = getSchedulerRealtimeService();
+  // Track users with active schedules for status broadcasting
+  private activeUserSchedules: Map<string, Set<string>> = new Map(); // userId -> Set<scheduleId>
 
   private constructor(private config: SchedulerConfig = {}) {}
 
@@ -64,12 +68,18 @@ export class SchedulerService {
       });
     }, checkInterval);
 
+    // Broadcast running status to all active users
+    await this.broadcastStatusToAllUsers('running');
+
     log.info('Scheduler service started');
   }
 
   async stop(): Promise<void> {
     log.info('Stopping scheduler service...');
     this.isRunning = false;
+
+    // Broadcast stopped status before clearing jobs
+    await this.broadcastStatusToAllUsers('stopped');
 
     for (const [id, job] of this.cronJobs) {
       job.stop();
@@ -82,6 +92,9 @@ export class SchedulerService {
       log.debug('Stopped interval job for schedule ' + id);
     }
     this.intervalJobs.clear();
+
+    // Clear active user schedules tracking
+    this.activeUserSchedules.clear();
 
     if (this.checkInterval) {
       clearInterval(this.checkInterval);
@@ -155,6 +168,10 @@ export class SchedulerService {
         const nextExecution = new Date(Date.now() + intervalMs);
         await tradingSchedulesDAO.update(schedule.id, { nextExecutionAt: nextExecution });
       }
+
+      // Track user's active schedule and broadcast status update
+      this.trackUserSchedule(schedule.userId, schedule.id);
+      await this.broadcastUserStatus(schedule.userId);
     } catch (err) {
       log.error('Failed to register schedule ' + schedule.id + ':', err);
       throw err;
@@ -162,6 +179,16 @@ export class SchedulerService {
   }
 
   async unregisterSchedule(scheduleId: string): Promise<void> {
+    // Find userId for this schedule before unregistering
+    let userId: string | undefined;
+    for (const [uid, scheduleIds] of this.activeUserSchedules) {
+      if (scheduleIds.has(scheduleId)) {
+        userId = uid;
+        scheduleIds.delete(scheduleId);
+        break;
+      }
+    }
+
     const cronJob = this.cronJobs.get(scheduleId);
     if (cronJob) {
       cronJob.stop();
@@ -174,6 +201,11 @@ export class SchedulerService {
       clearTimeout(intervalJob);
       this.intervalJobs.delete(scheduleId);
       log.debug('Unregistered interval job for schedule ' + scheduleId);
+    }
+
+    // Broadcast updated status if we found the user
+    if (userId) {
+      await this.broadcastUserStatus(userId);
     }
   }
 
@@ -214,6 +246,15 @@ export class SchedulerService {
       startedAt: new Date(),
       triggerType,
     });
+
+    // Broadcast execution start event
+    this.realtimeService.broadcastExecutionStart(
+      schedule.userId,
+      schedule.id,
+      schedule.name,
+      execution.id,
+      triggerType
+    ).catch(err => log.error('Failed to broadcast execution start:', err));
 
     try {
       const result = await this.executeStrategy(schedule);
@@ -288,6 +329,22 @@ export class SchedulerService {
       }
 
       log.info('Schedule ' + scheduleId + ' execution completed: ' + (result.success ? 'success' : 'failed'));
+      
+      // Broadcast execution complete event
+      this.realtimeService.broadcastExecutionComplete(
+        schedule.userId,
+        schedule.id,
+        schedule.name,
+        execution.id,
+        triggerType,
+        {
+          success: result.success,
+          tradesExecuted: result.tradesExecuted,
+          totalValue: result.totalValue,
+          errorMessage: result.error?.message ?? result.message,
+        }
+      ).catch(err => log.error('Failed to broadcast execution complete:', err));
+      
       return completedExecution;
     } catch (err) {
       log.error('Schedule ' + scheduleId + ' execution failed:', err);
@@ -300,6 +357,20 @@ export class SchedulerService {
       });
 
       await tradingSchedulesDAO.updateExecutionStats(schedule.id, false);
+
+      // Broadcast execution failed event
+      this.realtimeService.broadcastExecutionComplete(
+        schedule.userId,
+        schedule.id,
+        schedule.name,
+        execution.id,
+        triggerType,
+        {
+          success: false,
+          tradesExecuted: 0,
+          errorMessage: err instanceof Error ? err.message : String(err),
+        }
+      ).catch(broadcastErr => log.error('Failed to broadcast execution failed:', broadcastErr));
 
       return null;
     }
@@ -341,11 +412,24 @@ export class SchedulerService {
         triggerType: options.triggerType || 'scheduled',
       });
 
-      return await tradingSchedulesDAO.updateExecution(execution.id, {
+      const updatedExecution = await tradingSchedulesDAO.updateExecution(execution.id, {
         completedAt: new Date(),
         status,
         errorMessage: options.message,
       });
+
+      // Broadcast execution skipped event if status is 'skipped'
+      if (status === 'skipped') {
+        this.realtimeService.broadcastExecutionSkipped(
+          schedule.userId,
+          schedule.id,
+          schedule.name,
+          execution.id,
+          options.message || 'Execution skipped'
+        ).catch(err => log.error('Failed to broadcast execution skipped:', err));
+      }
+
+      return updatedExecution;
     } catch (err) {
       log.error('Failed to record execution:', err);
       return null;
@@ -384,6 +468,60 @@ export class SchedulerService {
       isRunning: this.isRunning,
       activeJobs: this.cronJobs.size + this.intervalJobs.size,
     };
+  }
+
+  /**
+   * Track a user's active schedule
+   */
+  private trackUserSchedule(userId: string, scheduleId: string): void {
+    if (!this.activeUserSchedules.has(userId)) {
+      this.activeUserSchedules.set(userId, new Set());
+    }
+    this.activeUserSchedules.get(userId)!.add(scheduleId);
+  }
+
+  /**
+   * Get the number of active jobs for a specific user
+   */
+  private getUserActiveJobsCount(userId: string): number {
+    const userScheduleIds = this.activeUserSchedules.get(userId);
+    if (!userScheduleIds) return 0;
+
+    let count = 0;
+    for (const scheduleId of userScheduleIds) {
+      if (this.cronJobs.has(scheduleId) || this.intervalJobs.has(scheduleId)) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  /**
+   * Broadcast status to a specific user
+   */
+  private async broadcastUserStatus(userId: string): Promise<void> {
+    const activeJobs = this.getUserActiveJobsCount(userId);
+    const status = this.isRunning ? 'running' : 'stopped';
+    
+    try {
+      await this.realtimeService.broadcastStatus(userId, status, activeJobs);
+      log.debug(`Broadcast status to user ${userId}: ${status}, activeJobs: ${activeJobs}`);
+    } catch (err) {
+      log.error(`Failed to broadcast status to user ${userId}:`, err);
+    }
+  }
+
+  /**
+   * Broadcast status to all active users
+   */
+  private async broadcastStatusToAllUsers(status: 'running' | 'stopped'): Promise<void> {
+    const broadcastPromises: Promise<void>[] = [];
+    
+    for (const userId of this.activeUserSchedules.keys()) {
+      broadcastPromises.push(this.broadcastUserStatus(userId));
+    }
+
+    await Promise.allSettled(broadcastPromises);
   }
 
   private mapToSchedule(data: Record<string, unknown>): TradingSchedule {
