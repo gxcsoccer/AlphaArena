@@ -389,3 +389,180 @@ export default {
   getCustomerByEmail,
   createCustomer,
 };
+
+// ==================== Coupon & Promotion Code Functions ====================
+
+/**
+ * Create a Stripe coupon
+ */
+export async function createCoupon(params: {
+  percentOff?: number;
+  amountOff?: number;
+  currency?: string;
+  duration?: 'once' | 'repeating' | 'forever';
+  durationInMonths?: number;
+  name?: string;
+}): Promise<string> {
+  if (!stripe) {
+    log.warn('Stripe not configured - returning mock coupon ID');
+    return 'coupon_mock_' + Date.now();
+  }
+
+  try {
+    const couponParams: Stripe.CouponCreateParams = {
+      duration: params.duration || 'once',
+    };
+
+    if (params.percentOff) {
+      couponParams.percent_off = params.percentOff;
+    } else if (params.amountOff) {
+      couponParams.amount_off = params.amountOff * 100; // Stripe uses cents
+      couponParams.currency = params.currency || 'cny';
+    }
+
+    if (params.name) {
+      couponParams.name = params.name;
+    }
+
+    if (params.duration === 'repeating' && params.durationInMonths) {
+      couponParams.duration_in_months = params.durationInMonths;
+    }
+
+    const coupon = await stripe.coupons.create(couponParams);
+
+    log.info('Created Stripe coupon', { couponId: coupon.id });
+    return coupon.id;
+  } catch (error) {
+    log.error('Failed to create coupon:', error);
+    throw error;
+  }
+}
+
+/**
+ * Create a Stripe promotion code
+ */
+export async function createPromotionCode(params: {
+  couponId: string;
+  code: string;
+  active?: boolean;
+  maxRedemptions?: number;
+  expiresAt?: Date;
+  firstTimeTransaction?: boolean;
+  restrictions?: {
+    minimumAmount?: number;
+    currency?: string;
+  };
+}): Promise<string> {
+  if (!stripe) {
+    log.warn('Stripe not configured - returning mock promotion code ID');
+    return 'promo_mock_' + Date.now();
+  }
+
+  try {
+    const promoParams: any = {
+      coupon: params.couponId,
+      code: params.code.toLowerCase(),
+      active: params.active ?? true,
+    };
+
+    if (params.maxRedemptions) {
+      promoParams.max_redemptions = params.maxRedemptions;
+    }
+
+    if (params.expiresAt) {
+      promoParams.expires_at = Math.floor(params.expiresAt.getTime() / 1000);
+    }
+
+    if (params.firstTimeTransaction) {
+      promoParams.restrictions = {
+        first_time_transaction: true,
+      };
+    }
+
+    if (params.restrictions?.minimumAmount) {
+      promoParams.restrictions = {
+        ...promoParams.restrictions,
+        minimum_amount: params.restrictions.minimumAmount * 100,
+        minimum_amount_currency: params.restrictions.currency || 'cny',
+      };
+    }
+
+    const promoCode = await stripe.promotionCodes.create(promoParams);
+
+    log.info('Created Stripe promotion code', { promoCodeId: promoCode.id, code: params.code });
+    return promoCode.id;
+  } catch (error) {
+    log.error('Failed to create promotion code:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get Stripe coupon by ID
+ */
+export async function getCoupon(couponId: string): Promise<Stripe.Coupon | null> {
+  if (!stripe) return null;
+
+  try {
+    return await stripe.coupons.retrieve(couponId);
+  } catch (error) {
+    log.error('Failed to get coupon:', error);
+    return null;
+  }
+}
+
+/**
+ * Delete a Stripe coupon
+ */
+export async function deleteCoupon(couponId: string): Promise<boolean> {
+  if (!stripe) {
+    log.warn('Stripe not configured - mock delete coupon');
+    return true;
+  }
+
+  try {
+    await stripe.coupons.del(couponId);
+    log.info('Deleted Stripe coupon', { couponId });
+    return true;
+  } catch (error) {
+    log.error('Failed to delete coupon:', error);
+    return false;
+  }
+}
+
+/**
+ * Update a Stripe promotion code
+ */
+export async function updatePromotionCode(
+  promotionCodeId: string,
+  params: {
+    active?: boolean;
+    metadata?: Record<string, string>;
+  }
+): Promise<Stripe.PromotionCode | null> {
+  if (!stripe) return null;
+
+  try {
+    return await stripe.promotionCodes.update(promotionCodeId, params);
+  } catch (error) {
+    log.error('Failed to update promotion code:', error);
+    return null;
+  }
+}
+
+/**
+ * Apply promotion code to checkout session
+ */
+export function applyPromotionCodeToCheckout(
+  sessionParams: Stripe.Checkout.SessionCreateParams,
+  promotionCodeId?: string
+): Stripe.Checkout.SessionCreateParams {
+  if (promotionCodeId) {
+    sessionParams.discounts = [
+      {
+        promotion_code: promotionCodeId,
+      },
+    ];
+  }
+  return sessionParams;
+}
