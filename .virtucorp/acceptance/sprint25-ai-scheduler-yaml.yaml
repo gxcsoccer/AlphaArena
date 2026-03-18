@@ -1,0 +1,18 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "测试AI策略助手面板"
+    flow:
+      - ai: "导航到首页 https://alpha-arena-two.vercel.app"
+      - aiWaitFor: "页面加载完成"
+      - ai: "查找 AI 助手按钮或图标，通常在右下角或侧边栏"
+      - aiWaitFor: "AI 助手面板打开"
+      - aiAssert: "AI 助手面板可见"
+      - aiAssert: "面板中有输入框可以输入问题"
+  - name: "测试调度管理页面"
+    flow:
+      - ai: "导航到调度管理页面 https://alpha-arena-two.vercel.app/scheduler"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示了调度任务列表或空状态提示"
+      - aiAssert: "页面有创建新调度任务的按钮"
