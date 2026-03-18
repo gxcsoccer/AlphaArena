@@ -10,6 +10,7 @@ import {
   UserSubscription,
 } from '../database/subscription.dao';
 import { PaymentDAO, getPaymentDAO } from '../database/payment.dao';
+import { getWebhookEventDAO } from '../database/webhookEvent.dao';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 import {
@@ -475,146 +476,174 @@ router.post('/webhook', async (req: Request, res: Response) => {
       });
     }
 
+    // ===== IDEMPOTENCY CHECK =====
+    const webhookEventDao = getWebhookEventDAO();
+    const alreadyProcessed = await webhookEventDao.isEventProcessed(event.id);
+    
+    if (alreadyProcessed) {
+      log.info('Webhook event already processed, skipping', { 
+        eventId: event.id, 
+        type: event.type 
+      });
+      return res.json({ received: true, duplicate: true });
+    }
+    // ===== END IDEMPOTENCY CHECK =====
+
     const dao = getSubscriptionDAO();
     const paymentDao = getPaymentDAO();
 
     log.info('Received Stripe webhook', { type: event.type, id: event.id });
 
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as any;
-        const userId = session.client_reference_id;
-        const stripeSubscriptionId = session.subscription;
-        const stripeCustomerId = session.customer;
-        const stripePriceId = session.display_items?.[0]?.price?.id || 
-          session.line_items?.data?.[0]?.price?.id;
-        
-        if (userId && stripeSubscriptionId) {
-          const subscriptionData = await getStripeSubscription(stripeSubscriptionId);
+    try {
+      switch (event.type) {
+        case 'checkout.session.completed': {
+          const session = event.data.object as any;
+          const userId = session.client_reference_id;
+          const stripeSubscriptionId = session.subscription;
+          const stripeCustomerId = session.customer;
+          const stripePriceId = session.display_items?.[0]?.price?.id || 
+            session.line_items?.data?.[0]?.price?.id;
           
-          if (subscriptionData) {
-            // Create or update Stripe customer record
-            await paymentDao.getOrCreateStripeCustomer(
-              userId, 
-              stripeCustomerId,
-              session.customer_email || session.customer_details?.email
-            );
+          if (userId && stripeSubscriptionId) {
+            const subscriptionData = await getStripeSubscription(stripeSubscriptionId);
+            
+            if (subscriptionData) {
+              // Create or update Stripe customer record
+              await paymentDao.getOrCreateStripeCustomer(
+                userId, 
+                stripeCustomerId,
+                session.customer_email || session.customer_details?.email
+              );
 
-            // Create subscription
-            await dao.createSubscription({
-              userId,
-              planId: getPlanIdFromPriceId(subscriptionData.priceId || stripePriceId),
-              status: mapStripeStatus(subscriptionData.status) as "active" | "trialing",
-              currentPeriodStart: subscriptionData.currentPeriodStart,
-              currentPeriodEnd: subscriptionData.currentPeriodEnd,
-              stripeSubscriptionId,
-              stripeCustomerId,
-              stripePriceId: subscriptionData.priceId || stripePriceId,
-              trialEnd: subscriptionData.trialEnd,
+              // Create subscription
+              await dao.createSubscription({
+                userId,
+                planId: getPlanIdFromPriceId(subscriptionData.priceId || stripePriceId),
+                status: mapStripeStatus(subscriptionData.status) as "active" | "trialing",
+                currentPeriodStart: subscriptionData.currentPeriodStart,
+                currentPeriodEnd: subscriptionData.currentPeriodEnd,
+                stripeSubscriptionId,
+                stripeCustomerId,
+                stripePriceId: subscriptionData.priceId || stripePriceId,
+                trialEnd: subscriptionData.trialEnd,
+              });
+            }
+          }
+          break;
+        }
+
+        case 'customer.subscription.updated': {
+          const subscription = event.data.object as any;
+          const stripeSubscriptionId = subscription.id;
+          
+          // Find user by Stripe customer ID
+          const userSubscription = await findSubscriptionByStripeId(stripeSubscriptionId);
+          
+          if (userSubscription) {
+            const priceId = subscription.items.data[0]?.price?.id;
+            
+            await dao.updateSubscription(userSubscription.userId, {
+              planId: getPlanIdFromPriceId(priceId),
+              status: mapStripeStatus(subscription.status) as any,
+              currentPeriodStart: new Date(subscription.current_period_start * 1000),
+              currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+              stripePriceId: priceId,
             });
           }
+          break;
         }
-        break;
-      }
 
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as any;
-        const stripeSubscriptionId = subscription.id;
-        
-        // Find user by Stripe customer ID
-        const userSubscription = await findSubscriptionByStripeId(stripeSubscriptionId);
-        
-        if (userSubscription) {
-          const priceId = subscription.items.data[0]?.price?.id;
+        case 'customer.subscription.deleted': {
+          const subscription = event.data.object as any;
+          const stripeSubscriptionId = subscription.id;
           
-          await dao.updateSubscription(userSubscription.userId, {
-            planId: getPlanIdFromPriceId(priceId),
-            status: mapStripeStatus(subscription.status) as any,
-            currentPeriodStart: new Date(subscription.current_period_start * 1000),
-            currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-            stripePriceId: priceId,
-          });
-        }
-        break;
-      }
-
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as any;
-        const stripeSubscriptionId = subscription.id;
-        
-        const userSubscription = await findSubscriptionByStripeId(stripeSubscriptionId);
-        
-        if (userSubscription) {
-          await dao.updateSubscription(userSubscription.userId, {
-            status: 'expired',
-            cancelAtPeriodEnd: false,
-            canceledAt: new Date(),
-          });
-        }
-        break;
-      }
-
-      case 'invoice.paid': {
-        const invoice = event.data.object as any;
-        const stripeCustomerId = invoice.customer;
-        const stripeSubscriptionId = invoice.subscription;
-        const stripeInvoiceId = invoice.id;
-        
-        // Find user by customer ID
-        const customer = await findCustomerByStripeId(stripeCustomerId);
-        
-        if (customer && invoice.amount_paid > 0) {
-          await paymentDao.recordPayment({
-            userId: customer.userId,
-            stripeCustomerId,
-            stripeSubscriptionId,
-            stripeInvoiceId,
-            amount: invoice.amount_paid / 100, // Stripe amounts are in cents
-            currency: invoice.currency.toUpperCase(),
-            status: 'succeeded',
-            planId: getPlanIdFromPriceId(invoice.lines?.data?.[0]?.price?.id),
-            billingPeriod: invoice.lines?.data?.[0]?.plan?.interval,
-            invoiceUrl: invoice.hosted_invoice_url,
-            paidAt: new Date(),
-          });
-        }
-        break;
-      }
-
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as any;
-        const stripeSubscriptionId = invoice.subscription;
-        const stripeCustomerId = invoice.customer;
-        
-        if (stripeSubscriptionId) {
           const userSubscription = await findSubscriptionByStripeId(stripeSubscriptionId);
           
           if (userSubscription) {
             await dao.updateSubscription(userSubscription.userId, {
-              status: 'past_due',
+              status: 'expired',
+              cancelAtPeriodEnd: false,
+              canceledAt: new Date(),
             });
+          }
+          break;
+        }
 
-            // Record failed payment
-            const customer = await findCustomerByStripeId(stripeCustomerId);
-            if (customer) {
-              await paymentDao.recordPayment({
-                userId: customer.userId,
-                stripeCustomerId,
-                stripeSubscriptionId,
-                stripeInvoiceId: invoice.id,
-                amount: invoice.amount_due / 100,
-                currency: invoice.currency.toUpperCase(),
-                status: 'failed',
-                planId: getPlanIdFromPriceId(invoice.lines?.data?.[0]?.price?.id),
+        case 'invoice.paid': {
+          const invoice = event.data.object as any;
+          const stripeCustomerId = invoice.customer;
+          const stripeSubscriptionId = invoice.subscription;
+          const stripeInvoiceId = invoice.id;
+          
+          // Find user by customer ID
+          const customer = await findCustomerByStripeId(stripeCustomerId);
+          
+          if (customer && invoice.amount_paid > 0) {
+            await paymentDao.recordPayment({
+              userId: customer.userId,
+              stripeCustomerId,
+              stripeSubscriptionId,
+              stripeInvoiceId,
+              amount: invoice.amount_paid / 100, // Stripe amounts are in cents
+              currency: invoice.currency.toUpperCase(),
+              status: 'succeeded',
+              planId: getPlanIdFromPriceId(invoice.lines?.data?.[0]?.price?.id),
+              billingPeriod: invoice.lines?.data?.[0]?.plan?.interval,
+              invoiceUrl: invoice.hosted_invoice_url,
+              paidAt: new Date(),
+            });
+          }
+          break;
+        }
+
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as any;
+          const stripeSubscriptionId = invoice.subscription;
+          const stripeCustomerId = invoice.customer;
+          
+          if (stripeSubscriptionId) {
+            const userSubscription = await findSubscriptionByStripeId(stripeSubscriptionId);
+            
+            if (userSubscription) {
+              await dao.updateSubscription(userSubscription.userId, {
+                status: 'past_due',
               });
+
+              // Record failed payment
+              const customer = await findCustomerByStripeId(stripeCustomerId);
+              if (customer) {
+                await paymentDao.recordPayment({
+                  userId: customer.userId,
+                  stripeCustomerId,
+                  stripeSubscriptionId,
+                  stripeInvoiceId: invoice.id,
+                  amount: invoice.amount_due / 100,
+                  currency: invoice.currency.toUpperCase(),
+                  status: 'failed',
+                  planId: getPlanIdFromPriceId(invoice.lines?.data?.[0]?.price?.id),
+                });
+              }
             }
           }
+          break;
         }
-        break;
+
+        default:
+          log.info('Unhandled webhook event type: ' + event.type);
       }
 
-      default:
-        log.info('Unhandled webhook event type: ' + event.type);
+      // Mark event as processed successfully
+      await webhookEventDao.markEventProcessed(event.id, event.type, 'processed');
+      
+    } catch (processingError) {
+      // Mark event as failed but still return 200 to avoid Stripe retries
+      log.error('Error processing webhook event:', processingError);
+      await webhookEventDao.markEventProcessed(
+        event.id, 
+        event.type, 
+        'failed', 
+        processingError instanceof Error ? processingError.message : 'Unknown error'
+      );
     }
 
     res.json({ received: true });
@@ -623,230 +652,6 @@ router.post('/webhook', async (req: Request, res: Response) => {
     res.status(400).json({
       success: false,
       error: 'Webhook error',
-    });
-  }
-});
-
-/**
- * GET /api/subscriptions/history
- * Get subscription history for current user
- */
-router.get('/history', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-      });
-    }
-
-    const dao = getSubscriptionDAO();
-    const history = await dao.getSubscriptionHistory(userId);
-    
-    res.json({
-      success: true,
-      data: history,
-    });
-  } catch (error) {
-    log.error('Failed to get subscription history:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve subscription history',
-    });
-  }
-});
-
-/**
- * GET /api/subscriptions/payments
- * Get payment history for current user
- */
-router.get('/payments', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-      });
-    }
-
-    const paymentDao = getPaymentDAO();
-    const payments = await paymentDao.getPaymentHistory(userId);
-    
-    res.json({
-      success: true,
-      data: payments,
-    });
-  } catch (error) {
-    log.error('Failed to get payment history:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve payment history',
-    });
-  }
-});
-
-/**
- * POST /api/subscriptions/reactivate
- * Reactivate a canceled subscription
- */
-router.post('/reactivate', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-      });
-    }
-
-    const dao = getSubscriptionDAO();
-    const currentSub = await dao.getUserSubscription(userId);
-    
-    if (!currentSub || !currentSub.stripeSubscriptionId) {
-      return res.status(404).json({
-        success: false,
-        error: 'No subscription to reactivate',
-      });
-    }
-
-    if (!currentSub.cancelAtPeriodEnd) {
-      return res.status(400).json({
-        success: false,
-        error: 'Subscription is not scheduled for cancellation',
-      });
-    }
-
-    // Reactivate in Stripe
-    const success = await reactivateSubscription(currentSub.stripeSubscriptionId);
-    
-    if (success) {
-      // Update local record
-      await dao.updateSubscription(userId, {
-        cancelAtPeriodEnd: false,
-      });
-
-      res.json({
-        success: true,
-        message: 'Subscription reactivated successfully',
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to reactivate subscription',
-      });
-    }
-  } catch (error) {
-    log.error('Failed to reactivate subscription:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to reactivate subscription',
-    });
-  }
-});
-
-/**
- * POST /api/subscriptions/check-feature
- * Check if user has access to a feature
- */
-router.post('/check-feature', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-      });
-    }
-
-    const { featureKey } = req.body;
-
-    if (!featureKey) {
-      return res.status(400).json({
-        success: false,
-        error: 'featureKey is required',
-      });
-    }
-
-    const dao = getSubscriptionDAO();
-    const access = await dao.checkFeatureAccess(userId, featureKey);
-    
-    res.json({
-      success: true,
-      data: access,
-    });
-  } catch (error) {
-    log.error('Failed to check feature access:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to check feature access',
-    });
-  }
-});
-
-/**
- * POST /api/subscriptions/use-feature
- * Record feature usage
- */
-router.post('/use-feature', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'Unauthorized',
-      });
-    }
-
-    const { featureKey, increment = 1 } = req.body;
-
-    if (!featureKey) {
-      return res.status(400).json({
-        success: false,
-        error: 'featureKey is required',
-      });
-    }
-
-    const dao = getSubscriptionDAO();
-    
-    // Check access first
-    const access = await dao.checkFeatureAccess(userId, featureKey);
-    
-    if (!access.hasAccess) {
-      return res.status(402).json({
-        success: false,
-        error: 'Feature limit exceeded',
-        data: {
-          limit: access.limit,
-          currentUsage: access.currentUsage,
-          planId: access.planId,
-          upgradeUrl: '/pricing',
-        },
-      });
-    }
-
-    // Increment usage
-    await dao.incrementFeatureUsage(userId, featureKey, increment);
-    
-    res.json({
-      success: true,
-      data: {
-        featureKey,
-        usageCount: access.currentUsage + increment,
-        remaining: access.remaining - increment,
-      },
-    });
-  } catch (error) {
-    log.error('Failed to record feature usage:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to record feature usage',
     });
   }
 });

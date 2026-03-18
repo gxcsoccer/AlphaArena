@@ -292,9 +292,37 @@ export function mapStripeStatus(status: Stripe.Subscription.Status): 'active' | 
 /**
  * Get plan ID from Stripe price ID
  */
+/**
+ * Get plan ID from Stripe price ID
+ * Uses exact matching or pattern matching to avoid false positives
+ */
 export function getPlanIdFromPriceId(priceId: string): string {
-  if (priceId.includes('pro')) return 'pro';
-  if (priceId.includes('enterprise')) return 'enterprise';
+  // Match patterns like: price_pro_monthly, price_pro_yearly, price_pro_...
+  // Or exact match: pro, enterprise, free
+  // Or Stripe-style: prod_xxx_price_pro_monthly
+  
+  const normalizedPriceId = priceId.toLowerCase();
+  
+  // Exact match first
+  if (normalizedPriceId === 'pro' || normalizedPriceId === 'price_pro') {
+    return 'pro';
+  }
+  if (normalizedPriceId === 'enterprise' || normalizedPriceId === 'price_enterprise') {
+    return 'enterprise';
+  }
+  if (normalizedPriceId === 'free' || normalizedPriceId === 'price_free') {
+    return 'free';
+  }
+  
+  // Pattern match with underscores to avoid false positives
+  // e.g., "price_pro_monthly" contains "_pro_" or starts with "price_pro_"
+  if (/(?:^|[_-])pro(?:[_-]|$)/i.test(priceId)) {
+    return 'pro';
+  }
+  if (/(?:^|[_-])enterprise(?:[_-]|$)/i.test(priceId)) {
+    return 'enterprise';
+  }
+  
   return 'free';
 }
 
