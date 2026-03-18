@@ -5,10 +5,11 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip, Modal, Select, Progress, Divider, Tag } from '@arco-design/web-react';
-import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine, IconTrophy, IconExclamationCircle } from '@arco-design/web-react/icon';
+import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine, IconTrophy, IconExclamationCircle, IconQuestionCircle } from '@arco-design/web-react/icon';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './AIAssistantPanel.css';
+import HelpButton, { HelpButtons } from './HelpButton';
 
 const { TextArea } = Input;
 const { Text, Title } = Typography;
@@ -394,6 +395,12 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ userId, context }) 
         <Title heading={5}>
           <IconBulb style={{ marginRight: 8 }} />
           AI Strategy Assistant
+          <HelpButton
+            compact
+            type="text"
+            size="mini"
+            {...HelpButtons.aiAssistant}
+          />
         </Title>
         <Space>
           {usageStats && usageStats.planType === 'pro' && (

@@ -19,9 +19,11 @@ import {
   IconTrophy,
   IconStar,
   IconRight,
+  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import UsageProgress from './UsageProgress';
 import UpgradeModal from './UpgradeModal';
+import HelpButton, { HelpButtons } from './HelpButton';
 import { useSubscription } from '../hooks/useSubscription';
 
 const { Title, Text } = Typography;
@@ -114,9 +116,17 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({
   return (
     <Card style={style}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Title heading={5} style={{ margin: 0 }}>
-          订阅与用量
-        </Title>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Title heading={5} style={{ margin: 0 }}>
+            订阅与用量
+          </Title>
+          <HelpButton
+            compact
+            type="text"
+            size="mini"
+            {...HelpButtons.limits}
+          />
+        </div>
         {!isPro && showUpgradeButton && (
           <Button 
             type="primary" 

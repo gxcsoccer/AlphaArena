@@ -41,9 +41,11 @@ import {
   IconBell,
   IconBellOff,
   IconHistory,
+  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import { usePriceAlerts, CreateAlertParams, UpdateAlertParams } from '../hooks/usePriceAlerts';
 import { PriceAlert } from '../utils/api';
+import HelpButton, { HelpButtons } from './HelpButton';
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -424,6 +426,12 @@ const PriceAlertsPanelEnhanced: React.FC<PriceAlertsPanelEnhancedProps> = ({
           <Space>
             <span>价格提醒</span>
             <Badge count={activeCount} style={{ marginLeft: 8 }} />
+            <HelpButton
+              compact
+              type="text"
+              size="mini"
+              {...HelpButtons.alerts}
+            />
           </Space>
         }
         size="small"
