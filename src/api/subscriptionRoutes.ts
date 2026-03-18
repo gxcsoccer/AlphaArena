@@ -713,3 +713,86 @@ export function createSubscriptionRouter(): Router {
 }
 
 export default router;
+
+/**
+ * GET /api/subscriptions/usage
+ * Get all feature usage for the current user
+ */
+router.get('/usage', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+      });
+    }
+
+    const dao = getSubscriptionDAO();
+    const status = await dao.getUserSubscriptionStatus(userId);
+    
+    // Get usage for each feature
+    const features = ['concurrentStrategies', 'dailyBacktests', 'apiCalls', 'aiAssistantMessages'];
+    const usage: Record<string, any> = {};
+    
+    for (const featureKey of features) {
+      const access = await dao.checkFeatureAccess(userId, featureKey);
+      usage[featureKey] = {
+        featureKey,
+        limit: access.limit,
+        currentUsage: access.currentUsage,
+        remaining: access.remaining,
+      };
+    }
+    
+    res.json({
+      success: true,
+      data: usage,
+    });
+  } catch (error) {
+    log.error('Failed to get usage:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve usage',
+    });
+  }
+});
+
+/**
+ * GET /api/subscriptions/usage/:featureKey
+ * Get usage for a specific feature
+ */
+router.get('/usage/:featureKey', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const featureKey = req.params.featureKey as string;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+      });
+    }
+
+    const dao = getSubscriptionDAO();
+    const access = await dao.checkFeatureAccess(userId, featureKey);
+    
+    res.json({
+      success: true,
+      data: {
+        featureKey,
+        limit: access.limit,
+        currentUsage: access.currentUsage,
+        remaining: access.remaining,
+        planId: access.planId,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get feature usage:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve feature usage',
+    });
+  }
+});

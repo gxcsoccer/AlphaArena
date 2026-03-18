@@ -29,6 +29,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import FollowButton from '../components/FollowButton';
 import UserListModal from '../components/UserListModal';
+import UsageDashboard from '../components/UsageDashboard';
 
 const { Row, Col } = Grid;
 const { Title, Text, Paragraph } = Typography;
@@ -329,6 +330,11 @@ const UserProfilePage: React.FC = () => {
               <Empty description="No public strategies" />
             </Card>
           </TabPane>
+          {isOwnProfile && (
+            <TabPane key="subscription" tab="订阅与用量">
+              <UsageDashboard />
+            </TabPane>
+          )}
         </Tabs>
 
         {/* Followers Modal */}

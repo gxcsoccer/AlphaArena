@@ -31,6 +31,7 @@ import AIAssistantButton from './components/AIAssistantButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
+import { SubscriptionProvider } from './hooks/useSubscription';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
@@ -472,6 +473,7 @@ function App() {
 
   return (
     <AuthProvider>
+    <SubscriptionProvider>
     <SettingsProvider>
       <ConnectionProvider>
         <RealtimeConnectionSync />
@@ -492,6 +494,7 @@ function App() {
         </BrowserRouter>
       </ConnectionProvider>
     </SettingsProvider>
+    </SubscriptionProvider>
     </AuthProvider>
   );
 }
