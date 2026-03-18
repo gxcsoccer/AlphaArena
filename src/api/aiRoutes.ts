@@ -73,6 +73,53 @@ async function requireProUser(req: Request, res: Response, next: Function) {
 }
 
 /**
+ * GET /api/ai/usage
+ * Get user's AI usage statistics
+ */
+router.get('/usage', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const supabase = getSupabaseClient();
+    
+    // Check subscription status
+    const { data: subscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('plan_type, status')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .maybeSingle();
+    
+    const isPro = subscription?.plan_type === 'pro';
+    
+    // Get today's message count from ai_messages table
+    const today = new Date().toISOString().split('T')[0];
+    const { data: messages, error: msgError } = await supabase
+      .from('ai_messages')
+      .select('id, tokens_used')
+      .eq('role', 'user')
+      .gte('created_at', today);
+    
+    // Calculate usage
+    const messagesToday = messages?.length || 0;
+    const tokensUsed = messages?.reduce((sum: number, m: any) => sum + (m.tokens_used || 0), 0) || 0;
+    
+    res.json({
+      success: true,
+      data: {
+        planType: isPro ? 'pro' : 'free',
+        messagesToday,
+        messagesLimit: isPro ? -1 : 5,
+        tokensUsed,
+        tokensLimit: isPro ? -1 : 10000,
+      },
+    });
+  } catch (err) {
+    console.error('Error getting usage:', err);
+    res.status(500).json({ error: 'Failed to get usage statistics' });
+  }
+});
+
+/**
  * POST /api/ai/chat
  * Send a message to the AI assistant
  */
