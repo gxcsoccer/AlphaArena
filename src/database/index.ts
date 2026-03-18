@@ -250,3 +250,25 @@ export {
   type FeatureAccessResult,
   type UserSubscriptionStatus 
 } from './subscription.dao';
+
+// Trading Schedules DAO
+export { TradingSchedulesDAO, tradingSchedulesDAO } from './trading-schedules.dao';
+export type { 
+  TradingSchedule, 
+  CreateScheduleInput, 
+  UpdateScheduleInput, 
+  ScheduleFilters, 
+  ScheduleExecution,
+  ScheduleSafetyConfig, 
+  CreateSafetyConfigInput, 
+  UpdateSafetyConfigInput, 
+  ScheduleType, 
+  TriggerType, 
+  ConditionType 
+} from './trading-schedules.dao';
+export type { 
+  CreateExecutionInput as ScheduleCreateExecutionInput, 
+  UpdateExecutionInput as ScheduleUpdateExecutionInput, 
+  ExecutionFilters as ScheduleExecutionFilters,
+  ExecutionStatus as ScheduleExecutionStatus
+} from './trading-schedules.dao';

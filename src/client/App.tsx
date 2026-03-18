@@ -13,6 +13,7 @@ import {
   IconDashboard as IconPerformance,
   IconExclamationCircle,
   IconUserAdd,
+  IconClockCircle,
   IconUser,
   IconHeart,
   IconExperiment,
@@ -55,6 +56,7 @@ const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
 const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
 const UserDashboardPage = lazyWithRetry(() => import('./pages/UserDashboardPage'));
 const ApiDocsPage = lazyWithRetry(() => import('./pages/ApiDocsPage'));
+const SchedulerPage = lazyWithRetry(() => import('./pages/SchedulerPage'));
 const UserProfilePage = lazyWithRetry(() => import('./pages/UserProfilePage'));
 const RebalancePage = lazyWithRetry(() => import('./pages/RebalancePage'));
 
@@ -217,6 +219,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
+            <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
+              Scheduler
+            </MenuItem>
             <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
               交易日志
             </MenuItem>
@@ -347,6 +352,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Holdings
           </MenuItem>
+          <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
+            Scheduler
+          </MenuItem>
           <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
@@ -405,6 +413,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/api-docs" element={<ApiDocsPage />} />
         <Route path="/rebalance" element={<RebalancePage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
+        <Route path="/scheduler" element={<SchedulerPage />} />
       </Routes>
     </Suspense>
   );

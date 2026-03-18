@@ -92,6 +92,7 @@
     "@types/swagger-ui-react": "^5.18.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
+    "cron": "^4.4.0",
     "dompurify": "^3.3.3",
     "express": "^5.2.1",
     "jsdom": "^29.0.0",
