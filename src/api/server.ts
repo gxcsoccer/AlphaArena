@@ -45,6 +45,7 @@ import userDashboardRoutes from './userDashboardRoutes';
 import { createRiskMonitorRouter } from './riskMonitorRoutes';
 import subscriptionRoutes from './subscriptionRoutes';
 import promoCodeRoutes from './promoCodeRoutes';
+import revenueRoutes from './revenueRoutes';
 import socialRoutes from './socialRoutes';
 import commentRoutes from './commentRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
@@ -910,6 +911,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/risk', createRiskMonitorRouter());
     this.app.use('/api/subscriptions', subscriptionRoutes);
     this.app.use('/api/promo-codes', promoCodeRoutes);
+    this.app.use('/api/revenue', revenueRoutes);
     this.app.use('/api/schedules', createSchedulerRouter());
     this.app.use('/api/alerts', alertRoutes);
 
