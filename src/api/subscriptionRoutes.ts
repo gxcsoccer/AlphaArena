@@ -708,12 +708,6 @@ async function findCustomerByStripeId(stripeCustomerId: string): Promise<{ userI
   return { userId: data.user_id };
 }
 
-export function createSubscriptionRouter(): Router {
-  return router;
-}
-
-export default router;
-
 /**
  * GET /api/subscriptions/usage
  * Get all feature usage for the current user
@@ -796,3 +790,9 @@ router.get('/usage/:featureKey', authMiddleware, async (req: Request, res: Respo
     });
   }
 });
+
+export function createSubscriptionRouter(): Router {
+  return router;
+}
+
+export default router;
