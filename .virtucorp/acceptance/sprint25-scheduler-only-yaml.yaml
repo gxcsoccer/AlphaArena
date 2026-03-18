@@ -1,0 +1,10 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "测试调度管理页面"
+    flow:
+      - ai: "导航到调度管理页面 https://alpha-arena-two.vercel.app/scheduler"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示了调度任务列表或空状态提示"
+      - aiAssert: "页面有创建新调度任务的按钮"

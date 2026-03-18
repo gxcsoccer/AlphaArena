@@ -1,13 +1,14 @@
 {
-  "current": 25,
-  "startDate": "2026-04-29",
-  "endDate": "2026-05-06",
-  "milestone": 26,
+  "current": 26,
+  "startDate": "2026-05-06",
+  "endDate": "2026-05-13",
+  "milestone": 27,
   "status": "planning",
-  "issues": [327, 328, 329],
+  "issues": [335, 336, 337, 338],
   "goals": [
-    "订阅计划与付费功能 (Subscription Plans & Premium Features)",
-    "AI 策略助手 (AI Strategy Assistant)",
-    "自动化交易调度器 (Automated Trading Scheduler)"
+    "Stripe 支付集成 (Stripe Payment Integration)",
+    "AI 助手前端集成 (AI Assistant Frontend Integration)",
+    "监控告警系统 (Monitoring & Alerting System)",
+    "权限控制 UI 完善 (Permission Control UI Enhancement)"
   ]
 }
