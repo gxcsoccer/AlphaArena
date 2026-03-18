@@ -7,31 +7,39 @@ import express from 'express';
 import { createSchedulerRouter } from '../schedulerRoutes';
 
 // Mock dependencies
-jest.mock('../../database/client', () => ({
-  __esModule: true,
-  default: {
-    auth: {
-      getUser: jest.fn(),
-    },
-    from: jest.fn(() => ({
-      select: jest.fn().mockReturnThis(),
-      insert: jest.fn().mockReturnThis(),
-      update: jest.fn().mockReturnThis(),
-      delete: jest.fn().mockReturnThis(),
-      eq: jest.fn().mockReturnThis(),
-      single: jest.fn(),
-    })),
-  },
-}));
+jest.mock('../../database/client', () => {
+  const mockAuth = {
+    getUser: jest.fn(),
+  };
+  const mockFrom = jest.fn(() => ({
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+  }));
+  const mockClient = {
+    auth: mockAuth,
+    from: mockFrom,
+  };
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockClient),
+  };
+});
 
-jest.mock('../../scheduler/SchedulerService', () => ({
-  getSchedulerService: jest.fn(() => ({
+jest.mock('../../scheduler/SchedulerService', () => {
+  const mockSchedulerService = {
     registerSchedule: jest.fn(),
     unregisterSchedule: jest.fn(),
     executeSchedule: jest.fn(),
     getStatus: jest.fn(() => ({ isRunning: true, activeJobs: 0 })),
-  })),
-}));
+  };
+  return {
+    getSchedulerService: jest.fn(() => mockSchedulerService),
+  };
+});
 
 jest.mock('../../database/trading-schedules.dao', () => ({
   tradingSchedulesDAO: {
@@ -77,8 +85,9 @@ app.use('/api/schedules', createSchedulerRouter());
 describe('Scheduler Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Setup auth mock
-    const mockClient = require('../../database/client').default;
+    // Setup auth mock - getSupabaseClient() returns the client object
+    const getSupabaseClient = require('../../database/client').default;
+    const mockClient = getSupabaseClient();
     mockClient.auth.getUser.mockResolvedValue({
       data: { user: mockUser },
       error: null,

@@ -218,9 +218,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </MenuItem>
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
+            </MenuItem>
             <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
               Scheduler
-            </MenuItem>
             </MenuItem>
             <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
               交易日志
