@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { AuthDAO, User } from '../database/auth.dao';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
+import { getPromoCodeDAO } from '../database/promo-code.dao';
 
 const log = createLogger('AuthRoutes');
 
@@ -261,6 +262,16 @@ router.post('/register', async (req: Request, res: Response) => {
       expires_at: expiresAt,
     });
 
+    // Start trial for new user
+    try {
+      const promoDao = getPromoCodeDAO();
+      await promoDao.startTrial(user.id, 14, 'pro');
+      log.info(`Trial started for new user: ${user.email}`);
+    } catch (trialError) {
+      log.warn(`Failed to start trial for user ${user.id}:`, trialError);
+      // Don't fail registration if trial creation fails
+    }
+
     res.status(201).json({
       success: true,
       data: {
@@ -371,6 +382,16 @@ router.post('/login', async (req: Request, res: Response) => {
       user_agent: req.headers['user-agent'],
       expires_at: expiresAt,
     });
+
+    // Start trial for new user
+    try {
+      const promoDao = getPromoCodeDAO();
+      await promoDao.startTrial(user.id, 14, 'pro');
+      log.info(`Trial started for new user: ${user.email}`);
+    } catch (trialError) {
+      log.warn(`Failed to start trial for user ${user.id}:`, trialError);
+      // Don't fail registration if trial creation fails
+    }
 
     log.info(`User logged in: ${user.email}`);
 

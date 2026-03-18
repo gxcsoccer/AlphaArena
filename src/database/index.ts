@@ -250,6 +250,7 @@ export {
   type FeatureAccessResult,
   type UserSubscriptionStatus 
 } from './subscription.dao';
+export { PromoCodeDAO, getPromoCodeDAO, type PromoCode, type PromoCodeUsage, type UserTrial, type PromoCodeValidationResult, type TrialStartResult } from './promo-code.dao';
 
 // Trading Schedules DAO
 export { TradingSchedulesDAO, tradingSchedulesDAO } from './trading-schedules.dao';

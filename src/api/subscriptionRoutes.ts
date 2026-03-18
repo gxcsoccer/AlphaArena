@@ -11,6 +11,7 @@ import {
 } from '../database/subscription.dao';
 import { PaymentDAO, getPaymentDAO } from '../database/payment.dao';
 import { getWebhookEventDAO } from '../database/webhookEvent.dao';
+import { getPromoCodeDAO } from '../database/promo-code.dao';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 import {
@@ -527,6 +528,27 @@ router.post('/webhook', async (req: Request, res: Response) => {
                 stripePriceId: subscriptionData.priceId || stripePriceId,
                 trialEnd: subscriptionData.trialEnd,
               });
+
+              // Handle promo code usage and trial conversion
+              const promoDao = getPromoCodeDAO();
+
+              // Check if this is a conversion from trial
+              const trial = await promoDao.getUserTrial(userId);
+              if (trial && trial.status === 'active') {
+                await promoDao.convertTrial(userId, getPlanIdFromPriceId(subscriptionData.priceId || stripePriceId));
+              }
+
+              // Check if there's a promo code in metadata
+              const promoCodeId = session.metadata?.promoCodeId;
+              if (promoCodeId) {
+                await promoDao.recordUsage({
+                  promoCodeId,
+                  userId,
+                  stripeSubscriptionId,
+                  stripeInvoiceId: session.invoice,
+                  planId: getPlanIdFromPriceId(subscriptionData.priceId || stripePriceId),
+                });
+              }
             }
           }
           break;
