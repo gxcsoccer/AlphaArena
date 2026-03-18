@@ -1,17 +1,13 @@
 {
-  "current": 24,
-  "startDate": "2026-04-01",
-  "endDate": "2026-04-08",
-  "milestone": 22,
+  "current": 25,
+  "startDate": "2026-04-29",
+  "endDate": "2026-05-06",
+  "milestone": 26,
   "status": "planning",
-  "issues": [
-    292,
-    293,
-    294
-  ],
+  "issues": [327, 328, 329],
   "goals": [
-    "策略模板市场 (Strategy Template Marketplace)",
-    "多时间框架分析 (Multi-Timeframe Analysis)",
-    "高级订单类型 (Advanced Order Types)"
+    "订阅计划与付费功能 (Subscription Plans & Premium Features)",
+    "AI 策略助手 (AI Strategy Assistant)",
+    "自动化交易调度器 (Automated Trading Scheduler)"
   ]
 }

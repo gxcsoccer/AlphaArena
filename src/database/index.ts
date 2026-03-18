@@ -31,6 +31,7 @@ export { SignalExecutionsDAO, type SignalExecution, type CreateExecutionInput, t
 export { SignalPublisherStatsDAO, type PublisherStats, type CreateStatsInput, type UpdateStatsInput, type StatsFilters } from './signal-publisher-stats.dao';
 export { CommentsDAO, commentsDAO, StrategyComment, CommentLike, CommentReport, CreateCommentInput, UpdateCommentInput, CommentListOptions } from './comments.dao';
 export { RiskMonitorDAO, riskMonitorDAO, type RiskAlert, type CreateRiskAlertInput, type UpdateRiskAlertInput, type RiskAlertHistoryEntry, type RiskHistoryEntry, type CreateRiskHistoryInput, type PositionRisk, type CreatePositionRiskInput, type CorrelationEntry, type CreateCorrelationInput, type RiskHistoryFilters, type RiskAlertFilters, type RiskMetric, type AlertOperator, type AlertChannel, type RiskPeriodType } from './risk-monitor.dao';
+export * from './ai.dao.js';
 
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
