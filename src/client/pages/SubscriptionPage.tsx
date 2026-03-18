@@ -27,8 +27,10 @@ import {
   IconTrophy,
   IconTrophy,
   IconThunderbolt,
+  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import HelpButton, { HelpButtons } from '../components/HelpButton';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -271,7 +273,13 @@ const SubscriptionPage: React.FC = () => {
     <ErrorBoundary>
       <div style={{ padding: isMobile ? '16px' : '24px', maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
-          <Title heading={2}>选择适合您的计划</Title>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <Title heading={2} style={{ margin: 0 }}>选择适合您的计划</Title>
+            <HelpButton
+              compact
+              {...HelpButtons.subscription}
+            />
+          </div>
           <Text type="secondary">
             升级解锁更多功能，提升交易效率
           </Text>
