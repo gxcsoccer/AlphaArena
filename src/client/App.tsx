@@ -66,6 +66,7 @@ const RebalancePage = lazyWithRetry(() => import('./pages/RebalancePage'));
 const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'));
 const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/SubscriptionSuccessPage'));
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
+const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -434,6 +435,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+        <Route path="/admin/revenue" element={<AdminDashboardPage />} />
       </Routes>
     </Suspense>
   );
