@@ -364,7 +364,7 @@ export async function saveStrategySuggestionCache(input: {
     .upsert(
       {
         strategy_id: input.strategyId,
-        suggestion_type: input.suggestionResult,
+        suggestion_type: input.suggestionType,
         suggestion_result: input.suggestionResult,
         strategy_data_hash: input.strategyDataHash,
         model: input.model,
