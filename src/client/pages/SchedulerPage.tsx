@@ -32,6 +32,8 @@ import {
   IconExclamationCircle,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import SchedulerStatusIndicator from '../components/SchedulerStatusIndicator';
+import SchedulerExecutionLog from '../components/SchedulerExecutionLog';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
@@ -504,8 +506,48 @@ const SchedulerPage: React.FC = () => {
   return (
     <ErrorBoundary>
       <div style={{ padding: isMobile ? '16px' : '24px' }}>
+        {/* Real-time Status Indicator */}
         <Row gutter={[16, 16]}>
           <Col span={24}>
+            <SchedulerStatusIndicator 
+              userId={(() => {
+                try {
+                  const token = localStorage.getItem('token');
+                  if (token) {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    return payload.sub || payload.user_id;
+                  }
+                } catch {
+                  return undefined;
+                }
+                return undefined;
+              })()} 
+            />
+          </Col>
+        </Row>
+
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          {/* Execution Log - Left Side */}
+          <Col xs={24} lg={8}>
+            <SchedulerExecutionLog 
+              userId={(() => {
+                try {
+                  const token = localStorage.getItem('token');
+                  if (token) {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    return payload.sub || payload.user_id;
+                  }
+                } catch {
+                  return undefined;
+                }
+                return undefined;
+              })()}
+              maxEvents={15}
+            />
+          </Col>
+
+          {/* Schedules Table - Right Side */}
+          <Col xs={24} lg={16}>
             <Card>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                 <Title heading={4} style={{ margin: 0 }}>Trading Schedules</Title>

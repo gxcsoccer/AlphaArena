@@ -13,6 +13,7 @@ import {
 import { getSupabaseClient } from '../database/client';
 import { createLogger } from '../utils/logger';
 import { getAlertService } from '../alerting';
+import { getSchedulerRealtimeService } from '../realtime/SchedulerRealtimeService';
 
 const log = createLogger('SchedulerService');
 
@@ -36,6 +37,7 @@ export class SchedulerService {
   private isRunning: boolean = false;
   private checkInterval?: NodeJS.Timeout;
   private alertService = getAlertService();
+  private realtimeService = getSchedulerRealtimeService();
 
   private constructor(private config: SchedulerConfig = {}) {}
 
@@ -215,6 +217,15 @@ export class SchedulerService {
       triggerType,
     });
 
+    // Broadcast execution start event
+    this.realtimeService.broadcastExecutionStart(
+      schedule.userId,
+      schedule.id,
+      schedule.name,
+      execution.id,
+      triggerType
+    ).catch(err => log.error('Failed to broadcast execution start:', err));
+
     try {
       const result = await this.executeStrategy(schedule);
 
@@ -288,6 +299,22 @@ export class SchedulerService {
       }
 
       log.info('Schedule ' + scheduleId + ' execution completed: ' + (result.success ? 'success' : 'failed'));
+      
+      // Broadcast execution complete event
+      this.realtimeService.broadcastExecutionComplete(
+        schedule.userId,
+        schedule.id,
+        schedule.name,
+        execution.id,
+        triggerType,
+        {
+          success: result.success,
+          tradesExecuted: result.tradesExecuted,
+          totalValue: result.totalValue,
+          errorMessage: result.error?.message ?? result.message,
+        }
+      ).catch(err => log.error('Failed to broadcast execution complete:', err));
+      
       return completedExecution;
     } catch (err) {
       log.error('Schedule ' + scheduleId + ' execution failed:', err);
@@ -300,6 +327,20 @@ export class SchedulerService {
       });
 
       await tradingSchedulesDAO.updateExecutionStats(schedule.id, false);
+
+      // Broadcast execution failed event
+      this.realtimeService.broadcastExecutionComplete(
+        schedule.userId,
+        schedule.id,
+        schedule.name,
+        execution.id,
+        triggerType,
+        {
+          success: false,
+          tradesExecuted: 0,
+          errorMessage: err instanceof Error ? err.message : String(err),
+        }
+      ).catch(broadcastErr => log.error('Failed to broadcast execution failed:', broadcastErr));
 
       return null;
     }
@@ -341,11 +382,24 @@ export class SchedulerService {
         triggerType: options.triggerType || 'scheduled',
       });
 
-      return await tradingSchedulesDAO.updateExecution(execution.id, {
+      const updatedExecution = await tradingSchedulesDAO.updateExecution(execution.id, {
         completedAt: new Date(),
         status,
         errorMessage: options.message,
       });
+
+      // Broadcast execution skipped event if status is 'skipped'
+      if (status === 'skipped') {
+        this.realtimeService.broadcastExecutionSkipped(
+          schedule.userId,
+          schedule.id,
+          schedule.name,
+          execution.id,
+          options.message || 'Execution skipped'
+        ).catch(err => log.error('Failed to broadcast execution skipped:', err));
+      }
+
+      return updatedExecution;
     } catch (err) {
       log.error('Failed to record execution:', err);
       return null;

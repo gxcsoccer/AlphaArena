@@ -13,6 +13,7 @@ import {
   UpdateSafetyConfigInput
 } from '../database/trading-schedules.dao';
 import { getSchedulerService } from '../scheduler/SchedulerService';
+import { getSchedulerRealtimeService } from '../realtime/SchedulerRealtimeService';
 import getSupabaseClient from '../database/client';
 import { createLogger } from '../utils/logger';
 
@@ -66,6 +67,7 @@ function validateCronExpression(expression: string): { valid: boolean; error?: s
 export function createSchedulerRouter(): Router {
   const router = Router();
   const schedulerService = getSchedulerService();
+  const realtimeService = getSchedulerRealtimeService();
 
   // ============================================
   // Schedule CRUD Routes
@@ -134,6 +136,10 @@ export function createSchedulerRouter(): Router {
       if (schedule.enabled) {
         await schedulerService.registerSchedule(schedule);
       }
+
+      // Broadcast schedule created event
+      realtimeService.broadcastScheduleUpdate(userId, schedule.id, 'created')
+        .catch(err => log.error('Failed to broadcast schedule created:', err));
 
       log.info('Created schedule ' + schedule.id + ' for user ' + userId);
       res.status(201).json(schedule);
@@ -254,6 +260,10 @@ export function createSchedulerRouter(): Router {
         await schedulerService.unregisterSchedule(scheduleId);
       }
 
+      // Broadcast schedule updated event
+      realtimeService.broadcastScheduleUpdate(userId, scheduleId, 'updated')
+        .catch(err => log.error('Failed to broadcast schedule updated:', err));
+
       log.info('Updated schedule ' + scheduleId);
       res.json(updatedSchedule);
     } catch (err) {
@@ -279,6 +289,10 @@ export function createSchedulerRouter(): Router {
 
       await schedulerService.unregisterSchedule(scheduleId);
       await tradingSchedulesDAO.delete(scheduleId);
+
+      // Broadcast schedule deleted event
+      realtimeService.broadcastScheduleUpdate(userId, scheduleId, 'deleted')
+        .catch(err => log.error('Failed to broadcast schedule deleted:', err));
 
       log.info('Deleted schedule ' + scheduleId);
       res.json({ success: true });
@@ -310,6 +324,10 @@ export function createSchedulerRouter(): Router {
       const updatedSchedule = await tradingSchedulesDAO.update(scheduleId, { enabled: true });
       await schedulerService.registerSchedule(updatedSchedule);
 
+      // Broadcast schedule enabled event
+      realtimeService.broadcastScheduleUpdate(userId, scheduleId, 'enabled')
+        .catch(err => log.error('Failed to broadcast schedule enabled:', err));
+
       log.info('Enabled schedule ' + scheduleId);
       res.json(updatedSchedule);
     } catch (err) {
@@ -335,6 +353,10 @@ export function createSchedulerRouter(): Router {
 
       await schedulerService.unregisterSchedule(scheduleId);
       const updatedSchedule = await tradingSchedulesDAO.update(scheduleId, { enabled: false });
+
+      // Broadcast schedule disabled event
+      realtimeService.broadcastScheduleUpdate(userId, scheduleId, 'disabled')
+        .catch(err => log.error('Failed to broadcast schedule disabled:', err));
 
       log.info('Disabled schedule ' + scheduleId);
       res.json(updatedSchedule);
