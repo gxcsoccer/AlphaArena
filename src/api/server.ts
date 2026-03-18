@@ -50,6 +50,7 @@ import multiTimeframeRoutes from '../multi-timeframe/routes';
 import { createSignalRouter } from './signalRoutes';
 import { createRebalanceRouter } from './rebalanceRoutes';
 import { createSchedulerRouter } from './schedulerRoutes';
+import alertRoutes from './alertRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -908,6 +909,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/risk', createRiskMonitorRouter());
     this.app.use('/api/subscriptions', subscriptionRoutes);
     this.app.use('/api/schedules', createSchedulerRouter());
+    this.app.use('/api/alerts', alertRoutes);
 
     // AI Strategy Assistant routes
     this.app.use('/api/ai', aiRoutes);

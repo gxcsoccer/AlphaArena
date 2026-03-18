@@ -12,6 +12,7 @@ import {
 } from '../database/trading-schedules.dao';
 import { getSupabaseClient } from '../database/client';
 import { createLogger } from '../utils/logger';
+import { getAlertService } from '../alerting';
 
 const log = createLogger('SchedulerService');
 
@@ -34,6 +35,7 @@ export class SchedulerService {
   private intervalJobs: Map<string, NodeJS.Timeout> = new Map();
   private isRunning: boolean = false;
   private checkInterval?: NodeJS.Timeout;
+  private alertService = getAlertService();
 
   private constructor(private config: SchedulerConfig = {}) {}
 
@@ -242,6 +244,34 @@ export class SchedulerService {
             lastFailureAt: new Date(),
             isPaused: shouldPause,
           });
+
+          // Trigger alert for consecutive failures
+          if (newConsecutiveFailures >= 2) {
+            try {
+              await this.alertService.alertConsecutiveFailures(
+                schedule.userId,
+                schedule.id,
+                schedule.name,
+                newConsecutiveFailures,
+                result.error?.message ?? result.message ?? 'Unknown error',
+                schedule.strategyId
+              );
+            } catch (alertErr) {
+              log.error('Failed to send consecutive failure alert:', alertErr);
+            }
+          }
+
+          // Trigger circuit breaker alert if paused
+          if (shouldPause) {
+            try {
+              await this.alertService.alertCircuitBreaker(
+                schedule.userId,
+                `调度器 "${schedule.name}" 因连续 ${newConsecutiveFailures} 次失败而暂停`
+              );
+            } catch (alertErr) {
+              log.error('Failed to send circuit breaker alert:', alertErr);
+            }
+          }
 
           if (shouldPause) {
             log.warn('Schedule ' + scheduleId + ' paused due to ' + newConsecutiveFailures + ' consecutive failures');
