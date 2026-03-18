@@ -19,6 +19,7 @@ import {
   IconExperiment,
   IconBook,
   IconList,
+  IconGift,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -26,6 +27,7 @@ import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import MobileBottomNav from './components/MobileBottomNav';
+import AIAssistantButton from './components/AIAssistantButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
@@ -59,6 +61,7 @@ const ApiDocsPage = lazyWithRetry(() => import('./pages/ApiDocsPage'));
 const SchedulerPage = lazyWithRetry(() => import('./pages/SchedulerPage'));
 const UserProfilePage = lazyWithRetry(() => import('./pages/UserProfilePage'));
 const RebalancePage = lazyWithRetry(() => import('./pages/RebalancePage'));
+const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -240,6 +243,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
               Leaderboard
             </MenuItem>
+            <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
+              订阅
+            </MenuItem>
           </Menu>
         </Sider>
       )}
@@ -376,8 +382,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
+          <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
+            订阅
+          </MenuItem>
         </Menu>
       </Drawer>
+      {/* AI Strategy Assistant Floating Button */}
+      <AIAssistantButton />
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav visible={isMobile && !['/login', '/register'].includes(location.pathname)} />
       {/* Spacer for bottom nav */}
@@ -414,6 +425,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/rebalance" element={<RebalancePage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
         <Route path="/scheduler" element={<SchedulerPage />} />
+        <Route path="/subscription" element={<SubscriptionPage />} />
       </Routes>
     </Suspense>
   );

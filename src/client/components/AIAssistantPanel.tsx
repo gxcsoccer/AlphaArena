@@ -6,7 +6,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Card, Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip } from '@arco-design/web-react';
 import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine } from '@arco-design/web-react/icon';
-import ReactMarkdown from 'react-markdown';
+import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import './AIAssistantPanel.css';
 
 const { TextArea } = Input;
@@ -213,7 +214,11 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ userId, context }) 
                 <div className="ai-message-content">
                   <div className="ai-message-text">
                     {message.role === 'assistant' ? (
-                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                      <div 
+                        dangerouslySetInnerHTML={{ 
+                          __html: DOMPurify.sanitize(marked.parse(message.content) as string) 
+                        }}
+                      />
                     ) : (
                       <Text>{message.content}</Text>
                     )}
