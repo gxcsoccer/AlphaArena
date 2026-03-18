@@ -13,9 +13,15 @@ const router = Router();
 const alertService = getAlertService();
 
 // Simple auth middleware inline
+// WARNING: Development-only auth middleware. Do not use in production.
 const requireAuth = (req: Request, res: Response, next: () => void) => {
+  // Environment check: only allow this auth method in development
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(401).json({ error: 'Unauthorized - Production requires proper authentication' });
+  }
+
   // In a real app, this would verify the session/token
-  // For now, we check for a user_id header (development only)
+  // For development, we check for a user_id header
   const userId = req.headers['x-user-id'] as string;
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized' });

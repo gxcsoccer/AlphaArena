@@ -2,51 +2,50 @@
  * AlertService Tests
  */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { AlertService, getAlertService } from '../AlertService';
 
 // Mock the database modules
-vi.mock('../../database/alert-rules.dao', () => ({
+jest.mock('../../database/alert-rules.dao', () => ({
   alertRulesDao: {
-    createAlertRule: vi.fn(),
-    getAlertRuleById: vi.fn(),
-    listAlertRules: vi.fn(),
-    updateAlertRule: vi.fn(),
-    deleteAlertRule: vi.fn(),
-    updateAlertRuleTrigger: vi.fn(),
-    isRuleInCooldown: vi.fn(),
-    getRulesForEntity: vi.fn(),
+    createAlertRule: jest.fn(),
+    getAlertRuleById: jest.fn(),
+    listAlertRules: jest.fn(),
+    updateAlertRule: jest.fn(),
+    deleteAlertRule: jest.fn(),
+    updateAlertRuleTrigger: jest.fn(),
+    isRuleInCooldown: jest.fn(),
+    getRulesForEntity: jest.fn(),
   },
 }));
 
-vi.mock('../../database/alert-history.dao', () => ({
+jest.mock('../../database/alert-history.dao', () => ({
   alertHistoryDao: {
-    createAlertHistory: vi.fn(),
-    getAlertHistoryById: vi.fn(),
-    listAlertHistory: vi.fn(),
-    updateAlertHistory: vi.fn(),
-    acknowledgeAlert: vi.fn(),
-    resolveAlert: vi.fn(),
-    getUnacknowledgedAlerts: vi.fn(),
-    getUnresolvedAlerts: vi.fn(),
-    getAlertStats: vi.fn(),
-    deleteOldAlertHistory: vi.fn(),
+    createAlertHistory: jest.fn(),
+    getAlertHistoryById: jest.fn(),
+    listAlertHistory: jest.fn(),
+    updateAlertHistory: jest.fn(),
+    acknowledgeAlert: jest.fn(),
+    resolveAlert: jest.fn(),
+    getUnacknowledgedAlerts: jest.fn(),
+    getUnresolvedAlerts: jest.fn(),
+    getAlertStats: jest.fn(),
+    deleteOldAlertHistory: jest.fn(),
   },
 }));
 
-vi.mock('../../database/alert-configurations.dao', () => ({
+jest.mock('../../database/alert-configurations.dao', () => ({
   alertConfigurationsDao: {
-    getAlertConfiguration: vi.fn(),
-    createDefaultAlertConfiguration: vi.fn(),
-    updateAlertConfiguration: vi.fn(),
-    isInQuietHours: vi.fn(),
-    isAlertTypeEnabled: vi.fn(),
+    getAlertConfiguration: jest.fn(),
+    createDefaultAlertConfiguration: jest.fn(),
+    updateAlertConfiguration: jest.fn(),
+    isInQuietHours: jest.fn(),
+    isAlertTypeEnabled: jest.fn(),
   },
 }));
 
-vi.mock('../../notification/NotificationService', () => ({
-  createRiskNotification: vi.fn().mockResolvedValue({ id: 'notif-1' }),
-  createSystemNotification: vi.fn().mockResolvedValue({ id: 'notif-2' }),
+jest.mock('../../notification/NotificationService', () => ({
+  createRiskNotification: jest.fn().mockResolvedValue({ id: 'notif-1' }),
+  createSystemNotification: jest.fn().mockResolvedValue({ id: 'notif-2' }),
 }));
 
 import { alertRulesDao } from '../../database/alert-rules.dao';
@@ -57,12 +56,12 @@ describe('AlertService', () => {
   let alertService: AlertService;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     alertService = AlertService.getInstance();
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('getInstance', () => {
@@ -90,7 +89,7 @@ describe('AlertService', () => {
         updated_at: new Date(),
       };
 
-      vi.mocked(alertRulesDao.createAlertRule).mockResolvedValue(mockRule);
+      jest.mocked(alertRulesDao.createAlertRule).mockResolvedValue(mockRule);
 
       const result = await alertService.createRule({
         user_id: 'user-1',
@@ -104,11 +103,7 @@ describe('AlertService', () => {
         user_id: 'user-1',
         name: 'Test Rule',
         rule_type: 'consecutive_failures',
-        severity: 'medium',
         conditions: { threshold: 3 },
-        channels: { in_app: true, email: false, webhook: false },
-        is_enabled: true,
-        cooldown_minutes: 30,
       });
     });
   });
@@ -130,7 +125,7 @@ describe('AlertService', () => {
         updated_at: new Date(),
       };
 
-      vi.mocked(alertRulesDao.getAlertRuleById).mockResolvedValue(mockRule);
+      jest.mocked(alertRulesDao.getAlertRuleById).mockResolvedValue(mockRule);
 
       const result = await alertService.getRule('rule-1');
 
@@ -158,7 +153,7 @@ describe('AlertService', () => {
         },
       ];
 
-      vi.mocked(alertRulesDao.listAlertRules).mockResolvedValue({
+      jest.mocked(alertRulesDao.listAlertRules).mockResolvedValue({
         rules: mockRules,
         total: 1,
       });
@@ -172,7 +167,7 @@ describe('AlertService', () => {
 
   describe('deleteRule', () => {
     it('should delete an alert rule', async () => {
-      vi.mocked(alertRulesDao.deleteAlertRule).mockResolvedValue(true);
+      jest.mocked(alertRulesDao.deleteAlertRule).mockResolvedValue(true);
 
       const result = await alertService.deleteRule('rule-1');
 
@@ -184,7 +179,7 @@ describe('AlertService', () => {
   describe('triggerAlert', () => {
     it('should trigger an alert and send notifications', async () => {
       // Mock configuration
-      vi.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
+      jest.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
         id: 'config-1',
         user_id: 'user-1',
         alerts_enabled: true,
@@ -200,9 +195,9 @@ describe('AlertService', () => {
         updated_at: new Date(),
       });
 
-      vi.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(false);
-      vi.mocked(alertRulesDao.getRulesForEntity).mockResolvedValue([]);
-      vi.mocked(alertRulesDao.isRuleInCooldown).mockResolvedValue(false);
+      jest.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(false);
+      jest.mocked(alertRulesDao.getRulesForEntity).mockResolvedValue([]);
+      jest.mocked(alertRulesDao.isRuleInCooldown).mockResolvedValue(false);
 
       const mockAlertHistory = {
         id: 'alert-1',
@@ -219,8 +214,8 @@ describe('AlertService', () => {
         created_at: new Date(),
       };
 
-      vi.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
-      vi.mocked(alertHistoryDao.updateAlertHistory).mockResolvedValue({
+      jest.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
+      jest.mocked(alertHistoryDao.updateAlertHistory).mockResolvedValue({
         ...mockAlertHistory,
         notification_status: 'sent',
         sent_at: new Date(),
@@ -238,7 +233,7 @@ describe('AlertService', () => {
     });
 
     it('should skip alert if user is in quiet hours', async () => {
-      vi.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
+      jest.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
         id: 'config-1',
         user_id: 'user-1',
         alerts_enabled: true,
@@ -252,7 +247,7 @@ describe('AlertService', () => {
         updated_at: new Date(),
       });
 
-      vi.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(true);
+      jest.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(true);
 
       const mockAlertHistory = {
         id: 'alert-1',
@@ -269,7 +264,7 @@ describe('AlertService', () => {
         created_at: new Date(),
       };
 
-      vi.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
+      jest.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
 
       const result = await alertService.triggerAlert('consecutive_failures', {
         userId: 'user-1',
@@ -279,7 +274,7 @@ describe('AlertService', () => {
     });
 
     it('should not trigger alert if alerts are disabled', async () => {
-      vi.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
+      jest.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
         id: 'config-1',
         user_id: 'user-1',
         alerts_enabled: false,
@@ -303,7 +298,7 @@ describe('AlertService', () => {
 
   describe('alertConsecutiveFailures', () => {
     it('should trigger a consecutive failures alert', async () => {
-      vi.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
+      jest.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
         id: 'config-1',
         user_id: 'user-1',
         alerts_enabled: true,
@@ -319,9 +314,9 @@ describe('AlertService', () => {
         updated_at: new Date(),
       });
 
-      vi.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(false);
-      vi.mocked(alertRulesDao.getRulesForEntity).mockResolvedValue([]);
-      vi.mocked(alertRulesDao.isRuleInCooldown).mockResolvedValue(false);
+      jest.mocked(alertConfigurationsDao.isInQuietHours).mockResolvedValue(false);
+      jest.mocked(alertRulesDao.getRulesForEntity).mockResolvedValue([]);
+      jest.mocked(alertRulesDao.isRuleInCooldown).mockResolvedValue(false);
 
       const mockAlertHistory = {
         id: 'alert-1',
@@ -338,8 +333,8 @@ describe('AlertService', () => {
         created_at: new Date(),
       };
 
-      vi.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
-      vi.mocked(alertHistoryDao.updateAlertHistory).mockResolvedValue(mockAlertHistory);
+      jest.mocked(alertHistoryDao.createAlertHistory).mockResolvedValue(mockAlertHistory);
+      jest.mocked(alertHistoryDao.updateAlertHistory).mockResolvedValue(mockAlertHistory);
 
       const result = await alertService.alertConsecutiveFailures(
         'user-1',
@@ -379,7 +374,7 @@ describe('AlertService', () => {
         created_at: new Date(),
       };
 
-      vi.mocked(alertHistoryDao.acknowledgeAlert).mockResolvedValue(mockAlert);
+      jest.mocked(alertHistoryDao.acknowledgeAlert).mockResolvedValue(mockAlert);
 
       const result = await alertService.acknowledgeAlert('alert-1', 'user-1');
 
@@ -407,7 +402,7 @@ describe('AlertService', () => {
         created_at: new Date(),
       };
 
-      vi.mocked(alertHistoryDao.resolveAlert).mockResolvedValue(mockAlert);
+      jest.mocked(alertHistoryDao.resolveAlert).mockResolvedValue(mockAlert);
 
       const result = await alertService.resolveAlert('alert-1', 'user-1', 'Fixed the issue');
 
@@ -419,7 +414,7 @@ describe('AlertService', () => {
 
   describe('getAlertStats', () => {
     it('should return alert statistics', async () => {
-      vi.mocked(alertHistoryDao.getAlertStats).mockResolvedValue({
+      jest.mocked(alertHistoryDao.getAlertStats).mockResolvedValue({
         total: 10,
         byType: { consecutive_failures: 5, execution_timeout: 3, position_limit: 2 },
         bySeverity: { low: 2, medium: 5, high: 2, critical: 1 },
@@ -438,7 +433,7 @@ describe('AlertService', () => {
 
   describe('getConfiguration', () => {
     it('should get user alert configuration', async () => {
-      vi.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
+      jest.mocked(alertConfigurationsDao.getAlertConfiguration).mockResolvedValue({
         id: 'config-1',
         user_id: 'user-1',
         alerts_enabled: true,

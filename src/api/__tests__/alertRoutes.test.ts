@@ -2,52 +2,44 @@
  * Alert Routes Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import request from 'supertest';
 import express from 'express';
 import alertRoutes from '../alertRoutes';
 
 // Mock dependencies
-vi.mock('../../alerting', () => ({
+jest.mock('../../alerting', () => ({
   getAlertService: () => ({
-    createRule: vi.fn().mockResolvedValue({ id: 'rule-1', name: 'Test Rule' }),
-    getRule: vi.fn().mockResolvedValue({ id: 'rule-1', name: 'Test Rule', user_id: 'user-1' }),
-    listRules: vi.fn().mockResolvedValue({ rules: [], total: 0 }),
-    updateRule: vi.fn().mockResolvedValue({ id: 'rule-1', name: 'Updated Rule' }),
-    deleteRule: vi.fn().mockResolvedValue(true),
-    acknowledgeAlert: vi.fn().mockResolvedValue({ id: 'alert-1', is_acknowledged: true }),
-    resolveAlert: vi.fn().mockResolvedValue({ id: 'alert-1', is_resolved: true }),
-    getUnacknowledgedAlerts: vi.fn().mockResolvedValue([]),
-    getAlertStats: vi.fn().mockResolvedValue({ total: 0 }),
-    updateConfiguration: vi.fn().mockResolvedValue({ id: 'config-1' }),
+    createRule: jest.fn().mockResolvedValue({ id: 'rule-1', name: 'Test Rule' }),
+    getRule: jest.fn().mockResolvedValue({ id: 'rule-1', name: 'Test Rule', user_id: 'user-1' }),
+    listRules: jest.fn().mockResolvedValue({ rules: [], total: 0 }),
+    updateRule: jest.fn().mockResolvedValue({ id: 'rule-1', name: 'Updated Rule' }),
+    deleteRule: jest.fn().mockResolvedValue(true),
+    acknowledgeAlert: jest.fn().mockResolvedValue({ id: 'alert-1', is_acknowledged: true }),
+    resolveAlert: jest.fn().mockResolvedValue({ id: 'alert-1', is_resolved: true }),
+    getUnacknowledgedAlerts: jest.fn().mockResolvedValue([]),
+    getAlertStats: jest.fn().mockResolvedValue({ total: 0 }),
+    updateConfiguration: jest.fn().mockResolvedValue({ id: 'config-1' }),
   }),
 }));
 
-vi.mock('../../database/alert-rules.dao', () => ({
+jest.mock('../../database/alert-rules.dao', () => ({
   alertRulesDao: {
-    listAlertRules: vi.fn().mockResolvedValue({ rules: [], total: 0 }),
-    getAlertRuleById: vi.fn().mockResolvedValue(null),
-    deleteAlertRule: vi.fn().mockResolvedValue(true),
+    listAlertRules: jest.fn().mockResolvedValue({ rules: [], total: 0 }),
+    getAlertRuleById: jest.fn().mockResolvedValue(null),
+    deleteAlertRule: jest.fn().mockResolvedValue(true),
   },
 }));
 
-vi.mock('../../database/alert-history.dao', () => ({
+jest.mock('../../database/alert-history.dao', () => ({
   alertHistoryDao: {
-    listAlertHistory: vi.fn().mockResolvedValue({ alerts: [], total: 0 }),
-    getAlertHistoryById: vi.fn().mockResolvedValue(null),
+    listAlertHistory: jest.fn().mockResolvedValue({ alerts: [], total: 0 }),
+    getAlertHistoryById: jest.fn().mockResolvedValue(null),
   },
 }));
 
-vi.mock('../../database/alert-configurations.dao', () => ({
+jest.mock('../../database/alert-configurations.dao', () => ({
   alertConfigurationsDao: {
-    getAlertConfiguration: vi.fn().mockResolvedValue({ id: 'config-1' }),
-  },
-}));
-
-vi.mock('../../middleware/auth', () => ({
-  authenticateUser: (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    req.user = { id: 'user-1', email: 'test@example.com' };
-    next();
+    getAlertConfiguration: jest.fn().mockResolvedValue({ id: 'config-1' }),
   },
 }));
 
@@ -62,7 +54,7 @@ describe('Alert Routes', () => {
   let app: express.Application;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     app = createApp();
   });
 
@@ -70,6 +62,7 @@ describe('Alert Routes', () => {
     it('should list alert rules for authenticated user', async () => {
       const response = await request(app)
         .get('/api/alerts/rules')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -82,6 +75,7 @@ describe('Alert Routes', () => {
     it('should create a new alert rule', async () => {
       const response = await request(app)
         .post('/api/alerts/rules')
+        .set('x-user-id', 'user-1')
         .send({
           name: 'Test Rule',
           rule_type: 'consecutive_failures',
@@ -96,6 +90,7 @@ describe('Alert Routes', () => {
     it('should return 400 for missing required fields', async () => {
       const response = await request(app)
         .post('/api/alerts/rules')
+        .set('x-user-id', 'user-1')
         .send({
           name: 'Test Rule',
           // missing rule_type and conditions
@@ -111,6 +106,7 @@ describe('Alert Routes', () => {
     it('should list alert history for authenticated user', async () => {
       const response = await request(app)
         .get('/api/alerts/history')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -123,6 +119,7 @@ describe('Alert Routes', () => {
     it('should acknowledge an alert', async () => {
       const response = await request(app)
         .post('/api/alerts/history/alert-1/acknowledge')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -134,6 +131,7 @@ describe('Alert Routes', () => {
     it('should resolve an alert', async () => {
       const response = await request(app)
         .post('/api/alerts/history/alert-1/resolve')
+        .set('x-user-id', 'user-1')
         .send({ resolution_note: 'Fixed the issue' })
         .expect('Content-Type', /json/);
 
@@ -146,6 +144,7 @@ describe('Alert Routes', () => {
     it('should return alert statistics', async () => {
       const response = await request(app)
         .get('/api/alerts/stats')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -157,6 +156,7 @@ describe('Alert Routes', () => {
     it('should return unacknowledged alerts', async () => {
       const response = await request(app)
         .get('/api/alerts/unacknowledged')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -168,6 +168,7 @@ describe('Alert Routes', () => {
     it('should return user alert configuration', async () => {
       const response = await request(app)
         .get('/api/alerts/configuration')
+        .set('x-user-id', 'user-1')
         .expect('Content-Type', /json/);
 
       expect(response.status).toBe(200);
@@ -179,6 +180,7 @@ describe('Alert Routes', () => {
     it('should update user alert configuration', async () => {
       const response = await request(app)
         .put('/api/alerts/configuration')
+        .set('x-user-id', 'user-1')
         .send({ alerts_enabled: true })
         .expect('Content-Type', /json/);
 

@@ -479,6 +479,21 @@ export class AlertService extends EventEmitter {
     return results;
   }
 
+
+  /**
+   * Map alert rule type to risk notification type
+   */
+  private mapRuleTypeToRiskType(ruleType: AlertRuleType): 'position_limit' | 'loss_threshold' | 'exposure_limit' | 'margin_call' {
+    const mapping: Record<AlertRuleType, 'position_limit' | 'loss_threshold' | 'exposure_limit' | 'margin_call'> = {
+      consecutive_failures: 'loss_threshold',
+      execution_timeout: 'exposure_limit',
+      position_limit: 'position_limit',
+      circuit_breaker: 'margin_call',
+      error_rate: 'loss_threshold',
+      custom: 'position_limit',
+    };
+    return mapping[ruleType] || 'position_limit';
+  }
   /**
    * Send in-app notification
    */
@@ -489,7 +504,7 @@ export class AlertService extends EventEmitter {
         alert.title,
         alert.message,
         {
-          risk_type: 'position_limit', // Map to appropriate risk type
+          risk_type: this.mapRuleTypeToRiskType(alert.rule_type),
           current_value: 0,
           threshold_value: 0,
           message_details: alert.message,
@@ -502,11 +517,23 @@ export class AlertService extends EventEmitter {
     }
   }
 
+
   private async sendEmailNotification(alert: AlertHistory, email: string): Promise<boolean> {
     try {
-      // This would integrate with an email service (SendGrid, AWS SES, etc.)
-      log.info(`Would send email to ${email}: ${alert.title}`);
-      // For now, just log it
+      // Environment check: warn if called in production without email service integration
+      if (process.env.NODE_ENV === 'production') {
+        log.warn('Email notification called in production but email service is not integrated. Alert:', {
+          alertId: alert.id,
+          email,
+          title: alert.title,
+        });
+        // Return false to indicate email was not sent
+        return false;
+      }
+
+      // TODO: Integrate with email service (SendGrid, AWS SES, Resend, etc.) before production use
+      // For development, just log it
+      log.info(`[DEV] Would send email to ${email}: ${alert.title}`);
       return true;
     } catch (error) {
       log.error('Failed to send email notification:', error);
