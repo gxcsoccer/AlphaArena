@@ -28,6 +28,7 @@ import { DashboardSkeleton } from '../components/Skeleton';
 import MobileTableCard from '../components/MobileTableCard';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
+import UsageDashboard from '../components/UsageDashboard';
 
 const { Title, Text } = Typography;
 
@@ -390,6 +391,13 @@ const DashboardPage: React.FC = () => {
         <div style={{ marginBottom: 24 }}>
           <StatsGrid />
         </div>
+
+        {/* Usage Dashboard Widget */}
+        <Row gutter={16} style={{ marginBottom: 24 }}>
+          <Col span={12}>
+            <UsageDashboard compact />
+          </Col>
+        </Row>
 
         {/* Charts */}
         <div style={{ marginBottom: 24 }}>
