@@ -1,0 +1,22 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "首页加载"
+    flow:
+      - aiAssert: "页面成功加载，显示 AlphaArena 标题或主要内容"
+  - name: "调度器页面状态指示器"
+    flow:
+      - ai: "如果有登录按钮，先点击登录"
+      - ai: "导航到调度器页面（Scheduler）"
+      - aiAssert: "页面显示调度器状态指示器，可以显示运行中、暂停或停止状态"
+  - name: "帮助按钮功能"
+    flow:
+      - ai: "导航到订阅页面（Subscription）"
+      - aiAssert: "页面显示帮助按钮或帮助图标"
+      - ai: "点击帮助按钮"
+      - aiAssert: "显示帮助内容或文档弹窗"
+  - name: "管理后台收入仪表板"
+    flow:
+      - ai: "导航到管理员收入分析页面（/admin/revenue 或类似路径）"
+      - aiAssert: "显示收入分析仪表板，包含 MRR、ARR 等指标"
