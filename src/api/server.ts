@@ -1,6 +1,7 @@
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import path from 'path';
+import { generateOpenApiSpec } from './swaggerConfig';
 /**
  * AlphaArena API Server
  *
@@ -247,20 +248,49 @@ export class APIServer extends EventEmitter {
    * Setup REST API routes
    */
   private setupRoutes(): void {
-    // API Documentation with Swagger UI
+    // API Documentation with Swagger UI - Auto-generated from JSDoc comments
     try {
-      const swaggerDocument = YAML.load(path.join(__dirname, '../../docs/api/openapi.yaml'));
+      // Generate OpenAPI spec from JSDoc comments in the codebase
+      const swaggerDocument = generateOpenApiSpec();
+      
+      // Serve Swagger UI at /docs/api
+      this.app.use('/docs/api', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+        customCss: '.swagger-ui .topbar { display: none }',
+        customSiteTitle: 'AlphaArena API Documentation',
+        explorer: true,
+        swaggerOptions: {
+          persistAuthorization: true,
+          displayRequestDuration: true,
+          filter: true,
+          tryItOutEnabled: true,
+        },
+      }));
+      
+      // Serve the raw OpenAPI spec as JSON
+      this.app.get('/docs/api/openapi.json', (req: Request, res: Response) => {
+        res.json(swaggerDocument);
+      });
+      
+      // Legacy endpoint - redirect to new location
       this.app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
         customCss: '.swagger-ui .topbar { display: none }',
         customSiteTitle: 'AlphaArena API Documentation',
       }));
-      // Also serve the raw OpenAPI spec
-      this.app.get('/api-docs/openapi.yaml', (req: Request, res: Response) => {
-        res.sendFile(path.join(__dirname, '../../docs/api/openapi.yaml'));
-      });
-      log.info('Swagger UI available at /api-docs');
+      
+      log.info('Swagger UI available at /docs/api');
     } catch (error: any) {
-      log.warn('Failed to load OpenAPI spec:', error.message);
+      log.warn('Failed to generate OpenAPI spec:', error.message);
+      // Fallback to static file if auto-generation fails
+      try {
+        const swaggerDocument = YAML.load(path.join(__dirname, '../../docs/api/openapi.yaml'));
+        this.app.use('/docs/api', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+          customCss: '.swagger-ui .topbar { display: none }',
+          customSiteTitle: 'AlphaArena API Documentation',
+        }));
+        log.info('Swagger UI (fallback) available at /docs/api');
+      } catch (fallbackError: any) {
+        log.error('Failed to load fallback OpenAPI spec:', fallbackError.message);
+      }
     }
 
     this.app.get('/health', (req: Request, res: Response) => {

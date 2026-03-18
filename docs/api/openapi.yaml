@@ -1,1727 +1,110 @@
 openapi: 3.0.0
 info:
-  title: AlphaArena Trading Platform API
-  description: |
-    Comprehensive API for the AlphaArena algorithmic trading platform.
-    
-    ## Authentication
-    Most API endpoints require authentication. Use one of the following methods:
-    - **API Key**: Include `X-API-Key` header with your API key
-    - **JWT Token**: Include `Authorization: Bearer <token>` header
-    
-    ## Rate Limits
-    Rate limits are based on API key permissions:
-    - **read**: 60 requests/minute, 10,000 requests/day
-    - **trade**: 120 requests/minute, 20,000 requests/day
-    - **admin**: 300 requests/minute, 50,000 requests/day
-    
-    Rate limit headers are included in every response:
-    - `X-RateLimit-Limit-Minute`: Maximum requests per minute
-    - `X-RateLimit-Remaining-Minute`: Remaining requests this minute
-    - `X-RateLimit-Limit-Day`: Maximum requests per day
-    - `X-RateLimit-Remaining-Day`: Remaining requests today
-    
-    ## Error Handling
-    All errors follow a consistent format:
-    ```json
-    {
-      "success": false,
-      "error": "Error message",
-      "code": "ERROR_CODE"
-    }
-    ```
-    
+  title: 'AlphaArena Trading Platform API'
+  description: "\nComprehensive API for the AlphaArena algorithmic trading platform.\n\n## Authentication\nMost API endpoints require authentication. Use one of the following methods:\n- **API Key**: Include `X-API-Key` header with your API key\n- **JWT Token**: Include `Authorization: Bearer <token>` header\n\n## Rate Limits\nRate limits are based on API key permissions:\n- **read**: 60 requests/minute, 10,000 requests/day\n- **trade**: 120 requests/minute, 20,000 requests/day\n- **admin**: 300 requests/minute, 50,000 requests/day\n\nRate limit headers are included in every response:\n- `X-RateLimit-Limit-Minute`: Maximum requests per minute\n- `X-RateLimit-Remaining-Minute`: Remaining requests this minute\n- `X-RateLimit-Limit-Day`: Maximum requests per day\n- `X-RateLimit-Remaining-Day`: Remaining requests today\n\n## Error Handling\nAll errors follow a consistent format:\n```json\n{\n  \"success\": false,\n  \"error\": \"Error message\",\n  \"code\": \"ERROR_CODE\"\n}\n```\n      "
   version: 1.0.0
   contact:
-    name: AlphaArena Support
+    name: 'AlphaArena Support'
     email: support@alphaarena.io
   license:
     name: MIT
-    url: https://opensource.org/licenses/MIT
-
+    url: 'https://opensource.org/licenses/MIT'
 servers:
-  - url: https://alphaarena-production.up.railway.app/api
-    description: Production server
-  - url: http://localhost:3001/api
-    description: Development server
-
+  -
+    url: /api
+    description: 'Current server (relative path)'
+  -
+    url: 'https://alphaarena-production.up.railway.app/api'
+    description: 'Production server'
+  -
+    url: 'http://localhost:3001/api'
+    description: 'Development server'
 tags:
-  - name: Health
-    description: System health and status endpoints
-  - name: Authentication
-    description: User authentication and authorization
-  - name: Strategies
-    description: Trading strategy management
-  - name: Trades
-    description: Trade history and execution
-  - name: Orders
-    description: Order management
-  - name: Conditional Orders
-    description: Stop-loss, take-profit, and OCO orders
-  - name: Portfolios
-    description: Portfolio management
-  - name: Market Data
-    description: Market ticker and price data
-  - name: Orderbook
-    description: Order book data
-  - name: Leaderboard
-    description: Strategy performance rankings
-  - name: Backtest
-    description: Strategy backtesting
-  - name: Bot Management
-    description: Trading bot configuration
-  - name: Bot Control
-    description: Trading bot execution control
-  - name: Webhooks
-    description: Webhook configuration
-  - name: API Keys
-    description: API key management
-  - name: Templates
-    description: Strategy templates marketplace
-  - name: Copy Trading
-    description: Copy trading features
-  - name: Notifications
-    description: User notifications
-  - name: Export
-    description: Data export functionality
-
-paths:
-  # =====================================================
-  # Health Endpoints
-  # =====================================================
-  /health:
-    get:
-      summary: Health check
-      description: Check if the API server is running
-      operationId: healthCheck
-      tags:
-        - Health
-      security: []
-      responses:
-        '200':
-          description: Server is healthy
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: ok
-                  timestamp:
-                    type: integer
-
-  /health/status:
-    get:
-      summary: Detailed health status
-      description: Get detailed system health status
-      operationId: healthStatus
-      tags:
-        - Health
-      responses:
-        '200':
-          description: System status
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                  uptime:
-                    type: number
-                  version:
-                    type: string
-
-  /metrics:
-    get:
-      summary: System metrics
-      description: Get system performance metrics
-      operationId: getMetrics
-      tags:
-        - Health
-      responses:
-        '200':
-          description: Metrics data
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  memory:
-                    type: object
-                  cpu:
-                    type: object
-                  requests:
-                    type: object
-
-  # =====================================================
-  # Authentication Endpoints
-  # =====================================================
-  /auth/register:
-    post:
-      summary: Register new user
-      description: Create a new user account
-      operationId: registerUser
-      tags:
-        - Authentication
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-      responses:
-        '201':
-          description: User registered successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        $ref: '#/components/schemas/User'
-                      token:
-                        type: string
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/login:
-    post:
-      summary: User login
-      description: Authenticate user and get access token
-      operationId: loginUser
-      tags:
-        - Authentication
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginRequest'
-      responses:
-        '200':
-          description: Login successful
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        $ref: '#/components/schemas/User'
-                      token:
-                        type: string
-        '401':
-          description: Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/me:
-    get:
-      summary: Get current user
-      description: Get the authenticated user's profile
-      operationId: getCurrentUser
-      tags:
-        - Authentication
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/User'
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  # =====================================================
-  # Strategy Endpoints
-  # =====================================================
-  /strategies:
-    get:
-      summary: List all strategies
-      description: Retrieve a list of all trading strategies
-      operationId: listStrategies
-      tags:
-        - Strategies
-      parameters:
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Strategy'
-
-  /strategies/{id}:
-    get:
-      summary: Get strategy details
-      description: Retrieve details for a specific strategy
-      operationId: getStrategy
-      tags:
-        - Strategies
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Strategy'
-        '404':
-          description: Strategy not found
-
-  /strategies/compare:
-    get:
-      summary: Compare strategies
-      description: Compare performance metrics across multiple strategies
-      operationId: compareStrategies
-      tags:
-        - Strategies
-      parameters:
-        - name: ids
-          in: query
-          description: Comma-separated list of strategy IDs
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Comparison results
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        strategyId:
-                          type: string
-                        metrics:
-                          type: object
-
-  # =====================================================
-  # Trade Endpoints
-  # =====================================================
-  /trades:
-    get:
-      summary: List all trades
-      description: Retrieve a list of all trades with optional filtering
-      operationId: listTrades
-      tags:
-        - Trades
-      parameters:
-        - name: strategyId
-          in: query
-          schema:
-            type: string
-        - name: symbol
-          in: query
-          schema:
-            type: string
-        - name: side
-          in: query
-          schema:
-            type: string
-            enum: [buy, sell]
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 100
-        - name: offset
-          in: query
-          schema:
-            type: integer
-            default: 0
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Trade'
-                  count:
-                    type: integer
-
-  /trades/export:
-    get:
-      summary: Export trades
-      description: Export trades to CSV or JSON format
-      operationId: exportTrades
-      tags:
-        - Trades
-      parameters:
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [csv, json]
-            default: csv
-        - name: strategyId
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Exported trades file
-          content:
-            text/csv:
-              schema:
-                type: string
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Trade'
-
-  # =====================================================
-  # Portfolio Endpoints
-  # =====================================================
-  /portfolios:
-    get:
-      summary: List portfolios
-      description: Retrieve all portfolios
-      operationId: listPortfolios
-      tags:
-        - Portfolios
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Portfolio'
-
-  /portfolios/history:
-    get:
-      summary: Get portfolio history
-      description: Retrieve portfolio value history over time
-      operationId: getPortfolioHistory
-      tags:
-        - Portfolios
-      parameters:
-        - name: strategyId
-          in: query
-          schema:
-            type: string
-        - name: period
-          in: query
-          schema:
-            type: string
-            enum: [1d, 7d, 30d, 90d, 1y]
-            default: 30d
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        timestamp:
-                          type: string
-                          format: date-time
-                        value:
-                          type: number
-
-  # =====================================================
-  # Order Endpoints
-  # =====================================================
-  /orders:
-    get:
-      summary: List orders
-      description: Retrieve all orders with optional filtering
-      operationId: listOrders
-      tags:
-        - Orders
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [open, filled, cancelled, all]
-            default: all
-        - name: symbol
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Order'
-
-    post:
-      summary: Create a new order
-      description: Submit a new order
-      operationId: createOrder
-      tags:
-        - Orders
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateOrderRequest'
-      responses:
-        '201':
-          description: Order created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Order'
-
-  /orders/{orderId}/cancel:
-    post:
-      summary: Cancel an order
-      description: Cancel an open order
-      operationId: cancelOrder
-      tags:
-        - Orders
-      parameters:
-        - name: orderId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Order cancelled successfully
-        '404':
-          description: Order not found
-
-  # =====================================================
-  # Conditional Order Endpoints
-  # =====================================================
-  /conditional-orders:
-    get:
-      summary: List conditional orders
-      description: Retrieve all conditional orders (stop-loss, take-profit, etc.)
-      operationId: listConditionalOrders
-      tags:
-        - Conditional Orders
-      parameters:
-        - name: status
-          in: query
-          schema:
-            type: string
-            enum: [active, triggered, cancelled, all]
-            default: active
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ConditionalOrder'
-
-    post:
-      summary: Create conditional order
-      description: Create a new conditional order (stop-loss, take-profit, OCO)
-      operationId: createConditionalOrder
-      tags:
-        - Conditional Orders
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateConditionalOrderRequest'
-      responses:
-        '201':
-          description: Conditional order created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/ConditionalOrder'
-
-  /conditional-orders/{orderId}/cancel:
-    post:
-      summary: Cancel conditional order
-      description: Cancel an active conditional order
-      operationId: cancelConditionalOrder
-      tags:
-        - Conditional Orders
-      parameters:
-        - name: orderId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Conditional order cancelled successfully
-        '404':
-          description: Conditional order not found
-
-  /conditional-orders/stats:
-    get:
-      summary: Get conditional order statistics
-      description: Retrieve statistics about conditional orders
-      operationId: getConditionalOrderStats
-      tags:
-        - Conditional Orders
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      total:
-                        type: integer
-                      active:
-                        type: integer
-                      triggered:
-                        type: integer
-                      cancelled:
-                        type: integer
-
-  # =====================================================
-  # Market Data Endpoints
-  # =====================================================
-  /market/tickers:
-    get:
-      summary: Get all market tickers
-      description: Retrieve ticker data for all trading pairs
-      operationId: getAllTickers
-      tags:
-        - Market Data
-      security: []
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Ticker'
-
-  /market/tickers/{symbol}:
-    get:
-      summary: Get ticker for symbol
-      description: Retrieve ticker data for a specific trading pair
-      operationId: getTicker
-      tags:
-        - Market Data
-      security: []
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          schema:
-            type: string
-          example: BTCUSDT
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Ticker'
-        '404':
-          description: Symbol not found
-
-  /market/kline/{symbol}:
-    get:
-      summary: Get K-line (candlestick) data
-      description: Retrieve candlestick/OHLCV data for a trading pair
-      operationId: getKlineData
-      tags:
-        - Market Data
-      security: []
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          schema:
-            type: string
-          example: BTCUSDT
-        - name: timeframe
-          in: query
-          schema:
-            type: string
-            enum: [1m, 5m, 15m, 1h, 4h, 1d]
-            default: 1h
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 100
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Candle'
-
-  # =====================================================
-  # Orderbook Endpoints
-  # =====================================================
-  /orderbook/{symbol}:
-    get:
-      summary: Get orderbook snapshot
-      description: Retrieve current orderbook (bids and asks) for a trading pair
-      operationId: getOrderbook
-      tags:
-        - Orderbook
-      security: []
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          schema:
-            type: string
-          example: BTCUSDT
-        - name: depth
-          in: query
-          schema:
-            type: integer
-            default: 20
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/OrderBook'
-
-  /orderbook/{symbol}/best:
-    get:
-      summary: Get best bid/ask prices
-      description: Retrieve the best bid and ask prices for a trading pair
-      operationId: getBestPrices
-      tags:
-        - Orderbook
-      security: []
-      parameters:
-        - name: symbol
-          in: path
-          required: true
-          schema:
-            type: string
-          example: BTCUSDT
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      bestBid:
-                        type: number
-                      bestAsk:
-                        type: number
-                      spread:
-                        type: number
-                      timestamp:
-                        type: integer
-
-  # =====================================================
-  # Leaderboard Endpoints
-  # =====================================================
-  /leaderboard:
-    get:
-      summary: Get leaderboard
-      description: Retrieve the strategy leaderboard with rankings
-      operationId: getLeaderboard
-      tags:
-        - Leaderboard
-      security: []
-      parameters:
-        - name: sortBy
-          in: query
-          schema:
-            type: string
-            enum: [totalReturn, winRate, profitFactor, sharpeRatio]
-            default: totalReturn
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LeaderboardEntry'
-
-  /leaderboard/{strategyId}:
-    get:
-      summary: Get strategy rank
-      description: Get ranking information for a specific strategy
-      operationId: getStrategyRank
-      tags:
-        - Leaderboard
-      security: []
-      parameters:
-        - name: strategyId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/LeaderboardEntry'
-
-  /leaderboard/refresh:
-    post:
-      summary: Refresh leaderboard
-      description: Trigger a leaderboard recalculation
-      operationId: refreshLeaderboard
-      tags:
-        - Leaderboard
-      responses:
-        '200':
-          description: Leaderboard refreshed successfully
-
-  /leaderboard/snapshot:
-    get:
-      summary: Get leaderboard snapshot
-      description: Get a historical snapshot of the leaderboard
-      operationId: getLeaderboardSnapshot
-      tags:
-        - Leaderboard
-      security: []
-      parameters:
-        - name: date
-          in: query
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/LeaderboardEntry'
-
-  # =====================================================
-  # Backtest Endpoints
-  # =====================================================
-  /backtest:
-    post:
-      summary: Run backtest
-      description: Run a backtest for a strategy
-      operationId: runBacktest
-      tags:
-        - Backtest
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/BacktestRequest'
-      responses:
-        '200':
-          description: Backtest completed successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/BacktestResult'
-
-  # =====================================================
-  # Bot Management Endpoints
-  # =====================================================
-  /bot:
-    get:
-      summary: List all bots
-      description: Retrieve a list of all trading bots
-      operationId: listBots
-      tags:
-        - Bot Management
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/BotConfig'
-                  count:
-                    type: integer
-
-    post:
-      summary: Create a new bot
-      description: Create a new trading bot with the specified configuration
-      operationId: createBot
-      tags:
-        - Bot Management
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateBotRequest'
-      responses:
-        '201':
-          description: Bot created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/BotConfig'
-                  message:
-                    type: string
-        '400':
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /bot/{id}:
-    get:
-      summary: Get bot details
-      description: Retrieve details for a specific bot including its current state
-      operationId: getBot
-      tags:
-        - Bot Management
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      config:
-                        $ref: '#/components/schemas/BotConfig'
-                      state:
-                        $ref: '#/components/schemas/BotState'
-        '404':
-          description: Bot not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    put:
-      summary: Update bot configuration
-      description: Update configuration for a specific bot
-      operationId: updateBot
-      tags:
-        - Bot Management
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateBotRequest'
-      responses:
-        '200':
-          description: Bot updated successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/BotConfig'
-        '404':
-          description: Bot not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-    delete:
-      summary: Delete a bot
-      description: Stop and delete a trading bot
-      operationId: deleteBot
-      tags:
-        - Bot Management
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Bot deleted successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        '404':
-          description: Bot not found
-
-  /bot/{id}/start:
-    post:
-      summary: Start a bot
-      description: Start a stopped or paused bot
-      operationId: startBot
-      tags:
-        - Bot Control
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Bot started successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-        '404':
-          description: Bot not found
-
-  /bot/{id}/stop:
-    post:
-      summary: Stop a bot
-      description: Stop a running bot
-      operationId: stopBot
-      tags:
-        - Bot Control
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Bot stopped successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  message:
-                    type: string
-
-  /bot/{id}/pause:
-    post:
-      summary: Pause a bot
-      description: Pause a running bot (can be resumed later)
-      operationId: pauseBot
-      tags:
-        - Bot Control
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Bot paused successfully
-
-  /bot/{id}/resume:
-    post:
-      summary: Resume a bot
-      description: Resume a paused bot
-      operationId: resumeBot
-      tags:
-        - Bot Control
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Bot resumed successfully
-
-  /bot/{id}/state:
-    get:
-      summary: Get bot state
-      description: Retrieve the current runtime state of a bot
-      operationId: getBotState
-      tags:
-        - Bot Management
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/BotState'
-
-  /bot/running/list:
-    get:
-      summary: List running bots
-      description: Get a list of all currently running bots
-      operationId: listRunningBots
-      tags:
-        - Bot Management
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      type: string
-                  count:
-                    type: integer
-
-  /bot/start-all:
-    post:
-      summary: Start all bots
-      description: Start all stopped bots (requires admin permission)
-      operationId: startAllBots
-      tags:
-        - Bot Control
-      responses:
-        '200':
-          description: All bots started successfully
-
-  /bot/stop-all:
-    post:
-      summary: Stop all bots
-      description: Stop all running bots (requires admin permission)
-      operationId: stopAllBots
-      tags:
-        - Bot Control
-      responses:
-        '200':
-          description: All bots stopped successfully
-
-  # =====================================================
-  # Webhook Endpoints
-  # =====================================================
-  /webhooks:
-    get:
-      summary: List webhooks
-      description: Retrieve all registered webhooks
-      operationId: listWebhooks
-      tags:
-        - Webhooks
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Webhook'
-
-    post:
-      summary: Create webhook
-      description: Register a new webhook endpoint
-      operationId: createWebhook
-      tags:
-        - Webhooks
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateWebhookRequest'
-      responses:
-        '201':
-          description: Webhook created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/Webhook'
-
-  /webhooks/{id}:
-    delete:
-      summary: Delete webhook
-      description: Remove a registered webhook
-      operationId: deleteWebhook
-      tags:
-        - Webhooks
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Webhook deleted successfully
-        '404':
-          description: Webhook not found
-
-  # =====================================================
-  # API Key Endpoints
-  # =====================================================
-  /keys:
-    get:
-      summary: List API keys
-      description: Get all API keys for the authenticated user
-      operationId: listApiKeys
-      tags:
-        - API Keys
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/ApiKey'
-
-    post:
-      summary: Create API key
-      description: Generate a new API key
-      operationId: createApiKey
-      tags:
-        - API Keys
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateApiKeyRequest'
-      responses:
-        '201':
-          description: API key created successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: object
-                    properties:
-                      key:
-                        $ref: '#/components/schemas/ApiKey'
-                      secret:
-                        type: string
-                        description: The API key secret (only shown once)
-
-  /keys/{id}:
-    delete:
-      summary: Revoke API key
-      description: Revoke an API key
-      operationId: revokeApiKey
-      tags:
-        - API Keys
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: API key revoked successfully
-        '404':
-          description: API key not found
-
-  # =====================================================
-  # Template Endpoints
-  # =====================================================
-  /templates:
-    get:
-      summary: List strategy templates
-      description: Get all available strategy templates
-      operationId: listTemplates
-      tags:
-        - Templates
-      security: []
-      parameters:
-        - name: category
-          in: query
-          schema:
-            type: string
-        - name: difficulty
-          in: query
-          schema:
-            type: string
-            enum: [beginner, intermediate, advanced]
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/StrategyTemplate'
-
-  /templates/{id}:
-    get:
-      summary: Get template details
-      description: Get detailed information about a strategy template
-      operationId: getTemplate
-      tags:
-        - Templates
-      security: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    $ref: '#/components/schemas/StrategyTemplate'
-        '404':
-          description: Template not found
-
-  # =====================================================
-  # Copy Trading Endpoints
-  # =====================================================
-  /copy-trading/followers:
-    get:
-      summary: List followers
-      description: Get all followers for the authenticated user's strategies
-      operationId: listFollowers
-      tags:
-        - Copy Trading
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Follower'
-
-  /copy-trading/following:
-    get:
-      summary: List following
-      description: Get all strategies the user is following
-      operationId: listFollowing
-      tags:
-        - Copy Trading
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Following'
-
-  # =====================================================
-  # Notification Endpoints
-  # =====================================================
-  /notifications:
-    get:
-      summary: List notifications
-      description: Get all notifications for the authenticated user
-      operationId: listNotifications
-      tags:
-        - Notifications
-      parameters:
-        - name: unreadOnly
-          in: query
-          schema:
-            type: boolean
-            default: false
-        - name: limit
-          in: query
-          schema:
-            type: integer
-            default: 50
-      responses:
-        '200':
-          description: Successful response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Notification'
-
-  /notifications/{id}/read:
-    post:
-      summary: Mark notification as read
-      description: Mark a specific notification as read
-      operationId: markNotificationRead
-      tags:
-        - Notifications
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Notification marked as read
-        '404':
-          description: Notification not found
-
-  /notifications/read-all:
-    post:
-      summary: Mark all as read
-      description: Mark all notifications as read
-      operationId: markAllNotificationsRead
-      tags:
-        - Notifications
-      responses:
-        '200':
-          description: All notifications marked as read
-
-  # =====================================================
-  # Export Endpoints
-  # =====================================================
-  /export/trades:
-    get:
-      summary: Export trades
-      description: Export trade history to CSV or JSON
-      operationId: exportTradesData
-      tags:
-        - Export
-      parameters:
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [csv, json]
-            default: csv
-        - name: startDate
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: endDate
-          in: query
-          schema:
-            type: string
-            format: date
-      responses:
-        '200':
-          description: Exported data
-          content:
-            text/csv:
-              schema:
-                type: string
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Trade'
-
-  /export/performance:
-    get:
-      summary: Export performance report
-      description: Export performance metrics and analytics
-      operationId: exportPerformance
-      tags:
-        - Export
-      parameters:
-        - name: format
-          in: query
-          schema:
-            type: string
-            enum: [csv, json, pdf]
-            default: pdf
-        - name: strategyId
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Performance report
-          content:
-            application/pdf:
-              schema:
-                type: string
-                format: binary
-            application/json:
-              schema:
-                type: object
-
+  -
+    name: Health
+    description: 'System health and status endpoints'
+  -
+    name: Authentication
+    description: 'User authentication and authorization'
+  -
+    name: Strategies
+    description: 'Trading strategy management'
+  -
+    name: Trades
+    description: 'Trade history and execution'
+  -
+    name: Orders
+    description: 'Order management'
+  -
+    name: 'Conditional Orders'
+    description: 'Stop-loss, take-profit, and OCO orders'
+  -
+    name: Portfolios
+    description: 'Portfolio management'
+  -
+    name: 'Market Data'
+    description: 'Market ticker and price data'
+  -
+    name: Orderbook
+    description: 'Order book data'
+  -
+    name: Leaderboard
+    description: 'Strategy performance rankings'
+  -
+    name: Backtest
+    description: 'Strategy backtesting'
+  -
+    name: 'Bot Management'
+    description: 'Trading bot configuration'
+  -
+    name: 'Bot Control'
+    description: 'Trading bot execution control'
+  -
+    name: Webhooks
+    description: 'Webhook configuration'
+  -
+    name: 'API Keys'
+    description: 'API key management'
+  -
+    name: Templates
+    description: 'Strategy templates marketplace'
+  -
+    name: 'Copy Trading'
+    description: 'Copy trading features'
+  -
+    name: Notifications
+    description: 'User notifications'
+  -
+    name: Export
+    description: 'Data export functionality'
+  -
+    name: AI
+    description: 'AI-powered features'
+  -
+    name: Subscriptions
+    description: 'Subscription management'
+  -
+    name: 'User Dashboard'
+    description: 'User dashboard and profile'
+  -
+    name: Schedules
+    description: 'Scheduled tasks management'
+  -
+    name: Alerts
+    description: 'Alert management'
 components:
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
       in: header
       name: X-API-Key
-      description: API Key for authentication (format: aa_live_xxx or aa_test_xxx)
+      description: 'API Key for authentication (format: aa_live_xxx or aa_test_xxx)'
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: JWT token obtained from login/register
-
+      description: 'JWT token obtained from login/register'
   schemas:
-    # =====================================================
-    # Error Schema
-    # =====================================================
     Error:
       type: object
       properties:
@@ -1732,33 +115,14 @@ components:
           type: string
         code:
           type: string
-
-    # =====================================================
-    # Trading Pair Schema
-    # =====================================================
-    TradingPair:
+    Success:
       type: object
-      required:
-        - base
-        - quote
-        - symbol
       properties:
-        base:
-          type: string
-          description: Base currency symbol (e.g., 'BTC')
-          example: BTC
-        quote:
-          type: string
-          description: Quote currency symbol (e.g., 'USDT')
-          example: USDT
-        symbol:
-          type: string
-          description: Full trading pair symbol
-          example: BTCUSDT
-
-    # =====================================================
-    # Strategy Schema
-    # =====================================================
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
     Strategy:
       type: object
       properties:
@@ -1770,12 +134,20 @@ components:
           type: string
         type:
           type: string
-          enum: [SMA, RSI, MACD, Bollinger, custom]
+          enum:
+            - SMA
+            - RSI
+            - MACD
+            - Bollinger
+            - custom
         params:
           type: object
         status:
           type: string
-          enum: [active, paused, stopped]
+          enum:
+            - active
+            - paused
+            - stopped
         capital:
           type: number
         createdAt:
@@ -1784,10 +156,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-
-    # =====================================================
-    # Trade Schema
-    # =====================================================
     Trade:
       type: object
       properties:
@@ -1799,7 +167,9 @@ components:
           type: string
         side:
           type: string
-          enum: [buy, sell]
+          enum:
+            - buy
+            - sell
         quantity:
           type: number
         price:
@@ -1811,10 +181,6 @@ components:
         timestamp:
           type: string
           format: date-time
-
-    # =====================================================
-    # Portfolio Schema
-    # =====================================================
     Portfolio:
       type: object
       properties:
@@ -1846,10 +212,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-
-    # =====================================================
-    # Order Schemas
-    # =====================================================
     Order:
       type: object
       properties:
@@ -1861,137 +223,30 @@ components:
           type: string
         side:
           type: string
-          enum: [buy, sell]
+          enum:
+            - buy
+            - sell
         type:
           type: string
-          enum: [market, limit, stop_market, stop_limit]
+          enum:
+            - market
+            - limit
+            - stop_market
+            - stop_limit
         quantity:
           type: number
         price:
           type: number
-        stopPrice:
-          type: number
         status:
           type: string
-          enum: [open, filled, partially_filled, cancelled]
-        filledQuantity:
-          type: number
-        averageFillPrice:
-          type: number
+          enum:
+            - open
+            - filled
+            - partially_filled
+            - cancelled
         createdAt:
           type: string
           format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
-    CreateOrderRequest:
-      type: object
-      required:
-        - symbol
-        - side
-        - type
-        - quantity
-      properties:
-        symbol:
-          type: string
-          example: BTCUSDT
-        side:
-          type: string
-          enum: [buy, sell]
-        type:
-          type: string
-          enum: [market, limit, stop_market, stop_limit]
-        quantity:
-          type: number
-          minimum: 0
-        price:
-          type: number
-          description: Required for limit and stop_limit orders
-        stopPrice:
-          type: number
-          description: Required for stop orders
-        strategyId:
-          type: string
-
-    # =====================================================
-    # Conditional Order Schemas
-    # =====================================================
-    ConditionalOrder:
-      type: object
-      properties:
-        id:
-          type: string
-        strategyId:
-          type: string
-        symbol:
-          type: string
-        type:
-          type: string
-          enum: [stop_loss, take_profit, oco, trailing_stop]
-        triggerPrice:
-          type: number
-        triggerCondition:
-          type: string
-          enum: [above, below]
-        orderType:
-          type: string
-          enum: [market, limit]
-        quantity:
-          type: number
-        limitPrice:
-          type: number
-        status:
-          type: string
-          enum: [active, triggered, cancelled]
-        createdAt:
-          type: string
-          format: date-time
-        triggeredAt:
-          type: string
-          format: date-time
-
-    CreateConditionalOrderRequest:
-      type: object
-      required:
-        - symbol
-        - type
-        - triggerPrice
-        - quantity
-      properties:
-        symbol:
-          type: string
-        type:
-          type: string
-          enum: [stop_loss, take_profit, oco, trailing_stop]
-        triggerPrice:
-          type: number
-        triggerCondition:
-          type: string
-          enum: [above, below]
-        orderType:
-          type: string
-          enum: [market, limit]
-          default: market
-        quantity:
-          type: number
-        limitPrice:
-          type: number
-        stopLossPrice:
-          type: number
-          description: For OCO orders
-        takeProfitPrice:
-          type: number
-          description: For OCO orders
-        trailingPercent:
-          type: number
-          description: For trailing stop orders
-        strategyId:
-          type: string
-
-    # =====================================================
-    # Market Data Schemas
-    # =====================================================
     Ticker:
       type: object
       properties:
@@ -2009,32 +264,8 @@ components:
           type: number
         volume24h:
           type: number
-        quoteVolume24h:
-          type: number
-        bid:
-          type: number
-        ask:
-          type: number
         timestamp:
           type: integer
-
-    Candle:
-      type: object
-      properties:
-        time:
-          type: integer
-          description: Unix timestamp in seconds
-        open:
-          type: number
-        high:
-          type: number
-        low:
-          type: number
-        close:
-          type: number
-        volume:
-          type: number
-
     OrderBook:
       type: object
       properties:
@@ -2046,8 +277,6 @@ components:
             type: array
             items:
               type: number
-            minItems: 2
-            maxItems: 2
           description: '[price, quantity] pairs'
         asks:
           type: array
@@ -2055,15 +284,9 @@ components:
             type: array
             items:
               type: number
-            minItems: 2
-            maxItems: 2
           description: '[price, quantity] pairs'
         timestamp:
           type: integer
-
-    # =====================================================
-    # Leaderboard Schema
-    # =====================================================
     LeaderboardEntry:
       type: object
       properties:
@@ -2085,132 +308,6 @@ components:
           type: number
         tradeCount:
           type: integer
-        createdAt:
-          type: string
-          format: date-time
-
-    # =====================================================
-    # Backtest Schemas
-    # =====================================================
-    BacktestRequest:
-      type: object
-      required:
-        - strategy
-        - symbol
-        - startDate
-        - endDate
-        - initialCapital
-      properties:
-        strategy:
-          type: string
-        strategyParams:
-          type: object
-        symbol:
-          type: string
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        initialCapital:
-          type: number
-        timeframe:
-          type: string
-          enum: [1m, 5m, 15m, 1h, 4h, 1d]
-          default: 1h
-
-    BacktestResult:
-      type: object
-      properties:
-        id:
-          type: string
-        strategy:
-          type: string
-        symbol:
-          type: string
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        initialCapital:
-          type: number
-        finalCapital:
-          type: number
-        totalReturn:
-          type: number
-        totalReturnPercent:
-          type: number
-        maxDrawdown:
-          type: number
-        sharpeRatio:
-          type: number
-        winRate:
-          type: number
-        profitFactor:
-          type: number
-        totalTrades:
-          type: integer
-        winningTrades:
-          type: integer
-        losingTrades:
-          type: integer
-        trades:
-          type: array
-          items:
-            $ref: '#/components/schemas/Trade'
-        equityCurve:
-          type: array
-          items:
-            type: object
-            properties:
-              timestamp:
-                type: string
-                format: date-time
-              value:
-                type: number
-
-    # =====================================================
-    # Bot Schemas
-    # =====================================================
-    RiskSettings:
-      type: object
-      properties:
-        maxCapitalPerTrade:
-          type: number
-          description: Maximum capital per trade (absolute or percentage)
-          default: 0.1
-        usePercentageCapital:
-          type: boolean
-          description: Use percentage for maxCapitalPerTrade
-          default: true
-        stopLossPercent:
-          type: number
-          description: Stop loss percentage (0-1)
-          default: 0.05
-        takeProfitPercent:
-          type: number
-          description: Take profit percentage (0-1)
-          default: 0.15
-        maxPositionSize:
-          type: number
-          description: Maximum position size
-          default: 1000
-        maxOrdersPerMinute:
-          type: number
-          description: Maximum orders per minute
-          default: 10
-        maxDailyLoss:
-          type: number
-          description: Maximum daily loss (0-1)
-          default: 0.1
-        riskControlEnabled:
-          type: boolean
-          description: Enable risk controls
-          default: true
-
     BotConfig:
       type: object
       required:
@@ -2224,45 +321,57 @@ components:
       properties:
         id:
           type: string
-          description: Unique bot identifier
+          description: 'Unique bot identifier'
         name:
           type: string
-          description: Bot name
+          description: 'Bot name'
         description:
           type: string
-          description: Bot description
+          description: 'Bot description'
         strategy:
           type: string
-          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
-          description: Trading strategy type
-        strategyParams:
-          type: object
-          description: Strategy-specific parameters
+          enum:
+            - SMA
+            - RSI
+            - MACD
+            - Bollinger
+            - Stochastic
+            - ATR
+          description: 'Trading strategy type'
         tradingPair:
-          $ref: '#/components/schemas/TradingPair'
+          type: object
+          properties:
+            base:
+              type: string
+              example: BTC
+            quote:
+              type: string
+              example: USDT
+            symbol:
+              type: string
+              example: BTCUSDT
         interval:
           type: string
-          enum: [1m, 5m, 15m, 1h, 4h, 1d]
-          description: Time interval for strategy execution
+          enum:
+            - 1m
+            - 5m
+            - 15m
+            - 1h
+            - 4h
+            - 1d
+          description: 'Time interval for strategy execution'
         mode:
           type: string
-          enum: [paper, live]
-          description: Trading mode
-        riskSettings:
-          $ref: '#/components/schemas/RiskSettings'
+          enum:
+            - paper
+            - live
+          description: 'Trading mode'
         initialCapital:
           type: number
-          description: Initial capital allocation
+          description: 'Initial capital allocation'
         enabled:
           type: boolean
-          description: Whether bot is enabled
-        createdAt:
-          type: string
-          format: date-time
-        updatedAt:
-          type: string
-          format: date-time
-
+          description: 'Whether bot is enabled'
     BotState:
       type: object
       properties:
@@ -2270,7 +379,11 @@ components:
           type: string
         status:
           type: string
-          enum: [stopped, running, paused, error]
+          enum:
+            - stopped
+            - running
+            - paused
+            - error
         portfolioValue:
           type: number
         initialCapital:
@@ -2287,120 +400,6 @@ components:
           type: integer
         lossCount:
           type: integer
-        positionQuantity:
-          type: number
-        positionAveragePrice:
-          type: number
-        lastSignalTime:
-          type: string
-          format: date-time
-        lastTradeTime:
-          type: string
-          format: date-time
-        lastError:
-          type: string
-        startedAt:
-          type: string
-          format: date-time
-        totalRuntimeMs:
-          type: integer
-
-    CreateBotRequest:
-      type: object
-      required:
-        - name
-        - strategy
-        - tradingPair
-        - initialCapital
-      properties:
-        name:
-          type: string
-          description: Bot name
-        description:
-          type: string
-          description: Bot description
-        strategy:
-          type: string
-          enum: [SMA, RSI, MACD, Bollinger, Stochastic, ATR]
-        strategyParams:
-          type: object
-          description: Strategy-specific parameters
-        tradingPair:
-          $ref: '#/components/schemas/TradingPair'
-        interval:
-          type: string
-          enum: [1m, 5m, 15m, 1h, 4h, 1d]
-          default: 1h
-        mode:
-          type: string
-          enum: [paper, live]
-          default: paper
-        riskSettings:
-          $ref: '#/components/schemas/RiskSettings'
-        initialCapital:
-          type: number
-          minimum: 0
-
-    UpdateBotRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-        strategyParams:
-          type: object
-        riskSettings:
-          $ref: '#/components/schemas/RiskSettings'
-        enabled:
-          type: boolean
-
-    # =====================================================
-    # Webhook Schemas
-    # =====================================================
-    Webhook:
-      type: object
-      properties:
-        id:
-          type: string
-        url:
-          type: string
-          format: uri
-        events:
-          type: array
-          items:
-            type: string
-            enum: [trade, order, signal, error, portfolio_update]
-        secret:
-          type: string
-        enabled:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-
-    CreateWebhookRequest:
-      type: object
-      required:
-        - url
-        - events
-      properties:
-        url:
-          type: string
-          format: uri
-        events:
-          type: array
-          items:
-            type: string
-            enum: [trade, order, signal, error, portfolio_update]
-          minItems: 1
-        secret:
-          type: string
-          description: Optional secret for webhook signature verification
-
-    # =====================================================
-    # Authentication Schemas
-    # =====================================================
     User:
       type: object
       properties:
@@ -2414,173 +413,6 @@ components:
         createdAt:
           type: string
           format: date-time
-
-    RegisterRequest:
-      type: object
-      required:
-        - email
-        - password
-        - username
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-          minLength: 8
-        username:
-          type: string
-          minLength: 3
-
-    LoginRequest:
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        email:
-          type: string
-          format: email
-        password:
-          type: string
-
-    # =====================================================
-    # API Key Schemas
-    # =====================================================
-    ApiKey:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        key:
-          type: string
-          description: Partially masked API key
-        permissions:
-          type: array
-          items:
-            type: string
-            enum: [read, trade, admin]
-        rateLimit:
-          type: integer
-          description: Requests per minute
-        dailyLimit:
-          type: integer
-          description: Requests per day
-        lastUsed:
-          type: string
-          format: date-time
-        createdAt:
-          type: string
-          format: date-time
-        expiresAt:
-          type: string
-          format: date-time
-
-    CreateApiKeyRequest:
-      type: object
-      required:
-        - name
-        - permissions
-      properties:
-        name:
-          type: string
-        permissions:
-          type: array
-          items:
-            type: string
-            enum: [read, trade, admin]
-          minItems: 1
-        expiresAt:
-          type: string
-          format: date-time
-
-    # =====================================================
-    # Template Schema
-    # =====================================================
-    StrategyTemplate:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        category:
-          type: string
-        difficulty:
-          type: string
-          enum: [beginner, intermediate, advanced]
-        strategy:
-          type: string
-        defaultParams:
-          type: object
-        paramSchema:
-          type: object
-          description: JSON Schema for parameters
-        performanceMetrics:
-          type: object
-          properties:
-            avgReturn:
-              type: number
-            winRate:
-              type: number
-            maxDrawdown:
-              type: number
-        tags:
-          type: array
-          items:
-            type: string
-        createdAt:
-          type: string
-          format: date-time
-
-    # =====================================================
-    # Copy Trading Schemas
-    # =====================================================
-    Follower:
-      type: object
-      properties:
-        id:
-          type: string
-        userId:
-          type: string
-        strategyId:
-          type: string
-        allocation:
-          type: number
-          description: Percentage of portfolio to allocate
-        copyTrades:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-
-    Following:
-      type: object
-      properties:
-        id:
-          type: string
-        strategyId:
-          type: string
-        strategyName:
-          type: string
-        allocation:
-          type: number
-        copyTrades:
-          type: boolean
-        status:
-          type: string
-          enum: [active, paused]
-        createdAt:
-          type: string
-          format: date-time
-
-    # =====================================================
-    # Notification Schema
-    # =====================================================
     Notification:
       type: object
       properties:
@@ -2588,7 +420,12 @@ components:
           type: string
         type:
           type: string
-          enum: [trade, signal, alert, error, system]
+          enum:
+            - trade
+            - signal
+            - alert
+            - error
+            - system
         title:
           type: string
         message:
@@ -2600,3 +437,836 @@ components:
         createdAt:
           type: string
           format: date-time
+security:
+  -
+    BearerAuth: []
+  -
+    ApiKeyAuth: []
+paths:
+  /health:
+    get:
+      summary: 'Health check'
+      description: 'Check if the API server is running'
+      operationId: healthCheck
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: 'Server is healthy'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, example: ok}
+                  timestamp: {type: integer, example: 1710844800000}
+  /health/status:
+    get:
+      summary: 'Detailed health status'
+      description: 'Get detailed system health status including database, realtime, and order book status'
+      operationId: healthStatus
+      tags:
+        - Health
+      responses:
+        '200':
+          description: 'System status'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, enum: [healthy, degraded, unhealthy]}
+                  uptime: {type: number, description: 'Server uptime in seconds'}
+                  version: {type: string}
+                  checks: {type: object, properties: {database: {type: boolean}, realtime: {type: boolean}, orderbooks: {type: integer}}}
+  /metrics:
+    get:
+      summary: 'System metrics'
+      description: 'Get system performance metrics including memory, CPU, and request statistics'
+      operationId: getMetrics
+      tags:
+        - Health
+      responses:
+        '200':
+          description: 'Metrics data'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  memory: {type: object, properties: {used: {type: integer}, total: {type: integer}, percentage: {type: number}}}
+                  cpu: {type: object, properties: {usage: {type: number}}}
+                  requests: {type: object, properties: {total: {type: integer}, perMinute: {type: number}, avgResponseTime: {type: number}}}
+  /metrics/errors:
+    get:
+      summary: 'Recent errors'
+      description: 'Get recent system errors for debugging'
+      operationId: getErrors
+      tags:
+        - Health
+      parameters:
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+          description: 'Maximum number of errors to return'
+      responses:
+        '200':
+          description: 'Error list'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors: {type: array, items: {type: object, properties: {message: {type: string}, severity: {type: string, enum: [low, medium, high, critical]}, timestamp: {type: string, format: date-time}}}}
+                  bySeverity: {type: object, additionalProperties: {type: integer}}
+                  total: {type: integer}
+  /api:
+    get:
+      summary: 'API information'
+      description: 'Get API version and available endpoints'
+      operationId: getApiInfo
+      tags:
+        - Health
+      security: []
+      responses:
+        '200':
+          description: 'API information'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name: {type: string, example: 'AlphaArena API'}
+                  version: {type: string, example: 1.0.0}
+                  endpoints: {type: object, properties: {strategies: {type: string}, trades: {type: string}, portfolios: {type: string}, stats: {type: string}, leaderboard: {type: string}}}
+                  realtime: {type: string, example: 'Supabase Realtime'}
+  /api/strategies:
+    get:
+      summary: 'List all strategies'
+      description: 'Retrieve a list of all trading strategies'
+      operationId: listStrategies
+      tags:
+        - Strategies
+      parameters:
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        -
+          name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/Strategy'}}
+  '/api/strategies/{id}':
+    get:
+      summary: 'Get strategy details'
+      description: 'Retrieve details for a specific strategy'
+      operationId: getStrategy
+      tags:
+        - Strategies
+      parameters:
+        -
+          name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 'Strategy ID'
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Strategy'}
+        '404':
+          description: 'Strategy not found'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/trades:
+    get:
+      summary: 'List all trades'
+      description: 'Retrieve a list of all trades with optional filtering'
+      operationId: listTrades
+      tags:
+        - Trades
+      parameters:
+        -
+          name: strategyId
+          in: query
+          schema:
+            type: string
+          description: 'Filter by strategy ID'
+        -
+          name: symbol
+          in: query
+          schema:
+            type: string
+          description: 'Filter by trading symbol'
+        -
+          name: side
+          in: query
+          schema:
+            type: string
+            enum:
+              - buy
+              - sell
+          description: 'Filter by trade side'
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+        -
+          name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/Trade'}}
+                  count: {type: integer}
+  /api/trades/export:
+    get:
+      summary: 'Export trades'
+      description: 'Export trades to CSV format'
+      operationId: exportTrades
+      tags:
+        - Trades
+      parameters:
+        -
+          name: strategyId
+          in: query
+          schema:
+            type: string
+        -
+          name: symbol
+          in: query
+          schema:
+            type: string
+        -
+          name: side
+          in: query
+          schema:
+            type: string
+            enum:
+              - buy
+              - sell
+        -
+          name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        -
+          name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 'Exported trades file'
+          content:
+            text/csv:
+              schema:
+                type: string
+  /api/portfolios:
+    get:
+      summary: 'List portfolios'
+      description: 'Retrieve all portfolios'
+      operationId: listPortfolios
+      tags:
+        - Portfolios
+      parameters:
+        -
+          name: strategyId
+          in: query
+          schema:
+            type: string
+        -
+          name: symbol
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Portfolio'}
+  /api/portfolios/history:
+    get:
+      summary: 'Get portfolio history'
+      description: 'Retrieve portfolio value history over time'
+      operationId: getPortfolioHistory
+      tags:
+        - Portfolios
+      parameters:
+        -
+          name: strategyId
+          in: query
+          required: true
+          schema:
+            type: string
+        -
+          name: timeRange
+          in: query
+          schema:
+            type: string
+            enum:
+              - 1d
+              - 1w
+              - 1m
+              - all
+            default: 1w
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {type: object, properties: {timestamp: {type: string, format: date-time}, value: {type: number}}}}
+        '400':
+          description: 'Missing strategyId parameter'
+  /api/stats:
+    get:
+      summary: 'Get system statistics'
+      description: 'Retrieve aggregate statistics about strategies, trades, and volumes'
+      operationId: getStats
+      tags:
+        - Strategies
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, properties: {totalStrategies: {type: integer}, activeStrategies: {type: integer}, totalTrades: {type: integer}, totalVolume: {type: number}, buyTrades: {type: integer}, sellTrades: {type: integer}}}
+  /api/leaderboard:
+    get:
+      summary: 'Get leaderboard'
+      description: 'Retrieve the strategy leaderboard with rankings'
+      operationId: getLeaderboard
+      tags:
+        - Leaderboard
+      security: []
+      parameters:
+        -
+          name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - roi
+              - winRate
+              - profitFactor
+              - sharpeRatio
+            default: roi
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/LeaderboardEntry'}}
+                  timestamp: {type: integer}
+  '/api/leaderboard/{strategyId}':
+    get:
+      summary: 'Get strategy rank'
+      description: 'Get ranking information for a specific strategy'
+      operationId: getStrategyRank
+      tags:
+        - Leaderboard
+      security: []
+      parameters:
+        -
+          name: strategyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/LeaderboardEntry'}
+        '404':
+          description: 'Strategy not found in leaderboard'
+  /api/leaderboard/refresh:
+    post:
+      summary: 'Refresh leaderboard'
+      description: 'Trigger a leaderboard recalculation'
+      operationId: refreshLeaderboard
+      tags:
+        - Leaderboard
+      responses:
+        '200':
+          description: 'Leaderboard refreshed successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/LeaderboardEntry'}}
+                  timestamp: {type: integer}
+  /api/orders:
+    get:
+      summary: 'List orders'
+      description: 'Retrieve all orders with optional filtering'
+      operationId: listOrders
+      tags:
+        - Orders
+      parameters:
+        -
+          name: symbol
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - pending
+              - filled
+              - cancelled
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/Order'}}
+                  timestamp: {type: integer}
+    post:
+      summary: 'Create a new order'
+      description: 'Submit a new order'
+      operationId: createOrder
+      tags:
+        - Orders
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - side
+                - type
+                - quantity
+              properties:
+                symbol:
+                  type: string
+                  example: BTCUSDT
+                side:
+                  type: string
+                  enum: [buy, sell]
+                type:
+                  type: string
+                  enum: [market, limit]
+                price:
+                  type: number
+                  description: 'Required for limit orders'
+                quantity:
+                  type: number
+      responses:
+        '201':
+          description: 'Order created successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Order'}
+                  timestamp: {type: integer}
+        '400':
+          description: 'Invalid request'
+  '/api/orders/{orderId}/cancel':
+    post:
+      summary: 'Cancel an order'
+      description: 'Cancel an open order'
+      operationId: cancelOrder
+      tags:
+        - Orders
+      parameters:
+        -
+          name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Order cancelled successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Order'}
+                  timestamp: {type: integer}
+        '400':
+          description: 'Only pending orders can be cancelled'
+        '404':
+          description: 'Order not found'
+  /api/conditional-orders:
+    get:
+      summary: 'List conditional orders'
+      description: 'Retrieve all conditional orders (stop-loss, take-profit)'
+      operationId: listConditionalOrders
+      tags:
+        - 'Conditional Orders'
+      parameters:
+        -
+          name: symbol
+          in: query
+          schema:
+            type: string
+        -
+          name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - active
+              - triggered
+              - cancelled
+        -
+          name: orderType
+          in: query
+          schema:
+            type: string
+            enum:
+              - stop_loss
+              - take_profit
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {type: object, properties: {id: {type: string}, symbol: {type: string}, side: {type: string, enum: [buy, sell]}, orderType: {type: string, enum: [stop_loss, take_profit]}, triggerPrice: {type: number}, quantity: {type: number}, status: {type: string, enum: [active, triggered, cancelled]}, createdAt: {type: string, format: date-time}}}}
+                  timestamp: {type: integer}
+    post:
+      summary: 'Create conditional order'
+      description: 'Create a new conditional order (stop-loss, take-profit)'
+      operationId: createConditionalOrder
+      tags:
+        - 'Conditional Orders'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - side
+                - orderType
+                - triggerPrice
+                - quantity
+              properties:
+                symbol:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                orderType:
+                  type: string
+                  enum: [stop_loss, take_profit]
+                triggerPrice:
+                  type: number
+                quantity:
+                  type: number
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: 'Conditional order created successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, properties: {id: {type: string}, symbol: {type: string}, orderType: {type: string}, triggerPrice: {type: number}, quantity: {type: number}, status: {type: string}}}
+                  timestamp: {type: integer}
+        '400':
+          description: 'Invalid request'
+  '/api/conditional-orders/{orderId}/cancel':
+    post:
+      summary: 'Cancel conditional order'
+      description: 'Cancel an active conditional order'
+      operationId: cancelConditionalOrder
+      tags:
+        - 'Conditional Orders'
+      parameters:
+        -
+          name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Conditional order cancelled successfully'
+        '400':
+          description: 'Only active conditional orders can be cancelled'
+        '404':
+          description: 'Conditional order not found'
+  /api/conditional-orders/stats:
+    get:
+      summary: 'Get conditional order statistics'
+      description: 'Retrieve statistics about conditional orders'
+      operationId: getConditionalOrderStats
+      tags:
+        - 'Conditional Orders'
+      parameters:
+        -
+          name: strategyId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, properties: {total: {type: integer}, active: {type: integer}, triggered: {type: integer}, cancelled: {type: integer}}}
+                  timestamp: {type: integer}
+  /api/market/tickers:
+    get:
+      summary: 'Get all market tickers'
+      description: 'Retrieve ticker data for all trading pairs'
+      operationId: getAllTickers
+      tags:
+        - 'Market Data'
+      security: []
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/Ticker'}}
+                  timestamp: {type: integer}
+  '/api/market/tickers/{symbol}':
+    get:
+      summary: 'Get ticker for symbol'
+      description: 'Retrieve ticker data for a specific trading pair'
+      operationId: getTicker
+      tags:
+        - 'Market Data'
+      security: []
+      parameters:
+        -
+          name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/Ticker'}
+                  timestamp: {type: integer}
+        '404':
+          description: 'Ticker not found for symbol'
+  '/api/market/kline/{symbol}':
+    get:
+      summary: 'Get K-line (candlestick) data'
+      description: 'Retrieve candlestick/OHLCV data for a trading pair'
+      operationId: getKlineData
+      tags:
+        - 'Market Data'
+      security: []
+      parameters:
+        -
+          name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+        -
+          name: timeframe
+          in: query
+          schema:
+            type: string
+            enum:
+              - 1m
+              - 5m
+              - 15m
+              - 1h
+              - 4h
+              - 1d
+            default: 1h
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 1000
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/Candle'}}
+                  timestamp: {type: integer}
+  '/api/orderbook/{symbol}':
+    get:
+      summary: 'Get orderbook snapshot'
+      description: 'Retrieve current orderbook (bids and asks) for a trading pair'
+      operationId: getOrderbook
+      tags:
+        - Orderbook
+      security: []
+      parameters:
+        -
+          name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+        -
+          name: levels
+          in: query
+          schema:
+            type: integer
+          description: 'Number of price levels to return'
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {$ref: '#/components/schemas/OrderBook'}
+                  timestamp: {type: integer}
+        '404':
+          description: 'Order book not found for symbol'
+  '/api/orderbook/{symbol}/best':
+    get:
+      summary: 'Get best bid/ask prices'
+      description: 'Retrieve the best bid and ask prices for a trading pair'
+      operationId: getBestPrices
+      tags:
+        - Orderbook
+      security: []
+      parameters:
+        -
+          name: symbol
+          in: path
+          required: true
+          schema:
+            type: string
+          example: BTCUSDT
+      responses:
+        '200':
+          description: 'Successful response'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: object, properties: {bestBid: {type: number}, bestAsk: {type: number}, spread: {type: number}}}
+                  timestamp: {type: integer}
+        '404':
+          description: 'Order book not found for symbol'

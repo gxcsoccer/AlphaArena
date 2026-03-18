@@ -242,7 +242,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
-            <MenuItem key="/api-docs" icon={<IconBook aria-hidden="true" />} role="menuitem">
+            <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
               API 文档
             </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
@@ -381,7 +381,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
-            <MenuItem key="/api-docs" icon={<IconBook aria-hidden="true" />} role="menuitem">
+            <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
               API 文档
             </MenuItem>
             <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
@@ -428,7 +428,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/user-dashboard" element={<UserDashboardPage />} />
-        <Route path="/api-docs" element={<ApiDocsPage />} />
+        <Route path="/docs/api" element={<ApiDocsPage />} />
         <Route path="/rebalance" element={<RebalancePage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
         <Route path="/scheduler" element={<SchedulerPage />} />
