@@ -1,0 +1,27 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "公共 API 文档页面"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/docs/api"
+      - sleep: 3000
+      - aiQuery: "判断页面是否显示 404 错误或正常内容，返回页面状态描述"
+  - name: "深度回测分析页面"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/backtest"
+      - sleep: 3000
+      - aiAssert: "页面显示了回测相关功能，如策略选择、参数配置或开始回测按钮"
+      - aiQuery: "描述页面中的主要功能元素"
+  - name: "多账户管理页面"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/virtual-account"
+      - sleep: 3000
+      - aiAssert: "页面显示了虚拟账户或多账户管理相关功能"
+      - aiQuery: "描述页面中的账户管理元素"
+  - name: "AI 策略推荐/策略市场页面"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/marketplace"
+      - sleep: 3000
+      - aiAssert: "页面显示了策略市场或策略推荐相关内容"
+      - aiQuery: "描述页面中的策略卡片或推荐元素"

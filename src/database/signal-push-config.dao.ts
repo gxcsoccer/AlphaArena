@@ -37,6 +37,12 @@ export interface SignalPushConfig {
   quietHoursEnd: string; // HH:MM format
   quietHoursTimezone: string;
   
+  // Push statistics
+  totalPushes?: number;
+  successfulPushes?: number;
+  failedPushes?: number;
+  lastPushAt?: Date | null;
+  
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -240,6 +246,10 @@ export class SignalPushConfigDAO {
       quietHoursStart: DEFAULT_CONFIG.quietHoursStart!,
       quietHoursEnd: DEFAULT_CONFIG.quietHoursEnd!,
       quietHoursTimezone: DEFAULT_CONFIG.quietHoursTimezone!,
+      totalPushes: 0,
+      successfulPushes: 0,
+      failedPushes: 0,
+      lastPushAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -262,6 +272,10 @@ export class SignalPushConfigDAO {
       quietHoursStart: row.quiet_hours_start as string,
       quietHoursEnd: row.quiet_hours_end as string,
       quietHoursTimezone: row.quiet_hours_timezone as string,
+      totalPushes: (row.total_pushes as number) || 0,
+      successfulPushes: (row.successful_pushes as number) || 0,
+      failedPushes: (row.failed_pushes as number) || 0,
+      lastPushAt: row.last_push_at ? new Date(row.last_push_at as string) : null,
       createdAt: new Date(row.created_at as string),
       updatedAt: new Date(row.updated_at as string),
     };

@@ -81,6 +81,57 @@ router.put('/push-config', authMiddleware, async (req: Request, res: Response) =
 });
 
 /**
+ * GET /api/signals/health
+ * Get signal push service health status
+ */
+router.get('/health', optionalAuthMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    
+    // Get connection quality from realtime client if available
+    const realtimeService = getSignalRealtimeService();
+    
+    // Basic health check response
+    const health = {
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      service: 'signal-push',
+      version: '1.0.0',
+      stats: {
+        totalPushes: 0,
+        successfulPushes: 0,
+        failedPushes: 0,
+        lastPushAt: null as string | null,
+      },
+      connection: {
+        status: 'unknown',
+        latency: 0,
+        reconnectAttempts: 0,
+      },
+    };
+    
+    // If user is authenticated, include user-specific stats
+    if (userId) {
+      // Get user's push config
+      const config = await pushConfigDAO.getOrCreate(userId);
+      
+      // Add user-specific information
+      health.stats = {
+        totalPushes: config.totalPushes || 0,
+        successfulPushes: config.successfulPushes || 0,
+        failedPushes: config.failedPushes || 0,
+        lastPushAt: config.lastPushAt ? config.lastPushAt.toISOString() : null,
+      };
+    }
+    
+    res.json({ success: true, data: health });
+  } catch (error: any) {
+    log.error('Failed to get health status:', error);
+    res.status(500).json({ error: 'Failed to get health status' });
+  }
+});
+
+/**
  * POST /api/signals/push-config/reset
  * Reset push config to defaults
  */
