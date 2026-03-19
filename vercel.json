@@ -1,6 +1,7 @@
 {
   "outputDirectory": "dist/client",
   "framework": "vite",
+  "trailingSlash": false,
   "rewrites": [
     {
       "source": "/api/users",
@@ -21,10 +22,15 @@
     {
       "source": "/socket.io/(.*)",
       "destination": "/socket.io/$1"
+    }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ],
   "headers": [
