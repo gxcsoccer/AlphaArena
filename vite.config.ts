@@ -21,6 +21,15 @@ export default defineConfig({
         target: 'http://localhost:8080',
         ws: true,
       },
+      // Proxy API documentation endpoints to backend (for development)
+      '/docs/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/api-docs': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
     },
   },
   build: {
