@@ -480,3 +480,8 @@ entrypoint = "./functions/users/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/signals/index.ts"
+
+[functions.marketplace]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/marketplace/index.ts"
