@@ -20,6 +20,7 @@ import {
   IconBook,
   IconList,
   IconGift,
+  IconStorage,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -67,6 +68,7 @@ const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'))
 const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/SubscriptionSuccessPage'));
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
+const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSettingsPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -251,6 +253,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
               订阅
             </MenuItem>
+            <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
+              数据源
+            </MenuItem>
           </Menu>
         </Sider>
       )}
@@ -390,6 +395,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
             订阅
           </MenuItem>
+          <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
+            数据源
+          </MenuItem>
         </Menu>
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
@@ -436,6 +444,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
+        <Route path="/data-source" element={<DataSourceSettingsPage />} />
       </Routes>
     </Suspense>
   );

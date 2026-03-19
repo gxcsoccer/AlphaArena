@@ -1,0 +1,77 @@
+/**
+ * Data Source Settings Page Styles
+ */
+
+.data-source-settings-page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  gap: 16px;
+}
+
+.provider-card {
+  width: 100%;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.provider-card:hover {
+  border-color: rgb(var(--primary-6));
+}
+
+.provider-card.active {
+  border-color: rgb(var(--primary-6));
+  background-color: var(--color-fill-1);
+}
+
+.provider-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+/* Dark mode adjustments */
+.dark .provider-card {
+  background-color: var(--color-bg-2);
+}
+
+.dark .provider-card:hover {
+  background-color: var(--color-fill-2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .data-source-settings-page {
+    padding: 16px;
+  }
+  
+  .provider-card {
+    padding: 12px;
+  }
+}
+
+/* Status indicators */
+.status-connected {
+  color: var(--color-success);
+}
+
+.status-disconnected {
+  color: var(--color-text-3);
+}
+
+.status-error {
+  color: var(--color-danger);
+}
+
+.status-connecting {
+  color: var(--color-primary);
+}
