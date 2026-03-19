@@ -20,6 +20,14 @@
       "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/signals/:path*"
     },
     {
+      "source": "/api/marketplace",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/marketplace"
+    },
+    {
+      "source": "/api/marketplace/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/marketplace/:path*"
+    },
+    {
       "source": "/socket.io/(.*)",
       "destination": "/socket.io/$1"
     }
