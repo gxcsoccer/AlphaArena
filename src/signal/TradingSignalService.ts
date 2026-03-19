@@ -335,7 +335,10 @@ export class TradingSignalService extends EventEmitter {
           );
         }
 
-        // TODO: Implement push and email notifications
+        // BACKLOG(#426, #427): Push and email notifications pending
+        // #426: Email service integration (EMAIL_SERVICE_PROVIDER, EMAIL_API_KEY)
+        // #427: Push notification service (PUSH_SERVICE_PROVIDER, device tokens)
+        // In-app notifications are currently implemented via createSignalNotification
       } catch (error) {
         log.error(`Failed to notify subscriber ${sub.subscriberId}:`, error);
       }

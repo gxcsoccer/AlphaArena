@@ -206,13 +206,17 @@ export class PriceAlertMonitor {
         break;
 
       case 'email':
-        // TODO: Implement email notification
-        console.log('[PriceAlertMonitor] Email notification not yet implemented');
+        // BACKLOG(#426): Email service integration pending
+        // Requires: EMAIL_SERVICE_PROVIDER, EMAIL_API_KEY configuration
+        // See: src/alerting/AlertService.ts sendEmailNotification for implementation pattern
+        console.log('[PriceAlertMonitor] Email notification pending - see Issue #426 for implementation');
         break;
 
       case 'push':
-        // TODO: Implement push notification
-        console.log('[PriceAlertMonitor] Push notification not yet implemented');
+        // BACKLOG(#427): Push notification service pending
+        // Requires: PUSH_SERVICE_PROVIDER, device token management
+        // See Issue #427 for full requirements and provider options
+        console.log('[PriceAlertMonitor] Push notification pending - see Issue #427 for implementation');
         break;
 
       case 'in_app':
