@@ -316,6 +316,58 @@ router.get('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/signals/publisher/:publisherId
+ * Get signals from a specific publisher
+ */
+router.get('/publisher/:publisherId', optionalAuthMiddleware, async (req: Request, res: Response) => {
+  try {
+    const publisherId = getParam(req.params.publisherId);
+    const status = getQueryParam(req.query.status);
+    const limit = getNumberQueryParam(req.query.limit, 50);
+    const offset = getNumberQueryParam(req.query.offset, 0);
+
+    const signals = await signalsDAO.getMany({
+      publisherId,
+      status: status as any,
+      limit,
+      offset,
+    });
+
+    res.json({ success: true, data: signals });
+  } catch (error: any) {
+    log.error('Failed to get publisher signals:', error);
+    res.status(500).json({ error: 'Failed to get publisher signals' });
+  }
+});
+
+/**
+ * GET /api/signals/history
+ * Get user's signal history (published signals)
+ */
+router.get('/history', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const limit = getNumberQueryParam(req.query.limit, 50);
+    const offset = getNumberQueryParam(req.query.offset, 0);
+
+    const signals = await signalsDAO.getMany({
+      publisherId: userId,
+      limit,
+      offset,
+    });
+
+    res.json({ success: true, data: signals });
+  } catch (error: any) {
+    log.error('Failed to get signal history:', error);
+    res.status(500).json({ error: 'Failed to get signal history' });
+  }
+});
+
+/**
  * GET /api/signals/:id
  * Get a specific signal by ID
  */
@@ -485,58 +537,6 @@ router.post('/:id/cancel', authMiddleware, async (req: Request, res: Response) =
   } catch (error: any) {
     log.error('Failed to cancel signal:', error);
     res.status(500).json({ error: 'Failed to cancel signal' });
-  }
-});
-
-/**
- * GET /api/signals/publisher/:publisherId
- * Get signals from a specific publisher
- */
-router.get('/publisher/:publisherId', optionalAuthMiddleware, async (req: Request, res: Response) => {
-  try {
-    const publisherId = getParam(req.params.publisherId);
-    const status = getQueryParam(req.query.status);
-    const limit = getNumberQueryParam(req.query.limit, 50);
-    const offset = getNumberQueryParam(req.query.offset, 0);
-
-    const signals = await signalsDAO.getMany({
-      publisherId,
-      status: status as any,
-      limit,
-      offset,
-    });
-
-    res.json({ success: true, data: signals });
-  } catch (error: any) {
-    log.error('Failed to get publisher signals:', error);
-    res.status(500).json({ error: 'Failed to get publisher signals' });
-  }
-});
-
-/**
- * GET /api/signals/history
- * Get user's signal history (published signals)
- */
-router.get('/history', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const limit = getNumberQueryParam(req.query.limit, 50);
-    const offset = getNumberQueryParam(req.query.offset, 0);
-
-    const signals = await signalsDAO.getMany({
-      publisherId: userId,
-      limit,
-      offset,
-    });
-
-    res.json({ success: true, data: signals });
-  } catch (error: any) {
-    log.error('Failed to get signal history:', error);
-    res.status(500).json({ error: 'Failed to get signal history' });
   }
 });
 
