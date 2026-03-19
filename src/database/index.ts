@@ -273,3 +273,6 @@ export type {
   ExecutionFilters as ScheduleExecutionFilters,
   ExecutionStatus as ScheduleExecutionStatus
 } from './trading-schedules.dao';
+
+// Performance Analytics DAO
+export { PerformanceDAO, performanceDAO } from './performance.dao';
