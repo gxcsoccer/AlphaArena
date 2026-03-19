@@ -16,10 +16,14 @@ export { DataSourceManager, getDataSourceManager, ProviderFactory } from './Data
 
 // Providers
 export { MockDataProvider } from './providers/MockDataProvider';
+export { AlpacaDataProvider } from './providers/AlpacaDataProvider';
+export { TwelveDataProvider, TechnicalIndicator, TechnicalIndicatorType, TechnicalIndicatorParams } from './providers/TwelveDataProvider';
 
 // Convenience exports for common use cases
 import { getDataSourceManager } from './DataSourceManager';
 import { MockDataProvider } from './providers/MockDataProvider';
+import { AlpacaDataProvider } from './providers/AlpacaDataProvider';
+import { TwelveDataProvider } from './providers/TwelveDataProvider';
 import { DataSourceConfig } from './types';
 
 /**
@@ -32,6 +36,23 @@ export async function initializeMockDataSource(config?: Partial<DataSourceConfig
   
   const fullConfig: DataSourceConfig = {
     providerId: 'mock',
+    ...config,
+  };
+  
+  manager.registerProvider(provider, fullConfig);
+  await manager.connect();
+}
+
+/**
+ * Initialize Twelve Data data source
+ * Convenience function for quick setup
+ */
+export async function initializeTwelveDataSource(config?: Partial<DataSourceConfig>): Promise<void> {
+  const manager = getDataSourceManager();
+  const provider = new TwelveDataProvider();
+  
+  const fullConfig: DataSourceConfig = {
+    providerId: 'twelvedata',
     ...config,
   };
   
