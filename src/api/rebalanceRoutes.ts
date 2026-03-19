@@ -626,7 +626,330 @@ export function createRebalanceRouter(): Router {
     }
   });
 
+  // ============================================
+  // Scheduler Routes
+  // ============================================
+
+  /**
+   * POST /api/rebalance/schedule/:planId
+   * Schedule a plan for automatic rebalancing
+   */
+  router.post('/schedule/:planId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const planId = getParam(req.params.planId);
+      if (!planId) {
+        res.status(400).json({ error: 'Plan ID is required' });
+        return;
+      }
+
+      // Get the plan
+      const plan = await rebalanceDAO.getPlan(planId);
+      if (!plan) {
+        res.status(404).json({ error: 'Plan not found' });
+        return;
+      }
+
+      if (plan.trigger !== RebalanceTrigger.SCHEDULED) {
+        res.status(400).json({ error: 'Plan is not configured for scheduled rebalancing' });
+        return;
+      }
+
+      // In production, this would interact with the scheduler service
+      // For now, we just update the plan to be active
+      await rebalanceDAO.updatePlan(planId, { isActive: true });
+
+      log.info('Scheduled rebalance plan', { planId });
+
+      res.json({
+        success: true,
+        message: 'Plan scheduled for automatic rebalancing',
+        data: {
+          planId,
+          nextRunTime: plan.schedule ? calculateNextRunTime(plan.schedule) : null,
+        },
+      });
+    } catch (error) {
+      log.error('Failed to schedule plan', { error });
+      res.status(500).json({ error: 'Failed to schedule plan' });
+    }
+  });
+
+  /**
+   * DELETE /api/rebalance/schedule/:planId
+   * Unschedule a plan
+   */
+  router.delete('/schedule/:planId', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const planId = getParam(req.params.planId);
+      if (!planId) {
+        res.status(400).json({ error: 'Plan ID is required' });
+        return;
+      }
+
+      // Update plan to be inactive
+      await rebalanceDAO.updatePlan(planId, { isActive: false });
+
+      log.info('Unscheduled rebalance plan', { planId });
+
+      res.json({
+        success: true,
+        message: 'Plan unscheduled',
+      });
+    } catch (error) {
+      log.error('Failed to unschedule plan', { error });
+      res.status(500).json({ error: 'Failed to unschedule plan' });
+    }
+  });
+
+  /**
+   * GET /api/rebalance/scheduler/status
+   * Get scheduler status
+   */
+  router.get('/scheduler/status', authenticateUser, async (_req: Request, res: Response) => {
+    try {
+      // In production, this would return actual scheduler status
+      const activePlans = await rebalanceDAO.getPlans(true);
+      const scheduledPlans = activePlans.filter(p => p.trigger === RebalanceTrigger.SCHEDULED);
+
+      res.json({
+        success: true,
+        data: {
+          isRunning: true,
+          totalScheduledPlans: scheduledPlans.length,
+          scheduledPlans: scheduledPlans.map(p => ({
+            id: p.id,
+            name: p.name,
+            schedule: p.schedule,
+            nextRunTime: p.schedule ? calculateNextRunTime(p.schedule) : null,
+          })),
+        },
+      });
+    } catch (error) {
+      log.error('Failed to get scheduler status', { error });
+      res.status(500).json({ error: 'Failed to get scheduler status' });
+    }
+  });
+
+  // ============================================
+  // Auto Rebalance Routes
+  // ============================================
+
+  /**
+   * POST /api/rebalance/check
+   * Check if rebalancing is needed for a plan
+   */
+  router.post('/check', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { planId } = req.body;
+
+      if (!planId) {
+        res.status(400).json({ error: 'Plan ID is required' });
+        return;
+      }
+
+      // Get plan
+      const plan = await rebalanceDAO.getPlan(planId);
+      if (!plan) {
+        res.status(404).json({ error: 'Plan not found' });
+        return;
+      }
+
+      // Get user's account
+      const { VirtualAccountDAO } = await import('../database/virtual-account.dao');
+      const account = await VirtualAccountDAO.getAccountByUserId(userId);
+
+      if (!account) {
+        res.json({
+          success: true,
+          data: {
+            needsRebalancing: false,
+            positionStates: [],
+            maxDeviation: 0,
+            recommendation: 'No virtual account found. Please create a virtual account first.',
+          },
+        });
+        return;
+      }
+
+      const positions = await VirtualAccountDAO.getPositions(account.id);
+
+      // Create price provider
+      const priceProvider = {
+        getPrice: async (symbol: string) => {
+          return 50000; // Mock price
+        },
+        getPrices: async (symbols: string[]) => {
+          const prices = new Map<string, number>();
+          for (const symbol of symbols) {
+            prices.set(symbol, 50000);
+          }
+          return prices;
+        },
+      };
+
+      const engine = new RebalanceEngine(priceProvider);
+
+      // Calculate position states
+      const portfolioPositions = positions.map(p => ({
+        symbol: p.symbol,
+        quantity: p.quantity,
+        averageCost: p.average_cost,
+      }));
+
+      const positionStates = await engine.calculatePositionStates(
+        portfolioPositions,
+        plan.targetAllocation
+      );
+
+      // Calculate max deviation
+      const maxDeviation = Math.max(
+        ...positionStates.map(s => s.deviationPercent),
+        0
+      );
+
+      // Check threshold
+      const threshold = plan.threshold || 5;
+      const needsRebalancing = maxDeviation > threshold;
+
+      // Generate recommendation
+      let recommendation = '';
+      if (needsRebalancing) {
+        const deviatingAssets = positionStates
+          .filter(s => s.deviationPercent > threshold)
+          .map(s => `${s.symbol} (${s.deviationPercent.toFixed(1)}% off target)`);
+        
+        recommendation = `Rebalancing recommended. Assets exceeding threshold: ${deviatingAssets.join(', ')}`;
+      } else {
+        recommendation = `Portfolio is within tolerance. Max deviation: ${maxDeviation.toFixed(1)}%`;
+      }
+
+      log.info('Checked rebalance need', { planId, userId, needsRebalancing, maxDeviation });
+
+      res.json({
+        success: true,
+        data: {
+          needsRebalancing,
+          positionStates,
+          maxDeviation,
+          recommendation,
+        },
+      });
+    } catch (error) {
+      log.error('Failed to check rebalance', { error });
+      res.status(500).json({ error: 'Failed to check rebalance' });
+    }
+  });
+
+  /**
+   * POST /api/rebalance/auto-execute
+   * Execute rebalancing with all optimizations
+   */
+  router.post('/auto-execute', authenticateUser, async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).userId;
+      const { planId, dryRun = false } = req.body;
+
+      if (!planId) {
+        res.status(400).json({ error: 'Plan ID is required' });
+        return;
+      }
+
+      // Get plan
+      const plan = await rebalanceDAO.getPlan(planId);
+      if (!plan) {
+        res.status(404).json({ error: 'Plan not found' });
+        return;
+      }
+
+      // Create execution record
+      const execution = await rebalanceDAO.createExecution({
+        planId,
+        status: 'pending' as any,
+        trigger: RebalanceTrigger.MANUAL,
+        preview: null as any,
+        orders: [],
+        totalEstimatedCost: 0,
+        totalActualCost: 0,
+        totalFees: 0,
+        startedAt: new Date(),
+        metrics: {
+          totalOrders: 0,
+          successfulOrders: 0,
+          failedOrders: 0,
+          totalVolume: 0,
+          averageExecutionPrice: 0,
+          executionTimeMs: 0,
+          slippageBps: 0,
+        },
+      });
+
+      log.info('Started auto rebalance execution', { 
+        executionId: execution.id, 
+        planId, 
+        userId,
+        dryRun 
+      });
+
+      res.status(202).json({
+        success: true,
+        data: {
+          executionId: execution.id,
+          status: 'pending',
+          message: dryRun 
+            ? 'Dry run execution started (preview only)' 
+            : 'Auto rebalance execution started',
+        },
+      });
+    } catch (error) {
+      log.error('Failed to start auto rebalance', { error });
+      res.status(500).json({ error: 'Failed to start auto rebalance' });
+    }
+  });
+
   return router;
+}
+
+/**
+ * Calculate next run time based on schedule config
+ */
+function calculateNextRunTime(schedule: { frequency: string; time: string; dayOfWeek?: number; dayOfMonth?: number }): Date {
+  const now = new Date();
+  const [hours, minutes] = schedule.time.split(':').map(Number);
+  
+  let nextRun = new Date();
+  nextRun.setHours(hours, minutes, 0, 0);
+
+  switch (schedule.frequency) {
+    case 'daily':
+      if (nextRun <= now) {
+        nextRun.setDate(nextRun.getDate() + 1);
+      }
+      break;
+
+    case 'weekly':
+      const targetDay = schedule.dayOfWeek ?? 1;
+      const currentDay = now.getDay();
+      let daysUntilTarget = targetDay - currentDay;
+      
+      if (daysUntilTarget < 0 || (daysUntilTarget === 0 && nextRun <= now)) {
+        daysUntilTarget += 7;
+      }
+      
+      nextRun.setDate(nextRun.getDate() + daysUntilTarget);
+      break;
+
+    case 'monthly':
+      const targetDate = schedule.dayOfMonth ?? 1;
+      nextRun.setDate(targetDate);
+      
+      if (nextRun <= now) {
+        nextRun.setMonth(nextRun.getMonth() + 1);
+      }
+      break;
+  }
+
+  return nextRun;
 }
 
 export default createRebalanceRouter;

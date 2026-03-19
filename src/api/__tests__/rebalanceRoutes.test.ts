@@ -27,17 +27,21 @@ jest.mock('../../database/rebalance.dao', () => ({
 }));
 
 // Mock Supabase client
-jest.mock('../../database/client', () => ({
-  __esModule: true,
-  default: {
+jest.mock('../../database/client', () => {
+  const mockSupabase = {
     auth: {
       getUser: jest.fn().mockResolvedValue({
         data: { user: { id: 'test-user-id' } },
         error: null,
       }),
     },
-  },
-}));
+  };
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockSupabase),
+    getSupabaseClient: jest.fn(() => mockSupabase),
+  };
+});
 
 const app = express();
 app.use(express.json());

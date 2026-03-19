@@ -10,6 +10,9 @@ export type {
   OrderExecutor,
 } from './RebalanceEngine';
 
+export { RebalanceScheduler, getRebalanceScheduler } from './RebalanceScheduler';
+export { AutoRebalanceService, getAutoRebalanceService } from './AutoRebalanceService';
+
 export {
   // Types
   AssetAllocation,
@@ -26,6 +29,11 @@ export {
   FeeStructure,
   RebalanceConstraints,
   RebalanceConfig,
+  TaxOptimizationConfig,
+  CostOptimizationConfig,
+  RetryConfig,
+  RebalanceExecutionOptions,
+  RebalanceProgress,
   
   // Enums
   RebalanceTrigger,
