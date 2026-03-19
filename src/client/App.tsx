@@ -70,6 +70,8 @@ const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionC
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
 const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSettingsPage'));
 const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPage'));
+const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfolioPage'));
+const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -248,6 +250,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
+            <MenuItem key="/strategy-portfolio" icon={<IconApps aria-hidden="true" />} role="menuitem">
+              策略组合
+            </MenuItem>
             <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
               API 文档
             </MenuItem>
@@ -393,6 +398,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
             </MenuItem>
+            <MenuItem key="/strategy-portfolio" icon={<IconApps aria-hidden="true" />} role="menuitem">
+              策略组合
+            </MenuItem>
             <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
               API 文档
             </MenuItem>
@@ -453,6 +461,8 @@ const AppRoutes: React.FC = () => {
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
         <Route path="/virtual-account" element={<VirtualAccountPage />} />
+        <Route path="/strategy-portfolio" element={<StrategyPortfolioPage />} />
+        <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
       </Routes>
     </Suspense>
   );

@@ -2211,6 +2211,634 @@
         }
       }
     },
+    "/api/strategy-portfolios": {
+      "post": {
+        "summary": "Create a new strategy portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "totalCapital",
+                  "strategies"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "totalCapital": {
+                    "type": "number"
+                  },
+                  "allocationMethod": {
+                    "type": "string",
+                    "enum": [
+                      "equal",
+                      "custom",
+                      "risk_parity"
+                    ]
+                  },
+                  "rebalanceConfig": {
+                    "type": "object"
+                  },
+                  "strategies": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "strategyId": {
+                          "type": "string"
+                        },
+                        "weight": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Portfolio created successfully"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all portfolios for the user",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "paused",
+                "stopped"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of portfolios"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}": {
+      "get": {
+        "summary": "Get portfolio by ID",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio details"
+          },
+          "404": {
+            "description": "Portfolio not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "totalCapital": {
+                    "type": "number"
+                  },
+                  "allocationMethod": {
+                    "type": "string"
+                  },
+                  "rebalanceConfig": {
+                    "type": "object"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Portfolio updated successfully"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Portfolio deleted successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/start": {
+      "post": {
+        "summary": "Start portfolio (activate all strategies)",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio started successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/stop": {
+      "post": {
+        "summary": "Stop portfolio (stop all strategies)",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio stopped successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/pause": {
+      "post": {
+        "summary": "Pause portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio paused successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/strategies": {
+      "post": {
+        "summary": "Add strategy to portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "strategyId"
+                ],
+                "properties": {
+                  "strategyId": {
+                    "type": "string"
+                  },
+                  "weight": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Strategy added successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/strategies/{strategyId}": {
+      "delete": {
+        "summary": "Remove strategy from portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "strategyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Strategy removed successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/strategies/{strategyId}/weight": {
+      "put": {
+        "summary": "Update strategy weight",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "strategyId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "weight"
+                ],
+                "properties": {
+                  "weight": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Weight updated successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/rebalance/preview": {
+      "get": {
+        "summary": "Preview portfolio rebalance",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rebalance preview"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/rebalance": {
+      "post": {
+        "summary": "Execute portfolio rebalance",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "threshold",
+                      "scheduled",
+                      "manual",
+                      "strategy_change"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rebalance executed successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/rebalance/history": {
+      "get": {
+        "summary": "Get rebalance history",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rebalance history"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/performance": {
+      "get": {
+        "summary": "Get portfolio performance",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Portfolio performance metrics"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/performance/history": {
+      "get": {
+        "summary": "Get performance history",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "startDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "endDate",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "snapshotType",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "minute",
+                "hourly",
+                "daily",
+                "weekly"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance history"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/performance/snapshot": {
+      "post": {
+        "summary": "Create performance snapshot",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "snapshotType": {
+                    "type": "string",
+                    "enum": [
+                      "minute",
+                      "hourly",
+                      "daily",
+                      "weekly"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Snapshot created successfully"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/risk": {
+      "get": {
+        "summary": "Get portfolio risk analysis",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Risk metrics"
+          }
+        }
+      }
+    },
     "/api/account": {
       "get": {
         "summary": "Get account summary",

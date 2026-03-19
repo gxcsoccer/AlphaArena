@@ -57,6 +57,7 @@ import alertRoutes from './alertRoutes';
 import { dataSourceRoutes } from './dataSourceRoutes';
 import { createVirtualAccountRouter } from './virtualAccountRoutes';
 import analyticsRoutes from './analyticsRoutes';
+import { createStrategyPortfolioRouter } from './strategyPortfolioRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -959,6 +960,9 @@ export class APIServer extends EventEmitter {
 
     // Performance Analytics routes
     this.app.use('/api/analytics', analyticsRoutes);
+
+    // Strategy Portfolio routes
+    this.app.use('/api/strategy-portfolios', createStrategyPortfolioRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
