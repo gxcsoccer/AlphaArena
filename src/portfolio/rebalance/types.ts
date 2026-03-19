@@ -233,6 +233,63 @@ export interface RebalanceConstraints {
   allowPartialRebalance?: boolean; // Allow adjusting only assets exceeding threshold
   prioritizeLowCost?: boolean; // Prioritize lower trading costs
   executionWindow?: number; // Time window for execution in minutes
+  cooldownPeriod?: number; // Cooldown period in hours between rebalances
+  maxAssetWeight?: number; // Maximum weight for single asset (0-100)
+}
+
+/**
+ * Tax optimization settings
+ */
+export interface TaxOptimizationConfig {
+  enabled: boolean;
+  shortTermThresholdDays: number; // Days threshold for short-term vs long-term
+  preferLongTerm: boolean; // Prefer selling long-term holdings
+  taxLotMethod: 'fifo' | 'lifo' | 'hifo' | 'specific'; // Tax lot identification method
+}
+
+/**
+ * Cost optimization settings
+ */
+export interface CostOptimizationConfig {
+  enabled: boolean;
+  minTradeValue: number; // Minimum trade value to execute
+  batchSmallTrades: boolean; // Batch small trades together
+  maxDailyTrades: number; // Maximum trades per day
+  spreadThreshold: number; // Maximum acceptable spread percentage
+}
+
+/**
+ * Retry configuration
+ */
+export interface RetryConfig {
+  maxRetries: number; // Maximum number of retry attempts
+  retryDelayMs: number; // Initial delay between retries
+  retryBackoffMultiplier: number; // Exponential backoff multiplier
+  maxRetryDelayMs: number; // Maximum retry delay
+}
+
+/**
+ * Execution options for rebalancing
+ */
+export interface RebalanceExecutionOptions {
+  dryRun: boolean; // Preview only, don't execute
+  skipConfirmations: boolean; // Skip user confirmations
+  timeoutMs: number; // Execution timeout
+  onProgress?: (progress: RebalanceProgress) => void; // Progress callback
+}
+
+/**
+ * Rebalance progress information
+ */
+export interface RebalanceProgress {
+  planId: string;
+  executionId: string;
+  phase: 'calculating' | 'previewing' | 'executing' | 'completed' | 'failed';
+  totalOrders: number;
+  completedOrders: number;
+  currentSymbol?: string;
+  percentComplete: number;
+  message: string;
 }
 
 /**
@@ -243,6 +300,9 @@ export interface RebalanceConfig {
   constraints: RebalanceConstraints;
   slippageTolerance: number; // Percentage
   defaultTolerance: number; // Default deviation tolerance
+  taxOptimization?: TaxOptimizationConfig;
+  costOptimization?: CostOptimizationConfig;
+  retry?: RetryConfig;
 }
 
 /**
@@ -260,9 +320,30 @@ export const DEFAULT_REBALANCE_CONFIG: RebalanceConfig = {
     allowPartialRebalance: true,
     prioritizeLowCost: true,
     executionWindow: 60, // 60 minutes
+    cooldownPeriod: 24, // 24 hours
+    maxAssetWeight: 50, // 50% max single asset
   },
   slippageTolerance: 0.5, // 0.5%
   defaultTolerance: 5, // 5%
+  taxOptimization: {
+    enabled: false,
+    shortTermThresholdDays: 365,
+    preferLongTerm: true,
+    taxLotMethod: 'fifo',
+  },
+  costOptimization: {
+    enabled: true,
+    minTradeValue: 10,
+    batchSmallTrades: true,
+    maxDailyTrades: 20,
+    spreadThreshold: 0.5, // 0.5%
+  },
+  retry: {
+    maxRetries: 3,
+    retryDelayMs: 1000,
+    retryBackoffMultiplier: 2,
+    maxRetryDelayMs: 30000,
+  },
 };
 
 /**
