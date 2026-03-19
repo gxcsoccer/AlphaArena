@@ -21,7 +21,7 @@ import {
   IconList,
   IconGift,
   IconStorage,
-  IconShop,
+  IconCompass,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -266,7 +266,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
               数据源
             </MenuItem>
-            <MenuItem key="/marketplace" icon={<IconShop aria-hidden="true" />} role="menuitem">
+            <MenuItem key="/marketplace" icon={<IconCompass aria-hidden="true" />} role="menuitem">
               策略市场
             </MenuItem>
           </Menu>
@@ -417,7 +417,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
             数据源
           </MenuItem>
-          <MenuItem key="/marketplace" icon={<IconShop aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/marketplace" icon={<IconCompass aria-hidden="true" />} role="menuitem">
             策略市场
           </MenuItem>
         </Menu>
