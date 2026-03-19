@@ -1,0 +1,25 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "公开页面基础功能测试"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiAssert: "页面显示了 Alpha Arena 应用主界面，包括四个智能代理（Prophet、Trend Hunter、Data Demon、Sentiment Sage）"
+      - aiAssert: "可以看到加密货币价格信息显示"
+      - aiAssert: "页面有 Connect Wallet 按钮"
+  - name: "智能代理交互测试"
+    flow:
+      - ai: "点击 Prophet 智能代理查看详情"
+      - aiWaitFor: "等待代理详情或信息展示"
+      - aiAssert: "可以看到智能代理的相关信息或交互界面"
+  - name: "Trend Hunter 代理测试"
+    flow:
+      - ai: "返回主页或导航到其他代理"
+      - ai: "点击 Trend Hunter 智能代理"
+      - aiAssert: "Trend Hunter 代理界面正常显示"
+  - name: "导航和功能入口测试"
+    flow:
+      - ai: "查找并点击页面上的导航菜单或链接"
+      - aiAssert: "可以访问其他页面或功能区域"
+      - aiQuery: "列出页面上所有可见的导航链接和功能入口"

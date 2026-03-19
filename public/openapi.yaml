@@ -1270,6 +1270,193 @@ paths:
                   timestamp: {type: integer}
         '404':
           description: 'Order book not found for symbol'
+  /marketplace/strategies:
+    get:
+      summary: 'List strategies in the marketplace'
+      tags:
+        - Marketplace
+      parameters:
+        -
+          name: category
+          in: query
+          schema:
+            type: string
+        -
+          name: strategyType
+          in: query
+          schema:
+            type: string
+        -
+          name: search
+          in: query
+          schema:
+            type: string
+        -
+          name: minRating
+          in: query
+          schema:
+            type: number
+        -
+          name: isFeatured
+          in: query
+          schema:
+            type: boolean
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        -
+          name: offset
+          in: query
+          schema:
+            type: integer
+        -
+          name: orderBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - created_at
+              - rating_avg
+              - subscriber_count
+              - view_count
+              - name
+        -
+          name: orderDirection
+          in: query
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+      responses:
+        '200':
+          description: 'List of strategies'
+    post:
+      summary: 'Create a new strategy'
+      tags:
+        - Marketplace
+  /marketplace/strategies/featured:
+    get:
+      summary: 'Get featured strategies'
+      tags:
+        - Marketplace
+  /marketplace/strategies/top-rated:
+    get:
+      summary: 'Get top rated strategies'
+      tags:
+        - Marketplace
+  /marketplace/strategies/categories:
+    get:
+      summary: 'Get available categories'
+      tags:
+        - Marketplace
+  /marketplace/strategies/tags:
+    get:
+      summary: 'Get popular tags'
+      tags:
+        - Marketplace
+  '/marketplace/strategies/{id}':
+    get:
+      summary: 'Get strategy by ID'
+      tags:
+        - Marketplace
+    put:
+      summary: 'Update a strategy'
+      tags:
+        - Marketplace
+    delete:
+      summary: 'Delete a strategy'
+      tags:
+        - Marketplace
+  '/marketplace/strategies/{id}/publish':
+    post:
+      summary: 'Publish a strategy to the marketplace'
+      tags:
+        - Marketplace
+  /marketplace/subscriptions:
+    post:
+      summary: 'Subscribe to a strategy'
+      tags:
+        - Marketplace
+    get:
+      summary: 'Get user''s subscriptions'
+      tags:
+        - Marketplace
+  '/marketplace/subscriptions/{id}':
+    get:
+      summary: 'Get subscription by ID'
+      tags:
+        - Marketplace
+    delete:
+      summary: 'Cancel a subscription'
+      tags:
+        - Marketplace
+  '/marketplace/subscriptions/{id}/pause':
+    post:
+      summary: 'Pause a subscription'
+      tags:
+        - Marketplace
+  '/marketplace/subscriptions/{id}/resume':
+    post:
+      summary: 'Resume a subscription'
+      tags:
+        - Marketplace
+  '/marketplace/strategies/{strategyId}/reviews':
+    get:
+      summary: 'Get reviews for a strategy'
+      tags:
+        - Marketplace
+    post:
+      summary: 'Create a review for a strategy'
+      tags:
+        - Marketplace
+  '/marketplace/reviews/{reviewId}':
+    put:
+      summary: 'Update a review'
+      tags:
+        - Marketplace
+    delete:
+      summary: 'Delete a review'
+      tags:
+        - Marketplace
+  '/marketplace/strategies/{strategyId}/signals':
+    get:
+      summary: 'Get signals for a strategy'
+      tags:
+        - Marketplace
+  /marketplace/signals:
+    post:
+      summary: 'Publish a new signal'
+      tags:
+        - Marketplace
+  /marketplace/signals/my:
+    get:
+      summary: 'Get active signals for user''s subscribed strategies'
+      tags:
+        - Marketplace
+  '/marketplace/signals/{signalId}/execute':
+    post:
+      summary: 'Mark a signal as executed for a subscription'
+      tags:
+        - Marketplace
+  '/marketplace/publishers/{publisherId}/stats':
+    get:
+      summary: 'Get publisher stats'
+      tags:
+        - Marketplace
+  /marketplace/publishers/top:
+    get:
+      summary: 'Get top publishers'
+      tags:
+        - Marketplace
+  /marketplace/publishers/me/strategies:
+    get:
+      summary: 'Get current user''s published strategies'
+      tags:
+        - Marketplace
   /api/strategy-portfolios:
     post:
       summary: 'Create a new strategy portfolio'

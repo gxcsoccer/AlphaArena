@@ -1,0 +1,28 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "首页基本功能验证"
+    flow:
+      - ai: "访问首页 https://alpha-arena.vercel.app"
+      - aiAssert: "页面正常加载，显示 Alpha Arena 品牌"
+      - aiAssert: "页面显示四个 AI 角色卡片: Prophet, Trend Hunter, Data Demon, Sentiment Sage"
+      - aiAssert: "页面显示 'Trade Against Smart Agents' 或类似标题"
+      - aiAssert: "页面底部显示加密货币价格信息"
+  - name: "策略市场功能验证"
+    flow:
+      - ai: "查找并点击任何与策略市场、Strategy、Marketplace 相关的链接或导航"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示策略相关内容，或显示功能正在开发中的提示"
+  - name: "风险告警系统验证"
+    flow:
+      - ai: "返回首页"
+      - ai: "查找并点击任何与风险、Risk、Alert 相关的链接或导航"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示风险监控相关内容，或显示功能正在开发中的提示"
+  - name: "自动化再平衡验证"
+    flow:
+      - ai: "返回首页"
+      - ai: "查找并点击任何与再平衡、Rebalance、Portfolio 相关的链接或导航"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示再平衡相关内容，或显示功能正在开发中的提示"
