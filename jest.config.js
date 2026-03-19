@@ -57,26 +57,31 @@ module.exports = {
       }
     }],
   },
+  setupFiles: [
+    '<rootDir>/tests/__mocks__/importMeta.ts',
+  ],
   setupFilesAfterEnv: [
     '@testing-library/jest-dom',
     '<rootDir>/tests/__mocks__/resizeObserver.ts',
     '<rootDir>/tests/__mocks__/apiSetup.ts',
+    '<rootDir>/tests/__mocks__/windowApi.ts',
   ],
   moduleNameMapper: {
     // CRITICAL: Mock @testing-library/dom to fix configure/getConfig undefined issue
     // The module uses getters that return undefined in Jest for some reason
     '^@testing-library/dom$': '<rootDir>/tests/__mocks__/testingLibraryDom.ts',
-    // Mock the internal config module used by wait-for.js and other files
-    '^@testing-library/dom/dist/config$': '<rootDir>/tests/__mocks__/testingLibraryDomConfig.ts',
     '^lightweight-charts$': '<rootDir>/tests/__mocks__/lightweight-charts.ts',
     '^recharts$': '<rootDir>/tests/__mocks__/recharts.tsx',
     '^uuid$': '<rootDir>/tests/__mocks__/uuid.ts',
     // Handle .js extensions in imports
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    // Mock config for import.meta.env - use specific paths to avoid matching @testing-library/dom
+    // Mock config for import.meta.env
+    // These patterns match various import paths for config.ts
     '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
+    '^./config$': '<rootDir>/tests/__mocks__/config.ts',
+    '^../config$': '<rootDir>/tests/__mocks__/config.ts',
     // Mock Supabase client for database tests
     '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Handle marked ESM module - use UMD build
@@ -89,7 +94,8 @@ module.exports = {
     '^pdfmake$': '<rootDir>/tests/__mocks__/pdfmake.ts',
   },
   // Transform ESM modules that need to be transpiled
+  // Note: Removed @testing-library/dom - keeping it as-is works better
   transformIgnorePatterns: [
-    'node_modules/(?!(jsdom|@exodus/bytes|html-encoding-sniffer|whatwg-url|whatwg-encoding|parse5|w3c-xmlserializer|xml-name-validator|saxes|symbol-tree|tough-cookie|data-urls|form-data|domexception|abort-controller|node-fetch|web-streams-polyfill|encoding-sniffer|@testing-library/dom)/)',
+    'node_modules/(?!(jsdom|@exodus/bytes|html-encoding-sniffer|whatwg-url|whatwg-encoding|parse5|w3c-xmlserializer|xml-name-validator|saxes|symbol-tree|tough-cookie|data-urls|form-data|domexception|abort-controller|node-fetch|web-streams-polyfill|encoding-sniffer)/)',
   ],
 };

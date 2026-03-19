@@ -2,23 +2,53 @@
 // Fixes the issue where configure and getConfig are undefined in Jest
 // due to a problem with how getters are handled
 
-const realDom = jest.requireActual('@testing-library/dom/dist/index.js');
+const realDom = jest.requireActual('@testing-library/dom');
 const config = jest.requireActual('@testing-library/dom/dist/config.js');
+const events = jest.requireActual('@testing-library/dom/dist/events.js');
+const getQueries = jest.requireActual('@testing-library/dom/dist/get-queries-for-element.js');
+const queries = jest.requireActual('@testing-library/dom/dist/queries/index.js');
 
-// Create a proxy that intercepts all module access
-// This ensures that both the main module and internal modules get correct values
-const proxiedDom = new Proxy(realDom, {
-  get(target, prop) {
-    // Return the actual function for configure and getConfig
-    if (prop === 'configure') {
-      return config.configure;
+// Create a new object by manually copying properties
+const mockDom: Record<string, unknown> = {};
+
+// Copy all enumerable properties that have defined values
+for (const key of Object.keys(realDom)) {
+  try {
+    const value = (realDom as Record<string, unknown>)[key];
+    if (value !== undefined) {
+      mockDom[key] = value;
     }
-    if (prop === 'getConfig') {
-      return config.getConfig;
-    }
-    // Return other properties from the real module
-    return target[prop];
+  } catch {
+    // Ignore errors from getters
   }
-});
+}
 
-module.exports = proxiedDom;
+// Override configure and getConfig with actual functions
+mockDom.configure = config.configure;
+mockDom.getConfig = config.getConfig;
+
+// Ensure fireEvent is available
+if (!mockDom.fireEvent && events.fireEvent) {
+  mockDom.fireEvent = events.fireEvent;
+}
+
+// Ensure getQueriesForElement is available
+if (!mockDom.getQueriesForElement && getQueries.getQueriesForElement) {
+  mockDom.getQueriesForElement = getQueries.getQueriesForElement;
+}
+
+// Ensure screen is available - it's a getter that returns queries bound to document.body
+if (!mockDom.screen) {
+  // Create screen object with all query methods bound to document.body
+  const screenObj: Record<string, unknown> = {};
+  const queryMethods = Object.keys(queries);
+  for (const method of queryMethods) {
+    const fn = (queries as Record<string, unknown>)[method];
+    if (typeof fn === 'function') {
+      screenObj[method] = fn.bind(null, document.body);
+    }
+  }
+  mockDom.screen = screenObj;
+}
+
+module.exports = mockDom;
