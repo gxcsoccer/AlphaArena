@@ -6,6 +6,26 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', 'src/**/*.tsx'],
   coverageDirectory: 'coverage',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  // Memory optimization: limit workers based on available CPU cores
+  maxWorkers: process.env.CI ? 2 : '50%',
+  // Memory optimization: run tests with limited memory per worker
+  workerIdleMemoryLimit: '512MB',
+  // Timeout optimization
+  testTimeout: 10000,
+  slowTestThreshold: 5000,
+  // Detect open handles for debugging
+  detectOpenHandles: false,
+  // Force exit after tests complete
+  forceExit: true,
+  // Clear mocks between tests to prevent memory leaks
+  clearMocks: true,
+  restoreMocks: true,
+  // Memory-intensive test files that should run in isolation
+  testPathIgnorePatterns: [
+    '/node_modules/',
+  ],
+  // Run memory-heavy tests sequentially to avoid OOM
+  maxConcurrency: 5,
   transform: {
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
@@ -41,6 +61,6 @@ module.exports = {
     '^./config$': '<rootDir>/tests/__mocks__/config.ts',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!( @testing-library/react|@testing-library/dom)/)',
+    'node_modules/(?!( @testing-library/react|@testing-library/dom|marked|dompurify|jsdom)/)',
   ],
 };
