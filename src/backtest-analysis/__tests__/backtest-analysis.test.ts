@@ -349,6 +349,120 @@ describe('ReportGenerator', () => {
       expect(result.filename).toContain('Custom_Backtest_Report');
     });
   });
+
+  describe('enhanced export features', () => {
+    it('should include strategy name in filename', async () => {
+      const options: ReportExportOptions = {
+        format: 'json',
+        strategyName: 'SMA_Crossover',
+      };
+
+      const result = await generator.generate(report, options);
+      expect(result.filename).toContain('SMA_Crossover');
+      expect(result.filename).toMatch(/SMA_Crossover_\d{4}-\d{2}-\d{2}\.json/);
+    });
+
+    it('should apply time range filter to equity curve', async () => {
+      const midPoint = report.config.startTime + (report.config.endTime - report.config.startTime) / 2;
+      const options: ReportExportOptions = {
+        format: 'json',
+        startTime: midPoint,
+        endTime: report.config.endTime,
+      };
+
+      const result = await generator.generate(report, options);
+      const parsed = JSON.parse(result.content as string);
+
+      // All equity curve points should be after the startTime
+      for (const point of parsed.equityCurve) {
+        expect(point.timestamp).toBeGreaterThanOrEqual(midPoint);
+      }
+    });
+
+    it('should apply time range filter to trade analysis', async () => {
+      const midPoint = report.config.startTime + (report.config.endTime - report.config.startTime) / 2;
+      const options: ReportExportOptions = {
+        format: 'json',
+        startTime: midPoint,
+        endTime: report.config.endTime,
+      };
+
+      const result = await generator.generate(report, options);
+      const parsed = JSON.parse(result.content as string);
+
+      // All trade entries should be after the startTime
+      for (const trade of parsed.tradeAnalysis) {
+        expect(trade.entryTime).toBeGreaterThanOrEqual(midPoint);
+      }
+    });
+
+    it('should generate CSV with complete trading details', async () => {
+      const options: ReportExportOptions = {
+        format: 'excel',
+        includeTradeList: true,
+      };
+
+      const result = await generator.generate(report, options);
+      const content = result.content.toString();
+
+      // Check for summary section
+      expect(content).toContain('# 汇总统计 Summary Statistics');
+      expect(content).toContain('总回报率');
+
+      // If there are trades, check for trade list header
+      if (report.tradeAnalysis.length > 0) {
+        expect(content).toContain('# 交易明细 Trade Details');
+      }
+    });
+
+    it('should generate CSV with risk metrics section', async () => {
+      const options: ReportExportOptions = {
+        format: 'excel',
+        includeRiskMetrics: true,
+      };
+
+      const result = await generator.generate(report, options);
+      const content = result.content.toString();
+
+      expect(content).toContain('# 风险指标 Risk Metrics');
+      expect(content).toContain('夏普比率');
+      expect(content).toContain('索提诺比率');
+    });
+
+    it('should generate CSV with drawdown analysis section', async () => {
+      const options: ReportExportOptions = {
+        format: 'excel',
+        includeDrawdownAnalysis: true,
+      };
+
+      const result = await generator.generate(report, options);
+      const content = result.content.toString();
+
+      expect(content).toContain('# 回撤分析 Drawdown Analysis');
+      expect(content).toContain('最大回撤');
+    });
+  });
+
+  describe('generateWithShare', () => {
+    it('should generate export with share link', async () => {
+      const options: ReportExportOptions = {
+        format: 'json',
+        strategyName: 'TestStrategy',
+      };
+
+      const result = await generator.generateWithShare(report, options, {
+        generateLink: true,
+        linkExpirationHours: 24,
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.filename).toContain('TestStrategy');
+      expect(result.size).toBeGreaterThan(0);
+      expect(result.share).toBeDefined();
+      expect(result.share?.link).toContain('/share/');
+      expect(result.share?.expiresAt).toBeGreaterThan(Date.now());
+    });
+  });
 });
 
 describe('Integration Tests', () => {
