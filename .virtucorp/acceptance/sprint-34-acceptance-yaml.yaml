@@ -1,0 +1,29 @@
+web:
+  url: "https://alpha-arena-two.vercel.app"
+
+tasks:
+  - name: "首页加载测试"
+    flow:
+      - aiWaitFor: "欢迎引导模态框出现"
+      - ai: "点击跳过或关闭按钮关闭欢迎引导"
+      - aiWaitFor: "页面加载完成，显示主要内容区域"
+      - aiAssert: "页面标题或 Logo 显示 Alpha Arena 或类似品牌名称"
+      - aiAssert: "导航栏存在且可见"
+  - name: "策略市场测试"
+    flow:
+      - ai: "查找并点击策略市场导航链接或按钮"
+      - aiWaitFor: "策略市场页面加载完成"
+      - aiAssert: "页面显示策略列表或策略内容"
+      - aiAssert: "策略卡片或策略项可见"
+  - name: "API 文档页面测试"
+    flow:
+      - ai: "查找并点击 API 文档导航链接或按钮"
+      - aiWaitFor: "API 文档页面加载完成"
+      - aiAssert: "页面显示 API 文档内容，不是空白页面"
+      - aiAssert: "文档中有 API 端点或接口说明"
+  - name: "性能监控面板测试"
+    flow:
+      - ai: "查找并点击性能监控或监控面板的导航链接"
+      - aiWaitFor: "性能监控面板加载完成"
+      - aiAssert: "页面显示性能数据或监控图表"
+      - aiAssert: "有指标数据展示，如响应时间、请求数等"
