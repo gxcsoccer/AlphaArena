@@ -90,12 +90,12 @@ function parseUserAgent(): { os: string; browser: string } {
   let os = 'unknown';
   let browser = 'unknown';
 
-  // Detect OS
-  if (ua.includes('Win')) os = 'Windows';
+  // Detect OS - check Android/iOS before Linux/Mac since they contain those strings
+  if (ua.includes('Android')) os = 'Android';
+  else if (ua.includes('iPhone') || ua.includes('iPad') || ua.includes('iOS')) os = 'iOS';
+  else if (ua.includes('Win')) os = 'Windows';
   else if (ua.includes('Mac')) os = 'MacOS';
   else if (ua.includes('Linux')) os = 'Linux';
-  else if (ua.includes('Android')) os = 'Android';
-  else if (ua.includes('iOS') || ua.includes('iPhone') || ua.includes('iPad')) os = 'iOS';
 
   // Detect browser
   if (ua.includes('Firefox')) browser = 'Firefox';
