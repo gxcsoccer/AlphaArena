@@ -1,225 +1,351 @@
 /**
- * Performance Monitoring Hook
- * Tracks render times, memory usage, and FPS for dashboard components
+ * Performance Monitor Hook
+ * Tracks and reports performance metrics
  */
 
-import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 
 interface PerformanceMetrics {
-  /** Render time in milliseconds */
+  // Timing metrics
+  loadTime: number;
   renderTime: number;
-  /** Average render time over last N renders */
-  avgRenderTime: number;
-  /** Memory usage in MB (if available) */
-  memoryUsage: number | null;
-  /** Current FPS */
-  fps: number;
-  /** Total renders count */
-  renderCount: number;
-  /** Last update timestamp */
-  lastUpdate: number;
+  interactionTime: number;
+
+  // Resource metrics
+  memoryUsage: number;
+  cacheHitRate: number;
+  apiCalls: number;
+
+  // User experience metrics
+  timeToFirstByte: number;
+  firstContentfulPaint: number;
+  largestContentfulPaint: number;
+  cumulativeLayoutShift: number;
+  firstInputDelay: number;
+
+  // Custom metrics
+  customMetrics: Record<string, number>;
 }
 
-interface PerformanceOptions {
-  /** Component name for logging */
-  componentName: string;
-  /** Number of renders to average (default: 10) */
-  avgRenderCount?: number;
-  /** Enable console logging (default: false) */
-  enableLogging?: boolean;
-  /** FPS measurement interval in ms (default: 1000) */
-  fpsInterval?: number;
+interface PerformanceEntry {
+  name: string;
+  duration: number;
+  timestamp: number;
+}
+
+class PerformanceMonitor {
+  private static instance: PerformanceMonitor;
+  private metrics: Partial<PerformanceMetrics> = {};
+  private customMetrics: Map<string, number> = new Map();
+  private apiCallCount = 0;
+  private observers: PerformanceObserver[] = [];
+
+  static getInstance(): PerformanceMonitor {
+    if (!PerformanceMonitor.instance) {
+      PerformanceMonitor.instance = new PerformanceMonitor();
+    }
+    return PerformanceMonitor.instance;
+  }
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.initObservers();
+    }
+  }
+
+  private initObservers() {
+    // Observe paint timing
+    if ('PerformanceObserver' in window) {
+      try {
+        const paintObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (entry.name === 'first-contentful-paint') {
+              this.metrics.firstContentfulPaint = entry.startTime;
+            }
+          }
+        });
+        paintObserver.observe({ entryTypes: ['paint'] });
+        this.observers.push(paintObserver);
+      } catch (e) {
+        // Paint observer not supported
+      }
+
+      // Observe largest contentful paint
+      try {
+        const lcpObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          const lastEntry = entries[entries.length - 1];
+          this.metrics.largestContentfulPaint = lastEntry.startTime;
+        });
+        lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
+        this.observers.push(lcpObserver);
+      } catch (e) {
+        // LCP observer not supported
+      }
+
+      // Observe layout shift
+      try {
+        let clsValue = 0;
+        const clsObserver = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries()) {
+            if (!(entry as any).hadRecentInput) {
+              clsValue += (entry as any).value;
+            }
+          }
+          this.metrics.cumulativeLayoutShift = clsValue;
+        });
+        clsObserver.observe({ entryTypes: ['layout-shift'] });
+        this.observers.push(clsObserver);
+      } catch (e) {
+        // CLS observer not supported
+      }
+
+      // Observe first input delay
+      try {
+        const fidObserver = new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          this.metrics.firstInputDelay = entries[0].duration;
+        });
+        fidObserver.observe({ entryTypes: ['first-input'] });
+        this.observers.push(fidObserver);
+      } catch (e) {
+        // FID observer not supported
+      }
+    }
+  }
+
+  /**
+   * Mark the start of an operation
+   */
+  markStart(name: string): void {
+    if (typeof performance !== 'undefined') {
+      performance.mark(`${name}-start`);
+    }
+  }
+
+  /**
+   * Mark the end of an operation and measure duration
+   */
+  markEnd(name: string): number {
+    if (typeof performance !== 'undefined') {
+      performance.mark(`${name}-end`);
+      try {
+        performance.measure(name, `${name}-start`, `${name}-end`);
+        const measure = performance.getEntriesByName(name, 'measure')[0];
+        return measure?.duration || 0;
+      } catch (e) {
+        return 0;
+      }
+    }
+    return 0;
+  }
+
+  /**
+   * Record API call
+   */
+  recordApiCall(): void {
+    this.apiCallCount++;
+  }
+
+  /**
+   * Set custom metric
+   */
+  setMetric(name: string, value: number): void {
+    this.customMetrics.set(name, value);
+  }
+
+  /**
+   * Get all metrics
+   */
+  getMetrics(): Partial<PerformanceMetrics> {
+    // Get memory usage (Chrome only)
+    const memory = (performance as any).memory;
+    const memoryUsage = memory ? memory.usedJSHeapSize / memory.jsHeapSizeLimit : 0;
+
+    return {
+      ...this.metrics,
+      memoryUsage,
+      apiCalls: this.apiCallCount,
+      customMetrics: Object.fromEntries(this.customMetrics),
+    };
+  }
+
+  /**
+   * Get navigation timing
+   */
+  getNavigationTiming(): PerformanceNavigationTiming | null {
+    if (typeof performance === 'undefined') return null;
+
+    const entries = performance.getEntriesByType('navigation');
+    return entries[0] as PerformanceNavigationTiming;
+  }
+
+  /**
+   * Get resource timing
+   */
+  getResourceTiming(): PerformanceResourceTiming[] {
+    if (typeof performance === 'undefined') return [];
+
+    return performance.getEntriesByType('resource') as PerformanceResourceTiming[];
+  }
+
+  /**
+   * Clear all metrics
+   */
+  clear(): void {
+    this.metrics = {};
+    this.customMetrics.clear();
+    this.apiCallCount = 0;
+  }
+
+  /**
+   * Cleanup observers
+   */
+  disconnect(): void {
+    this.observers.forEach((observer) => observer.disconnect());
+    this.observers = [];
+  }
+}
+
+// Singleton instance
+const performanceMonitor = PerformanceMonitor.getInstance();
+
+/**
+ * Hook to track component render performance
+ */
+export function usePerformanceTracking(componentName: string) {
+  const renderStartRef = useRef<number>(0);
+  const renderCountRef = useRef<number>(0);
+
+  useEffect(() => {
+    renderStartRef.current = performance.now();
+    renderCountRef.current++;
+
+    return () => {
+      const renderTime = performance.now() - renderStartRef.current;
+      performanceMonitor.setMetric(`${componentName}_render_${renderCountRef.current}`, renderTime);
+    };
+  });
 }
 
 /**
- * Hook for monitoring component performance
+ * Hook to measure operation performance
  */
-export function usePerformanceMonitor(options: PerformanceOptions) {
-  const {
-    componentName,
-    avgRenderCount = 10,
-    enableLogging = false,
-    fpsInterval = 1000,
-  } = options;
+export function useMeasurePerformance(name: string) {
+  const measure = useCallback((operation: () => void) => {
+    performanceMonitor.markStart(name);
+    operation();
+    const duration = performanceMonitor.markEnd(name);
+    return duration;
+  }, [name]);
 
-  const renderStartTime = useRef<number>(performance.now());
-  const renderTimes = useRef<number[]>([]);
-  const frameCount = useRef<number>(0);
-  const lastFpsTime = useRef<number>(performance.now());
-  const fpsFrameCount = useRef<number>(0);
-  const animationFrameId = useRef<number | null>(null);
+  const measureAsync = useCallback(async <T>(operation: () => Promise<T>): Promise<{ result: T; duration: number }> => {
+    performanceMonitor.markStart(name);
+    const result = await operation();
+    const duration = performanceMonitor.markEnd(name);
+    return { result, duration };
+  }, [name]);
 
-  const [metrics, setMetrics] = useState<PerformanceMetrics>({
-    renderTime: 0,
-    avgRenderTime: 0,
-    memoryUsage: null,
-    fps: 60,
-    renderCount: 0,
-    lastUpdate: Date.now(),
-  });
+  return { measure, measureAsync };
+}
 
-  // Measure FPS
+/**
+ * Hook to get performance metrics
+ */
+export function usePerformanceMetrics() {
+  const [metrics, setMetrics] = useState<Partial<PerformanceMetrics>>({});
+
   useEffect(() => {
-    const measureFps = () => {
-      const now = performance.now();
-      fpsFrameCount.current++;
-
-      if (now - lastFpsTime.current >= fpsInterval) {
-        const fps = Math.round((fpsFrameCount.current * 1000) / (now - lastFpsTime.current));
-        lastFpsTime.current = now;
-        fpsFrameCount.current = 0;
-
-        setMetrics(prev => ({
-          ...prev,
-          fps,
-          lastUpdate: Date.now(),
-        }));
-      }
-
-      animationFrameId.current = requestAnimationFrame(measureFps);
+    const updateMetrics = () => {
+      setMetrics(performanceMonitor.getMetrics());
     };
 
-    animationFrameId.current = requestAnimationFrame(measureFps);
+    // Update immediately
+    updateMetrics();
+
+    // Update periodically
+    const interval = setInterval(updateMetrics, 1000);
 
     return () => {
-      if (animationFrameId.current !== null) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
+      clearInterval(interval);
     };
-  }, [fpsInterval]);
-
-  // Track render start
-  const trackRenderStart = useCallback(() => {
-    renderStartTime.current = performance.now();
   }, []);
 
-  // Track render end
-  const trackRenderEnd = useCallback(() => {
-    const renderTime = performance.now() - renderStartTime.current;
-    renderTimes.current.push(renderTime);
+  const recordApiCall = useCallback(() => {
+    performanceMonitor.recordApiCall();
+  }, []);
 
-    // Keep only last N render times
-    if (renderTimes.current.length > avgRenderCount) {
-      renderTimes.current.shift();
-    }
+  const setMetric = useCallback((name: string, value: number) => {
+    performanceMonitor.setMetric(name, value);
+  }, []);
 
-    // Calculate average
-    const avgRenderTime = renderTimes.current.reduce((sum, t) => sum + t, 0) / renderTimes.current.length;
-
-    // Get memory usage if available (Chrome only)
-    const memoryUsage = (performance as any).memory
-      ? Math.round((performance as any).memory.usedJSHeapSize / (1024 * 1024))
-      : null;
-
-    setMetrics(prev => ({
-      ...prev,
-      renderTime,
-      avgRenderTime,
-      memoryUsage,
-      renderCount: prev.renderCount + 1,
-      lastUpdate: Date.now(),
-    }));
-
-    if (enableLogging) {
-      console.log(`[${componentName}] Render: ${renderTime.toFixed(2)}ms, Avg: ${avgRenderTime.toFixed(2)}ms, FPS: ${metrics.fps}`);
-    }
-  }, [componentName, avgRenderCount, enableLogging, metrics.fps]);
+  const clear = useCallback(() => {
+    performanceMonitor.clear();
+  }, []);
 
   return {
     metrics,
-    trackRenderStart,
-    trackRenderEnd,
+    recordApiCall,
+    setMetric,
+    clear,
   };
 }
 
 /**
- * Hook for tracking component mount time
+ * Hook to track memory usage
  */
-export function useMountTime(componentName: string, threshold: number = 100) {
-  const mountTime = useRef<number>(performance.now());
+export function useMemoryMonitor() {
+  const [memoryInfo, setMemoryInfo] = useState<{
+    usedJSHeapSize: number;
+    totalJSHeapSize: number;
+    jsHeapSizeLimit: number;
+    usagePercent: number;
+  } | null>(null);
 
   useEffect(() => {
-    const elapsed = performance.now() - mountTime.current;
-    if (elapsed > threshold) {
-      console.warn(`[${componentName}] Mount time exceeded threshold: ${elapsed.toFixed(2)}ms > ${threshold}ms`);
-    } else {
-      console.log(`[${componentName}] Mount time: ${elapsed.toFixed(2)}ms`);
-    }
-  }, [componentName, threshold]);
+    const updateMemory = () => {
+      const memory = (performance as any).memory;
+      if (memory) {
+        setMemoryInfo({
+          usedJSHeapSize: memory.usedJSHeapSize,
+          totalJSHeapSize: memory.totalJSHeapSize,
+          jsHeapSizeLimit: memory.jsHeapSizeLimit,
+          usagePercent: (memory.usedJSHeapSize / memory.jsHeapSizeLimit) * 100,
+        });
+      }
+    };
+
+    updateMemory();
+    const interval = setInterval(updateMemory, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return memoryInfo;
 }
 
 /**
- * Hook for tracking data processing time
+ * Hook to detect slow renders
  */
-export function useDataProcessingTime<T>(
-  data: T[],
-  processor: (data: T[]) => any,
-  dependencies: any[] = []
-) {
-  const [processedData, setProcessedData] = useState<any>(null);
-  const [processingTime, setProcessingTime] = useState<number>(0);
+export function useSlowRenderDetector(threshold: number = 16) {
+  const slowRendersRef = useRef<Array<{ timestamp: number; duration: number }>>([]);
 
   useEffect(() => {
-    if (!data || data.length === 0) {
-      setProcessedData(null);
-      return;
-    }
-
     const startTime = performance.now();
-    const result = processor(data);
-    const elapsed = performance.now() - startTime;
 
-    setProcessedData(result);
-    setProcessingTime(elapsed);
+    return () => {
+      const duration = performance.now() - startTime;
+      if (duration > threshold) {
+        slowRendersRef.current.push({
+          timestamp: Date.now(),
+          duration,
+        });
+      }
+    };
+  });
 
-    if (elapsed > 50) {
-      console.warn(`Data processing took ${elapsed.toFixed(2)}ms for ${data.length} items`);
-    }
-  }, [data, ...dependencies]);
-
-  return { processedData, processingTime };
+  return slowRendersRef.current;
 }
 
-/**
- * Hook for lazy loading data with virtualization support
- */
-export function useLazyLoad<T>(
-  allData: T[],
-  initialCount: number = 20,
-  loadMoreCount: number = 20
-) {
-  const [visibleCount, setVisibleCount] = useState(initialCount);
-  const [isLoading, setIsLoading] = useState(false);
-
-  const visibleData = useMemo(() => {
-    return allData.slice(0, visibleCount);
-  }, [allData, visibleCount]);
-
-  const hasMore = visibleCount < allData.length;
-  const remainingCount = allData.length - visibleCount;
-
-  const loadMore = useCallback(() => {
-    if (isLoading || !hasMore) return;
-
-    setIsLoading(true);
-    
-    // Simulate async loading for smoother UX
-    requestAnimationFrame(() => {
-      setVisibleCount(prev => Math.min(prev + loadMoreCount, allData.length));
-      setIsLoading(false);
-    });
-  }, [isLoading, hasMore, loadMoreCount, allData.length]);
-
-  const reset = useCallback(() => {
-    setVisibleCount(initialCount);
-  }, [initialCount]);
-
-  return {
-    visibleData,
-    hasMore,
-    remainingCount,
-    isLoading,
-    loadMore,
-    reset,
-  };
-}
+export { performanceMonitor };
+export default performanceMonitor;

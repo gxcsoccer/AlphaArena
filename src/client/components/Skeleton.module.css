@@ -1,0 +1,240 @@
+/* Skeleton.module.css - Skeleton loading styles */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-fill-2) 25%,
+    var(--color-fill-3) 50%,
+    var(--color-fill-2) 75%
+  );
+  background-size: 200% 100%;
+}
+
+.animation-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.animation-wave {
+  animation: wave 1.5s ease-in-out infinite;
+}
+
+.animation-none {
+  background: var(--color-fill-2);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes wave {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Card Skeleton */
+.skeletonCard {
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+}
+
+.skeletonCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeletonCardContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Table Skeleton */
+.skeletonTable {
+  width: 100%;
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.skeletonTableHeader {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: var(--color-fill-1);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeletonTableBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeletonTableRow {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.skeletonTableRow:last-child {
+  border-bottom: none;
+}
+
+/* Chart Skeleton */
+.skeletonChart {
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.skeletonChartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.skeletonChartArea {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+}
+
+.skeletonChartYAxis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 40px;
+}
+
+.skeletonChartContent {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--color-fill-1);
+}
+
+.skeletonChartWave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-fill-3) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: wave 2s ease-in-out infinite;
+  clip-path: polygon(
+    0 60%,
+    10% 55%,
+    20% 50%,
+    30% 45%,
+    40% 40%,
+    50% 50%,
+    60% 45%,
+    70% 55%,
+    80% 50%,
+    90% 45%,
+    100% 40%,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* List Skeleton */
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonListItem {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+/* Page Loader */
+.pageLoader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.pageLoaderMessage {
+  color: var(--color-text-3);
+  font-size: 14px;
+}
+
+/* Section Loader */
+.sectionLoader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+/* Dark mode adjustments */
+:global([data-theme='dark']) .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.05) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .skeletonCard {
+    padding: 16px;
+  }
+
+  .skeletonTableHeader,
+  .skeletonTableRow {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .skeletonChart {
+    padding: 12px;
+  }
+
+  .skeletonChartYAxis {
+    width: 30px;
+  }
+}
