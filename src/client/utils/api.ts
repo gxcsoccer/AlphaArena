@@ -8,7 +8,7 @@
  * - etc.
  */
 
-import { validateConfig, logConfigStatus } from 'src/client/utils/config';
+import { validateConfig, logConfigStatus } from './config';
 import { createLogger } from '../../utils/logger';
 
 // Create logger for this module

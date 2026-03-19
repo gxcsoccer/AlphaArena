@@ -10,7 +10,7 @@
  */
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import { validateConfig, isSupabaseConfigValid, logConfigStatus } from 'src/client/utils/config';
+import { validateConfig, isSupabaseConfigValid, logConfigStatus } from './config';
 import { removeChannelListener, createPresenceUnsubscribe } from '../../shared/realtime';
 
 // Reconnection settings with exponential backoff
