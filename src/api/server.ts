@@ -55,6 +55,7 @@ import { createRebalanceRouter } from './rebalanceRoutes';
 import { createSchedulerRouter } from './schedulerRoutes';
 import alertRoutes from './alertRoutes';
 import { dataSourceRoutes } from './dataSourceRoutes';
+import { createVirtualAccountRouter } from './virtualAccountRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -951,6 +952,9 @@ export class APIServer extends EventEmitter {
 
     // Data Source settings routes
     this.app.use('/api/data-source', dataSourceRoutes);
+    
+    // Virtual Account routes
+    this.app.use('/api', createVirtualAccountRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

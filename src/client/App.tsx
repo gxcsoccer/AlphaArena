@@ -69,6 +69,7 @@ const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/Subscription
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
 const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSettingsPage'));
+const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -226,6 +227,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
               Holdings
             </MenuItem>
+            <MenuItem key="/virtual-account" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+              Virtual Account
+            </MenuItem>
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
@@ -368,6 +372,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Holdings
           </MenuItem>
+          <MenuItem key="/virtual-account" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+            Virtual Account
+          </MenuItem>
           <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
             Scheduler
           </MenuItem>
@@ -445,6 +452,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
+        <Route path="/virtual-account" element={<VirtualAccountPage />} />
       </Routes>
     </Suspense>
   );
