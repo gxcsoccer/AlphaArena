@@ -531,9 +531,12 @@ export class AlertService extends EventEmitter {
         return false;
       }
 
-      // TODO: Integrate with email service (SendGrid, AWS SES, Resend, etc.) before production use
+      // BACKLOG(#426): Email service integration pending
+      // Required configuration: EMAIL_SERVICE_PROVIDER, EMAIL_API_KEY, EMAIL_FROM_ADDRESS
+      // Recommended providers: Resend (simplicity), AWS SES (cost-effective), SendGrid
       // For development, just log it
       log.info(`[DEV] Would send email to ${email}: ${alert.title}`);
+      log.info(`[DEV] Alert details: ${JSON.stringify({ id: alert.id, type: alert.rule_type, severity: alert.severity })}`);
       return true;
     } catch (error) {
       log.error('Failed to send email notification:', error);
