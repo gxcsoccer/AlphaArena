@@ -276,3 +276,6 @@ export type {
 
 // Performance Analytics DAO
 export { PerformanceDAO, performanceDAO } from './performance.dao';
+
+// Backtest-Live Integration DAO
+export { BacktestLiveDAO, backtestLiveDAO } from './backtest-live.dao';

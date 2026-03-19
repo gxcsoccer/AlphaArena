@@ -58,6 +58,7 @@ import { dataSourceRoutes } from './dataSourceRoutes';
 import { createVirtualAccountRouter } from './virtualAccountRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import { createStrategyPortfolioRouter } from './strategyPortfolioRoutes';
+import backtestLiveRoutes from './backtestLiveRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -963,6 +964,9 @@ export class APIServer extends EventEmitter {
 
     // Strategy Portfolio routes
     this.app.use('/api/strategy-portfolios', createStrategyPortfolioRouter());
+
+    // Backtest-Live Integration routes
+    this.app.use('/api/backtest-live', backtestLiveRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
