@@ -128,8 +128,8 @@ async function runBenchmarks(options: BenchmarkOptions): Promise<void> {
     try {
       backtestResults = runAllStrategyBenchmarks(options.dataPoints);
       printBacktestResults(backtestResults);
-    } catch (error: any) {
-      console.error('❌ Backtest benchmark failed:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ Backtest benchmark failed:', error instanceof Error ? error.message : String(error));
     }
   }
   
@@ -142,8 +142,8 @@ async function runBenchmarks(options: BenchmarkOptions): Promise<void> {
         iterations: options.iterations,
       });
       printAPIResults(apiResults);
-    } catch (error: any) {
-      console.error('❌ API benchmark failed:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ API benchmark failed:', error instanceof Error ? error.message : String(error));
     }
   }
   
@@ -155,8 +155,8 @@ async function runBenchmarks(options: BenchmarkOptions): Promise<void> {
         duration: options.duration,
       });
       printRealtimeResults(realtimeResult);
-    } catch (error: any) {
-      console.error('❌ Realtime benchmark failed:', error.message);
+    } catch (error: unknown) {
+      console.error('❌ Realtime benchmark failed:', error instanceof Error ? error.message : String(error));
     }
   }
   

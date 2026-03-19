@@ -9,6 +9,25 @@ import puppeteer from 'puppeteer';
 import * as fs from 'fs';
 import * as path from 'path';
 
+// Extended performance API with memory info (Chrome-specific)
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface ExtendedPerformance extends Performance {
+  memory?: PerformanceMemory;
+}
+
+// Window with performance metrics for testing
+interface WindowWithPerfMetrics {
+  __perfMetrics?: {
+    frameTimes: number[];
+    lastFrameTime: number;
+  };
+}
+
 interface PerformanceResult {
   testName: string;
   dataCount: number;
@@ -25,13 +44,6 @@ interface PerformanceResult {
   };
 }
 
-interface TestConfig {
-  name: string;
-  url: string;
-  dataGenerator: string;
-  expectedMinCount: number;
-}
-
 const THRESHOLDS = {
   renderTime: 2000, // 2s max for 1000+ items
   fps: 30,
@@ -45,23 +57,28 @@ async function measurePerformance(
 ): Promise<PerformanceResult> {
   // Get initial memory
   const memoryBefore = await page.evaluate(() => {
-    return (performance as any).memory
-      ? (performance as any).memory.usedJSHeapSize / (1024 * 1024)
+    const perf = performance as ExtendedPerformance;
+    return perf.memory
+      ? perf.memory.usedJSHeapSize / (1024 * 1024)
       : 0;
   });
 
   // Start performance measurement
   await page.evaluate(() => {
-    (window as any).__perfMetrics = {
-      frameTimes: [] as number[],
+    const win = window as WindowWithPerfMetrics;
+    win.__perfMetrics = {
+      frameTimes: [],
       lastFrameTime: performance.now(),
     };
 
     const measureFrame = () => {
       const now = performance.now();
-      const delta = now - (window as any).__perfMetrics.lastFrameTime;
-      (window as any).__perfMetrics.frameTimes.push(delta);
-      (window as any).__perfMetrics.lastFrameTime = now;
+      const metrics = (window as WindowWithPerfMetrics).__perfMetrics;
+      if (metrics) {
+        const delta = now - metrics.lastFrameTime;
+        metrics.frameTimes.push(delta);
+        metrics.lastFrameTime = now;
+      }
       requestAnimationFrame(measureFrame);
     };
     requestAnimationFrame(measureFrame);
@@ -77,14 +94,16 @@ async function measurePerformance(
 
   // Get metrics
   const metrics = await page.evaluate(() => {
-    const frameTimes = (window as any).__perfMetrics?.frameTimes || [];
+    const win = window as WindowWithPerfMetrics;
+    const frameTimes = win.__perfMetrics?.frameTimes || [];
     const avgFrameTime = frameTimes.length > 0
-      ? frameTimes.reduce((sum: number, t: number) => sum + t, 0) / frameTimes.length
+      ? frameTimes.reduce((sum, t) => sum + t, 0) / frameTimes.length
       : 16.67;
     const fps = 1000 / avgFrameTime;
 
-    const memoryAfter = (performance as any).memory
-      ? (performance as any).memory.usedJSHeapSize / (1024 * 1024)
+    const perf = performance as ExtendedPerformance;
+    const memoryAfter = perf.memory
+      ? perf.memory.usedJSHeapSize / (1024 * 1024)
       : 0;
 
     // Get render time from performance marks
@@ -150,7 +169,7 @@ async function runTests() {
       }));
 
       // Store in window for component access
-      (window as any).__testTrades = mockTrades;
+      (window as WindowWithPerfMetrics & { __testTrades?: typeof mockTrades }).__testTrades = mockTrades;
       console.log(`Generated ${mockTrades.length} test trades`);
     }, 1000);
 
@@ -160,7 +179,7 @@ async function runTests() {
     console.log('📊 Testing User Dashboard...');
     await page.goto('http://localhost:3000/dashboard', { waitUntil: 'networkidle2' });
     
-    await page.evaluate((count) => {
+    await page.evaluate((_count) => {
       const mockStrategies = Array.from({ length: 50 }, (_, i) => ({
         id: `strategy-${i}`,
         name: `Strategy ${i}`,
@@ -171,13 +190,13 @@ async function runTests() {
         createdAt: new Date(Date.now() - i * 86400000).toISOString(),
       }));
 
-      (window as any).__testStrategies = mockStrategies;
+      (window as WindowWithPerfMetrics & { __testStrategies?: typeof mockStrategies }).__testStrategies = mockStrategies;
     }, 1000);
 
     results.push(await measurePerformance(page, 'User Dashboard', 1000));
 
-  } catch (error: any) {
-    console.error('Test error:', error.message);
+  } catch (error: unknown) {
+    console.error('Test error:', error instanceof Error ? error.message : String(error));
   } finally {
     await browser.close();
   }

@@ -12,7 +12,7 @@ export interface BenchmarkResult {
   memoryDelta: number;
   opsPerSecond?: number;
   bytesPerOp?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BaselineResult {
@@ -78,7 +78,7 @@ export function forceGC(): void {
  */
 export async function measureTime<T>(
   fn: () => T | Promise<T>,
-  name: string = 'operation'
+  _name: string = 'operation'
 ): Promise<{ result: T; duration: number }> {
   const start = performance.now();
   const result = await fn();
