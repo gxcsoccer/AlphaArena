@@ -2699,6 +2699,448 @@
         }
       }
     },
+    "/api/performance/metrics": {
+      "post": {
+        "summary": "Report performance metrics",
+        "description": "Collect performance metrics from client",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "session_id": {
+                    "type": "string",
+                    "description": "Session identifier"
+                  },
+                  "fcp": {
+                    "type": "number",
+                    "description": "First Contentful Paint (ms)"
+                  },
+                  "lcp": {
+                    "type": "number",
+                    "description": "Largest Contentful Paint (ms)"
+                  },
+                  "fid": {
+                    "type": "number",
+                    "description": "First Input Delay (ms)"
+                  },
+                  "cls": {
+                    "type": "number",
+                    "description": "Cumulative Layout Shift (score)"
+                  },
+                  "ttfb": {
+                    "type": "number",
+                    "description": "Time to First Byte (ms)"
+                  },
+                  "inp": {
+                    "type": "number",
+                    "description": "Interaction to Next Paint (ms)"
+                  },
+                  "tti": {
+                    "type": "number",
+                    "description": "Time to Interactive (ms)"
+                  },
+                  "memory_used": {
+                    "type": "number",
+                    "description": "JS Heap Size (bytes)"
+                  },
+                  "memory_limit": {
+                    "type": "number",
+                    "description": "JS Heap Limit (bytes)"
+                  },
+                  "api_latency": {
+                    "type": "number",
+                    "description": "Average API latency (ms)"
+                  },
+                  "ws_latency": {
+                    "type": "number",
+                    "description": "WebSocket latency (ms)"
+                  },
+                  "ws_connected": {
+                    "type": "boolean",
+                    "description": "WebSocket connection status"
+                  },
+                  "page": {
+                    "type": "string",
+                    "description": "Current page/route"
+                  },
+                  "route": {
+                    "type": "string",
+                    "description": "Route name"
+                  },
+                  "device_type": {
+                    "type": "string",
+                    "enum": [
+                      "mobile",
+                      "tablet",
+                      "desktop"
+                    ],
+                    "description": "Device type"
+                  },
+                  "os": {
+                    "type": "string",
+                    "description": "Operating system"
+                  },
+                  "browser": {
+                    "type": "string",
+                    "description": "Browser name"
+                  },
+                  "screen_width": {
+                    "type": "number",
+                    "description": "Screen width in pixels"
+                  },
+                  "screen_height": {
+                    "type": "number",
+                    "description": "Screen height in pixels"
+                  },
+                  "connection_type": {
+                    "type": "string",
+                    "description": "Connection type (4g, 3g, wifi)"
+                  },
+                  "effective_type": {
+                    "type": "string",
+                    "description": "Effective connection type"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metrics saved successfully"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get raw performance metrics",
+        "description": "Get raw performance metrics with filters",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "user_id",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "device_type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "mobile",
+                "tablet",
+                "desktop"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance metrics"
+          }
+        }
+      }
+    },
+    "/api/performance/metrics/batch": {
+      "post": {
+        "summary": "Batch report performance metrics",
+        "description": "Collect multiple performance metrics in a single request",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "metrics": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metrics saved successfully"
+          }
+        }
+      }
+    },
+    "/api/performance/summary": {
+      "get": {
+        "summary": "Get performance summary",
+        "description": "Get aggregated performance metrics summary",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance summary"
+          }
+        }
+      }
+    },
+    "/api/performance/device-distribution": {
+      "get": {
+        "summary": "Get device type distribution",
+        "description": "Get performance metrics distribution by device type",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device distribution"
+          }
+        }
+      }
+    },
+    "/api/performance/connection-distribution": {
+      "get": {
+        "summary": "Get connection type distribution",
+        "description": "Get performance metrics distribution by connection type",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection distribution"
+          }
+        }
+      }
+    },
+    "/api/performance/page-performance": {
+      "get": {
+        "summary": "Get page-level performance",
+        "description": "Get performance metrics aggregated by page",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page performance data"
+          }
+        }
+      }
+    },
+    "/api/performance/trend": {
+      "get": {
+        "summary": "Get performance trend over time",
+        "description": "Get aggregated performance metrics over time",
+        "tags": [
+          "Performance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "granularity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hour",
+                "day",
+                "week"
+              ],
+              "default": "day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance trend data"
+          }
+        }
+      }
+    },
     "/public/v1": {
       "get": {
         "summary": "Get public API information",

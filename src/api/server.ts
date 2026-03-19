@@ -65,6 +65,7 @@ import { createRecommendationRouter } from './recommendationRoutes';
 import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
 import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
+import performanceRoutes from './performanceRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -989,6 +990,9 @@ export class APIServer extends EventEmitter {
 
     // Public API for third-party developers
     this.app.use('/public/v1', createPublicApiRouter());
+
+    // Performance Monitoring routes
+    this.app.use('/api/performance', performanceRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {

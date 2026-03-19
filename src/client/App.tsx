@@ -74,6 +74,7 @@ const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPag
 const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfolioPage'));
 const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailPage'));
 const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
+const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -473,6 +474,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
+        <Route path="/admin/performance" element={<PerformanceMonitoringPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
         <Route path="/virtual-account" element={<VirtualAccountPage />} />
         <Route path="/exchange-accounts" element={<ExchangeAccountsPage />} />

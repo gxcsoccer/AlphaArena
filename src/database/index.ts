@@ -52,6 +52,19 @@ export {
   type AccountEnvironment
 } from './exchange-accounts.dao';
 
+// Performance Metrics DAO
+export {
+  PerformanceMetricsDAO,
+  getPerformanceMetricsDAO,
+  type PerformanceMetric,
+  type CreatePerformanceMetricInput,
+  type PerformanceFilters,
+  type AggregatedMetrics,
+  type DeviceDistribution,
+  type ConnectionDistribution,
+  type PerformanceAlert,
+} from './performance-metrics.dao';
+
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
 import { TradesDAO } from './trades.dao';
