@@ -32,6 +32,7 @@ import { createWebhookRouter } from './webhookRoutes';
 import { createCopyTradingRouter } from './copyTradingRoutes';
 import { createLeaderboardRouter } from './leaderboardRoutes';
 import backtestRoutes from './backtestRoutes';
+import backtestAnalysisRoutes from './backtestAnalysisRoutes';
 import aiRoutes from './aiRoutes.js';
 import { BotManager } from '../bot';
 import { createBotRouter } from './botRoutes';
@@ -923,6 +924,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/copy-trading', createCopyTradingRouter());
     this.app.use('/api/leaderboard', createLeaderboardRouter());
     this.app.use('/api/backtest', backtestRoutes);
+    this.app.use('/api/backtest-analysis', backtestAnalysisRoutes);
 
     // Bot API routes
     this.app.use('/api/bot', createBotRouter(this.botManager));
