@@ -2,31 +2,30 @@
  * Tests for Exchange Accounts Service
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExchangeAccountsService } from '../src/services/ExchangeAccountsService';
 import * as dao from '../src/database/exchange-accounts.dao';
 
 // Mock the DAO
-vi.mock('../src/database/exchange-accounts.dao', () => ({
+jest.mock('../src/database/exchange-accounts.dao', () => ({
   ExchangeAccountsDAO: {
-    createAccount: vi.fn(),
-    getAccountById: vi.fn(),
-    getAccountsByUserId: vi.fn(),
-    getPrimaryAccount: vi.fn(),
-    updateAccount: vi.fn(),
-    deleteAccount: vi.fn(),
-    setPrimaryAccount: vi.fn(),
-    updateSyncStatus: vi.fn(),
-    getAccountBalances: vi.fn(),
-    upsertBalance: vi.fn(),
-    getAccountPositions: vi.fn(),
-    upsertPosition: vi.fn(),
-    createAccountGroup: vi.fn(),
-    getAccountGroupById: vi.fn(),
-    getAccountGroupsByUserId: vi.fn(),
-    updateAccountGroup: vi.fn(),
-    deleteAccountGroup: vi.fn(),
-    getUnifiedAccountSummary: vi.fn()
+    createAccount: jest.fn(),
+    getAccountById: jest.fn(),
+    getAccountsByUserId: jest.fn(),
+    getPrimaryAccount: jest.fn(),
+    updateAccount: jest.fn(),
+    deleteAccount: jest.fn(),
+    setPrimaryAccount: jest.fn(),
+    updateSyncStatus: jest.fn(),
+    getAccountBalances: jest.fn(),
+    upsertBalance: jest.fn(),
+    getAccountPositions: jest.fn(),
+    upsertPosition: jest.fn(),
+    createAccountGroup: jest.fn(),
+    getAccountGroupById: jest.fn(),
+    getAccountGroupsByUserId: jest.fn(),
+    updateAccountGroup: jest.fn(),
+    deleteAccountGroup: jest.fn(),
+    getUnifiedAccountSummary: jest.fn()
   }
 }));
 
@@ -36,16 +35,16 @@ describe('ExchangeAccountsService', () => {
   const testAccountId = 'test-account-id';
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('addAccount', () => {
     it('should add a new exchange account with valid data', async () => {
       // Mock getAccountsByUserId to return empty array (no existing accounts)
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountsByUserId).mockResolvedValueOnce([]);
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce([]);
       
       // Mock createAccount
-      vi.mocked(dao.ExchangeAccountsDAO.createAccount).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.createAccount as jest.Mock).mockResolvedValueOnce({
         id: testAccountId,
         user_id: testUserId,
         name: 'Test Alpaca',
@@ -64,7 +63,7 @@ describe('ExchangeAccountsService', () => {
         name: 'Test Alpaca',
         exchange: 'alpaca',
         environment: 'paper',
-        apiKey: 'test-api-key-12345678',
+        apiKey: 'testapikey12345678',  // Alphanumeric for Alpaca
         apiSecret: 'test-api-secret-12345678'
       });
 
@@ -94,6 +93,9 @@ describe('ExchangeAccountsService', () => {
     });
 
     it('should reject short API key', async () => {
+      // Mock getAccountsByUserId to return empty array first
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce([]);
+      
       await expect(service.addAccount(testUserId, {
         name: 'Invalid Account',
         exchange: 'alpaca',
@@ -120,7 +122,7 @@ describe('ExchangeAccountsService', () => {
         updated_at: new Date().toISOString()
       }));
 
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountsByUserId).mockResolvedValueOnce(existingAccounts);
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce(existingAccounts);
 
       await expect(service.addAccount(testUserId, {
         name: 'Overflow Account',
@@ -134,7 +136,7 @@ describe('ExchangeAccountsService', () => {
 
   describe('getAccounts', () => {
     it('should return sanitized accounts', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountsByUserId).mockResolvedValueOnce([
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce([
         {
           id: testAccountId,
           user_id: testUserId,
@@ -161,7 +163,7 @@ describe('ExchangeAccountsService', () => {
 
   describe('setPrimaryAccount', () => {
     it('should set primary account', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountById).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.getAccountById as jest.Mock).mockResolvedValueOnce({
         id: testAccountId,
         user_id: testUserId,
         name: 'Test Account',
@@ -176,7 +178,7 @@ describe('ExchangeAccountsService', () => {
         updated_at: new Date().toISOString()
       });
 
-      vi.mocked(dao.ExchangeAccountsDAO.setPrimaryAccount).mockResolvedValueOnce(undefined);
+      (dao.ExchangeAccountsDAO.setPrimaryAccount as jest.Mock).mockResolvedValueOnce(undefined);
 
       await service.setPrimaryAccount(testUserId, testAccountId);
 
@@ -184,7 +186,7 @@ describe('ExchangeAccountsService', () => {
     });
 
     it('should reject setting primary for non-owned account', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountById).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.getAccountById as jest.Mock).mockResolvedValueOnce({
         id: testAccountId,
         user_id: 'other-user-id',
         name: 'Test Account',
@@ -206,7 +208,7 @@ describe('ExchangeAccountsService', () => {
 
   describe('switchAccount', () => {
     it('should switch to active account', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountById).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.getAccountById as jest.Mock).mockResolvedValueOnce({
         id: testAccountId,
         user_id: testUserId,
         name: 'Test Account',
@@ -228,7 +230,7 @@ describe('ExchangeAccountsService', () => {
     });
 
     it('should reject switching to inactive account', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountById).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.getAccountById as jest.Mock).mockResolvedValueOnce({
         id: testAccountId,
         user_id: testUserId,
         name: 'Test Account',
@@ -250,7 +252,7 @@ describe('ExchangeAccountsService', () => {
 
   describe('Account Groups', () => {
     it('should create account group', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountsByUserId).mockResolvedValueOnce([
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce([
         {
           id: testAccountId,
           user_id: testUserId,
@@ -267,7 +269,7 @@ describe('ExchangeAccountsService', () => {
         }
       ]);
 
-      vi.mocked(dao.ExchangeAccountsDAO.createAccountGroup).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.createAccountGroup as jest.Mock).mockResolvedValueOnce({
         id: 'group-id',
         user_id: testUserId,
         name: 'Test Group',
@@ -288,7 +290,7 @@ describe('ExchangeAccountsService', () => {
     });
 
     it('should reject invalid allocation percentages', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getAccountsByUserId).mockResolvedValueOnce([
+      (dao.ExchangeAccountsDAO.getAccountsByUserId as jest.Mock).mockResolvedValueOnce([
         {
           id: testAccountId,
           user_id: testUserId,
@@ -315,7 +317,7 @@ describe('ExchangeAccountsService', () => {
 
   describe('getUnifiedSummary', () => {
     it('should return unified summary', async () => {
-      vi.mocked(dao.ExchangeAccountsDAO.getUnifiedAccountSummary).mockResolvedValueOnce({
+      (dao.ExchangeAccountsDAO.getUnifiedAccountSummary as jest.Mock).mockResolvedValueOnce({
         total_balance_usd: 10000,
         total_positions_value: 5000,
         total_unrealized_pnl: 500,

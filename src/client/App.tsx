@@ -73,6 +73,7 @@ const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSet
 const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPage'));
 const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfolioPage'));
 const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailPage'));
+const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -233,6 +234,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/virtual-account" icon={<IconSafe aria-hidden="true" />} role="menuitem">
               Virtual Account
             </MenuItem>
+            <MenuItem key="/exchange-accounts" icon={<IconStorage aria-hidden="true" />} role="menuitem">
+              Exchange Accounts
+            </MenuItem>
             <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
               Copy Trading
             </MenuItem>
@@ -384,6 +388,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/virtual-account" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Virtual Account
           </MenuItem>
+          <MenuItem key="/exchange-accounts" icon={<IconStorage aria-hidden="true" />} role="menuitem">
+            Exchange Accounts
+          </MenuItem>
           <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
             Scheduler
           </MenuItem>
@@ -468,6 +475,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
         <Route path="/virtual-account" element={<VirtualAccountPage />} />
+        <Route path="/exchange-accounts" element={<ExchangeAccountsPage />} />
         <Route path="/strategy-portfolio" element={<StrategyPortfolioPage />} />
         <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
       </Routes>
