@@ -37,6 +37,10 @@
       "description": "User authentication and authorization"
     },
     {
+      "name": "Public API",
+      "description": "Public API for third-party developers (API Key authentication)"
+    },
+    {
       "name": "Strategies",
       "description": "Trading strategy management"
     },
@@ -2207,6 +2211,1413 @@
           },
           "404": {
             "description": "Order book not found for symbol"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts": {
+      "get": {
+        "summary": "Get all exchange accounts",
+        "description": "Returns all exchange accounts for the authenticated user",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of exchange accounts"
+          }
+        }
+      },
+      "post": {
+        "summary": "Add exchange account",
+        "description": "Add a new exchange account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "exchange",
+                  "environment",
+                  "apiKey",
+                  "apiSecret"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "exchange": {
+                    "type": "string",
+                    "enum": [
+                      "alpaca",
+                      "binance",
+                      "okx",
+                      "bybit",
+                      "mock"
+                    ]
+                  },
+                  "environment": {
+                    "type": "string",
+                    "enum": [
+                      "live",
+                      "paper",
+                      "testnet"
+                    ]
+                  },
+                  "apiKey": {
+                    "type": "string"
+                  },
+                  "apiSecret": {
+                    "type": "string"
+                  },
+                  "apiPassphrase": {
+                    "type": "string"
+                  },
+                  "isPrimary": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/primary": {
+      "get": {
+        "summary": "Get primary account",
+        "description": "Returns the user's primary exchange account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Primary account"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/unified": {
+      "get": {
+        "summary": "Get unified account summary",
+        "description": "Returns a unified view of all accounts with aggregated balances and positions",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unified account summary"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/{accountId}": {
+      "get": {
+        "summary": "Get account by ID",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "apiKey": {
+                    "type": "string"
+                  },
+                  "apiSecret": {
+                    "type": "string"
+                  },
+                  "isPrimary": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account deleted"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/{accountId}/set-primary": {
+      "post": {
+        "summary": "Set as primary account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Primary account set"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/{accountId}/switch": {
+      "post": {
+        "summary": "Switch to account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account switched"
+          }
+        }
+      }
+    },
+    "/api/exchange-accounts/{accountId}/sync": {
+      "post": {
+        "summary": "Sync account",
+        "tags": [
+          "Exchange Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "accountId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account synced"
+          }
+        }
+      }
+    },
+    "/api/account-groups": {
+      "get": {
+        "summary": "Get all account groups",
+        "tags": [
+          "Account Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of account groups"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create account group",
+        "tags": [
+          "Account Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "accountIds"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "accountIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "strategyAllocation": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account group created"
+          }
+        }
+      }
+    },
+    "/api/account-groups/{groupId}": {
+      "get": {
+        "summary": "Get account group by ID",
+        "tags": [
+          "Account Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account group details"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update account group",
+        "tags": [
+          "Account Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "description": {
+                    "type": "string"
+                  },
+                  "accountIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "strategyAllocation": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account group updated"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete account group",
+        "tags": [
+          "Account Groups"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "groupId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account group deleted"
+          }
+        }
+      }
+    },
+    "/public/v1": {
+      "get": {
+        "summary": "Get public API information",
+        "description": "Returns information about the public API including version and available endpoints",
+        "operationId": "getPublicApiInfo",
+        "tags": [
+          "Public API"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "version": {
+                          "type": "string",
+                          "example": "1.0.0"
+                        },
+                        "endpoints": {
+                          "type": "object",
+                          "properties": {
+                            "strategies": {
+                              "type": "string",
+                              "example": "/public/v1/strategies"
+                            },
+                            "backtest": {
+                              "type": "string",
+                              "example": "/public/v1/backtest"
+                            },
+                            "account": {
+                              "type": "string",
+                              "example": "/public/v1/account"
+                            },
+                            "market": {
+                              "type": "string",
+                              "example": "/public/v1/market"
+                            }
+                          }
+                        },
+                        "rateLimits": {
+                          "type": "object",
+                          "properties": {
+                            "remaining": {
+                              "type": "integer"
+                            },
+                            "resetAt": {
+                              "type": "string",
+                              "format": "date-time"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/strategies": {
+      "get": {
+        "summary": "List all strategies",
+        "description": "Retrieve a list of all trading strategies for the authenticated user",
+        "operationId": "publicListStrategies",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "paused",
+                "stopped"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of strategies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Strategy"
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "offset": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new strategy",
+        "description": "Create a new trading strategy",
+        "operationId": "publicCreateStrategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "symbol"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Strategy name"
+                  },
+                  "symbol": {
+                    "type": "string",
+                    "description": "Trading symbol (e.g., BTC/USDT)"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Strategy description"
+                  },
+                  "config": {
+                    "type": "object",
+                    "description": "Strategy configuration parameters"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Strategy created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Strategy"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/strategies/{id}": {
+      "get": {
+        "summary": "Get strategy details",
+        "description": "Retrieve detailed information about a specific strategy",
+        "operationId": "publicGetStrategy",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Strategy ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Strategy details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Strategy"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Strategy not found"
+          }
+        }
+      }
+    },
+    "/public/v1/strategies/{id}/status": {
+      "put": {
+        "summary": "Update strategy status",
+        "description": "Update the status of a trading strategy (start, pause, stop)",
+        "operationId": "publicUpdateStrategyStatus",
+        "tags": [
+          "Strategies"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "status"
+                ],
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "paused",
+                      "stopped"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated"
+          },
+          "404": {
+            "description": "Strategy not found"
+          }
+        }
+      }
+    },
+    "/public/v1/backtest/run": {
+      "post": {
+        "summary": "Run a backtest",
+        "description": "Execute a backtest with the specified configuration",
+        "operationId": "publicRunBacktest",
+        "tags": [
+          "Backtest"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol",
+                  "strategy",
+                  "capital",
+                  "startTime",
+                  "endTime"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "description": "Trading symbol (e.g., BTC/USDT)"
+                  },
+                  "strategy": {
+                    "type": "string",
+                    "enum": [
+                      "sma",
+                      "rsi",
+                      "macd",
+                      "bollinger",
+                      "atr"
+                    ],
+                    "description": "Strategy type"
+                  },
+                  "capital": {
+                    "type": "number",
+                    "description": "Initial capital"
+                  },
+                  "startTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endTime": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "params": {
+                    "type": "object",
+                    "description": "Strategy-specific parameters"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Backtest result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "stats": {
+                          "type": "object",
+                          "properties": {
+                            "totalReturn": {
+                              "type": "number"
+                            },
+                            "winRate": {
+                              "type": "number"
+                            },
+                            "profitFactor": {
+                              "type": "number"
+                            },
+                            "maxDrawdown": {
+                              "type": "number"
+                            },
+                            "sharpeRatio": {
+                              "type": "number"
+                            }
+                          }
+                        },
+                        "trades": {
+                          "type": "array",
+                          "items": {
+                            "type": "object"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/backtest/strategies": {
+      "get": {
+        "summary": "List available backtest strategies",
+        "description": "Get a list of all available strategies for backtesting",
+        "operationId": "publicListBacktestStrategies",
+        "tags": [
+          "Backtest"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of strategies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/backtest/symbols": {
+      "get": {
+        "summary": "List available symbols",
+        "description": "Get a list of all available trading symbols for backtesting",
+        "operationId": "publicListBacktestSymbols",
+        "tags": [
+          "Backtest"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of symbols",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/account": {
+      "get": {
+        "summary": "Get account information",
+        "description": "Retrieve the virtual trading account information for the authenticated user",
+        "operationId": "publicGetAccount",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Account information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "balance": {
+                          "type": "number"
+                        },
+                        "initial_capital": {
+                          "type": "number"
+                        },
+                        "frozen_balance": {
+                          "type": "number"
+                        },
+                        "total_realized_pnl": {
+                          "type": "number"
+                        },
+                        "total_trades": {
+                          "type": "integer"
+                        },
+                        "winning_trades": {
+                          "type": "integer"
+                        },
+                        "losing_trades": {
+                          "type": "integer"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Account not found"
+          }
+        }
+      }
+    },
+    "/public/v1/account/positions": {
+      "get": {
+        "summary": "List account positions",
+        "description": "Retrieve all positions for the authenticated user's account",
+        "operationId": "publicListPositions",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of positions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "symbol": {
+                            "type": "string"
+                          },
+                          "quantity": {
+                            "type": "number"
+                          },
+                          "average_cost": {
+                            "type": "number"
+                          },
+                          "current_price": {
+                            "type": "number"
+                          },
+                          "market_value": {
+                            "type": "number"
+                          },
+                          "unrealized_pnl": {
+                            "type": "number"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/public/v1/account/orders": {
+      "get": {
+        "summary": "List account orders",
+        "description": "Retrieve all orders for the authenticated user's account",
+        "operationId": "publicListOrders",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "open",
+                "partial",
+                "filled",
+                "cancelled",
+                "rejected"
+              ]
+            }
+          },
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of orders"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create an order",
+        "description": "Submit a new trading order",
+        "operationId": "publicCreateOrder",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "symbol",
+                  "side",
+                  "order_type",
+                  "quantity"
+                ],
+                "properties": {
+                  "symbol": {
+                    "type": "string",
+                    "description": "Trading symbol"
+                  },
+                  "side": {
+                    "type": "string",
+                    "enum": [
+                      "buy",
+                      "sell"
+                    ]
+                  },
+                  "order_type": {
+                    "type": "string",
+                    "enum": [
+                      "market",
+                      "limit",
+                      "stop_market",
+                      "stop_limit"
+                    ]
+                  },
+                  "quantity": {
+                    "type": "number"
+                  },
+                  "price": {
+                    "type": "number",
+                    "description": "Required for limit and stop_limit orders"
+                  },
+                  "stop_price": {
+                    "type": "number",
+                    "description": "Required for stop_market and stop_limit orders"
+                  },
+                  "time_in_force": {
+                    "type": "string",
+                    "enum": [
+                      "GTC",
+                      "IOC",
+                      "FOK",
+                      "GTD"
+                    ],
+                    "default": "GTC"
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Order created"
+          }
+        }
+      }
+    },
+    "/public/v1/account/orders/{orderId}/cancel": {
+      "post": {
+        "summary": "Cancel an order",
+        "description": "Cancel an open order",
+        "operationId": "publicCancelOrder",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order cancelled"
+          },
+          "400": {
+            "description": "Order cannot be cancelled"
+          },
+          "404": {
+            "description": "Order not found"
+          }
+        }
+      }
+    },
+    "/public/v1/account/trades": {
+      "get": {
+        "summary": "List account trades",
+        "description": "Retrieve trade history for the authenticated user's account",
+        "operationId": "publicListTrades",
+        "tags": [
+          "Account"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "side",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "buy",
+                "sell"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of trades"
+          }
+        }
+      }
+    },
+    "/public/v1/leaderboard": {
+      "get": {
+        "summary": "Get leaderboard",
+        "description": "Retrieve the strategy performance leaderboard",
+        "operationId": "publicGetLeaderboard",
+        "tags": [
+          "Leaderboard"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "roi",
+                "winRate",
+                "profitFactor",
+                "sharpeRatio"
+              ],
+              "default": "roi"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Leaderboard data"
           }
         }
       }
