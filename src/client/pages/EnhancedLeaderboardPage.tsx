@@ -19,8 +19,7 @@ import {
 import { 
   IconRefresh, IconTrophy, IconArrowRise, IconArrowFall, IconHeart, 
   IconMessage, IconUser, IconUserAdd, IconStar, IconFire, IconCrown,
-  IconThunderbolt, IconCalendar, IconFilter, IconPlus, IconShareAlt,
-  IconTrophy
+  IconThunderbolt, IconCalendar, IconFilter, IconPlus, IconShareAlt
 } from '@arco-design/web-react/icon';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -410,19 +409,19 @@ const EnhancedLeaderboardPage: React.FC = () => {
       width: 100,
       fixed: 'left',
       render: (_, record) => {
-        const medal = record.rank === 1 ? '🥇' : record.rank === 2 ? '🥈' : record.rank === 3 ? '🥉' : `#\${record.rank}`;
+        const medal = record.rank === 1 ? '🥇' : record.rank === 2 ? '🥈' : record.rank === 3 ? '🥉' : `#${record.rank}`;
         return (
           <Space>
             <Avatar style={{ backgroundColor: record.rank <= 3 ? '#f56a00' : '#87d068' }}>
               {medal}
             </Avatar>
             {record.rankChange > 0 && (
-              <Tooltip content={`Moved up \${record.rankChange} positions`}>
+              <Tooltip content={`Moved up ${record.rankChange} positions`}>
                 <IconArrowRise style={{ color: '#3f8600', fontSize: 16 }} />
               </Tooltip>
             )}
             {record.rankChange < 0 && (
-              <Tooltip content={`Dropped \${Math.abs(record.rankChange)} positions`}>
+              <Tooltip content={`Dropped ${Math.abs(record.rankChange)} positions`}>
                 <IconArrowFall style={{ color: '#cf1322', fontSize: 16 }} />
               </Tooltip>
             )}
@@ -492,7 +491,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
         <Progress
           percent={record.metrics.winRate}
           strokeColor={{ '0%': '#108ee9', '100%': '#87d068' }}
-          formatText={(p) => `\${p?.toFixed(1)}%`}
+          formatText={(p) => `${p?.toFixed(1)}%`}
           size="small"
         />
       ),
@@ -515,7 +514,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
       sorter: (a, b) => a.metrics.totalPnL - b.metrics.totalPnL,
       render: (_, record) => (
         <Text style={{ color: record.metrics.totalPnL >= 0 ? '#3f8600' : '#cf1322', fontWeight: 'bold', fontFamily: 'monospace' }}>
-          \${record.metrics.totalPnL.toLocaleString()}
+          ${record.metrics.totalPnL.toLocaleString()}
         </Text>
       ),
     },
@@ -525,19 +524,19 @@ const EnhancedLeaderboardPage: React.FC = () => {
       width: 150,
       render: (_, record) => (
         <Space>
-          <Tooltip content={`\${record.metrics.likesCount} likes`}>
+          <Tooltip content={`${record.metrics.likesCount} likes`}>
             <Space size={4}>
               <IconHeart style={{ color: record.isLiked ? '#f5222d' : '#999' }} />
               <Text type="secondary">{record.metrics.likesCount}</Text>
             </Space>
           </Tooltip>
-          <Tooltip content={`\${record.metrics.commentsCount} comments`}>
+          <Tooltip content={`${record.metrics.commentsCount} comments`}>
             <Space size={4}>
               <IconMessage style={{ color: '#1890ff' }} />
               <Text type="secondary">{record.metrics.commentsCount}</Text>
             </Space>
           </Tooltip>
-          <Tooltip content={`\${record.metrics.followersCount} followers`}>
+          <Tooltip content={`${record.metrics.followersCount} followers`}>
             <Space size={4}>
               <IconUser style={{ color: '#52c41a' }} />
               <Text type="secondary">{record.metrics.followersCount}</Text>
@@ -610,13 +609,13 @@ const EnhancedLeaderboardPage: React.FC = () => {
         <Divider style={{ margin: '12px 0' }} />
         <Row gutter={16}>
           <Col span={6}>
-            <Statistic title="Prize Pool" value={`\$\${competition.prizePool.toLocaleString()}`} />
+            <Statistic title="Prize Pool" value={`\$${competition.prizePool.toLocaleString()}`} />
           </Col>
           <Col span={6}>
-            <Statistic title="Entry Fee" value={`\$\${competition.entryFee}`} />
+            <Statistic title="Entry Fee" value={`\$${competition.entryFee}`} />
           </Col>
           <Col span={6}>
-            <Statistic title="Participants" value={competition.participantCount} suffix={competition.maxParticipants ? `/ \${competition.maxParticipants}` : ''} />
+            <Statistic title="Participants" value={competition.participantCount} suffix={competition.maxParticipants ? `/ ${competition.maxParticipants}` : ''} />
           </Col>
           <Col span={6}>
             <Statistic title="Ends In" value={Math.ceil((new Date(competition.endTime).getTime() - Date.now()) / 86400000)} suffix="days" />
@@ -626,7 +625,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
           <div style={{ marginTop: 12 }}>
             <Text type="secondary">Rewards: </Text>
             {competition.rewards.map(r => (
-              <Tag key={r.rank} color="gold">{r.badge} #{r.rank}: \${r.prize}</Tag>
+              <Tag key={r.rank} color="gold">{r.badge} #{r.rank}: ${r.prize}</Tag>
             ))}
           </div>
         )}
@@ -645,7 +644,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
           </Title>
           <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
             <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
-              {lastUpdated ? `Updated: \${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
+              {lastUpdated ? `Updated: ${lastUpdated.toLocaleTimeString()}` : 'Loading...'}
             </Text>
             <Select value={period} onChange={setPeriod} style={{ width: isMobile ? '100%' : 120 }}>
               <Select.Option value="daily">Daily</Select.Option>
@@ -758,7 +757,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
                       <RechartsTooltip />
                       <Bar dataKey="winRate" name="Win Rate %">
                         {chartData.winRateDistribution.map((_, index) => (
-                          <Cell key={`cell-\${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Bar>
                     </BarChart>
@@ -774,7 +773,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
                 dataSource={leaderboard}
                 rowKey="strategyId"
                 loading={loading}
-                pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total \${total} strategies` }}
+                pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (total) => `Total ${total} strategies` }}
                 size="small"
                 scroll={isMobile ? { x: 1400 } : undefined}
               />
