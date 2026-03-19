@@ -490,7 +490,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
     }
 
     try {
-      const response = await this.restRequest(`/quote?symbol=${normalized}`);
+      const _response = await this.restRequest(`/quote?symbol=${normalized}`);
 
       return {
         symbol: normalized,
@@ -504,7 +504,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
         priceStep: 0.01,
         isActive: true,
       };
-    } catch (error) {
+    } catch (_error) {
       // Return basic info if API call fails
       return this.getMockMarketInfo(normalized);
     }
@@ -698,7 +698,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
 
   subscribeToBars(symbol: string, interval: BarInterval, callback: BarCallback): () => void {
     const normalized = this.normalizeSymbol(symbol);
-    const key = `${normalized}:${interval}`;
+    const _key = `${normalized}:${interval}`;
 
     if (!this._barSubscriptions.has(normalized)) {
       this._barSubscriptions.set(normalized, new Map());
@@ -750,7 +750,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
     const normalized = this.normalizeSymbol(symbol);
 
     // Use quote updates as a proxy for order book
-    const unsubscribeQuote = this.subscribeToQuotes(symbol, async (quote) => {
+    const unsubscribeQuote = this.subscribeToQuotes(symbol, async (_quote) => {
       const orderBook = await this.getOrderBook(normalized);
       callback(orderBook);
     });
@@ -907,7 +907,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
           clearTimeout(timeout);
           resolve();
         });
-      } catch (error) {
+      } catch (_error) {
         // Continue without WebSocket if connection fails
         console.warn('[TwelveDataProvider] WebSocket connection failed, real-time updates disabled');
         resolve();

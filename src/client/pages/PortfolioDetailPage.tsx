@@ -65,9 +65,9 @@ const PortfolioDetailPage: React.FC = () => {
   const navigate = useNavigate();
 
   const { portfolio, loading, error, refresh } = usePortfolio(portfolioId || null);
-  const { performance, loading: perfLoading, refresh: refreshPerformance } = usePortfolioPerformance(portfolioId || null);
+  const { performance, loading: _perfLoading, refresh: refreshPerformance } = usePortfolioPerformance(portfolioId || null);
   const { risk, loading: riskLoading, refresh: refreshRisk } = usePortfolioRisk(portfolioId || null);
-  const { loading: opLoading, startPortfolio, stopPortfolio, pausePortfolio } = usePortfolioOperations();
+  const { loading: opLoading, startPortfolio, _stopPortfolio, pausePortfolio } = usePortfolioOperations();
   const { previewRebalance, executeRebalance, loading: rebalanceLoading } = usePortfolioRebalance(portfolioId || null);
 
   const [rebalanceModalVisible, setRebalanceModalVisible] = useState(false);

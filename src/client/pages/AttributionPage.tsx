@@ -4,7 +4,7 @@ import { IconDownload, IconRefresh } from '@arco-design/web-react/icon';
 const { Row, Col } = Grid;
 const { Title, Text } = Typography;
 
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ComposedChart, Line } from 'recharts';
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
@@ -110,7 +110,7 @@ interface AttributionReport {
   efficiencyMetrics: StrategyEfficiency[];
 }
 
-const formatPercent = (value: number, decimals = 2) => `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
+const _formatPercent = (value: number, decimals = 2) => `${value >= 0 ? '+' : ''}${value.toFixed(decimals)}%`;
 const formatCurrency = (value: number) => `$${value.toFixed(2)}`;
 
 const MetricsCard: React.FC<{ title: string; value: string; loading?: boolean }> = ({ title, value, loading }) => (
@@ -142,7 +142,7 @@ const AttributionPage: React.FC = () => {
       const result = await response.json();
       if (result.success) setReport(result.data);
       else Message.error('获取归因分析数据失败');
-    } catch (error) {
+    } catch (_error) {
       Message.error('获取归因分析数据失败');
     } finally {
       setLoading(false);

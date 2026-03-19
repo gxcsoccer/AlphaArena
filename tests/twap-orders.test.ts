@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from '@jest/globals';
+import { describe, it, expect } from '@jest/globals';
 
 describe('TWAP Orders', () => {
   describe('Order Creation', () => {
@@ -64,8 +64,8 @@ describe('TWAP Orders', () => {
     it('should apply max price limit for buy orders', () => {
       const priceLimit = 50000;
       const currentPrice = 51000;
-      const side = 'buy';
-      const priceLimitType = 'max';
+      const _side = 'buy';
+      const _priceLimitType = 'max';
       
       // For buy orders with max price limit, should not execute above limit
       const shouldExecute = currentPrice <= priceLimit;
@@ -75,8 +75,8 @@ describe('TWAP Orders', () => {
     it('should apply min price limit for sell orders', () => {
       const priceLimit = 50000;
       const currentPrice = 49000;
-      const side = 'sell';
-      const priceLimitType = 'min';
+      const _side = 'sell';
+      const _priceLimitType = 'min';
       
       // For sell orders with min price limit, should not execute below limit
       const shouldExecute = currentPrice >= priceLimit;
@@ -86,8 +86,8 @@ describe('TWAP Orders', () => {
     it('should allow execution when price is within limits', () => {
       const priceLimit = 50000;
       const currentPrice = 49500;
-      const side = 'buy';
-      const priceLimitType = 'max';
+      const _side = 'buy';
+      const _priceLimitType = 'max';
       
       const shouldExecute = currentPrice <= priceLimit;
       expect(shouldExecute).toBe(true);
@@ -131,7 +131,7 @@ describe('TWAP Orders', () => {
   describe('Status Management', () => {
     it('should start with pending status when start time is in future', () => {
       const startTime = new Date(Date.now() + 3600000); // 1 hour from now
-      const endTime = new Date(startTime.getTime() + 7200000); // 3 hours from now
+      const _endTime = new Date(startTime.getTime() + 7200000); // 3 hours from now
       const now = new Date();
       
       const status = startTime > now ? 'pending' : 'active';

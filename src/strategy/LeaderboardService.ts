@@ -11,9 +11,9 @@
  */
 
 import { EventEmitter } from 'events';
-import { StrategiesDAO, Strategy } from '../database/strategies.dao';
-import { TradesDAO, Trade } from '../database/trades.dao';
-import { PortfoliosDAO, Portfolio } from '../database/portfolios.dao';
+import { StrategiesDAO } from '../database/strategies.dao';
+import { TradesDAO } from '../database/trades.dao';
+import { PortfoliosDAO } from '../database/portfolios.dao';
 
 /**
  * Strategy performance metrics - 策略性能指标

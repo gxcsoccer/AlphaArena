@@ -21,7 +21,7 @@ import {
   type CreatePositionRiskInput,
   type CreateCorrelationInput,
 } from '../database/risk-monitor.dao';
-import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
+import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('RiskMonitorRoutes');

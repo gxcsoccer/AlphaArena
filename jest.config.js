@@ -77,7 +77,6 @@ module.exports = {
     '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
-    '^./config$': '<rootDir>/tests/__mocks__/config.ts',
     // Mock Supabase client for database tests
     '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Handle marked ESM module - use UMD build

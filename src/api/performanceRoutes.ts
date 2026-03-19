@@ -108,7 +108,7 @@ router.post('/metrics', optionalAuthMiddleware, async (req: Request, res: Respon
     // Extract device info from request
     const userAgent = req.headers['user-agent'] || '';
     const forwardedFor = req.headers['x-forwarded-for'];
-    const ip = forwardedFor ? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0]) : req.ip;
+    const _ip = forwardedFor ? (Array.isArray(forwardedFor) ? forwardedFor[0] : forwardedFor.split(',')[0]) : req.ip;
 
     const input: CreatePerformanceMetricInput = {
       user_id: req.user?.id,

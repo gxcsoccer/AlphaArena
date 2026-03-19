@@ -326,9 +326,9 @@ class ContentBasedFilteringEngine {
     
     // Also learn from user's interaction history
     const interactions = await this.interactionDAO.getInteractionsByUser(userId, 50);
-    const interactionCategories = new Set<string>();
-    const interactionTypes = new Set<string>();
-    const interactionSymbols = new Set<string>();
+    const _interactionCategories = new Set<string>();
+    const _interactionTypes = new Set<string>();
+    const _interactionSymbols = new Set<string>();
 
     for (const interaction of interactions) {
       // We need to fetch strategy details for each interaction

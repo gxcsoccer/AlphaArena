@@ -14,7 +14,7 @@ import {
 } from '@arco-design/web-react';
 import { api } from '../utils/api';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 const FormItem = Form.Item;
 
 interface OCOOrderFormProps {

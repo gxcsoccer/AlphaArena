@@ -306,7 +306,7 @@ export class VWAPStrategy extends Strategy {
     }
 
     const midPrice = (bestBid + bestAsk) / 2;
-    const spread = bestAsk - bestBid;
+    const _spread = bestAsk - bestBid;
     const high = bestAsk;
     const low = bestBid;
     const close = midPrice;

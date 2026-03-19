@@ -9,7 +9,7 @@ import {
   getSubscriptionDAO, 
   UserSubscription,
 } from '../database/subscription.dao';
-import { PaymentDAO, getPaymentDAO } from '../database/payment.dao';
+import {  getPaymentDAO } from '../database/payment.dao';
 import { getWebhookEventDAO } from '../database/webhookEvent.dao';
 import { getPromoCodeDAO } from '../database/promo-code.dao';
 import { authMiddleware } from './authMiddleware';
@@ -140,7 +140,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
 
     // For paid plans, create checkout session
     const paymentDao = getPaymentDAO();
-    let stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
+    const stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
     
     let customerId: string | undefined;
     if (stripeCustomer) {
@@ -243,7 +243,7 @@ router.put('/', authMiddleware, async (req: Request, res: Response) => {
 
     // For paid plans, create checkout session
     const paymentDao = getPaymentDAO();
-    let stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
+    const stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
     let customerId: string | undefined;
     
     if (stripeCustomer) {
@@ -364,7 +364,7 @@ router.post('/checkout', authMiddleware, async (req: Request, res: Response) => 
     }
 
     const paymentDao = getPaymentDAO();
-    let stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
+    const stripeCustomer = await paymentDao.getStripeCustomerByUserId(userId);
     let customerId: string | undefined;
     
     if (stripeCustomer) {
@@ -746,7 +746,7 @@ router.get('/usage', authMiddleware, async (req: Request, res: Response) => {
     }
 
     const dao = getSubscriptionDAO();
-    const status = await dao.getUserSubscriptionStatus(userId);
+    const _status = await dao.getUserSubscriptionStatus(userId);
     
     // Get usage for each feature
     const features = ['concurrentStrategies', 'dailyBacktests', 'apiCalls', 'aiAssistantMessages'];

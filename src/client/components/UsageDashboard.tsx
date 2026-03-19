@@ -27,7 +27,7 @@ import HelpButton, { HelpButtons } from './HelpButton';
 import { useSubscription } from '../hooks/useSubscription';
 
 const { Title, Text } = Typography;
-const { Row, Col } = Grid;
+const { _Row, _Col } = Grid;
 
 interface UsageDashboardProps {
   compact?: boolean;

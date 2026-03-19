@@ -3,7 +3,7 @@
 
 // Store in global for modules that use the global workaround
 if (typeof (global as any).__DTL_CONFIG__ === 'undefined') {
-  const config = require('@testing-library/dom/dist/config');
+import config from '@testing-library/dom/dist/config';
   (global as any).__DTL_CONFIG__ = {
     configure: config.configure,
     getConfig: config.getConfig,

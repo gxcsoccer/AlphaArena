@@ -17,7 +17,7 @@ import type {
   TradingEnvironment,
   IntegrationStatus,
 } from '../backtest-live/types';
-import { BacktestConfig, BacktestStats } from '../backtest/types';
+import { BacktestConfig } from '../backtest/types';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('BacktestLiveDAO');

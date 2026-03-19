@@ -162,7 +162,7 @@ export class ReportGenerator {
     prefix: string = 'backtest_report'
   ): string {
     const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const timeStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const _timeStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
 
     // Build filename parts
     const parts: string[] = [];
@@ -270,7 +270,7 @@ export class ReportGenerator {
     options: ReportExportOptions
   ): Promise<{ content: Buffer; contentType: string; filename: string }> {
     // Use pdfmake 0.3.x API
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { createPdf } = require('pdfmake');
 
     const strategyName = options.strategyName || report.config.strategy;
@@ -979,7 +979,7 @@ export class ReportGenerator {
     options: ReportExportOptions
   ): Promise<{ content: Buffer; contentType: string; filename: string }> {
     // Use pdfmake 0.3.x API
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { createPdf } = require('pdfmake');
 
     const content: any[] = [

@@ -449,7 +449,7 @@ router.post('/checkout-with-promo', authMiddleware, async (req: Request, res: Re
   try {
     const userId = req.user?.id;
     const userEmail = req.user?.email;
-    const userName = (req.user as any)?.name || (req.user as any)?.user_metadata?.name;
+    const _userName = (req.user as any)?.name || (req.user as any)?.user_metadata?.name;
     
     if (!userId) {
       return res.status(401).json({

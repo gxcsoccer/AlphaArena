@@ -3,7 +3,7 @@
  */
 
 import { MultiTimeframeSMAStrategy } from '../strategies/MultiTimeframeSMAStrategy';
-import { Timeframe, KLineDataPoint } from '../types';
+import {  KLineDataPoint } from '../types';
 import { StrategyContext } from '../../strategy/types';
 
 // Helper to generate test K-line data

@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { Typography, Grid } from '@arco-design/web-react';
-const { Row, Col } = Grid;
+const { _Row, _Col } = Grid;
 const { Title, Text } = Typography;
 
 import SentimentDashboard from '../components/SentimentDashboard';

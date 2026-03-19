@@ -5,7 +5,7 @@
  */
 
 import { StrategyManager, StrategyManagerConfig } from '../../src/strategy/StrategyManager';
-import { Strategy, IStrategy } from '../../src/strategy/Strategy';
+import { Strategy } from '../../src/strategy/Strategy';
 import { StrategyConfig, StrategyContext, OrderSignal } from '../../src/strategy/types';
 import { OrderBook } from '../../src/orderbook/OrderBook';
 import { Trade } from '../../src/matching/types';

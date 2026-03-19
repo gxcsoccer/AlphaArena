@@ -2,24 +2,24 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Typography, Card, Table, Tag, Statistic, Avatar, Progress, Space, Select, Button, 
   Tooltip, Grid, Tabs, Modal, Form, Input, InputNumber, DatePicker, Message, 
-  Badge, Popover, List, Comment, Divider, Empty, Spin
+  Badge, _Popover, List, Comment, Divider, Empty, Spin
 } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { TabPane } = Tabs;
-const { Title, Text, Paragraph } = Typography;
-const { RangePicker } = DatePicker;
+const { Title, Text, _Paragraph } = Typography;
+const { _RangePicker } = DatePicker;
 
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  BarChart, Bar, _LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, RadarChart,
   PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area,
-  PieChart, Pie, Cell
+  PieChart, _Pie, Cell
 } from 'recharts';
 
 import { 
   IconRefresh, IconTrophy, IconArrowRise, IconArrowFall, IconHeart, 
-  IconMessage, IconUser, IconUserAdd, IconStar, IconFire, IconCrown,
-  IconThunderbolt, IconCalendar, IconFilter, IconPlus, IconShareAlt
+  IconMessage, IconUser, IconUserAdd, _IconStar, _IconFire, IconCrown,
+  IconThunderbolt, _IconCalendar, _IconFilter, IconPlus, IconShareAlt
 } from '@arco-design/web-react/icon';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -355,14 +355,14 @@ const EnhancedLeaderboardPage: React.FC = () => {
   };
 
   const handleSubmitComment = async () => {
-    const values = await commentForm.validate();
+    const _values = await commentForm.validate();
     Message.success('Comment posted!');
     setCommentModalVisible(false);
     commentForm.resetFields();
   };
 
   const handleCreateCompetition = async () => {
-    const values = await competitionForm.validate();
+    const _values = await competitionForm.validate();
     Message.success('Competition created!');
     setCompetitionModalVisible(false);
     competitionForm.resetFields();

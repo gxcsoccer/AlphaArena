@@ -20,7 +20,7 @@ import {
   RiskAlertStats,
   RiskCalculationResult,
 } from './types';
-import { RiskCalculator, riskCalculator } from './RiskCalculator';
+import { RiskCalculator } from './RiskCalculator';
 import { getAlertService } from '../alerting/AlertService';
 import { createLogger } from '../utils/logger';
 

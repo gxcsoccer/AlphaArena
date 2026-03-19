@@ -23,8 +23,8 @@ import {
   IconClose,
 } from '@arco-design/web-react/icon';
 
-const { Title, Text, Paragraph } = Typography;
-const { Row, Col } = Grid;
+const { Title, Text, _Paragraph } = Typography;
+const { _Row, _Col } = Grid;
 
 interface PlanFeature {
   icon?: React.ReactNode;

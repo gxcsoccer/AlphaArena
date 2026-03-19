@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { Alert, Button, Space, Typography } from '@arco-design/web-react';
+import { Alert, Button, Typography } from '@arco-design/web-react';
 import { IconLock, IconInfoCircle } from '@arco-design/web-react/icon';
 
 const { Text } = Typography;

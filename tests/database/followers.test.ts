@@ -1,4 +1,4 @@
-import { FollowersDAO, Follower, CreateFollowerInput } from '../../src/database/followers.dao';
+import { FollowersDAO, CreateFollowerInput } from '../../src/database/followers.dao';
 import { getSupabaseClient } from '../../src/database/client';
 
 // Mock Supabase client
@@ -208,7 +208,7 @@ describe('FollowersDAO', () => {
       const existingFollower = createMockFollower({ id: 'test-id', status: 'active' });
       mockFollowers.push(existingFollower);
 
-      const result = await dao.update('test-id', { status: 'paused' });
+      const _result = await dao.update('test-id', { status: 'paused' });
 
       // The update should be called
       expect(mockClient.from).toHaveBeenCalledWith('followers');

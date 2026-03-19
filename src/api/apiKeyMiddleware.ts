@@ -275,7 +275,7 @@ export async function optionalApiKeyAuthMiddleware(
     });
 
     next();
-  } catch (error) {
+  } catch (_error) {
     // Continue without user on error
     next();
   }

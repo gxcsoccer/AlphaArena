@@ -3,9 +3,9 @@
  * AI-powered trading strategy assistant chat interface
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Card, Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip, Modal, Select, Progress, Divider, Tag } from '@arco-design/web-react';
-import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine, IconTrophy, IconExclamationCircle, IconQuestionCircle } from '@arco-design/web-react/icon';
+import React, { useState, useRef, useEffect } from 'react';
+import { Card, Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip, Modal, Select, Divider, Tag } from '@arco-design/web-react';
+import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine, IconTrophy, IconExclamationCircle } from '@arco-design/web-react/icon';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './AIAssistantPanel.css';

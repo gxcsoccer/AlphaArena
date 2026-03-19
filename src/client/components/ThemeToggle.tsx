@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import { Button, Tooltip, Space } from '@arco-design/web-react';
+import { Button, Tooltip } from '@arco-design/web-react';
 import { IconSun, IconMoonFill } from '@arco-design/web-react/icon';
 import { useSettings } from '../store/settingsStore';
 

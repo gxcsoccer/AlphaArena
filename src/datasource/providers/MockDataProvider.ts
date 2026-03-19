@@ -27,7 +27,7 @@ import {
   MarketInfo,
   OrderBookLevel,
 } from '../types';
-import { IStockDataProvider, BaseStockDataProvider } from '../interface';
+import { IStockDataProvider } from '../interface';
 
 /**
  * Mock market configuration
@@ -137,7 +137,7 @@ export class MockDataProvider extends EventEmitter implements IStockDataProvider
   async getQuote(symbol: string): Promise<Quote> {
     this.ensureConnected();
     const normalized = this.normalizeSymbol(symbol);
-    const market = this.getMarket(normalized);
+    const _market = this.getMarket(normalized);
     const price = this.simulatePrice(normalized);
 
     return {
@@ -219,7 +219,7 @@ export class MockDataProvider extends EventEmitter implements IStockDataProvider
     endTime: number
   ): Promise<Bar[]> {
     this.ensureConnected();
-    const normalized = this.normalizeSymbol(symbol);
+    const _normalized = this.normalizeSymbol(symbol);
     const intervalMs = this.intervalToMs(interval);
     const limit = Math.ceil((endTime - startTime) / intervalMs);
     return this.getBars(symbol, interval, Math.min(limit, 1000));
@@ -262,7 +262,7 @@ export class MockDataProvider extends EventEmitter implements IStockDataProvider
   async getRecentTrades(symbol: string, limit: number = 100): Promise<Trade[]> {
     this.ensureConnected();
     const normalized = this.normalizeSymbol(symbol);
-    const market = this.getMarket(normalized);
+    const _market = this.getMarket(normalized);
 
     const trades: Trade[] = [];
     const now = Date.now();

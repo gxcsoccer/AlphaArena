@@ -3,7 +3,7 @@
  */
 
 import { WebhookManager } from '../../src/webhook/WebhookManager';
-import { WebhookConfig, WebhookEventType, WebhookPayload } from '../../src/webhook/types';
+import { WebhookConfig, WebhookEventType } from '../../src/webhook/types';
 
 // Mock WebhookStorage
 jest.mock('../../src/webhook/WebhookStorage', () => {
@@ -79,7 +79,7 @@ jest.mock('../../src/webhook/WebhookStorage', () => {
 
 // Mock WebhookSender
 jest.mock('../../src/webhook/WebhookSender', () => {
-  const EventEmitter = require('events');
+import EventEmitter from 'events';
   return {
     WebhookSender: jest.fn().mockImplementation(() => {
       const emitter = new EventEmitter();

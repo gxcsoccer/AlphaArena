@@ -164,7 +164,7 @@ async function runTests(): Promise<number> {
     const stopLossCheck = await page2.evaluate(() => {
       // Look for trigger price inputs
       const numberInputs = document.querySelectorAll('.arco-input-number input');
-      const allInputs = document.querySelectorAll('input');
+      const _allInputs = document.querySelectorAll('input');
       
       // Check for labels related to stop-loss
       const labels = Array.from(document.querySelectorAll('label, .arco-form-item-label, .arco-typography'));

@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import AIAssistantPanel from '../../src/client/components/AIAssistantPanel';
 
@@ -144,7 +144,7 @@ describe('AIAssistantPanel', () => {
 
       render(<AIAssistantPanel />);
 
-      const clearButton = screen.getByRole('button', { name: '' });
+      const _clearButton = screen.getByRole('button', { name: '' });
       // Find the clear button (it has a tooltip)
       const clearButtons = screen.getAllByRole('button');
       const clearBtn = clearButtons.find(btn => btn.querySelector('.arco-icon-delete'));

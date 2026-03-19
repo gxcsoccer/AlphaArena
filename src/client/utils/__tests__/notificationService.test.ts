@@ -2,7 +2,6 @@
  * Notification Service Unit Tests
  */
 
-import { PriceAlertNotification } from '../notificationService';
 
 // Mock window.Notification
 const mockNotification = jest.fn();

@@ -67,13 +67,13 @@ import {
   HeatmapLayer,
 } from 'recharts';
 
-import { useStats, useStrategies, useTrades, usePortfolio } from '../hooks/useData';
+import { useStats, useTrades, usePortfolio } from '../hooks/useData';
 import { useRiskMetrics } from '../hooks/useRiskMetrics';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { formatPercent, formatCurrency } from '../utils/portfolioAnalytics';
-import type { RiskAlert, RiskMetrics } from '../../utils/risk';
+import { formatPercent } from '../utils/portfolioAnalytics';
+import type { RiskAlert } from '../../utils/risk';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+const _COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 // Time range options
 const TIME_RANGES = [

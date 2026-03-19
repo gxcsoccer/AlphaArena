@@ -1,5 +1,5 @@
 import { MockExchangeAdapter } from '../MockExchangeAdapter';
-import { ExchangeConfig, OrderSide, OrderType, OrderStatus, ConnectionStatus, ExchangeError, ExchangeErrorType } from '../types';
+import { ExchangeConfig, OrderSide, OrderType, OrderStatus, ConnectionStatus, ExchangeError } from '../types';
 
 describe('MockExchangeAdapter', () => {
   let adapter: MockExchangeAdapter;

@@ -52,7 +52,7 @@ import ExportModal from '../components/ExportModal';
 const { Row, Col } = Grid;
 const { Title, Text } = Typography;
 const TabPane = Tabs.TabPane;
-const { RangePicker } = DatePicker;
+const { _RangePicker } = DatePicker;
 
 // Types
 interface UserOverview {

@@ -65,7 +65,7 @@ const statusConfig: Record<TradeJournalStatus, { label: string; color: string }>
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 // Mock user ID for demo (in real app, get from auth)
-const MOCK_USER_ID = 'demo-user-001';
+const _MOCK_USER_ID = 'demo-user-001';
 
 const TradingJournalPage: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
@@ -189,7 +189,7 @@ const TradingJournalPage: React.FC = () => {
       setEditingEntry(null);
       form.resetFields();
       fetchEntries();
-    } catch (error) {
+    } catch (_error) {
       Message.error('操作失败');
     }
   };
@@ -203,7 +203,7 @@ const TradingJournalPage: React.FC = () => {
       closeForm.resetFields();
       fetchEntries();
       fetchStats();
-    } catch (error) {
+    } catch (_error) {
       Message.error('关闭失败');
     }
   };
@@ -213,7 +213,7 @@ const TradingJournalPage: React.FC = () => {
     try {
       Message.success('删除成功');
       fetchEntries();
-    } catch (error) {
+    } catch (_error) {
       Message.error('删除失败');
     }
   };

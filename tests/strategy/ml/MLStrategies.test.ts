@@ -6,7 +6,7 @@ import { TimeSeriesPredictionStrategy, TimeSeriesStrategyConfig } from '../../..
 import { ClassificationStrategy, ClassificationStrategyConfig } from '../../../src/strategy/ml/ClassificationStrategy';
 import { AnomalyDetectionStrategy, AnomalyDetectionStrategyConfig } from '../../../src/strategy/ml/AnomalyDetectionStrategy';
 import { RLStrategy, RLStrategyConfig } from '../../../src/strategy/ml/RLStrategy';
-import { StrategyContext, OrderSignal } from '../../../src/strategy';
+import { StrategyContext } from '../../../src/strategy';
 import { MLStrategyBaseConfig, FeatureType } from '../../../src/strategy/ml/MLTypes';
 
 /**

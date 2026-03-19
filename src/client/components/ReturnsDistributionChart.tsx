@@ -16,9 +16,9 @@ import {
   ReferenceLine,
   Cell,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Grid, Statistic } from '@arco-design/web-react';
+import { Card, Spin, Empty, Typography, Grid, Statistic } from '@arco-design/web-react';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 const { Row, Col } = Grid;
 
 export interface ReturnDataPoint {

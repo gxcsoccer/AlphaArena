@@ -38,7 +38,7 @@ const UsageProgress: React.FC<UsageProgressProps> = ({
   const isNearLimit = percentage >= warningThreshold;
   const isAtLimit = percentage >= 100;
 
-  const getStatus = (): 'warning' | 'danger' | 'success' | 'normal' => {
+  const _getStatus = (): 'warning' | 'danger' | 'success' | 'normal' => {
     if (isAtLimit) return 'danger';
     if (isNearLimit && showWarning) return 'warning';
     return 'success';

@@ -647,7 +647,7 @@ export class CommentsDAO {
 
       // Ensure all links have safe attributes
       return cleanHtml.replace(/<a /g, '<a target="_blank" rel="noopener noreferrer" ');
-    } catch (error) {
+    } catch (_error) {
       // If parsing fails, return escaped plain text
       return markdown
         .replace(/&/g, '&amp;')

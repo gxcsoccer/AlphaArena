@@ -29,7 +29,7 @@ import {
   IconSafe,
   IconBook,
 } from '@arco-design/web-react/icon';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart } from 'recharts';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
@@ -324,7 +324,7 @@ const VirtualAccountPage: React.FC = () => {
     );
   }
 
-  const { account, positions, total_value, available_balance, positions_value, total_unrealized_pnl, total_pnl, roi_pct, today_pnl, today_pnl_pct } = summary;
+  const { account, positions, total_value, available_balance, positions_value, _total_unrealized_pnl, total_pnl, roi_pct, today_pnl, today_pnl_pct } = summary;
 
   return (
     <ErrorBoundary>

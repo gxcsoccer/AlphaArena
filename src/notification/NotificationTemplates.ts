@@ -107,7 +107,7 @@ export function generatePerformanceTemplate(
   
   const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
   const pnlEmoji = total_pnl >= 0 ? '📈' : '📉';
-  const pnlColor = total_pnl >= 0 ? '' : '';
+  const _pnlColor = total_pnl >= 0 ? '' : '';
   
   const title = `📊 ${periodLabel} Performance Report`;
   

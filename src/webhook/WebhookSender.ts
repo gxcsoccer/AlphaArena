@@ -119,7 +119,7 @@ export class WebhookSender extends EventEmitter {
     delivery: WebhookDelivery,
     onDeliveryUpdate: (delivery: WebhookDelivery) => Promise<void>
   ): Promise<WebhookDelivery> {
-    let currentDelivery = { ...delivery };
+    const currentDelivery = { ...delivery };
     const maxAttempts = config.retryCount + 1; // Initial attempt + retries
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {

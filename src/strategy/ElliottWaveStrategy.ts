@@ -434,10 +434,10 @@ export class ElliottWaveStrategy extends Strategy {
     }
 
     // Calculate target and stop loss
-    const lastPrice = this.priceHistory[this.priceHistory.length - 1];
+    const _lastPrice = this.priceHistory[this.priceHistory.length - 1];
     const wave5 = waves[4];
     const wave4 = waves[3];
-    const wave1 = waves[0];
+    const _wave1 = waves[0];
     const wave3 = waves[2];
 
     let targetPrice: number;
@@ -590,7 +590,7 @@ export class ElliottWaveStrategy extends Strategy {
     const waves: Wave[] = [];
     const direction: WaveDirection = swingPoints[0].type === 'peak' ? 'down' : 'up';
 
-    const waveLabels = ['A', 'B', 'C'];
+    const _waveLabels = ['A', 'B', 'C'];
     for (let i = 0; i < 3; i++) {
       const startPoint: WavePoint = {
         price: swingPoints[i].price,
@@ -622,7 +622,7 @@ export class ElliottWaveStrategy extends Strategy {
     }
 
     // Calculate target (end of correction)
-    const lastPrice = this.priceHistory[this.priceHistory.length - 1];
+    const _lastPrice = this.priceHistory[this.priceHistory.length - 1];
     const waveA = waves[0];
     const waveC = waves[2];
 
@@ -761,7 +761,7 @@ export class ElliottWaveStrategy extends Strategy {
   ): OrderSignal | null {
     const waves = pattern.waves;
     const wave5 = waves[4];
-    const wave4 = waves[3];
+    const _wave4 = waves[3];
     const lastWaveDirection = wave5.direction;
 
     // After a completed impulse wave, expect correction

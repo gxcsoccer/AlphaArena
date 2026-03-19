@@ -22,7 +22,6 @@ export { TwelveDataProvider, TechnicalIndicator, TechnicalIndicatorType, Technic
 // Convenience exports for common use cases
 import { getDataSourceManager } from './DataSourceManager';
 import { MockDataProvider } from './providers/MockDataProvider';
-import { AlpacaDataProvider } from './providers/AlpacaDataProvider';
 import { TwelveDataProvider } from './providers/TwelveDataProvider';
 import { DataSourceConfig } from './types';
 

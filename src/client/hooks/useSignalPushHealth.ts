@@ -162,7 +162,7 @@ export function useSignalPushHealth(
   }, []);
 
   // Record a push event
-  const recordPush = useCallback((success: boolean, latency?: number) => {
+  const _recordPush = useCallback((success: boolean, latency?: number) => {
     statsRef.current.totalPushes++;
     if (success) {
       statsRef.current.successfulPushes++;

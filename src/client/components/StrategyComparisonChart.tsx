@@ -22,10 +22,10 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Select, Tabs } from '@arco-design/web-react';
+import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tabs } from '@arco-design/web-react';
 
-const { Text, Title } = Typography;
-const { Row, Col } = Grid;
+const { Text, _Title } = Typography;
+const { _Row, _Col } = Grid;
 
 export interface StrategyMetrics {
   id: string;

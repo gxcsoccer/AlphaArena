@@ -10,7 +10,7 @@
  */
 
 import { createClient, RealtimeChannel, SupabaseClient } from '@supabase/supabase-js';
-import { validateConfig, isSupabaseConfigValid, logConfigStatus } from './config';
+import { validateConfig, isSupabaseConfigValid, logConfigStatus } from 'src/client/utils/config';
 import { removeChannelListener, createPresenceUnsubscribe } from '../../shared/realtime';
 
 // Reconnection settings with exponential backoff
@@ -292,7 +292,7 @@ export class RealtimeClient {
       this.channels.delete(topic); // Remove failed channel
       
       // Try to resubscribe
-      this.subscribe(topic).catch((error) => {
+      this.subscribe(topic).catch((_error) => {
         console.warn(`[RealtimeClient] Reconnection attempt failed for ${topic}`);
         // Next attempt will use increased delay
       });

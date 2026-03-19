@@ -91,7 +91,7 @@ describe('useErrorReporter', () => {
       json: async () => ({ success: true }),
     });
 
-    const { result } = renderHook(() => useErrorReporter({ 
+    const { _result } = renderHook(() => useErrorReporter({ 
       endpoint: '/api/log-error',
       debug: false,
     }));
@@ -119,7 +119,7 @@ describe('useErrorReporter', () => {
   });
 
   it('should save errors to localStorage when enabled', () => {
-    const { result } = renderHook(() => useErrorReporter({ 
+    const { _result } = renderHook(() => useErrorReporter({ 
       enableLocalStorage: true,
       debug: false,
     }));

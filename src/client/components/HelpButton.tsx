@@ -4,12 +4,12 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Typography, Spin, Space, Divider, Alert } from '@arco-design/web-react';
+import { Button, Modal, Typography, Spin, Space, Alert } from '@arco-design/web-react';
 import { IconQuestionCircle, IconBook, IconLink } from '@arco-design/web-react/icon';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, _Text, Paragraph } = Typography;
 
 interface HelpSection {
   title: string;

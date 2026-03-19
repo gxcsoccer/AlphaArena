@@ -546,7 +546,7 @@ export class AlpacaDataProvider extends EventEmitter implements IStockDataProvid
     // Use quote updates as a proxy
     const normalized = this.normalizeSymbol(symbol);
     
-    const unsubscribeQuote = this.subscribeToQuotes(symbol, async (quote) => {
+    const unsubscribeQuote = this.subscribeToQuotes(symbol, async (_quote) => {
       const orderBook = await this.getOrderBook(normalized);
       callback(orderBook);
     });

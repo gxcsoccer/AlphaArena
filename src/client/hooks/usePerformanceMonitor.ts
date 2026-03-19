@@ -66,7 +66,7 @@ class PerformanceMonitor {
         });
         paintObserver.observe({ entryTypes: ['paint'] });
         this.observers.push(paintObserver);
-      } catch (e) {
+      } catch (_e) {
         // Paint observer not supported
       }
 
@@ -79,7 +79,7 @@ class PerformanceMonitor {
         });
         lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] });
         this.observers.push(lcpObserver);
-      } catch (e) {
+      } catch (_e) {
         // LCP observer not supported
       }
 
@@ -96,7 +96,7 @@ class PerformanceMonitor {
         });
         clsObserver.observe({ entryTypes: ['layout-shift'] });
         this.observers.push(clsObserver);
-      } catch (e) {
+      } catch (_e) {
         // CLS observer not supported
       }
 
@@ -108,7 +108,7 @@ class PerformanceMonitor {
         });
         fidObserver.observe({ entryTypes: ['first-input'] });
         this.observers.push(fidObserver);
-      } catch (e) {
+      } catch (_e) {
         // FID observer not supported
       }
     }
@@ -133,7 +133,7 @@ class PerformanceMonitor {
         performance.measure(name, `${name}-start`, `${name}-end`);
         const measure = performance.getEntriesByName(name, 'measure')[0];
         return measure?.duration || 0;
-      } catch (e) {
+      } catch (_e) {
         return 0;
       }
     }

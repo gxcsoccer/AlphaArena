@@ -3,9 +3,9 @@
  * REST API endpoints for virtual trading account management
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { VirtualAccountService } from '../services/VirtualAccountService';
-import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
+import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('VirtualAccountRoutes');

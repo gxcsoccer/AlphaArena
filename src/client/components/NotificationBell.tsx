@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Badge, Dropdown, Button, Space, List, Typography, Empty, Spin } from '@arco-design/web-react';
-import { IconNotification, IconCheck, IconDelete } from '@arco-design/web-react/icon';
+import { Badge, Dropdown, Button, List, Typography, Empty, Spin } from '@arco-design/web-react';
+import { IconNotification, IconCheck } from '@arco-design/web-react/icon';
 import { useNotifications } from '../hooks/useNotifications.js';
 import type { Notification } from '../hooks/useNotifications.js';
 import './NotificationBell.css';

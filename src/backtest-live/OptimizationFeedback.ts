@@ -13,7 +13,6 @@ import {
   PerformanceDeviation,
 } from './types';
 import { backtestLiveDAO } from '../database/backtest-live.dao';
-import { BacktestEngine } from '../backtest/BacktestEngine';
 import { createLogger } from '../utils/logger';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -166,7 +165,7 @@ export class OptimizationFeedback {
     trendAnalysis: ReturnType<typeof this.analyzeTrends>
   ): Promise<OptimizationSuggestion[]> {
     const suggestions: OptimizationSuggestion[] = [];
-    const params = integration.strategy.params;
+    const _params = integration.strategy.params;
 
     // Analyze each parameter based on strategy type
     switch (integration.strategy.type.toLowerCase()) {

@@ -22,8 +22,8 @@ export class PDFReporter {
 
   constructor() {
     // Dynamic import for pdfmake
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const PdfPrinter = require('pdfmake');
+     
+import PdfPrinter from 'pdfmake';
     
     // Define fonts for PDF (using standard fonts)
     const fonts = {

@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Skeleton, Spin } from '@arco-design/web-react';
+import React, { useState, useEffect } from 'react';
+import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Skeleton } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { TabPane } = Tabs;
 const CollapseItem = Collapse.Item;
@@ -24,13 +24,12 @@ import OrdersPanel from '../components/OrdersPanel';
 import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 import PriceAlertsPanel from '../components/PriceAlertsPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { DashboardSkeleton } from '../components/Skeleton';
 import MobileTableCard from '../components/MobileTableCard';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 import UsageDashboard from '../components/UsageDashboard';
 
-const { Title, Text } = Typography;
+const { Title, _Text } = Typography;
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table, Input, Typography, Tag, Grid, Spin, Empty } from '@arco-design/web-react';
 import type { TableProps } from '@arco-design/web-react';
 import { useMarketData } from '../hooks/useMarketData';
@@ -14,7 +14,7 @@ import { useMarketData } from '../hooks/useMarketData';
 
 const { Search } = Input;
 const { Text } = Typography;
-const { Row, Col } = Grid;
+const { _Row, _Col } = Grid;
 
 export interface TradingPair {
   symbol: string;

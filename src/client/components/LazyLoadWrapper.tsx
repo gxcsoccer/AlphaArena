@@ -3,7 +3,7 @@
  * Provides intersection observer-based lazy loading for components
  */
 
-import React, { useEffect, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Spin } from '@arco-design/web-react';
 import { useIntersectionObserver } from '../utils/performance';
 

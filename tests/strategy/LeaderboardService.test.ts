@@ -2,7 +2,7 @@
  * Tests for LeaderboardService
  */
 
-import { LeaderboardService, StrategyMetrics, LeaderboardEntry } from '../../src/strategy/LeaderboardService';
+import { LeaderboardService, StrategyMetrics } from '../../src/strategy/LeaderboardService';
 
 describe('LeaderboardService', () => {
   let leaderboardService: LeaderboardService;

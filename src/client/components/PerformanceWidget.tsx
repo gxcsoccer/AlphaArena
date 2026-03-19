@@ -4,12 +4,12 @@
  * Only rendered in development mode
  */
 
-import React, { memo, useEffect, useState } from 'react';
-import { Card, Typography, Space, Tag, Grid, Button, Progress } from '@arco-design/web-react';
-import { IconDashboard, IconThunderbolt, IconStorage } from '@arco-design/web-react/icon';
+import React, { memo, useEffect } from 'react';
+import { Card, Typography, Space, Tag, Grid, Progress } from '@arco-design/web-react';
+import { IconDashboard, IconThunderbolt } from '@arco-design/web-react/icon';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 const { Row, Col } = Grid;
 
 interface PerformanceWidgetProps {
@@ -39,7 +39,7 @@ const PerformanceWidget: React.FC<PerformanceWidgetProps> = memo(({
     return 'red';
   };
 
-  const renderStatus = metrics.avgRenderTime < 16 ? 'good' : 
+  const _renderStatus = metrics.avgRenderTime < 16 ? 'good' : 
                        metrics.avgRenderTime < 50 ? 'warning' : 'poor';
 
   return (

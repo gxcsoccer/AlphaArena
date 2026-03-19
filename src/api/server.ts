@@ -818,7 +818,7 @@ export class APIServer extends EventEmitter {
         }
 
         // Create conditional order
-        const order = {
+        const _order = {
           id: `cond_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           symbol,
           side,
@@ -1242,7 +1242,7 @@ export class APIServer extends EventEmitter {
     
     this.orderBookServices.forEach((service, symbol) => {
       const bestPrices = service.getBestPrices();
-      const snapshot = service.getSnapshot(20);
+      const _snapshot = service.getSnapshot(20);
       
       // Simulate 24h stats (in real implementation, this would come from historical data)
       const basePrice = bestPrices.bestBid || bestPrices.bestAsk || 0;

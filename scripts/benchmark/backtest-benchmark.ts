@@ -9,7 +9,7 @@
  */
 
 import { BacktestEngine } from '../../src/backtest/BacktestEngine';
-import { BacktestConfig, BenchmarkResult } from '../../src/backtest/types';
+import { BacktestConfig } from '../../src/backtest/types';
 import {
   formatBytes,
   formatDuration,

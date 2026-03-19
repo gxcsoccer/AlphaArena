@@ -1,4 +1,4 @@
-import { CopyTradesDAO, CopyTrade, CreateCopyTradeInput } from '../../src/database/copy-trades.dao';
+import { CopyTradesDAO, CreateCopyTradeInput } from '../../src/database/copy-trades.dao';
 import { getSupabaseClient } from '../../src/database/client';
 
 // Mock Supabase client

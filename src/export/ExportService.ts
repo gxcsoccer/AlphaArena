@@ -5,7 +5,7 @@
  * @description Main service for managing data export and report generation
  */
 
-import { TradesDAO, Trade, TradeFilters } from '../database/trades.dao';
+import { TradesDAO, TradeFilters } from '../database/trades.dao';
 import { PortfoliosDAO } from '../database/portfolios.dao';
 import { StrategiesDAO } from '../database/strategies.dao';
 import { CSVExporter } from './CSVExporter';
@@ -206,7 +206,7 @@ export class ExportService {
     const profitFactor = totalLoss > 0 ? totalWin / totalLoss : totalWin > 0 ? Infinity : 0;
 
     // Get stats from trades DAO
-    const stats = await this.tradesDAO.getStats(strategyId);
+    const _stats = await this.tradesDAO.getStats(strategyId);
 
     // Calculate returns (simplified)
     const initialCapital = 10000; // Default, should be from portfolio

@@ -189,7 +189,7 @@ const OrdersPanel: React.FC<OrdersPanelProps> = memo(({
   const listRef = useRef<List>(null);
 
   // Performance monitoring
-  const { metrics, trackRenderStart, trackRenderEnd } = usePerformanceMonitor({
+  const { _metrics, trackRenderStart, trackRenderEnd } = usePerformanceMonitor({
     componentName: 'OrdersPanel',
     enableLogging: false,
   });

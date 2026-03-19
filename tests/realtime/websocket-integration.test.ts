@@ -15,7 +15,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { WebSocketConnectionPool, PooledConnection, ConnectionPoolStats } from '../../src/realtime/WebSocketConnectionPool';
+import { WebSocketConnectionPool, PooledConnection } from '../../src/realtime/WebSocketConnectionPool';
 
 // Mock WebSocket for JSDOM environment
 jest.mock('ws', () => {
@@ -654,7 +654,7 @@ describe('WebSocket Integration Tests', () => {
       });
 
       it('should handle rapid status changes', async () => {
-        let messages: any[] = [];
+        const messages: any[] = [];
         
         const mockChannel = {
           send: jest.fn((message: any) => {
@@ -693,7 +693,7 @@ describe('WebSocket Integration Tests', () => {
       });
 
       it('should handle execution failure sequence', async () => {
-        let messages: any[] = [];
+        const messages: any[] = [];
         
         const mockChannel = {
           send: jest.fn((message: any) => {
@@ -737,7 +737,7 @@ describe('WebSocket Integration Tests', () => {
       });
 
       it('should handle skip sequence', async () => {
-        let messages: any[] = [];
+        const messages: any[] = [];
         
         const mockChannel = {
           send: jest.fn((message: any) => {
@@ -922,7 +922,7 @@ describe('WebSocket Integration Tests', () => {
 
   describe('Edge Cases', () => {
     it('should handle empty schedule name', async () => {
-      let messages: any[] = [];
+      const messages: any[] = [];
       const mockChannel = {
         send: jest.fn((message: any) => {
           messages.push(message);
@@ -959,7 +959,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle zero activeJobs', async () => {
-      let messages: any[] = [];
+      const messages: any[] = [];
       const mockChannel = {
         send: jest.fn((message: any) => {
           messages.push(message);
@@ -989,7 +989,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle large numbers of activeJobs', async () => {
-      let messages: any[] = [];
+      const messages: any[] = [];
       const mockChannel = {
         send: jest.fn((message: any) => {
           messages.push(message);
@@ -1019,7 +1019,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle special characters in schedule name', async () => {
-      let messages: any[] = [];
+      const messages: any[] = [];
       const mockChannel = {
         send: jest.fn((message: any) => {
           messages.push(message);
@@ -1056,7 +1056,7 @@ describe('WebSocket Integration Tests', () => {
     });
 
     it('should handle unicode in user IDs', async () => {
-      let messages: any[] = [];
+      const messages: any[] = [];
       const mockChannel = {
         send: jest.fn((message: any) => {
           messages.push(message);

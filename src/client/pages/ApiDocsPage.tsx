@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
-import { Spin, Message, Typography, Card, Space, Button, Drawer, Select, Input, Grid } from '@arco-design/web-react';
-import { IconDownload, IconCode, IconBook, IconSearch, IconMenu, IconClose } from '@arco-design/web-react/icon';
+import { Spin, Message, Typography, Card, Space, Button, Drawer, Input, Grid } from '@arco-design/web-react';
+import { IconDownload, IconCode, IconBook, IconSearch, IconMenu } from '@arco-design/web-react/icon';
 import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const { Title, Paragraph } = Typography;
-const { Row, Col } = Grid;
+const { _Row, _Col } = Grid;
 
 /**
  * API Documentation Page
@@ -41,7 +41,7 @@ const ApiDocsPage: React.FC = () => {
           setLoading(false);
           return;
         }
-      } catch (err) {
+      } catch (_err) {
         console.log('Static openapi.json not available, trying YAML...');
       }
 
@@ -62,7 +62,7 @@ const ApiDocsPage: React.FC = () => {
             console.warn('js-yaml not loaded, cannot parse YAML');
           }
         }
-      } catch (err) {
+      } catch (_err) {
         console.log('Static openapi.yaml not available, trying backend...');
       }
 

@@ -7,12 +7,11 @@
  */
 
 import React, { useCallback, useMemo, memo, useRef, useEffect, useState } from 'react';
-import { Card, Typography, Table, Tag, Select, Spin, Empty, Button, Space } from '@arco-design/web-react';
+import { Card, Typography, Table, Tag, Select, Spin, Empty, Space } from '@arco-design/web-react';
 import { FixedSizeList as List } from 'react-window';
 import { useTrades } from '../hooks/useData';
-import { usePerformanceMonitor, useLazyLoad } from '../hooks/usePerformanceMonitor';
+import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import type { TableProps } from '@arco-design/web-react';
-import type { Trade } from '../utils/api';
 
 const { Text } = Typography;
 const { Option } = Select;
@@ -107,7 +106,7 @@ const TradeHistoryPanel: React.FC<TradeHistoryPanelProps> = memo(({
   const previousTradeCount = useRef<number>(0);
 
   // Performance monitoring
-  const { metrics, trackRenderStart, trackRenderEnd } = usePerformanceMonitor({
+  const { _metrics, trackRenderStart, trackRenderEnd } = usePerformanceMonitor({
     componentName: 'TradeHistoryPanel',
     enableLogging: false,
   });

@@ -5,7 +5,7 @@
  * Provides UI for managing allocations, plans, and executing rebalancing.
  */
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Card,
   Tabs,
@@ -96,7 +96,7 @@ export const RebalancePanel: React.FC<RebalancePanelProps> = ({
     error,
   } = useRebalance({ autoRefresh: true });
 
-  const { portfolio, loading: portfolioLoading } = usePortfolioRealtime({
+  const { portfolio, loading: _portfolioLoading } = usePortfolioRealtime({
     strategyId,
     symbol,
   });
@@ -197,7 +197,7 @@ export const RebalancePanel: React.FC<RebalancePanelProps> = ({
       
       setPlanModalVisible(false);
       setEditingPlan(undefined);
-    } catch (err) {
+    } catch (_err) {
       // Form validation error
     }
   }, [editingPlan, createPlan, updatePlan, planForm]);
@@ -238,7 +238,7 @@ export const RebalancePanel: React.FC<RebalancePanelProps> = ({
     }
   }, [selectedPlanId, positions, executeRebalance]);
 
-  const handleTogglePlanActive = useCallback(async (plan: RebalancePlan) => {
+  const _handleTogglePlanActive = useCallback(async (plan: RebalancePlan) => {
     await updatePlan(plan.id, { isActive: !plan.isActive });
     Message.success(`Plan ${plan.isActive ? 'deactivated' : 'activated'}`);
   }, [updatePlan]);

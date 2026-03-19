@@ -11,7 +11,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { BotRiskSettings, BotState, BotStatus } from './BotConfig';
+import { BotRiskSettings, BotState } from './BotConfig';
 
 /**
  * Risk check result

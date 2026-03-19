@@ -236,7 +236,7 @@ router.put('/preferences', authenticateUser, async (req: Request, res: Response)
 router.post('/test', authenticateUser, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
-    const { type = 'SYSTEM', title = 'Test Notification', message = 'This is a test notification' } = req.body;
+    const { _type = 'SYSTEM', title = 'Test Notification', message = 'This is a test notification' } = req.body;
     
     const notification = await NotificationService.createSystemNotification(
       userId,

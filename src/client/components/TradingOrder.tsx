@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -440,7 +440,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   }, [symbol, handlePriceClick]);
 
   // Calculate total
-  const calculateTotal = (price: number | undefined, quantity: number) => {
+  const _calculateTotal = (price: number | undefined, quantity: number) => {
     if (orderType === 'market') {
       return (currentPrice || 0) * quantity;
     }
@@ -448,7 +448,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
   };
 
   // Validate quantity
-  const validateQuantity = (value: number | undefined) => {
+  const _validateQuantity = (value: number | undefined) => {
     if (!value || value <= 0) {
       return '数量必须大于 0';
     }

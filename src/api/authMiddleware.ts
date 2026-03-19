@@ -126,7 +126,7 @@ export async function optionalAuthMiddleware(
     }
 
     next();
-  } catch (error) {
+  } catch (_error) {
     // Continue without user on error
     next();
   }

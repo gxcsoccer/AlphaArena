@@ -8,7 +8,7 @@
 // Jest provides describe, it, expect as globals - no import needed
 
 // Mock the Supabase client
-const mockSupabase = {
+const _mockSupabase = {
   from: (table: string) => ({
     select: () => ({
       eq: () => ({

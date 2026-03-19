@@ -4,9 +4,9 @@
  * Additional tests to improve code coverage for LLMStrategy
  */
 
-import { LLMStrategy, LLMStrategyConfig, LLMDecisionLog } from '../../src/strategy/LLMStrategy';
-import { LLMClient, LLMTradingSignal } from '../../src/strategy/LLMClient';
-import { StrategyContext, MarketData, OrderSignal } from '../../src/strategy/types';
+import { LLMStrategy, LLMStrategyConfig } from '../../src/strategy/LLMStrategy';
+import {  LLMTradingSignal } from '../../src/strategy/LLMClient';
+import { StrategyContext, MarketData } from '../../src/strategy/types';
 
 // Mock fetch globally
 global.fetch = jest.fn();

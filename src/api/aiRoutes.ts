@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { StrategyAssistant, strategyAssistant } from '../ai/StrategyAssistant.js';
+import {  strategyAssistant } from '../ai/StrategyAssistant.js';
 import getSupabaseClient from '../database/client.js';
 
 const router = Router();
@@ -82,7 +82,7 @@ router.get('/usage', authenticateUser, async (req: Request, res: Response) => {
     const supabase = getSupabaseClient();
     
     // Check subscription status
-    const { data: subscription, error: subError } = await supabase
+    const { data: subscription, error: _subError } = await supabase
       .from('subscriptions')
       .select('plan_type, status')
       .eq('user_id', userId)
@@ -93,7 +93,7 @@ router.get('/usage', authenticateUser, async (req: Request, res: Response) => {
     
     // Get today's message count from ai_messages table
     const today = new Date().toISOString().split('T')[0];
-    const { data: messages, error: msgError } = await supabase
+    const { data: messages, error: _msgError } = await supabase
       .from('ai_messages')
       .select('id, tokens_used')
       .eq('role', 'user')

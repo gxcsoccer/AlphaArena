@@ -3,7 +3,7 @@
  */
 
 import { RiskAlertService } from '../RiskAlertService';
-import { PortfolioData, RiskType } from '../types';
+import { PortfolioData } from '../types';
 
 // Mock the AlertService
 jest.mock('../../alerting/AlertService', () => ({

@@ -18,12 +18,12 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Button, Select } from '@arco-design/web-react';
-import { IconDownload, IconFullscreen, IconZoomIn } from '@arco-design/web-react/icon';
-import { sampleDataForChart, useDebounce } from '../utils/performance';
+import { Card, Spin, Empty, Typography, Space, Button } from '@arco-design/web-react';
+import { IconDownload, IconFullscreen } from '@arco-design/web-react/icon';
+import { sampleDataForChart } from '../utils/performance';
 import { SkeletonChart } from './Skeleton';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 
 // Maximum points to render for smooth performance
 const MAX_CHART_POINTS = 500;

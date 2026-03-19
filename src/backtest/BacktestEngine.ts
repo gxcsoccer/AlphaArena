@@ -20,7 +20,7 @@ import { BollingerBandsStrategy } from '../strategy/BollingerBandsStrategy';
 import { ElliottWaveStrategy } from '../strategy/ElliottWaveStrategy';
 import { VWAPStrategy } from '../strategy/VWAPStrategy';
 import { Strategy } from '../strategy/Strategy';
-import { OrderType, Order, IcebergOrder, OrderCategory, AnyOrder } from '../orderbook/types';
+import { OrderType, Order, IcebergOrder, OrderCategory } from '../orderbook/types';
 import { PortfolioSnapshot } from '../portfolio/types';
 import { MarketData, StrategyContext } from '../strategy/types';
 

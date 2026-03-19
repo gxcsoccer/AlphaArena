@@ -397,7 +397,7 @@ describe('SupabaseRealtimeService', () => {
 
     it('should register presence listener', () => {
       const callback = jest.fn();
-      const unsubscribe = service.onPresence(callback);
+      const _unsubscribe = service.onPresence(callback);
 
       expect(mockOn).toHaveBeenCalledWith('presence', { event: 'sync' }, expect.any(Function));
       expect(mockOn).toHaveBeenCalledWith('presence', { event: 'join' }, expect.any(Function));

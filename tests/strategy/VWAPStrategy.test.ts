@@ -4,7 +4,7 @@
  * Tests for the VWAP (Volume Weighted Average Price) strategy
  */
 
-import { VWAPStrategy, VWAPStrategyConfig, VWAPDataPoint } from '../../src/strategy/VWAPStrategy';
+import { VWAPStrategy, VWAPStrategyConfig } from '../../src/strategy/VWAPStrategy';
 import { StrategyContext, OrderSignal } from '../../src/strategy/types';
 
 /**
@@ -399,7 +399,7 @@ describe('VWAPStrategy', () => {
       // Use constant prices
       for (let i = 0; i < 20; i++) {
         mockOrderBook.setPrices(100, 101);
-        const signal = strategy.onTick(mockContext);
+        const _signal = strategy.onTick(mockContext);
         // No crossing should happen with constant prices
       }
 
@@ -505,7 +505,7 @@ describe('VWAPStrategy', () => {
       // Generate signals with custom threshold
       for (let i = 0; i < 20; i++) {
         mockOrderBook.setPrices(100 + i, 101 + i);
-        const signal = customStrategy.onTick(mockContext);
+        const _signal = customStrategy.onTick(mockContext);
       }
 
       expect(customStrategy.isReady()).toBe(true);
@@ -557,7 +557,7 @@ describe('VWAPStrategy', () => {
       const emptyTradesContext = createMockContext(mockOrderBook, []);
       
       // Should fall back to order book
-      const signal = strategy.onTick(emptyTradesContext);
+      const _signal = strategy.onTick(emptyTradesContext);
       expect(strategy.getDataPointsCount()).toBe(1);
     });
 

@@ -4,9 +4,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { ParsedQs } from 'qs';
 import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
-import { SignalPushConfigDAO, CreatePushConfigInput, UpdatePushConfigInput } from '../database/signal-push-config.dao';
+import { SignalPushConfigDAO, UpdatePushConfigInput } from '../database/signal-push-config.dao';
 import { SignalSubscriptionsDAO, CreateSubscriptionInput, UpdateSubscriptionInput } from '../database/signal-subscriptions.dao';
 import { TradingSignalsDAO } from '../database/trading-signals.dao';
 import { getSignalRealtimeService } from '../signal/SignalRealtimeService';
@@ -89,7 +88,7 @@ router.get('/health', optionalAuthMiddleware, async (req: Request, res: Response
     const userId = req.user?.id;
     
     // Get connection quality from realtime client if available
-    const realtimeService = getSignalRealtimeService();
+    const _realtimeService = getSignalRealtimeService();
     
     // Basic health check response
     const health = {

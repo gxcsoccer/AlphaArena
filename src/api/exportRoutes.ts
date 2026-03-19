@@ -7,7 +7,6 @@
 
 import { Router, Request, Response } from 'express';
 import { exportService } from '../export';
-import { BacktestEngine } from '../backtest/BacktestEngine';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('ExportRoutes');

@@ -39,7 +39,7 @@ describe('BacktestEngine Performance', () => {
     const startTime = performance.now();
     
     const engine = new BacktestEngine(config);
-    const result = engine.run();
+    const _result = engine.run();
     
     const duration = performance.now() - startTime;
     const memoryAfter = process.memoryUsage().heapUsed;

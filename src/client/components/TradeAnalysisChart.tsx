@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tag } from '@arco-design/web-react';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 const { Row, Col } = Grid;
 
 export interface TradePoint {

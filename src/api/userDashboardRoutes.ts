@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { UserDashboardDAO, DashboardFilters } from '../database/user-dashboard.dao';
-import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
+import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('UserDashboardRoutes');

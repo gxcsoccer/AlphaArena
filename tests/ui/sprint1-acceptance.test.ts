@@ -209,7 +209,7 @@ async function runTests() {
   console.log(`Success Rate: ${((passed / total) * 100).toFixed(1)}%`);
   
   console.log('\nDetailed Results:');
-  results.forEach((r, i) => {
+  results.forEach((r, _i) => {
     const status = r.passed ? '✅' : '❌';
     console.log(`  ${status} ${r.name}: ${r.details}`);
   });

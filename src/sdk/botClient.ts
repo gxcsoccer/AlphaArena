@@ -4,7 +4,6 @@
  * JavaScript/TypeScript SDK for the Trading Bot External API
  */
 
-import { createHash } from 'crypto';
 
 // Types
 export type StrategyType = 'SMA' | 'RSI' | 'MACD' | 'Bollinger' | 'Stochastic' | 'ATR';

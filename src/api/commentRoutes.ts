@@ -2,7 +2,7 @@
  * Comment Routes - Strategy Comments and Discussion System
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { CommentsDAO, StrategyComment, CommentReport } from '../database/comments.dao';
 import { authMiddleware, optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 import { createLogger } from '../utils/logger';

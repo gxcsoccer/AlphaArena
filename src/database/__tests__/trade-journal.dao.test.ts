@@ -1,4 +1,4 @@
-import { TradeJournalDAO, TradeJournal, CreateTradeJournalInput } from '../trade-journal.dao';
+import { TradeJournalDAO, CreateTradeJournalInput } from '../trade-journal.dao';
 
 // Mock Supabase client
 jest.mock('../client', () => ({

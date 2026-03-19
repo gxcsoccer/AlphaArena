@@ -15,7 +15,7 @@ import {
   Descriptions,
 } from '@arco-design/web-react';
 import type { TableProps } from '@arco-design/web-react';
-import { IconClockCircle, IconRefresh, IconEye } from '@arco-design/web-react/icon';
+import { IconClockCircle, IconEye } from '@arco-design/web-react/icon';
 import { api } from '../utils/api';
 
 const { Text } = Typography;

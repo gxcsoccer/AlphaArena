@@ -14,7 +14,7 @@ import {
 } from './types';
 import { createLogger } from '../utils/logger';
 
-const log = createLogger('RiskCalculator');
+const _log = createLogger('RiskCalculator');
 
 export class RiskCalculator {
   /**
@@ -257,7 +257,7 @@ export class RiskCalculator {
     }
 
     // Average daily volume (normalized by position value)
-    const totalValue = positions.reduce((sum, p) => sum + p.marketValue, 0);
+    const _totalValue = positions.reduce((sum, p) => sum + p.marketValue, 0);
     const avgDailyVolume = positions.reduce((sum, p) => {
       const volume = p.dailyVolume ?? 0;
       return sum + (p.currentPrice * volume);

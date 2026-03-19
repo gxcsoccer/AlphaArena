@@ -764,7 +764,7 @@ describe('WebSocket Signal Integration Tests', () => {
         const deduplicationCache = new LRUCache({ maxSize: 1000, defaultTTL: 60000 });
         
         const messageId = 'msg-' + Date.now();
-        const message = { type: 'signal', id: messageId, data: 'test' };
+        const _message = { type: 'signal', id: messageId, data: 'test' };
 
         // First time - should be new
         const isNew = !deduplicationCache.get(messageId);
@@ -1386,7 +1386,7 @@ describe('WebSocket Signal Integration Tests', () => {
         const flushedBatches: any[] = [];
         batcher.on('batch:flushed', (batch: any) => flushedBatches.push(batch));
 
-        const startTime = Date.now();
+        const _startTime = Date.now();
         
         // Add many messages
         for (let i = 0; i < 200; i++) {

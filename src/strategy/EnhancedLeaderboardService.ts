@@ -11,7 +11,7 @@
 import { EventEmitter } from 'events';
 import { StrategiesDAO, Strategy } from '../database/strategies.dao';
 import { TradesDAO, Trade } from '../database/trades.dao';
-import { SocialDAO, UserBadge, StrategyStats } from '../database/social.dao';
+import { SocialDAO, UserBadge } from '../database/social.dao';
 import { CompetitionsDAO, CompetitionParticipant } from '../database/competitions.dao';
 import { LeaderboardDAO } from '../database/leaderboard.dao';
 

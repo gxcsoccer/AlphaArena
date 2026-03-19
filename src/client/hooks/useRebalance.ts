@@ -5,7 +5,7 @@
  * including target allocation management, preview generation, and execution.
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   TargetAllocation,
   RebalancePlan,
@@ -18,7 +18,6 @@ import {
   AssetAllocation,
 } from '../../portfolio/rebalance/types';
 import { Position } from '../../portfolio/types';
-import { api } from '../utils/api';
 
 /**
  * State for target allocations

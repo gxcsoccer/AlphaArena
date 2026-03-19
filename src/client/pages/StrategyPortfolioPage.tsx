@@ -58,9 +58,9 @@ import PortfolioCreateForm from '../components/PortfolioCreateForm';
 
 const log = createLogger('StrategyPortfolioPage');
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text, _Paragraph } = Typography;
 const { Row, Col } = Grid;
-const FormItem = Form.Item;
+const _FormItem = Form.Item;
 
 /**
  * Portfolio status badge
@@ -97,7 +97,7 @@ const AllocationMethodTag: React.FC<{ method: AllocationMethod }> = ({ method })
  */
 const StrategyPortfolioPage: React.FC = () => {
   const navigate = useNavigate();
-  const { portfolios, loading, error, refresh } = usePortfolios();
+  const { portfolios, loading, _error, refresh } = usePortfolios();
   const { strategies } = useStrategies();
   const {
     loading: operationLoading,
@@ -149,7 +149,7 @@ const StrategyPortfolioPage: React.FC = () => {
   }, [startPortfolio, refresh]);
 
   // Handle stop
-  const handleStop = useCallback(async (portfolioId: string) => {
+  const _handleStop = useCallback(async (portfolioId: string) => {
     try {
       await stopPortfolio(portfolioId);
       refresh();

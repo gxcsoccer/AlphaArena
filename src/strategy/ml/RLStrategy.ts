@@ -166,7 +166,7 @@ export class RLStrategy extends MLStrategy {
 
     for (const name of relevantFeatures) {
       const idx = features.names.indexOf(name);
-      let value = idx >= 0 ? features.values[idx] : 0;
+      const value = idx >= 0 ? features.values[idx] : 0;
       
       // Discretize value
       const discretized = this.discretizeFeature(name, value);
