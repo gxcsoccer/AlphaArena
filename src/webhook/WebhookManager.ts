@@ -20,7 +20,7 @@ import {
   WebhookTestResult,
 } from './types';
 import { WebhookStorage } from './WebhookStorage';
-import { WebhookSender, SendResult } from './WebhookSender';
+import { WebhookSender } from './WebhookSender';
 import { WebhookSigner } from './WebhookSigner';
 
 /**

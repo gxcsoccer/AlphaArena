@@ -14,7 +14,7 @@ if (typeof (global as any).TextDecoder === 'undefined') {
 if (typeof global.fetch === 'undefined') {
   try {
     // Try to use undici which is bundled with Node.js 18+
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+     
     const { fetch, Headers, Request, Response } = require('undici');
     global.fetch = fetch as any;
     global.Headers = Headers as any;

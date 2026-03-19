@@ -4,15 +4,15 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Typography, Card, Tag, Select, Space, Grid, Button, Message } from '@arco-design/web-react';
+import { Typography, Card, Tag, Select, Space, Grid, Button } from '@arco-design/web-react';
 const { Row, Col } = Grid;
-import { useOptimizedQuery, usePaginatedData, useSearch } from '../hooks/useOptimizedData';
+import { useOptimizedQuery, usePaginatedData } from '../hooks/useOptimizedData';
 import { useDebounce } from '../utils/performance';
 import { dataCache } from '../utils/cache';
 import VirtualizedTable from '../components/VirtualizedTable';
-import { SkeletonCard, SkeletonTable } from '../components/Skeleton';
+import {  SkeletonTable } from '../components/Skeleton';
 import { LazyLoadWrapper } from '../components/LazyLoadWrapper';
-import { OptimizedAreaChart, OptimizedBarChart, OptimizedLineChart } from '../components/OptimizedChart';
+import {  OptimizedBarChart, OptimizedLineChart } from '../components/OptimizedChart';
 import { usePerformanceTracking, usePerformanceMetrics } from '../hooks/usePerformanceMonitor';
 import { api, Trade } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -35,7 +35,7 @@ const TradesPageOptimized: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Debounce search query
-  const debouncedSearch = useDebounce(searchQuery, 300);
+  const _debouncedSearch = useDebounce(searchQuery, 300);
 
   // Memoize filters
   const filters = useMemo(() => ({ symbol, side }), [symbol, side]);
@@ -55,7 +55,7 @@ const TradesPageOptimized: React.FC = () => {
   );
 
   // Load strategies with caching
-  const { data: strategies } = useOptimizedQuery(
+  const { data: _strategies } = useOptimizedQuery(
     () => {
       recordApiCall();
       return api.getStrategies();

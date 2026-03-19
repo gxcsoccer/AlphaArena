@@ -234,7 +234,7 @@ export class OrderBook extends EventEmitter {
       return false;
     }
 
-    const oldPrice = order.price;
+    const _oldPrice = order.price;
 
     // 如果价格改变，先取消再添加
     if (newPrice !== undefined && newPrice !== order.price) {

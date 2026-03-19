@@ -274,7 +274,7 @@ export class PriceMonitoringService extends EventEmitter {
       console.log(`[PriceMonitoring] Triggering order ${order.id}: ${order.orderType} ${order.side} ${order.quantity} @ ${currentPrice}`);
 
       // Create a market order when the condition is triggered
-      const marketOrder = {
+      const _marketOrder = {
         symbol: order.symbol,
         side: order.side,
         type: 'market' as const,

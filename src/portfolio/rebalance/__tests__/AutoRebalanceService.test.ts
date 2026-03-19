@@ -229,12 +229,12 @@ describe('AutoRebalanceService', () => {
 
   describe('configurations', () => {
     it('should use default config when not provided', () => {
-      const defaultService = new AutoRebalanceService(mockPriceProvider);
+      const _defaultService = new AutoRebalanceService(mockPriceProvider);
       // Should not throw
     });
 
     it('should merge custom config with defaults', () => {
-      const customService = new AutoRebalanceService(
+      const _customService = new AutoRebalanceService(
         mockPriceProvider,
         undefined,
         {

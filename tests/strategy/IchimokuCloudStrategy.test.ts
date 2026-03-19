@@ -542,7 +542,7 @@ describe('IchimokuCloudStrategy', () => {
       for (let i = 0; i < 60; i++) {
         const price = 100 + (Math.random() - 0.5) * 50;
         mockOrderBook.setPrices(price, price);
-        const signal = strategy.onTick(mockContext);
+        const _signal = strategy.onTick(mockContext);
         // Should not crash
       }
 
@@ -558,7 +558,7 @@ describe('IchimokuCloudStrategy', () => {
 
       // Sudden gap up
       mockOrderBook.setPrices(200, 200);
-      const signal = strategy.onTick(mockContext);
+      const _signal = strategy.onTick(mockContext);
       // Should handle gap without crashing
       expect(strategy.isReady()).toBe(true);
     });

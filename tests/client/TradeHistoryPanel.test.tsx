@@ -3,7 +3,7 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import TradeHistoryPanel from '../../src/client/components/TradeHistoryPanel';
 
@@ -24,7 +24,7 @@ jest.mock('@arco-design/web-react', () => {
         <div data-testid="card-body" style={bodyStyle}>{children}</div>
       </div>
     ),
-    Table: ({ columns, data, pagination, size, border, style, scroll }: any) => (
+    Table: ({ columns, data, _pagination, _size, border, style, scroll }: any) => (
       <div data-testid="table" style={style}>
         <table>
           <thead>
@@ -51,13 +51,13 @@ jest.mock('@arco-design/web-react', () => {
     Tag: ({ children, color, size }: any) => (
       <span data-testid="tag" style={{ color }}>{children}</span>
     ),
-    Select: ({ children, value, onChange, placeholder, size, style }: any) => (
+    Select: ({ children, value, onChange, _placeholder, _size, style }: any) => (
       <select data-testid="select" value={value} onChange={(e) => onChange?.(e.target.value)}>
         {children}
       </select>
     ),
     Typography: {
-      Text: ({ children, type, size, style }: any) => (
+      Text: ({ children, type, _size, style }: any) => (
         <span data-testid="text" style={{ color: type === 'danger' ? 'red' : undefined, ...style }}>
           {children}
         </span>
@@ -66,7 +66,7 @@ jest.mock('@arco-design/web-react', () => {
   };
 });
 
-const mockUseTrades = require('../../src/client/hooks/useData').useTrades;
+import mockUseTrades from '../../src/client/hooks/useData';
 
 describe('TradeHistoryPanel', () => {
   beforeEach(() => {

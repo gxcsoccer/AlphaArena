@@ -8,11 +8,11 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import KLineChart from '../../src/client/components/KLineChart';
-import type { KLineDataPoint, TimeFrame } from '../../src/client/components/KLineChart';
-import { createChart, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
+import type { KLineDataPoint } from '../../src/client/components/KLineChart';
+import { createChart, CandlestickSeries } from 'lightweight-charts';
 
 // Mock the useKLineData hook
 jest.mock('../../src/client/hooks/useKLineData', () => ({
@@ -569,7 +569,7 @@ describe('KLineChart', () => {
         await jest.runAllTimersAsync();
       });
 
-      const emptyState = screen.getByTestId('kline-chart').querySelector(' .arco-empty');
+      const _emptyState = screen.getByTestId('kline-chart').querySelector(' .arco-empty');
       // Chart container should be present even with empty data
       expect(screen.getByTestId('kline-chart')).toBeInTheDocument();
     });

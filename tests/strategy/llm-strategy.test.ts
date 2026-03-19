@@ -4,9 +4,9 @@
  * Tests for LLMClient and LLMStrategy with mocked LLM API
  */
 
-import { LLMClient, LLMClientConfig, MarketDataForLLM, LLMTradingSignal } from '../../src/strategy/LLMClient';
+import { LLMClient, LLMClientConfig, MarketDataForLLM } from '../../src/strategy/LLMClient';
 import { LLMStrategy, LLMStrategyConfig } from '../../src/strategy/LLMStrategy';
-import { StrategyContext, MarketData, OrderSignal } from '../../src/strategy/types';
+import { StrategyContext, MarketData } from '../../src/strategy/types';
 import { OrderBook } from '../../src/orderbook';
 
 // Mock fetch globally
@@ -195,7 +195,7 @@ describe('LLMClient', () => {
       
       try {
         await client.chatCompletion(messages);
-      } catch (e) {
+      } catch (_e) {
         // Expected error
       }
       await client.chatCompletion(messages);

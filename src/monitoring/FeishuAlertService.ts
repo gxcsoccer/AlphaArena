@@ -116,7 +116,7 @@ export class FeishuAlertService {
       }
 
       // Send message to a default chat (in production, you'd configure the chat ID)
-      const message = this.formatAlertMessage(alert);
+      const _message = this.formatAlertMessage(alert);
       
       // For now, we'll use the webhook approach as it's simpler
       // The API approach would require knowing the specific chat ID

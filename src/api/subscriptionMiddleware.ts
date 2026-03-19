@@ -4,8 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { SubscriptionDAO, getSubscriptionDAO, PlanLimits } from '../database/subscription.dao';
-import { authMiddleware } from './authMiddleware';
+import {  getSubscriptionDAO, PlanLimits } from '../database/subscription.dao';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('SubscriptionMiddleware');

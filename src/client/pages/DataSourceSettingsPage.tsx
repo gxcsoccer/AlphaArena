@@ -138,7 +138,7 @@ const DataSourceSettingsPage: React.FC = () => {
       } else {
         Message.error(data.error || '切换数据源失败');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('切换数据源失败');
     } finally {
       setSaving(false);
@@ -171,7 +171,7 @@ const DataSourceSettingsPage: React.FC = () => {
       } else {
         Message.error(data.error || '保存失败');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('保存凭证失败');
     } finally {
       setSaving(false);
@@ -202,7 +202,7 @@ const DataSourceSettingsPage: React.FC = () => {
       } else {
         Message.error(data.error || '保存失败');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('保存凭证失败');
     } finally {
       setSaving(false);
@@ -229,7 +229,7 @@ const DataSourceSettingsPage: React.FC = () => {
       } else {
         Message.error(data.error || '连接测试失败');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('连接测试失败');
     } finally {
       setTesting(null);
@@ -256,7 +256,7 @@ const DataSourceSettingsPage: React.FC = () => {
           twelvedataForm.resetFields();
         }
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('清除凭证失败');
     }
   };

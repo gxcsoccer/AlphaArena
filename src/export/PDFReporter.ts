@@ -13,29 +13,21 @@ import {
   ExportResult,
 } from './types';
 
+// Import pdfmake with proper typing
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfmake = require('pdfmake') as {
+  createPdf: (docDefinition: TDocumentDefinitions) => {
+    getBuffer: (callback: (buffer: Buffer) => void) => void;
+  };
+};
+
 /**
  * PDF Reporter class
  * Provides methods to generate PDF reports for various data types
  */
 export class PDFReporter {
-  private printer: any;
-
   constructor() {
-    // Dynamic import for pdfmake
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const PdfPrinter = require('pdfmake');
-    
-    // Define fonts for PDF (using standard fonts)
-    const fonts = {
-      Roboto: {
-        normal: 'Helvetica',
-        bold: 'Helvetica-Bold',
-        italics: 'Helvetica-Oblique',
-        bolditalics: 'Helvetica-BoldOblique',
-      },
-    };
-
-    this.printer = new PdfPrinter(fonts);
+    // PDF fonts are configured via standard Helvetica fonts (built into PDF)
   }
 
   /**
@@ -482,24 +474,18 @@ export class PDFReporter {
   private createPdf(docDefinition: TDocumentDefinitions, prefix: string): Promise<ExportResult> {
     return new Promise((resolve, reject) => {
       try {
-        const pdfDoc = this.printer.createPdfKitDocument(docDefinition);
-        const chunks: Buffer[] = [];
-
-        pdfDoc.on('data', (chunk: Buffer) => chunks.push(chunk));
-        pdfDoc.on('end', () => {
-          const content = Buffer.concat(chunks);
+        const pdfDoc = pdfmake.createPdf(docDefinition);
+        pdfDoc.getBuffer((buffer: Buffer) => {
           const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
           const filename = `${prefix}_${timestamp}.pdf`;
 
           resolve({
-            content,
+            content: buffer,
             contentType: 'application/pdf',
             filename,
-            size: content.length,
+            size: buffer.length,
           });
         });
-        pdfDoc.on('error', reject);
-        pdfDoc.end();
       } catch (error) {
         reject(error);
       }

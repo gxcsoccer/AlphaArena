@@ -28,7 +28,7 @@ import {
   alertConfigurationsDao,
   AlertConfiguration,
 } from '../database/alert-configurations.dao';
-import { createRiskNotification, createSystemNotification } from '../notification/NotificationService';
+import { createRiskNotification } from '../notification/NotificationService';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('AlertService');
@@ -73,11 +73,11 @@ const ALERT_TEMPLATES: Record<AlertRuleType, {
     getMessage: (ctx) => `调度器 "${ctx.entityName ?? ctx.entityId}" 执行超时。执行时间: ${(ctx as SchedulerAlertContext).executionTimeMs ?? 0}ms，超时阈值: ${(ctx as SchedulerAlertContext).timeoutMs ?? 0}ms`,
   },
   position_limit: {
-    getTitle: (ctx) => `仓位限制告警`,
+    getTitle: (_ctx) => `仓位限制告警`,
     getMessage: (ctx) => `仓位已达到限制阈值。当前仓位: ${ctx.currentPosition ?? '未知'}，限制: ${ctx.positionLimit ?? '未知'}`,
   },
   circuit_breaker: {
-    getTitle: (ctx) => `熔断触发告警`,
+    getTitle: (_ctx) => `熔断触发告警`,
     getMessage: (ctx) => `交易已触发熔断机制。原因: ${ctx.circuitBreakerReason ?? '未知'}，将在 ${ctx.circuitBreakerCooldown ?? '一段时间'} 后恢复`,
   },
   error_rate: {

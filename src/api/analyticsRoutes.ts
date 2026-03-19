@@ -189,8 +189,8 @@ router.get('/report/:strategyId', async (req: Request, res: Response) => {
   try {
     const strategyId = Array.isArray(req.params.strategyId) ? req.params.strategyId[0] : req.params.strategyId;
     const strategyName = (req.query.name as string) || strategyId;
-    const includeTrades = req.query.includeTrades === 'true';
-    const includeBenchmark = req.query.includeBenchmark === 'true';
+    const _includeTrades = req.query.includeTrades === 'true';
+    const _includeBenchmark = req.query.includeBenchmark === 'true';
 
     // Get performance snapshots
     const snapshots = await performanceDAO.getPerformanceSnapshotsByStrategy(strategyId);

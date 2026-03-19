@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Typography, Card, Table, Tag, Space, Button, Modal, Form, Input, Select, Drawer, Grid, Collapse, Message } from '@arco-design/web-react';
-import { IconPlus, IconRefresh, IconSearch, IconFilter } from '@arco-design/web-react/icon';
+import { IconPlus, IconRefresh, IconSearch } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import MobileTableCard from '../components/MobileTableCard';
 import { useMediaQuery } from '../hooks/useMediaQuery';
@@ -11,7 +11,7 @@ import type { Strategy } from '../utils/api';
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
-const CollapseItem = Collapse.Item;
+const _CollapseItem = Collapse.Item;
 
 interface StrategyFormValues {
   name: string;
@@ -33,7 +33,7 @@ const StrategiesPage: React.FC = () => {
   const { isMobile, isTablet } = useMediaQuery();
 
   // Swipe navigation for mobile
-  const { currentItem, goToNext, goToPrev, touchHandlers } = useSwipeNavigation(
+  const { _currentItem, _goToNext, _goToPrev, touchHandlers } = useSwipeNavigation(
     strategies.filter(s => 
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (statusFilter === 'all' || s.status === statusFilter)
@@ -80,7 +80,7 @@ const StrategiesPage: React.FC = () => {
       Message.success('Strategy updated successfully');
       handleCloseModal();
       refresh();
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to update strategy');
     }
   }, [handleCloseModal, refresh]);

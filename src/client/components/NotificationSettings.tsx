@@ -16,7 +16,7 @@ import {
   Space,
   Button,
 } from '@arco-design/web-react';
-import { IconCheck, IconPushpin, IconMail, IconDesktop } from '@arco-design/web-react/icon';
+import { IconCheck, IconPushpin, IconMail } from '@arco-design/web-react/icon';
 import './NotificationSettings.css';
 import { useNotifications } from '../hooks/useNotifications.js';
 import type { NotificationPreferences } from '../hooks/useNotifications.js';
@@ -55,7 +55,7 @@ const NotificationSettings: React.FC = () => {
     try {
       await updatePreferences(values);
       Message.success('Notification preferences saved');
-    } catch (err) {
+    } catch (_err) {
       Message.error('Failed to save preferences');
     } finally {
       setSaving(false);

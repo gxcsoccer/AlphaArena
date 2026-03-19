@@ -62,7 +62,7 @@ async function loadWithRetry<T extends ComponentType<any>>(
     try {
       const currentPath = window.location.pathname + window.location.search + window.location.hash;
       sessionStorage.setItem(PENDING_ROUTE_KEY, currentPath);
-    } catch (e) {
+    } catch (_e) {
       // Ignore sessionStorage errors
     }
     

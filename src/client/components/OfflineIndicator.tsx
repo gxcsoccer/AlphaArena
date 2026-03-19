@@ -9,16 +9,16 @@
 
 import React from 'react';
 import { Alert, Tag, Progress, Button } from '@arco-design/web-react';
-import { IconClose, IconSync, IconCheckCircle, IconExclamationCircle, IconRefresh } from '@arco-design/web-react/icon';
+import {  IconSync, IconCheckCircle, IconExclamationCircle, IconRefresh } from '@arco-design/web-react/icon';
 import { useConnection } from '../store/connectionStore';
 
-const ReconnectingIcon = IconSync;
-const ConnectedIcon = IconCheckCircle;
-const WarningIcon = IconExclamationCircle;
+const _ReconnectingIcon = IconSync;
+const _ConnectedIcon = IconCheckCircle;
+const _WarningIcon = IconExclamationCircle;
 const RefreshIcon = IconRefresh;
 
 const OfflineIndicator: React.FC = () => {
-  const { status, isOnline, quality, lastDisconnectedAt, isRestApiAvailable, checkRestApiHealth } = useConnection();
+  const { status, isOnline, quality, _lastDisconnectedAt, isRestApiAvailable, checkRestApiHealth } = useConnection();
 
   // Don't show if connected and online
   if (status === 'connected' && isOnline) {

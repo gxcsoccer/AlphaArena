@@ -9,9 +9,7 @@
  * - Mobile Lighthouse performance score > 80
  */
 
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
+import { render } from '@testing-library/react';
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -38,8 +36,8 @@ Object.defineProperty(window, 'matchMedia', {
 describe('Mobile Responsive Optimizations - Issue #401', () => {
   describe('CSS Media Queries', () => {
     it('should have mobile breakpoints defined', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
@@ -52,8 +50,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should have touch target sizing (min 44px)', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
@@ -65,8 +63,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should have safe area insets for notched devices', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
@@ -78,8 +76,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should support reduced motion preferences', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
@@ -90,8 +88,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should support high contrast mode', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
@@ -104,8 +102,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('Mobile Bottom Navigation CSS', () => {
     it('should have mobile bottom nav styles', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileBottomNav.css'),
@@ -118,8 +116,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should hide bottom nav on desktop', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileBottomNav.css'),
@@ -132,8 +130,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('Mobile Header CSS', () => {
     it('should have mobile header styles', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileHeader.css'),
@@ -145,8 +143,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('should have safe area support for notched devices', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileHeader.css'),
@@ -159,8 +157,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('Mobile Table Card CSS', () => {
     it('should have mobile table card styles', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileTableCard.css'),
@@ -173,8 +171,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('Page Component Structure', () => {
     it('BacktestVisualizationPage should use useMediaQuery', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../BacktestVisualizationPage.tsx'),
@@ -186,8 +184,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('HomePage should have mobile detection', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../HomePage.tsx'),
@@ -199,8 +197,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('DashboardPage should have mobile layout', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../DashboardPage.tsx'),
@@ -212,8 +210,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('StrategiesPage should have mobile layout', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../StrategiesPage.tsx'),
@@ -225,8 +223,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('ApiDocsPage should have mobile layout', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../ApiDocsPage.tsx'),
@@ -240,8 +238,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('Touch Gesture Hooks', () => {
     it('useTouchGestures should be properly structured', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../../hooks/useTouchGestures.ts'),
@@ -254,8 +252,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('useMediaQuery should export necessary types and functions', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../../hooks/useMediaQuery.ts'),
@@ -270,8 +268,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
 
   describe('App Layout Mobile Support', () => {
     it('App.tsx should have mobile detection', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),
@@ -284,8 +282,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('App.tsx should render mobile drawer menu', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),
@@ -297,8 +295,8 @@ describe('Mobile Responsive Optimizations - Issue #401', () => {
     });
 
     it('App.tsx should render mobile bottom navigation', () => {
-      const fs = require('fs');
-      const path = require('path');
+import fs from 'fs';
+import path from 'path';
       
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),

@@ -55,7 +55,7 @@ export function calculateTechnicalScore(data: MarketDataForSentiment): number {
  * Uses bid/ask spread and volume analysis to estimate buying vs selling pressure.
  */
 export function calculateCapitalFlowScore(data: MarketDataForSentiment): number {
-  const { bid, ask, volume24h, priceChangePercent24h } = data;
+  const { bid, ask, _volume24h, priceChangePercent24h } = data;
   
   let flowScore = 50; // Neutral baseline
   

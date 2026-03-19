@@ -11,7 +11,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 const { Title, Text } = Typography;
 const FormItem = Form.Item;
-const { Row, Col } = Grid;
+const { _Row, _Col } = Grid;
 
 interface LoginFormValues {
   identifier: string;

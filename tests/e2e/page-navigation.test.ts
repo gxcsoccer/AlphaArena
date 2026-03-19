@@ -353,7 +353,7 @@ async function runTests(): Promise<number> {
   console.log('Success Rate: ' + ((passed / total) * 100).toFixed(1) + '%');
 
   console.log('\nDetailed Results:');
-  results.forEach((r, i) => {
+  results.forEach((r, _i) => {
     const status = r.passed ? '✅' : '❌';
     const duration = r.duration ? ' (' + r.duration + 'ms)' : '';
     console.log('  ' + status + ' ' + r.name + duration + ': ' + r.details);

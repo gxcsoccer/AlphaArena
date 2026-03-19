@@ -51,7 +51,7 @@ describe('usePortfolioRealtime', () => {
     timestamp: Date.now(),
   };
 
-  const mockMarketTickETH = {
+  const _mockMarketTickETH = {
     symbol: 'ETH/USDT',
     price: 2600,
     priceChange24h: 100,

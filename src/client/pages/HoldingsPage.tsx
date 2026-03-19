@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Spin, Empty } from '@arco-design/web-react';
+import { Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Empty } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -21,7 +21,7 @@ import { useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData'
 import { usePortfolioRealtime } from '../hooks/usePortfolioRealtime';
 import { usePortfolioAnalytics } from '../hooks/usePortfolioAnalytics';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { formatPercent, formatCurrency, formatDuration } from '../utils/portfolioAnalytics';
+import { formatPercent, formatDuration } from '../utils/portfolioAnalytics';
 import type { TableProps } from '@arco-design/web-react';
 import type { PortfolioWithPnL } from '../hooks/usePortfolioRealtime';
 

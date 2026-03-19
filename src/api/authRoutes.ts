@@ -3,7 +3,7 @@
  * Handles user registration, login, logout, token refresh, and user info
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -30,7 +30,7 @@ const JWT_EXPIRES_IN = '1h';
 const REFRESH_TOKEN_EXPIRES_IN_DAYS = 7;
 const BCRYPT_SALT_ROUNDS = 12;
 const MAX_LOGIN_ATTEMPTS = 5;
-const LOCK_DURATION_MINUTES = 30;
+const _LOCK_DURATION_MINUTES = 30;
 
 // Rate limiting for login attempts (in-memory, should use Redis in production)
 const loginAttempts = new Map<string, { count: number; lastAttempt: Date }>();

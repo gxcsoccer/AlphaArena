@@ -25,7 +25,7 @@ import {
 import { RebalanceEngine, MarketPriceProvider, OrderExecutor } from './RebalanceEngine';
 import { RebalanceScheduler } from './RebalanceScheduler';
 import { rebalanceDAO } from '../../database/rebalance.dao';
-import { VirtualAccountDAO, VirtualPosition } from '../../database/virtual-account.dao';
+import { VirtualAccountDAO } from '../../database/virtual-account.dao';
 import { createLogger } from '../../utils/logger';
 
 const log = createLogger('AutoRebalanceService');

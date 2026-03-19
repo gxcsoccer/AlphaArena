@@ -20,10 +20,10 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useStrategies, useTrades } from '../hooks/useData';
-import { api, LeaderboardEntry, StrategyMetrics } from '../utils/api';
+import { useStrategies } from '../hooks/useData';
+import { api, LeaderboardEntry } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import type { TableProps, TableColumnProps } from '@arco-design/web-react';
+import type {  TableColumnProps } from '@arco-design/web-react';
 import { IconRefresh, IconTrophy, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon';
 
 const { Title, Text } = Typography;
@@ -90,7 +90,7 @@ const LeaderboardPage: React.FC = () => {
   }, [leaderboard]);
 
   // Prepare chart data
-  const rankingChartData = leaderboard.slice(0, 10).map((entry) => ({
+  const _rankingChartData = leaderboard.slice(0, 10).map((entry) => ({
     name: entry.strategyName,
     rank: entry.rank,
     roi: entry.metrics.roi,
@@ -112,7 +112,7 @@ const LeaderboardPage: React.FC = () => {
     pnl: entry.metrics.totalPnL,
   }));
 
-  const rankHistoryData = leaderboard.map((entry, index) => ({
+  const _rankHistoryData = leaderboard.map((entry, _index) => ({
     name: entry.strategyName,
     currentRank: entry.rank,
     previousRank: entry.rank - entry.rankChange,
@@ -505,7 +505,7 @@ const LeaderboardPage: React.FC = () => {
               pagination={false}
               size="small"
               scroll={isMobile ? { x: 1400 } : undefined}
-              onChange={(pagination, filters, sorter) => {
+              onChange={(_pagination, _filters, sorter) => {
                 // Handle table sorting if needed
               }}
             />

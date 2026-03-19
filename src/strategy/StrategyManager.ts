@@ -11,7 +11,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { IStrategy, Strategy } from './Strategy';
+import { IStrategy } from './Strategy';
 import { StrategyConfig, StrategyContext, OrderSignal, MarketData } from './types';
 import { Portfolio } from '../portfolio/Portfolio';
 import { OrderBook } from '../orderbook/OrderBook';

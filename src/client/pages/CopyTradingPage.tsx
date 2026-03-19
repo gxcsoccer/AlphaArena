@@ -131,7 +131,7 @@ const CopyTradingPage: React.FC = () => {
             Message.success('Successfully unfollowed');
             fetchData();
           }
-        } catch (error) {
+        } catch (_error) {
           Message.error('Failed to unfollow');
         }
       },
@@ -148,7 +148,7 @@ const CopyTradingPage: React.FC = () => {
         Message.success(follower.status === 'active' ? 'Paused following' : 'Resumed following');
         fetchData();
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to update status');
     }
   };
@@ -190,7 +190,7 @@ const CopyTradingPage: React.FC = () => {
         setSettingsDrawerVisible(false);
         fetchData();
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to update settings');
     }
   };

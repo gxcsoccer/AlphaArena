@@ -39,13 +39,13 @@ import { EquityCurveChart, EquityDataPoint } from '../components/EquityCurveChar
 import { DrawdownChart, DrawdownDataPoint } from '../components/DrawdownChart';
 import { ReturnsDistributionChart, ReturnDataPoint } from '../components/ReturnsDistributionChart';
 import { ReturnsHeatmapChart, MonthlyReturn } from '../components/ReturnsHeatmapChart';
-import { StrategyComparisonChart, StrategyMetrics, StrategyEquityCurve } from '../components/StrategyComparisonChart';
+import { StrategyComparisonChart, StrategyMetrics } from '../components/StrategyComparisonChart';
 import { TradeAnalysisChart, TradePoint } from '../components/TradeAnalysisChart';
 import { HoldingTimeChart, HoldingPeriod } from '../components/HoldingTimeChart';
 import { useBacktest, STRATEGIES, SYMBOLS, BacktestResult } from '../hooks/useBacktest';
 import { createLogger } from '../../utils/logger';
 
-const log = createLogger('BacktestVisualizationPage');
+const _log = createLogger('BacktestVisualizationPage');
 
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
@@ -167,7 +167,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, confi
 
 // Main page component
 const BacktestVisualizationPage: React.FC = () => {
-  const { loading, error, result, runBacktest, clearResult, exportToCSV, exportToJSON } = useBacktest();
+  const { loading, error, result, runBacktest, _clearResult, exportToCSV, exportToJSON } = useBacktest();
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [config, setConfig] = useState({
     capital: 10000,

@@ -3,8 +3,8 @@
  * Provides hooks with caching, pagination, and lazy loading support
  */
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
-import { dataCache, fetchWithCache } from '../utils/cache';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import { dataCache } from '../utils/cache';
 import { useDebounce } from '../utils/performance';
 
 interface UseOptimizedQueryOptions<T> {

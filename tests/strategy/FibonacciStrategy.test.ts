@@ -593,7 +593,7 @@ describe('FibonacciStrategy', () => {
         115, 118, 121, 124, 127,
       ];
 
-      let signals: OrderSignal[] = [];
+      const signals: OrderSignal[] = [];
       let clock = Date.now();
 
       for (const price of basePrices) {
@@ -638,7 +638,7 @@ describe('FibonacciStrategy', () => {
         105, 102, 99, 96, 93,
       ];
 
-      let signals: OrderSignal[] = [];
+      const signals: OrderSignal[] = [];
       let clock = Date.now();
 
       for (const price of basePrices) {
@@ -853,7 +853,7 @@ describe('FibonacciStrategy', () => {
       // All same price
       for (let i = 0; i < 15; i++) {
         orderBook.setPrices(100, 100.1);
-        const signal = strategy.onTick(context);
+        const _signal = strategy.onTick(context);
         // Should not crash, may not generate signals
       }
 
@@ -886,7 +886,7 @@ describe('FibonacciStrategy', () => {
       for (const price of prices) {
         orderBook.setPrices(price, price + 0.1);
         context.clock = clock++;
-        const signal = strategy.onTick(context);
+        const _signal = strategy.onTick(context);
         // Should not crash
       }
 
@@ -967,7 +967,7 @@ describe('FibonacciStrategy', () => {
       expect(strategy.isReady()).toBe(true);
 
       // Should have calculated Fibonacci levels
-      const levels = strategy.getFibonacciLevels();
+      const _levels = strategy.getFibonacciLevels();
       // May or may not have levels depending on swing point detection
     });
   });

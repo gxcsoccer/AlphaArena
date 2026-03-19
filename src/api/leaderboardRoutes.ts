@@ -324,7 +324,7 @@ export function createLeaderboardRouter(): Router {
   router.get('/competitions/:id/leaderboard', async (req: Request, res: Response) => {
     try {
       const id = req.params.id as string;
-      const limit = parseInt(req.query.limit as string) || 50;
+      const _limit = parseInt(req.query.limit as string) || 50;
 
       const leaderboard = await leaderboardService.getCompetitionLeaderboard(id);
       

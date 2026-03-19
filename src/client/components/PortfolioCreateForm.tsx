@@ -41,7 +41,7 @@ import { createLogger } from '../../utils/logger';
 
 const log = createLogger('PortfolioCreateForm');
 
-const { Title, Text, Paragraph } = Typography;
+const { _Title, Text, _Paragraph } = Typography;
 const FormItem = Form.Item;
 const { Row, Col } = Grid;
 

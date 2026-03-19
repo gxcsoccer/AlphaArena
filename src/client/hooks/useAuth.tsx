@@ -255,7 +255,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const { accessToken } = result.data!;
-    const user = tokenStorage.getUser()!;
+    const _user = tokenStorage.getUser()!;
     
     localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
     setState(prev => ({ ...prev, accessToken }));

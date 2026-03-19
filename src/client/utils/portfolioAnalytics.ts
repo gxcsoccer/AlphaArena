@@ -5,7 +5,7 @@
  * All calculations are designed to be non-blocking for UI rendering.
  */
 
-import type { Trade, Portfolio } from '../utils/api';
+import type { Trade } from '../utils/api';
 
 /**
  * Position with extended analytics data
@@ -323,7 +323,7 @@ export function calculatePerformanceMetrics(
   const monthlyPnLPercent = portfolioValue > 0 ? (monthlyPnL / portfolioValue) * 100 : 0;
 
   // Win rate calculation
-  const winningTrades = sells.filter((sell, idx) => {
+  const winningTrades = sells.filter((sell, _idx) => {
     // Simple heuristic: profitable if sell price > average buy price
     const symbolBuys = buys.filter(b => b.symbol === sell.symbol);
     if (symbolBuys.length === 0) return false;
@@ -332,7 +332,7 @@ export function calculatePerformanceMetrics(
     return sell.price > avgBuyPrice;
   });
 
-  const losingTrades = sells.filter((sell, idx) => {
+  const losingTrades = sells.filter((sell, _idx) => {
     const symbolBuys = buys.filter(b => b.symbol === sell.symbol);
     if (symbolBuys.length === 0) return false;
     const avgBuyPrice = symbolBuys.reduce((sum, b) => sum + b.price * b.quantity, 0) 

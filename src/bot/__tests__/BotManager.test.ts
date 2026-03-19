@@ -158,7 +158,7 @@ describe('BotManager', () => {
   beforeEach(() => {
     manager = new BotManager();
     // Clear the mock storage
-    const BotStorage = require('../BotStorage').BotStorage;
+import BotStorage from '../BotStorage';
     const storageInstance = new BotStorage();
     storageInstance.clear();
     jest.clearAllMocks();

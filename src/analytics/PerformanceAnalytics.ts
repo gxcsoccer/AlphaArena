@@ -755,7 +755,7 @@ export class PerformanceAnalyticsService {
     if (dailyReturns.length === 0) return 0;
 
     const avgDailyReturn = dailyReturns.reduce((sum, r) => sum + r, 0) / dailyReturns.length;
-    const mean = avgDailyReturn;
+    const _mean = avgDailyReturn;
     const negativeReturns = dailyReturns.filter((r) => r < 0);
 
     if (negativeReturns.length === 0) return 0;

@@ -40,7 +40,7 @@ function getStringParam(value: any): string | undefined {
 const router = Router();
 const strategiesDAO = new StrategiesDAO();
 const tradesDAO = new TradesDAO();
-const portfoliosDAO = new PortfoliosDAO();
+const _portfoliosDAO = new PortfoliosDAO();
 const leaderboardService = new LeaderboardService();
 
 // ============================================

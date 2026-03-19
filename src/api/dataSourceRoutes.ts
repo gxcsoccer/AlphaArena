@@ -7,7 +7,7 @@
  * - Check connection status
  */
 
-import { Router, Request, Response, NextFunction } from 'express';
+import { Router, Request, Response } from 'express';
 import { authMiddleware } from './authMiddleware';
 import { getDataSourceSettingsDAO, DataSourceSettings, ConnectionStatus } from '../database/data-source-settings.dao';
 import { getDataSourceManager } from '../datasource/DataSourceManager';

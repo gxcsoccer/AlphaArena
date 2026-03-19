@@ -52,7 +52,7 @@ const { Search } = Input;
 const { Option } = Select;
 const TabPane = Tabs.TabPane;
 const { Title, Text } = Typography;
-const { Meta } = Card;
+const { _Meta } = Card;
 const { Row, Col } = Grid;
 
 // API base URL
@@ -987,7 +987,7 @@ const StrategyMarketplacePage: React.FC = () => {
       } else {
         Message.error(data.error || 'Failed to pause');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to pause subscription');
     }
   };
@@ -1011,7 +1011,7 @@ const StrategyMarketplacePage: React.FC = () => {
       } else {
         Message.error(data.error || 'Failed to resume');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to resume subscription');
     }
   };
@@ -1036,7 +1036,7 @@ const StrategyMarketplacePage: React.FC = () => {
       } else {
         Message.error(data.error || 'Failed to cancel');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to cancel subscription');
     }
   };
@@ -1072,7 +1072,7 @@ const StrategyMarketplacePage: React.FC = () => {
       } else {
         Message.error(data.error || 'Failed to submit review');
       }
-    } catch (error) {
+    } catch (_error) {
       Message.error('Failed to submit review');
     }
   };

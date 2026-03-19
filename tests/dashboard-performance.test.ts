@@ -261,7 +261,7 @@ describe('Dashboard Performance Tests', () => {
       const containerHeight = 400;
       const rowHeight = 48;
       const visibleCount = Math.ceil(containerHeight / rowHeight);
-      const startIndex = 0;
+      const _startIndex = 0;
       const endIndex = Math.min(visibleCount + 5, largeDataset.length);
 
       const end = performance.now();
@@ -283,7 +283,7 @@ describe('Dashboard Performance Tests', () => {
       // Simulate full dashboard data processing
       const trades = generateMockTrades(dataCount);
       
-      const processedData = {
+      const _processedData = {
         trades: trades.map(t => ({ ...t, total: t.price * t.quantity })),
         stats: {
           total: trades.length,

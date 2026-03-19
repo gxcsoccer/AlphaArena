@@ -12,7 +12,7 @@
  * - Debounced calculations to avoid performance issues
  */
 
-import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { getRealtimeClient } from '../utils/realtime';
 import { api, Portfolio } from '../utils/api';
 
@@ -139,7 +139,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
       };
     });
 
-    const totalPositionValue = enrichedPositions.reduce((sum, pos) => sum + pos.marketValue, 0);
+    const _totalPositionValue = enrichedPositions.reduce((sum, pos) => sum + pos.marketValue, 0);
     const totalCostBasis = enrichedPositions.reduce(
       (sum, pos) => sum + (pos.quantity * pos.averageCost),
       0
@@ -169,7 +169,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
   }, [calculatePositionPnL]);
 
   // Debounced P/L recalculation
-  const recalculatePnL = useCallback((updatedPrices: Map<string, number>) => {
+  const _recalculatePnL = useCallback((updatedPrices: Map<string, number>) => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }

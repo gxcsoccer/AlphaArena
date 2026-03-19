@@ -1,7 +1,6 @@
 import { OrderBook } from '../src/orderbook/OrderBook';
 import { MatchingEngine } from '../src/matching/MatchingEngine';
 import { Order, OrderType, IcebergOrder, OrderCategory, isIcebergOrder } from '../src/orderbook/types';
-import { TradeStatus } from '../src/matching/types';
 
 describe('Iceberg Orders', () => {
   let orderBook: OrderBook;

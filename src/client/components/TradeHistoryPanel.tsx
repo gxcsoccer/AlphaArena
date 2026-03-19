@@ -2,7 +2,6 @@ import React, { useCallback, useMemo, memo, useRef, useEffect } from 'react';
 import { Card, Typography, Table, Tag, Select } from '@arco-design/web-react';
 import { useTrades } from '../hooks/useData';
 import type { TableProps } from '@arco-design/web-react';
-import type { Trade } from '../utils/api';
 
 const { Text } = Typography;
 const { Option } = Select;

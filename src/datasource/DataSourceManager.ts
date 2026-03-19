@@ -26,7 +26,7 @@ import {
   TickerCallback,
   MarketInfo,
 } from './types';
-import { IStockDataProvider, BaseStockDataProvider } from './interface';
+import { IStockDataProvider } from './interface';
 
 /**
  * Provider factory function type

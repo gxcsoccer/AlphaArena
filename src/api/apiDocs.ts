@@ -7,7 +7,7 @@
  * Each endpoint is documented with @openapi tag following OpenAPI 3.0 specification.
  */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
 
 /**
  * @openapi

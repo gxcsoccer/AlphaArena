@@ -2,7 +2,7 @@ import { BacktestEngine } from '../src/backtest/BacktestEngine';
 import { BacktestConfig } from '../src/backtest/types';
 import { OrderBook } from '../src/orderbook/OrderBook';
 import { MatchingEngine } from '../src/matching/MatchingEngine';
-import { Order, OrderType, IcebergOrder, OrderCategory } from '../src/orderbook/types';
+import { Order, OrderType, IcebergOrder } from '../src/orderbook/types';
 
 describe('BacktestEngine with Iceberg Orders', () => {
   let backtestEngine: BacktestEngine;
@@ -61,7 +61,7 @@ describe('BacktestEngine with Iceberg Orders', () => {
     it('should submit an iceberg order and get result', () => {
       // First, add some orders to match against
       const orderBook = new OrderBook();
-      const matchingEngine = new MatchingEngine(orderBook);
+      const _matchingEngine = new MatchingEngine(orderBook);
       
       // Add a sell order to match against our iceberg buy
       const sellOrder: Order = {

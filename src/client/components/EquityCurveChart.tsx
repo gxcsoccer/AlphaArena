@@ -18,7 +18,7 @@ import {
 import { Card, Spin, Empty, Typography, Space, Button } from '@arco-design/web-react';
 import { IconDownload } from '@arco-design/web-react/icon';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 
 export interface EquityDataPoint {
   timestamp: number;

@@ -132,8 +132,8 @@ describe('RealtimeRunner', () => {
 
   describe('Event Listeners', () => {
     it('should emit engine events', async () => {
-      const startCallback = jest.fn();
-      const stopCallback = jest.fn();
+      const _startCallback = jest.fn();
+      const _stopCallback = jest.fn();
 
       const config = {
         ...defaultConfig,

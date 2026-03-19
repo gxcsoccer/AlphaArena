@@ -10,7 +10,7 @@ describe('TradesDAO - Export', () => {
   describe('exportToCSV', () => {
     it('should export trades to CSV format', async () => {
       // Create test trades
-      const trade1 = await tradesDao.create({
+      const _trade1 = await tradesDao.create({
         symbol: 'BTC/USDT',
         side: 'buy',
         price: 50000,
@@ -21,7 +21,7 @@ describe('TradesDAO - Export', () => {
         executedAt: new Date('2024-01-01T10:00:00Z'),
       });
 
-      const trade2 = await tradesDao.create({
+      const _trade2 = await tradesDao.create({
         symbol: 'ETH/USDT',
         side: 'sell',
         price: 3000,

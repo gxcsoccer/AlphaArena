@@ -414,7 +414,7 @@ export class ExchangeAccountsService {
 
       // Get decrypted credentials for API calls
       const apiKey = decrypt(account.api_key);
-      const apiSecret = decrypt(account.api_secret);
+      const _apiSecret = decrypt(account.api_secret);
 
       // In production, call the exchange API here
       // For now, just update the sync timestamp

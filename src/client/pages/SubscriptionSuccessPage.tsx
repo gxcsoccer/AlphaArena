@@ -27,7 +27,7 @@ const SubscriptionSuccessPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState<any>(null);
 
-  const sessionId = searchParams.get('session_id');
+  const _sessionId = searchParams.get('session_id');
 
   useEffect(() => {
     // Verify subscription status

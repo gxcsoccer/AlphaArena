@@ -227,7 +227,7 @@ export function usePerformanceMonitoring(options: UsePerformanceMonitoringOption
    * Collect current metrics
    */
   const collectMetrics = useCallback((): PerformanceMetrics => {
-    const deviceInfo = deviceInfoRef.current;
+    const _deviceInfo = deviceInfoRef.current;
     
     // Get memory info if available
     const memory = (performance as any).memory;
@@ -386,7 +386,7 @@ export function usePerformanceMonitoring(options: UsePerformanceMonitoringOption
       const finalMetrics = collectMetrics();
       
       // Use sendBeacon for reliable delivery on page unload
-      const token = localStorage.getItem('token') || localStorage.getItem('supabase_token');
+      const _token = localStorage.getItem('token') || localStorage.getItem('supabase_token');
       const deviceInfo = deviceInfoRef.current;
       
       const payload = {

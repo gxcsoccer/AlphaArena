@@ -176,7 +176,7 @@ describe('AIAssistantButton', () => {
       render(<AIAssistantButton />);
 
       await waitFor(() => {
-        const tooltip = document.querySelector('.arco-tooltip-content');
+        const _tooltip = document.querySelector('.arco-tooltip-content');
         // The tooltip should show remaining messages
       });
     });

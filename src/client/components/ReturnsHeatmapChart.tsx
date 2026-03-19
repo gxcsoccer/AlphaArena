@@ -7,7 +7,7 @@
 import React, { useMemo } from 'react';
 import { Card, Spin, Empty, Typography, Space, Tooltip } from '@arco-design/web-react';
 
-const { Text, Title } = Typography;
+const { Text, _Title } = Typography;
 
 export interface MonthlyReturn {
   year: number;

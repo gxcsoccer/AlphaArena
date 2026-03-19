@@ -3,7 +3,7 @@
  */
 
 import { RiskCalculator } from '../RiskCalculator';
-import { PortfolioData, PositionData } from '../types';
+import { PortfolioData } from '../types';
 
 describe('RiskCalculator', () => {
   let calculator: RiskCalculator;

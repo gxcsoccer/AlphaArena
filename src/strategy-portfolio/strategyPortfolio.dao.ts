@@ -258,7 +258,7 @@ export class StrategyPortfolioDAO {
     }
     if (input.status !== undefined) updateData.status = input.status;
 
-    const { data, error } = await supabase
+    const { _data, error } = await supabase
       .from('strategy_portfolios')
       .update(updateData)
       .eq('id', id)

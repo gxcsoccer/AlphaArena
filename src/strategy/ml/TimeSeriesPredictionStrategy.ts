@@ -94,7 +94,7 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
     
     // Calculate confidence intervals (simplified)
     const std = this.calculatePredictionStd(predictions);
-    const currentPrice = features.values[features.names.indexOf('price')] || features.values[0];
+    const _currentPrice = features.values[features.names.indexOf('price')] || features.values[0];
 
     const result: TimeSeriesPredictionResult = {
       prediction: predictions,
@@ -150,7 +150,7 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
 
     const slope = denominator !== 0 ? numerator / denominator : 0;
     const intercept = yMean - slope * xMean;
-    const currentPrice = recentPrices[n - 1];
+    const _currentPrice = recentPrices[n - 1];
 
     // Generate predictions
     const predictions: number[] = [];
@@ -310,8 +310,8 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
     }
 
     // Set stop loss and take profit if using confidence intervals
-    const lower = tsPrediction.confidenceIntervals?.lower?.[0];
-    const upper = tsPrediction.confidenceIntervals?.upper?.[0];
+    const _lower = tsPrediction.confidenceIntervals?.lower?.[0];
+    const _upper = tsPrediction.confidenceIntervals?.upper?.[0];
 
     return this.createSignal(side, currentPrice, quantity, {
       confidence: prediction.confidence,
@@ -394,7 +394,7 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
       return { mae: 0, rmse: 0, directionAccuracy: 0, withinInterval: 0 };
     }
 
-    let absErrors: number[] = [];
+    const absErrors: number[] = [];
     let correctDirections = 0;
     let withinInterval = 0;
     let total = 0;

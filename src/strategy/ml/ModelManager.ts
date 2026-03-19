@@ -236,7 +236,7 @@ export class ModelManager extends EventEmitter {
     // Delete file
     try {
       await fs.promises.unlink(versionInfo.filePath);
-    } catch (error) {
+    } catch (_error) {
       // File might not exist
     }
 
@@ -269,7 +269,7 @@ export class ModelManager extends EventEmitter {
     for (const version of versions) {
       try {
         await fs.promises.unlink(version.filePath);
-      } catch (error) {
+      } catch (_error) {
         // Ignore errors
       }
     }
@@ -469,7 +469,7 @@ export class ModelManager extends EventEmitter {
     for (const version of toDelete) {
       try {
         await fs.promises.unlink(version.filePath);
-      } catch (error) {
+      } catch (_error) {
         // Ignore errors
       }
     }

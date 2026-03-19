@@ -3,7 +3,7 @@
  * UI for managing target allocations and executing rebalancing
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Typography,
   Card,

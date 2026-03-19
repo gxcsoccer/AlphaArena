@@ -96,7 +96,7 @@ describe('Scheduler Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Setup auth mock - getSupabaseClient() returns the client object
-    const getSupabaseClient = require('../../database/client').default;
+import getSupabaseClient from '../../database/client';
     const mockClient = getSupabaseClient();
     mockClient.auth.getUser.mockResolvedValue({
       data: { user: mockUser },

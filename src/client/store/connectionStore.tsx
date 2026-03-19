@@ -96,7 +96,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
           }
           return { ...prev, isRestApiAvailable: true };
         });
-      } catch (error) {
+      } catch (_error) {
         setState(prev => ({ ...prev, isRestApiAvailable: false }));
       }
     };
@@ -177,7 +177,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       await api.getMarketTickers();
       setRestApiAvailable(true);
       return true;
-    } catch (error) {
+    } catch (_error) {
       setRestApiAvailable(false);
       return false;
     }

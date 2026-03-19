@@ -6,7 +6,7 @@
  * @module backtest-live/types
  */
 
-import { BacktestConfig, BacktestResult, BacktestStats } from '../backtest/types';
+import { BacktestConfig, BacktestStats } from '../backtest/types';
 
 /**
  * Environment type for trading modes

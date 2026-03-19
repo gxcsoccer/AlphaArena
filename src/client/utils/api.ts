@@ -8,7 +8,7 @@
  * - etc.
  */
 
-import { validateConfig, logConfigStatus, isSupabaseConfigValid } from './config';
+import { validateConfig, logConfigStatus } from './config';
 import { createLogger } from '../../utils/logger';
 
 // Create logger for this module
@@ -17,7 +17,7 @@ const log = createLogger('APIClient');
 // Use validated configuration
 const config = validateConfig();
 const API_BASE_URL = config.apiUrl;
-const WS_BASE_URL = config.wsUrl;
+const _WS_BASE_URL = config.wsUrl;
 
 // Log configuration status once at module load time
 logConfigStatus(config);

@@ -6,10 +6,10 @@
 
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { FixedSizeList as List, ListChildComponentProps } from 'react-window';
-import { Table, Typography, Spin, Empty, ConfigProvider } from '@arco-design/web-react';
+import { Table, Typography, Spin, Empty } from '@arco-design/web-react';
 import type { TableProps } from '@arco-design/web-react';
 
-const { Text } = Typography;
+const { _Text } = Typography;
 
 interface VirtualizedTableProps<T> extends Omit<TableProps<T>, 'scroll'> {
   /** Height of the table container */
@@ -63,7 +63,7 @@ function VirtualizedTable<T extends Record<string, any>>({
     }) || [];
   }, [columns]);
 
-  const totalWidth = useMemo(() => {
+  const _totalWidth = useMemo(() => {
     return columnWidths.reduce((sum, w) => sum + w, 0);
   }, [columnWidths]);
 

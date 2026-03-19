@@ -740,7 +740,7 @@ describe('ATRStrategy', () => {
 
       // Suddenly double the price
       mockOrderBook.setPrices(200, 201);
-      const signal = strategy.onTick(mockContext);
+      const _signal = strategy.onTick(mockContext);
 
       // Should handle large movement without crashing
       expect(strategy.isReady()).toBe(true);

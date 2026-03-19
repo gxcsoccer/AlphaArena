@@ -56,10 +56,10 @@ import {
 } from 'recharts';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text, _Paragraph } = Typography;
 const { Row, Col } = Grid;
 const { RangePicker } = DatePicker;
-const TabPane = Tabs.TabPane;
+const _TabPane = Tabs.TabPane;
 
 // Types
 interface PerformanceSummary {
@@ -126,7 +126,7 @@ interface TrendPoint {
 }
 
 // Colors for charts
-const COLORS = ['#165DFF', '#14C9C9', '#F7BA1E', '#F53F3F', '#722ED1', '#00B42A'];
+const _COLORS = ['#165DFF', '#14C9C9', '#F7BA1E', '#F53F3F', '#722ED1', '#00B42A'];
 const PERFORMANCE_COLORS = {
   good: '#00B42A',
   needsImprovement: '#F7BA1E',

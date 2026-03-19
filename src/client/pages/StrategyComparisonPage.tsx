@@ -72,7 +72,7 @@ import {
 } from '../hooks/useStrategyComparison';
 import { createLogger } from '../../utils/logger';
 
-const log = createLogger('StrategyComparisonPage');
+const _log = createLogger('StrategyComparisonPage');
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -299,7 +299,7 @@ const EquityCurveComparisonChart: React.FC<EquityCurveChartProps> = ({ results }
     // Get all timestamps from the first strategy's equity curve
     const timestamps = results[0]?.equityCurve.map((p) => p.timestamp) || [];
 
-    return timestamps.map((timestamp, index) => {
+    return timestamps.map((timestamp, _index) => {
       const point: any = {
         timestamp,
         date: new Date(timestamp).toLocaleDateString(),

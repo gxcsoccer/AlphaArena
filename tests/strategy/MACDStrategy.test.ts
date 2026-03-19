@@ -355,7 +355,7 @@ describe('MACDStrategy', () => {
       // Generate signals with custom periods
       for (let i = 0; i < 30; i++) {
         mockOrderBook.setPrices(100 + i, 100 + i);
-        const signal = customStrategy.onTick(mockContext);
+        const _signal = customStrategy.onTick(mockContext);
         // Just verify it doesn't crash
       }
 

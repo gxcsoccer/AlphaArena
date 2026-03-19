@@ -4,8 +4,7 @@
  * Manages backtest execution and data retrieval
  */
 
-import { useState, useCallback, useMemo } from 'react';
-import { api } from '../utils/api';
+import { useState, useCallback } from 'react';
 import { createLogger } from '../../utils/logger';
 
 const log = createLogger('useBacktest');
@@ -102,7 +101,7 @@ function generateMockBacktestResult(config: BacktestConfig): BacktestResult {
   const trades: Trade[] = [];
   
   let equity = config.capital;
-  let cash = config.capital;
+  const cash = config.capital;
   const positions: Record<string, any> = {};
   let tradeId = 0;
   

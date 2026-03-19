@@ -5,7 +5,7 @@
  * to the AlphaArena trading platform.
  */
 
-import { Request, Response } from 'express';
+import { Request } from 'express';
 
 // Mock dependencies BEFORE importing the module
 jest.mock('../apiKeyMiddleware', () => ({

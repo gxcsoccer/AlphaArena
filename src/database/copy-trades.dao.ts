@@ -1,5 +1,4 @@
 import { getSupabaseClient } from './client';
-import { Follower } from './followers.dao';
 
 export type CopyTradeStatus = 'pending' | 'executing' | 'filled' | 'partial' | 'failed' | 'cancelled';
 

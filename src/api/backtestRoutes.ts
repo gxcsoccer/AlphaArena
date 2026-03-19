@@ -100,7 +100,7 @@ router.get('/symbols', (req: Request, res: Response) => {
  * Get a previously run backtest result
  */
 router.get('/result/:id', async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { _id } = req.params;
   
   // TODO: Implement result storage and retrieval
   res.status(404).json({

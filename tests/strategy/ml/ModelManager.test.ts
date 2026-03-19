@@ -46,7 +46,7 @@ describe('ModelManager', () => {
 
     test('should create storage directory if not exists', () => {
       const newDir = path.join(TEST_DIR, 'new-dir');
-      const newManager = new ModelManager({ storageDir: newDir });
+      const _newManager = new ModelManager({ storageDir: newDir });
       expect(fs.existsSync(newDir)).toBe(true);
     });
   });

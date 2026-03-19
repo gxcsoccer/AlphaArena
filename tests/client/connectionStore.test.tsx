@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, act } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import { ConnectionProvider, useConnection, ConnectionStatus } from '../../src/client/store/connectionStore';
 
 // Test component to access connection context

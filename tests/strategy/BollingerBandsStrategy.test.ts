@@ -4,8 +4,8 @@
  * Tests for the Bollinger Bands trading strategy
  */
 
-import { BollingerBandsStrategy, BollingerBandsStrategyConfig, BollingerBandsData } from '../../src/strategy/BollingerBandsStrategy';
-import { StrategyContext, OrderSignal } from '../../src/strategy/types';
+import { BollingerBandsStrategy, BollingerBandsStrategyConfig } from '../../src/strategy/BollingerBandsStrategy';
+import { StrategyContext } from '../../src/strategy/types';
 
 /**
  * Mock OrderBook for testing

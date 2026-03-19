@@ -1,4 +1,4 @@
-import { OCOOrdersDAO, OCOOrder } from '../src/database/oco-orders.dao';
+import { OCOOrdersDAO } from '../src/database/oco-orders.dao';
 
 /**
  * Unit tests for OCO Orders DAO

@@ -6,7 +6,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { VirtualAccountDAO, VirtualAccount, VirtualPosition, VirtualOrder } from '../database/virtual-account.dao';
+import { VirtualAccountDAO, VirtualAccount, VirtualOrder } from '../database/virtual-account.dao';
 import { DataSourceManager } from '../datasource/DataSourceManager';
 import { Quote } from '../datasource/types';
 import { createLogger } from '../utils/logger';

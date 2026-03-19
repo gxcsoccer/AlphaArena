@@ -89,7 +89,7 @@ class DataCache {
     
     try {
       localStorage.removeItem(`cache:${key}`);
-    } catch (e) {
+    } catch (_e) {
       // Ignore localStorage errors
     }
   }
@@ -111,7 +111,7 @@ class DataCache {
         }
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
-    } catch (e) {
+    } catch (_e) {
       // Ignore localStorage errors
     }
   }
@@ -143,7 +143,7 @@ class DataCache {
         localStorage.removeItem(`cache:${key}`);
         return null;
       }
-    } catch (e) {
+    } catch (_e) {
       return null;
     }
   }
@@ -155,7 +155,7 @@ class DataCache {
       if (serialized.length < 100000) {
         localStorage.setItem(`cache:${key}`, serialized);
       }
-    } catch (e) {
+    } catch (_e) {
       // Ignore localStorage errors (quota exceeded, etc.)
     }
   }

@@ -187,14 +187,14 @@ describe('Mobile Responsiveness', () => {
 
     it('TradingOrder should stack buttons vertically on mobile', () => {
       const mobileButtonDirection = 'vertical';
-      const desktopButtonDirection = 'horizontal';
+      const _desktopButtonDirection = 'horizontal';
       
       expect(mobileButtonDirection).toBe('vertical');
     });
 
     it('Tables should have horizontal scroll on mobile', () => {
       const mobileTableScroll = { x: 1000 };
-      const desktopTableScroll = undefined;
+      const _desktopTableScroll = undefined;
       
       expect(mobileTableScroll).toBeDefined();
     });

@@ -4,10 +4,10 @@
  */
 
 import React, { useState } from 'react';
-import { Tooltip, Typography, Button, Space } from '@arco-design/web-react';
+import { Tooltip, Typography, Button } from '@arco-design/web-react';
 import { IconQuestionCircle, IconBook } from '@arco-design/web-react/icon';
 
-const { Text, Paragraph } = Typography;
+const { _Text, Paragraph } = Typography;
 
 interface HelpTooltipProps {
   /** Help content to display */

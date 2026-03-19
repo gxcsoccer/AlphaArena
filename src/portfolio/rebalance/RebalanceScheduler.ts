@@ -223,7 +223,7 @@ export class RebalanceScheduler {
     const now = new Date();
     const [hours, minutes] = schedule.time.split(':').map(Number);
     
-    let nextRun = new Date();
+    const nextRun = new Date();
     nextRun.setHours(hours, minutes, 0, 0);
 
     switch (schedule.frequency) {
@@ -248,7 +248,7 @@ export class RebalanceScheduler {
 
       case ScheduleFrequency.MONTHLY:
         const targetDate = schedule.dayOfMonth ?? 1;
-        const currentDate = now.getDate();
+        const _currentDate = now.getDate();
         
         nextRun.setDate(targetDate);
         

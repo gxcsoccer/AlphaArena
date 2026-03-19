@@ -117,9 +117,9 @@ describe('Performance Benchmarks', () => {
 
   describe('Bundle Size Verification', () => {
     it('should have chunks under size limits', () => {
-      const fs = require('fs');
-      const path = require('path');
-      const zlib = require('zlib');
+import fs from 'fs';
+import path from 'path';
+import zlib from 'zlib';
       
       const distPath = path.join(__dirname, '../dist/client/assets');
       

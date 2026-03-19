@@ -34,7 +34,7 @@ describe('ExportService', () => {
   describe('exportTrades', () => {
     it('should export trades to CSV format', async () => {
       // Mock the TradesDAO
-      const TradesDAO = require('../../src/database/trades.dao').TradesDAO;
+import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([
         {
           id: '1',
@@ -67,7 +67,7 @@ describe('ExportService', () => {
     });
 
     it('should export trades to PDF format', async () => {
-      const TradesDAO = require('../../src/database/trades.dao').TradesDAO;
+import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([
         {
           id: '1',
@@ -100,7 +100,7 @@ describe('ExportService', () => {
     });
 
     it('should apply filters when exporting trades', async () => {
-      const TradesDAO = require('../../src/database/trades.dao').TradesDAO;
+import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
       TradesDAO.mockImplementation(() => ({
         getMany: mockGetMany,
@@ -128,7 +128,7 @@ describe('ExportService', () => {
 
   describe('exportPortfolio', () => {
     it('should export portfolio to CSV format', async () => {
-      const PortfoliosDAO = require('../../src/database/portfolios.dao').PortfoliosDAO;
+import PortfoliosDAO from '../../src/database/portfolios.dao';
       const mockGetLatest = jest.fn().mockResolvedValue({
         id: '1',
         symbol: 'BTC/USDT',
@@ -154,7 +154,7 @@ describe('ExportService', () => {
     });
 
     it('should export portfolio to PDF format', async () => {
-      const PortfoliosDAO = require('../../src/database/portfolios.dao').PortfoliosDAO;
+import PortfoliosDAO from '../../src/database/portfolios.dao';
       const mockGetLatest = jest.fn().mockResolvedValue(null);
       PortfoliosDAO.mockImplementation(() => ({
         getLatest: mockGetLatest,
@@ -172,7 +172,7 @@ describe('ExportService', () => {
 
   describe('exportPerformance', () => {
     it('should export performance report to CSV', async () => {
-      const TradesDAO = require('../../src/database/trades.dao').TradesDAO;
+import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
       const mockGetStats = jest.fn().mockResolvedValue({
         totalTrades: 0,
@@ -195,7 +195,7 @@ describe('ExportService', () => {
     });
 
     it('should export performance report to PDF', async () => {
-      const TradesDAO = require('../../src/database/trades.dao').TradesDAO;
+import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
       const mockGetStats = jest.fn().mockResolvedValue({
         totalTrades: 0,

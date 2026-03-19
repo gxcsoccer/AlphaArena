@@ -2,7 +2,7 @@
  * Tests for structured logger
  */
 
-import { Logger, LogLevel, createLogger, setLogLevel, getLogLevelName } from './logger';
+import { Logger, LogLevel, createLogger, setLogLevel } from './logger';
 
 // Mock console methods
 const originalConsole = {

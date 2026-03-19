@@ -4,10 +4,8 @@
  * Comprehensive tests for the ElliottWaveStrategy implementation
  */
 
-import { ElliottWaveStrategy, ELLIOTT_FIBONACCI, WaveDegree } from '../../src/strategy/ElliottWaveStrategy';
+import { ElliottWaveStrategy, ELLIOTT_FIBONACCI } from '../../src/strategy/ElliottWaveStrategy';
 import { StrategyContext, MarketData } from '../../src/strategy/types';
-import { OrderBook } from '../../src/orderbook/OrderBook';
-import { Trade } from '../../src/matching/types';
 
 // Mock OrderBook for testing
 class MockOrderBook {
@@ -186,7 +184,7 @@ describe('ElliottWaveStrategy', () => {
       // Wave 5: 115 -> 122
       const wavePattern = [
         // Initial noise
-        ...Array(10).fill(100).map((p, i) => p + Math.random()),
+        ...Array(10).fill(100).map((p, _i) => p + Math.random()),
         // Wave 1: Up
         ...Array(5).fill(0).map((_, i) => 100 + i * 2), // 100 -> 108
         // Wave 2: Down (retracement)
@@ -210,7 +208,7 @@ describe('ElliottWaveStrategy', () => {
         strategy.onTick(context);
       }
 
-      const pattern = strategy.getCurrentPattern();
+      const _pattern = strategy.getCurrentPattern();
       // Pattern might or might not be detected depending on swing detection
       // This tests that the algorithm runs without error
       expect(strategy.getPriceHistoryLength()).toBeGreaterThan(0);
@@ -236,7 +234,7 @@ describe('ElliottWaveStrategy', () => {
       // Create a clear ABC correction pattern
       const wavePattern = [
         // Initial noise
-        ...Array(10).fill(100).map((p, i) => p + Math.random()),
+        ...Array(10).fill(100).map((p, _i) => p + Math.random()),
         // Wave A: Down
         ...Array(4).fill(0).map((_, i) => 100 - i * 2.5), // 100 -> 92.5
         // Wave B: Up (retracement)
@@ -376,7 +374,7 @@ describe('ElliottWaveStrategy', () => {
       // Flat prices
       for (let i = 0; i < 100; i++) {
         const context = createMockContext(100, i);
-        const signal = strategy.onTick(context);
+        const _signal = strategy.onTick(context);
         // Should not crash, may or may not generate signal
       }
 
@@ -394,7 +392,7 @@ describe('ElliottWaveStrategy', () => {
       for (let i = 0; i < 100; i++) {
         const price = 100 + (Math.random() - 0.5) * 50;
         const context = createMockContext(price, i);
-        const signal = strategy.onTick(context);
+        const _signal = strategy.onTick(context);
         // Should not crash
       }
 
@@ -411,7 +409,7 @@ describe('ElliottWaveStrategy', () => {
       // Decreasing prices
       for (let i = 0; i < 100; i++) {
         const context = createMockContext(100 - i * 0.5, i);
-        const signal = strategy.onTick(context);
+        const _signal = strategy.onTick(context);
       }
 
       expect(strategy.getPriceHistoryLength()).toBe(100);

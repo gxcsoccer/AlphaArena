@@ -22,7 +22,7 @@
  */
 
 import { RealtimeRunner, createDefaultConfig, RunnerConfig } from './realtime-runner';
-import { EngineConfig, RiskControlConfig, EngineState } from '../engine/types';
+import { EngineConfig, RiskControlConfig } from '../engine/types';
 
 /**
  * Parse command line arguments

@@ -252,7 +252,7 @@ const ExchangeAccountsPage: React.FC = () => {
   }, [user]);
 
   // Fetch account details
-  const fetchAccountDetails = async (accountId: string) => {
+  const _fetchAccountDetails = async (accountId: string) => {
     try {
       const token = localStorage.getItem('token');
       
