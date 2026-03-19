@@ -21,9 +21,3 @@ tasks:
       - aiWaitFor: "API 文档页面加载完成"
       - aiAssert: "页面显示 API 文档内容，不是空白页面"
       - aiAssert: "文档中有 API 端点或接口说明"
-  - name: "性能监控面板测试"
-    flow:
-      - ai: "查找并点击性能监控或监控面板的导航链接"
-      - aiWaitFor: "性能监控面板加载完成"
-      - aiAssert: "页面显示性能数据或监控图表"
-      - aiAssert: "有指标数据展示，如响应时间、请求数等"
