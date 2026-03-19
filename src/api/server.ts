@@ -59,6 +59,7 @@ import { createVirtualAccountRouter } from './virtualAccountRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import { createStrategyPortfolioRouter } from './strategyPortfolioRoutes';
 import backtestLiveRoutes from './backtestLiveRoutes';
+import riskAlertsRoutes from './risk-alerts';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -967,6 +968,9 @@ export class APIServer extends EventEmitter {
 
     // Backtest-Live Integration routes
     this.app.use('/api/backtest-live', backtestLiveRoutes);
+
+    // Risk Alerts routes
+    this.app.use('/api/risk-alerts', riskAlertsRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
