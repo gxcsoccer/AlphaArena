@@ -40,6 +40,7 @@ import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
 import ErrorReporterPanel from './components/ErrorReporterPanel';
 import { lazyWithRetry, getPendingRoute } from './utils/lazyWithRetry';
+import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 
 // Lazy load pages for code splitting with retry logic for chunk loading failures
 const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
@@ -97,6 +98,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Initialize performance monitoring for all pages
+  usePerformanceMonitoring({
+    autoReport: true,
+    reportInterval: 30000, // 30 seconds
+    batchEnabled: true,
+    maxBatchSize: 10,
+    debug: process.env.NODE_ENV === 'development',
+  });
 
   // Detect mobile on mount and resize
   React.useEffect(() => {
