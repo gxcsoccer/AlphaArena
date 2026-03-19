@@ -93,6 +93,7 @@
     "@types/express": "^5.0.6",
     "@types/react-window": "^1.8.8",
     "@types/swagger-ui-react": "^5.18.0",
+    "@types/ws": "^8.18.1",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "cron": "^4.4.0",
@@ -115,6 +116,7 @@
     "swagger-ui-express": "^5.0.1",
     "swagger-ui-react": "^5.32.1",
     "uuid": "^13.0.0",
+    "ws": "^8.19.0",
     "yamljs": "^0.3.0"
   }
 }

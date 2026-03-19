@@ -5,3 +5,4 @@
  */
 
 export { MockDataProvider } from './MockDataProvider';
+export { AlpacaDataProvider } from './AlpacaDataProvider';
