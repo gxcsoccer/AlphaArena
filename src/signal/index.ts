@@ -8,3 +8,6 @@ export type { PublishSignalInput, SignalFeedOptions, SignalPublisherInfo } from 
 
 export { SignalSubscriptionService, getSignalSubscriptionService } from './SignalSubscriptionService';
 export type { SubscribeInput, ExecuteSignalInput, SubscriptionStats } from './SignalSubscriptionService';
+
+export { SignalRealtimeService, getSignalRealtimeService } from './SignalRealtimeService';
+export type { SignalEventType, SignalRealtimeEvent, SignalAlertEvent } from './SignalRealtimeService';
