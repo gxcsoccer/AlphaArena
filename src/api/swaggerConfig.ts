@@ -88,6 +88,7 @@ All errors follow a consistent format:
     tags: [
       { name: 'Health', description: 'System health and status endpoints' },
       { name: 'Authentication', description: 'User authentication and authorization' },
+      { name: 'Public API', description: 'Public API for third-party developers (API Key authentication)' },
       { name: 'Strategies', description: 'Trading strategy management' },
       { name: 'Trades', description: 'Trade history and execution' },
       { name: 'Orders', description: 'Order management' },
