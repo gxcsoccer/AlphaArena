@@ -5,15 +5,19 @@
 
 import React, { useState } from 'react';
 import { useSignalPush, TradingSignal, SignalAlert } from '../hooks/useSignalPush';
+import { SignalPushHealthIndicator } from './SignalPushHealthIndicator';
+import { SignalPushHealthPanel } from './SignalPushHealthPanel';
 
 interface SignalNotificationCenterProps {
   onSignalClick?: (signal: TradingSignal) => void;
   onViewAll?: () => void;
+  userId?: string;
 }
 
 export function SignalNotificationCenter({
   onSignalClick,
   onViewAll,
+  userId,
 }: SignalNotificationCenterProps) {
   const {
     isConnected,
@@ -27,6 +31,7 @@ export function SignalNotificationCenter({
   
   const [activeTab, setActiveTab] = useState<'signals' | 'alerts'>('signals');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showHealthPanel, setShowHealthPanel] = useState(false);
 
   // Format time ago
   const timeAgo = (date: Date): string => {
@@ -85,7 +90,30 @@ export function SignalNotificationCenter({
   };
 
   return (
-    <div className="relative">
+    <div className="relative flex items-center gap-2">
+      {/* Health Indicator */}
+      <SignalPushHealthIndicator 
+        userId={userId} 
+        compact
+        onPanelToggle={() => setShowHealthPanel(!showHealthPanel)}
+      />
+      
+      {/* Health Panel */}
+      {showHealthPanel && (
+        <>
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowHealthPanel(false)}
+          />
+          <div className="absolute right-0 top-full mt-2 z-50">
+            <SignalPushHealthPanel 
+              userId={userId}
+              onClose={() => setShowHealthPanel(false)}
+            />
+          </div>
+        </>
+      )}
+      
       {/* Notification Bell Button */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
