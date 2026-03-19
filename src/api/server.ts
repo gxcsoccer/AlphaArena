@@ -56,6 +56,7 @@ import { createSchedulerRouter } from './schedulerRoutes';
 import alertRoutes from './alertRoutes';
 import { dataSourceRoutes } from './dataSourceRoutes';
 import { createVirtualAccountRouter } from './virtualAccountRoutes';
+import analyticsRoutes from './analyticsRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -955,6 +956,9 @@ export class APIServer extends EventEmitter {
     
     // Virtual Account routes
     this.app.use('/api', createVirtualAccountRouter());
+
+    // Performance Analytics routes
+    this.app.use('/api/analytics', analyticsRoutes);
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
