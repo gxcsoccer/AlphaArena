@@ -14,8 +14,6 @@ import {
   Space,
   Button,
   Card,
-  Row,
-  Col,
   Table,
   Tag,
   Message,
@@ -25,6 +23,7 @@ import {
   Alert,
   Tooltip,
   Popconfirm,
+  Grid,
 } from '@arco-design/web-react';
 import {
   IconPlus,
@@ -44,6 +43,7 @@ const log = createLogger('PortfolioCreateForm');
 
 const { Title, Text, Paragraph } = Typography;
 const FormItem = Form.Item;
+const { Row, Col } = Grid;
 
 interface PortfolioCreateFormProps {
   strategies: Strategy[];

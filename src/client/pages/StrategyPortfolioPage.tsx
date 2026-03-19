@@ -209,7 +209,6 @@ const StrategyPortfolioPage: React.FC = () => {
       width: 150,
       render: (value: number | undefined, record: StrategyPortfolio) => {
         if (value === undefined) return <Text type="secondary">-</Text>;
-        const totalCapital = record.totalCapital;
         const returnPct = record.totalReturnPct || 0;
         const isPositive = returnPct >= 0;
         
