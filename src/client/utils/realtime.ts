@@ -65,7 +65,10 @@ interface QueuedMessage {
   payload: any;
   timestamp: number;
   priority: number; // Higher = more important
+  retryCount: number; // Track retry attempts to prevent infinite loops
 }
+
+const MAX_MESSAGE_RETRIES = 3; // Maximum retries before dropping message
 
 /**
  * Enhanced Realtime Client with advanced reconnection and monitoring
@@ -433,6 +436,7 @@ export class RealtimeClient {
       payload,
       timestamp: Date.now(),
       priority,
+      retryCount: 0,
     });
     
     // Sort by priority (higher first)
@@ -464,8 +468,17 @@ export class RealtimeClient {
         });
       } catch (error) {
         console.error(`[RealtimeClient] Failed to send queued message`, error);
-        // Re-queue with lower priority
-        this.messageQueue.push({ ...message, priority: Math.max(0, message.priority - 1) });
+        // Re-queue with lower priority only if not exceeded max retries
+        const retryCount = (message.retryCount || 0) + 1;
+        if (retryCount < MAX_MESSAGE_RETRIES) {
+          this.messageQueue.push({ 
+            ...message, 
+            priority: Math.max(0, message.priority - 1),
+            retryCount 
+          });
+        } else {
+          console.warn(`[RealtimeClient] Dropping message after ${retryCount} failed attempts: ${message.topic}:${message.event}`);
+        }
       }
     }
     

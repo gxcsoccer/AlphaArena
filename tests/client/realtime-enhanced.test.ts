@@ -205,6 +205,30 @@ describe('RealtimeClient - Enhanced Reconnection', () => {
       const queue = (client as any).messageQueue;
       expect(queue.length).toBe(1);
       expect(queue[0].priority).toBe(4); // Reduced by 1
+      expect(queue[0].retryCount).toBe(1); // Retry count incremented
+    });
+
+    it('should drop messages after max retries', async () => {
+      const mockSend = jest.fn().mockRejectedValue(new Error('Send failed'));
+      (client as any).getChannel = jest.fn().mockReturnValue({
+        send: mockSend,
+      });
+      
+      // Queue a message that has already been retried 3 times
+      (client as any).messageQueue.push({
+        topic: 'test:channel',
+        event: 'event',
+        payload: { data: 'test' },
+        timestamp: Date.now(),
+        priority: 5,
+        retryCount: 3, // Already at max retries
+      });
+      (client as any).connectionStatus = 'connected';
+      
+      await (client as any).processMessageQueue();
+      
+      const queue = (client as any).messageQueue;
+      expect(queue.length).toBe(0); // Message dropped
     });
   });
 

@@ -144,24 +144,49 @@ router.get('/cache/stats', (req: Request, res: Response) => {
 });
 
 /**
- * DELETE /api/multi-timeframe/cache/:symbol?
- * Clear cache for a specific symbol or all symbols
+ * DELETE /api/multi-timeframe/cache
+ * Clear all cache
  */
-router.delete('/cache/:symbol?', (req: Request, res: Response) => {
+router.delete('/cache', (req: Request, res: Response) => {
+  try {
+    const dataService = getMultiTimeframeDataService();
+    
+    dataService.clearCache();
+    
+    res.json({
+      success: true,
+      message: 'All cache cleared',
+      timestamp: Date.now(),
+    });
+  } catch (error: any) {
+    log.error('Failed to clear cache', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      timestamp: Date.now(),
+    });
+  }
+});
+
+/**
+ * DELETE /api/multi-timeframe/cache/:symbol
+ * Clear cache for a specific symbol
+ */
+router.delete('/cache/:symbol', (req: Request, res: Response) => {
   try {
     const symbolParam = req.params.symbol;
-    const symbol = symbolParam ? (Array.isArray(symbolParam) ? symbolParam[0] : symbolParam) : undefined;
+    const symbol = Array.isArray(symbolParam) ? symbolParam[0] : symbolParam;
     const dataService = getMultiTimeframeDataService();
     
     dataService.clearCache(symbol);
     
     res.json({
       success: true,
-      message: symbol ? `Cache cleared for ${symbol}` : 'All cache cleared',
+      message: `Cache cleared for ${symbol}`,
       timestamp: Date.now(),
     });
   } catch (error: any) {
-    log.error('Failed to clear cache', error);
+    log.error('Failed to clear cache for symbol', error);
     res.status(500).json({
       success: false,
       error: error.message,

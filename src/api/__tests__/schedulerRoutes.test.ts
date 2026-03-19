@@ -19,13 +19,23 @@ jest.mock('../../database/client', () => {
     eq: jest.fn().mockReturnThis(),
     single: jest.fn(),
   }));
+  const mockChannel = jest.fn(() => ({
+    on: jest.fn().mockReturnThis(),
+    subscribe: jest.fn().mockReturnThis(),
+    unsubscribe: jest.fn(),
+  }));
   const mockClient = {
     auth: mockAuth,
     from: mockFrom,
+    channel: mockChannel,
+    realtime: {
+      channels: new Map(),
+    },
   };
   return {
     __esModule: true,
     default: jest.fn(() => mockClient),
+    getSupabaseClient: jest.fn(() => mockClient),
   };
 });
 
