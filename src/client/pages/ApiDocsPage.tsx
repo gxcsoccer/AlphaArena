@@ -29,48 +29,70 @@ const ApiDocsPage: React.FC = () => {
   const { isMobile, isTablet } = useMediaQuery();
 
   useEffect(() => {
-    // Fetch the OpenAPI spec from the backend API
-    fetch('/docs/api/openapi.json')
-      .then((response) => {
-        if (!response.ok) {
-          // Fallback to public directory
-          return fetch('/openapi.yaml').then((res) => {
-            if (!res.ok) {
-              throw new Error(`Failed to load API spec: ${res.status}`);
-            }
-            return res.text();
-          }).then((yamlText) => {
-            // Parse YAML to JSON
-            return YAML.parse(yamlText);
-          });
+    // Fetch the OpenAPI spec - try static file first, then backend API
+    const loadSpec = async () => {
+      // Try static openapi.yaml first (works in production without backend)
+      try {
+        const staticResponse = await fetch('/openapi.yaml');
+        if (staticResponse.ok) {
+          const yamlText = await staticResponse.text();
+          const specData = YAML.parse(yamlText);
+          setSpec(specData);
+          setLoading(false);
+          return;
         }
-        return response.json();
-      })
-      .then((specData) => {
-        setSpec(specData);
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
+        console.log('Static openapi.yaml not available, trying backend...');
+      }
+
+      // Fallback to backend API endpoint (works in development with running backend)
+      try {
+        const response = await fetch('/docs/api/openapi.json');
+        if (response.ok) {
+          const specData = await response.json();
+          setSpec(specData);
+          setLoading(false);
+          return;
+        }
+        throw new Error(`Failed to load API spec: ${response.status}`);
+      } catch (err: any) {
         console.error('Error loading OpenAPI spec:', err);
-        setError(err.message);
+        setError(err.message || 'Failed to load API documentation');
         setLoading(false);
-      });
+      }
+    };
+
+    loadSpec();
   }, []);
 
-  const handleRetry = useCallback(() => {
+  const handleRetry = useCallback(async () => {
     setLoading(true);
     setError(null);
-    // Re-fetch
-    fetch('/docs/api/openapi.json')
-      .then((response) => response.json())
-      .then((specData) => {
+    
+    try {
+      // Try static file first
+      const staticResponse = await fetch('/openapi.yaml');
+      if (staticResponse.ok) {
+        const yamlText = await staticResponse.text();
+        const specData = YAML.parse(yamlText);
         setSpec(specData);
         setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
+        return;
+      }
+      
+      // Fallback to backend
+      const response = await fetch('/docs/api/openapi.json');
+      if (response.ok) {
+        const specData = await response.json();
+        setSpec(specData);
         setLoading(false);
-      });
+        return;
+      }
+      throw new Error('Failed to load API spec');
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
   }, []);
 
   // Loading state
