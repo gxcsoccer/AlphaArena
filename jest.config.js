@@ -5,7 +5,7 @@ module.exports = {
   testMatch: ['**/*.test.ts', '**/*.test.tsx'],
   collectCoverageFrom: ['src/**/*.ts', 'src/**/*.tsx'],
   coverageDirectory: 'coverage',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mjs'],
   // Memory optimization: limit workers based on available CPU cores
   maxWorkers: process.env.CI ? 2 : '50%',
   // Memory optimization: run tests with limited memory per worker
@@ -27,6 +27,7 @@ module.exports = {
   // Run memory-heavy tests sequentially to avoid OOM
   maxConcurrency: 5,
   transform: {
+    // Only transform TypeScript files
     '^.+\\.tsx?$': ['ts-jest', {
       tsconfig: {
         target: 'ES2020',
@@ -48,6 +49,7 @@ module.exports = {
     '@testing-library/jest-dom',
     '<rootDir>/tests/__mocks__/resizeObserver.ts',
     '<rootDir>/tests/__mocks__/apiSetup.ts',
+    '<rootDir>/tests/__mocks__/fix-testing-library.ts',
   ],
   moduleNameMapper: {
     '^lightweight-charts$': '<rootDir>/tests/__mocks__/lightweight-charts.ts',
@@ -59,8 +61,9 @@ module.exports = {
     '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^./config$': '<rootDir>/tests/__mocks__/config.ts',
+    // Handle marked ESM module - use UMD build
+    '^marked$': '<rootDir>/node_modules/marked/lib/marked.umd.js',
   },
-  transformIgnorePatterns: [
-    'node_modules/(?!( @testing-library/react|@testing-library/dom|marked|dompurify|jsdom)/)',
-  ],
+  // Don't transform any node_modules - let them use their native format
+  transformIgnorePatterns: ['node_modules/'],
 };

@@ -1,0 +1,353 @@
+diff --git a/node_modules/@testing-library/dom/dist/config.js b/node_modules/@testing-library/dom/dist/config.js
+index 89c83d6..3692fce 100644
+--- a/node_modules/@testing-library/dom/dist/config.js
++++ b/node_modules/@testing-library/dom/dist/config.js
+@@ -6,7 +6,11 @@ Object.defineProperty(exports, "__esModule", {
+ exports.configure = configure;
+ exports.getConfig = getConfig;
+ exports.runWithExpensiveErrorDiagnosticsDisabled = runWithExpensiveErrorDiagnosticsDisabled;
+-var _prettyDom = require("./pretty-dom");
++
++// NOTE: We're NOT requiring pretty-dom at the top level to avoid circular dependency
++// The circular dependency chain is: config -> pretty-dom -> config
++// Instead, we'll lazy-load it inside getElementError
++
+ // It would be cleaner for this to live inside './queries', but
+ // other parts of the code assume that all exports from
+ // './queries' are query functions.
+@@ -33,7 +37,9 @@ let config = {
+   throwSuggestions: false,
+   // called when getBy* queries fail. (message, container) => Error
+   getElementError(message, container) {
+-    const prettifiedDOM = (0, _prettyDom.prettyDOM)(container);
++    // Lazy-load pretty-dom to avoid circular dependency
++    const _prettyDom = require("./pretty-dom");
++    const prettifiedDOM = _prettyDom.prettyDOM(container);
+     const error = new Error([message, `Ignored nodes: comments, ${config.defaultIgnore}\n${prettifiedDOM}`].filter(Boolean).join('\n\n'));
+     error.name = 'TestingLibraryElementError';
+     return error;
+diff --git a/node_modules/@testing-library/dom/dist/index.js b/node_modules/@testing-library/dom/dist/index.js
+index 24612a3..4080a2f 100644
+--- a/node_modules/@testing-library/dom/dist/index.js
++++ b/node_modules/@testing-library/dom/dist/index.js
+@@ -14,18 +14,14 @@ var _exportNames = {
+   configure: true,
+   getConfig: true
+ };
+-Object.defineProperty(exports, "configure", {
+-  enumerable: true,
+-  get: function () {
+-    return _config.configure;
+-  }
+-});
+-Object.defineProperty(exports, "getConfig", {
+-  enumerable: true,
+-  get: function () {
+-    return _config.getConfig;
+-  }
+-});
++
++// Load config module first to ensure it's available
++var _config = require("./config");
++
++// Directly export configure and getConfig to fix Jest getter issues
++exports.configure = _config.configure;
++exports.getConfig = _config.getConfig;
++
+ Object.defineProperty(exports, "getDefaultNormalizer", {
+   enumerable: true,
+   get: function () {
+@@ -169,7 +165,7 @@ Object.keys(_prettyDom).forEach(function (key) {
+     }
+   });
+ });
+-var _config = require("./config");
++// _config is already loaded at the top
+ var _suggestions = require("./suggestions");
+ Object.keys(_suggestions).forEach(function (key) {
+   if (key === "default" || key === "__esModule") return;
+diff --git a/node_modules/@testing-library/dom/dist/index.js.backup b/node_modules/@testing-library/dom/dist/index.js.backup
+new file mode 100644
+index 0000000..24612a3
+--- /dev/null
++++ b/node_modules/@testing-library/dom/dist/index.js.backup
+@@ -0,0 +1,186 @@
++"use strict";
++
++Object.defineProperty(exports, "__esModule", {
++  value: true
++});
++var _exportNames = {
++  within: true,
++  queries: true,
++  queryHelpers: true,
++  getDefaultNormalizer: true,
++  getRoles: true,
++  logRoles: true,
++  isInaccessible: true,
++  configure: true,
++  getConfig: true
++};
++Object.defineProperty(exports, "configure", {
++  enumerable: true,
++  get: function () {
++    return _config.configure;
++  }
++});
++Object.defineProperty(exports, "getConfig", {
++  enumerable: true,
++  get: function () {
++    return _config.getConfig;
++  }
++});
++Object.defineProperty(exports, "getDefaultNormalizer", {
++  enumerable: true,
++  get: function () {
++    return _matches.getDefaultNormalizer;
++  }
++});
++Object.defineProperty(exports, "getRoles", {
++  enumerable: true,
++  get: function () {
++    return _roleHelpers.getRoles;
++  }
++});
++Object.defineProperty(exports, "isInaccessible", {
++  enumerable: true,
++  get: function () {
++    return _roleHelpers.isInaccessible;
++  }
++});
++Object.defineProperty(exports, "logRoles", {
++  enumerable: true,
++  get: function () {
++    return _roleHelpers.logRoles;
++  }
++});
++exports.queryHelpers = exports.queries = void 0;
++Object.defineProperty(exports, "within", {
++  enumerable: true,
++  get: function () {
++    return _getQueriesForElement.getQueriesForElement;
++  }
++});
++var _getQueriesForElement = require("./get-queries-for-element");
++Object.keys(_getQueriesForElement).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _getQueriesForElement[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _getQueriesForElement[key];
++    }
++  });
++});
++var queries = _interopRequireWildcard(require("./queries"));
++exports.queries = queries;
++Object.keys(queries).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === queries[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return queries[key];
++    }
++  });
++});
++var queryHelpers = _interopRequireWildcard(require("./query-helpers"));
++exports.queryHelpers = queryHelpers;
++Object.keys(queryHelpers).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === queryHelpers[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return queryHelpers[key];
++    }
++  });
++});
++var _waitFor = require("./wait-for");
++Object.keys(_waitFor).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _waitFor[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _waitFor[key];
++    }
++  });
++});
++var _waitForElementToBeRemoved = require("./wait-for-element-to-be-removed");
++Object.keys(_waitForElementToBeRemoved).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _waitForElementToBeRemoved[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _waitForElementToBeRemoved[key];
++    }
++  });
++});
++var _matches = require("./matches");
++var _getNodeText = require("./get-node-text");
++Object.keys(_getNodeText).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _getNodeText[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _getNodeText[key];
++    }
++  });
++});
++var _events = require("./events");
++Object.keys(_events).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _events[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _events[key];
++    }
++  });
++});
++var _screen = require("./screen");
++Object.keys(_screen).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _screen[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _screen[key];
++    }
++  });
++});
++var _roleHelpers = require("./role-helpers");
++var _prettyDom = require("./pretty-dom");
++Object.keys(_prettyDom).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _prettyDom[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _prettyDom[key];
++    }
++  });
++});
++var _config = require("./config");
++var _suggestions = require("./suggestions");
++Object.keys(_suggestions).forEach(function (key) {
++  if (key === "default" || key === "__esModule") return;
++  if (Object.prototype.hasOwnProperty.call(_exportNames, key)) return;
++  if (key in exports && exports[key] === _suggestions[key]) return;
++  Object.defineProperty(exports, key, {
++    enumerable: true,
++    get: function () {
++      return _suggestions[key];
++    }
++  });
++});
++function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
++function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+\ No newline at end of file
+diff --git a/node_modules/@testing-library/dom/dist/pretty-dom.js b/node_modules/@testing-library/dom/dist/pretty-dom.js
+index 7149405..c4b9b8c 100644
+--- a/node_modules/@testing-library/dom/dist/pretty-dom.js
++++ b/node_modules/@testing-library/dom/dist/pretty-dom.js
+@@ -12,7 +12,15 @@ exports.prettyFormat = prettyFormat;
+ var _DOMElementFilter = _interopRequireDefault(require("./DOMElementFilter"));
+ var _getUserCodeFrame = require("./get-user-code-frame");
+ var _helpers = require("./helpers");
+-var _config = require("./config");
++
++// Use global config to bypass circular dependency issues in Jest
++function _getConfig() {
++  if (typeof global !== 'undefined' && global.__DTL_CONFIG__) {
++    return global.__DTL_CONFIG__.getConfig();
++  }
++  return require("./config").getConfig();
++}
++
+ function _getRequireWildcardCache(nodeInterop) { if (typeof WeakMap !== "function") return null; var cacheBabelInterop = new WeakMap(); var cacheNodeInterop = new WeakMap(); return (_getRequireWildcardCache = function (nodeInterop) { return nodeInterop ? cacheNodeInterop : cacheBabelInterop; })(nodeInterop); }
+ function _interopRequireWildcard(obj, nodeInterop) { if (!nodeInterop && obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(nodeInterop); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (key !== "default" && Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
+ const shouldHighlight = () => {
+@@ -42,7 +50,7 @@ const COMMENT_NODE = 8;
+ 
+ // https://github.com/facebook/jest/blob/615084195ae1ae61ddd56162c62bbdda17587569/packages/pretty-format/src/plugins/DOMElement.ts#L50
+ function filterCommentsAndDefaultIgnoreTagsTags(value) {
+-  return value.nodeType !== COMMENT_NODE && (value.nodeType !== ELEMENT_NODE || !value.matches((0, _config.getConfig)().defaultIgnore));
++  return value.nodeType !== COMMENT_NODE && (value.nodeType !== ELEMENT_NODE || !value.matches(_getConfig().defaultIgnore));
+ }
+ function prettyDOM(dom, maxLength, options = {}) {
+   if (!dom) {
+diff --git a/node_modules/@testing-library/dom/dist/query-helpers.js b/node_modules/@testing-library/dom/dist/query-helpers.js
+index e7df1f8..7d9f65e 100644
+--- a/node_modules/@testing-library/dom/dist/query-helpers.js
++++ b/node_modules/@testing-library/dom/dist/query-helpers.js
+@@ -15,9 +15,19 @@ exports.wrapSingleQueryWithSuggestion = exports.wrapAllByQueryWithSuggestion = v
+ var _suggestions = require("./suggestions");
+ var _matches = require("./matches");
+ var _waitFor = require("./wait-for");
+-var _config = require("./config");
++
++// Use global config to bypass circular dependency issues in Jest
++function _getConfig() {
++  // First try the global (for Jest)
++  if (typeof global !== 'undefined' && global.__DTL_CONFIG__) {
++    return global.__DTL_CONFIG__.getConfig();
++  }
++  // Fall back to lazy loading (for other environments)
++  return require("./config").getConfig();
++}
++
+ function getElementError(message, container) {
+-  return (0, _config.getConfig)().getElementError(message, container);
++  return _getConfig().getElementError(message, container);
+ }
+ function getMultipleElementsFoundError(message, container) {
+   return getElementError(`${message}\n\n(If this is intentional, then use the \`*AllBy*\` variant of the query (like \`queryAllByText\`, \`getAllByText\`, or \`findAllByText\`)).`, container);
+@@ -62,7 +72,7 @@ ${elementStrings}`, container);
+   };
+ }
+ function getSuggestionError(suggestion, container) {
+-  return (0, _config.getConfig)().getElementError(`A better query is available, try this:
++  return _getConfig().getElementError(`A better query is available, try this:
+ ${suggestion.toString()}
+ `, container);
+ }
+@@ -73,7 +83,7 @@ function makeGetAllQuery(allQuery, getMissingError) {
+   return (container, ...args) => {
+     const els = allQuery(container, ...args);
+     if (!els.length) {
+-      throw (0, _config.getConfig)().getElementError(getMissingError(container, ...args), container);
++      throw _getConfig().getElementError(getMissingError(container, ...args), container);
+     }
+     return els;
+   };
+@@ -94,7 +104,7 @@ function makeFindQuery(getter) {
+ const wrapSingleQueryWithSuggestion = (query, queryAllByName, variant) => (container, ...args) => {
+   const element = query(container, ...args);
+   const [{
+-    suggest = (0, _config.getConfig)().throwSuggestions
++    suggest = _getConfig().throwSuggestions
+   } = {}] = args.slice(-1);
+   if (element && suggest) {
+     const suggestion = (0, _suggestions.getSuggestedQuery)(element, variant);
+@@ -108,7 +118,7 @@ exports.wrapSingleQueryWithSuggestion = wrapSingleQueryWithSuggestion;
+ const wrapAllByQueryWithSuggestion = (query, queryAllByName, variant) => (container, ...args) => {
+   const els = query(container, ...args);
+   const [{
+-    suggest = (0, _config.getConfig)().throwSuggestions
++    suggest = _getConfig().throwSuggestions
+   } = {}] = args.slice(-1);
+   if (els.length && suggest) {
+     // get a unique list of all suggestion messages.  We are only going to make a suggestion if
