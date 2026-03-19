@@ -10,6 +10,28 @@ export * from './portfolio';
 export * from './strategy';
 export * from './backtest';
 
+// Backtest Analysis Module
+export {
+  BacktestAnalyzer,
+  StrategyComparator,
+  ReportGenerator,
+} from './backtest-analysis';
+export type {
+  DeepAnalysisReport,
+  StrategyComparisonOptions,
+  StrategyComparisonResult,
+  ComparisonReport,
+  EquityCurvePoint,
+  TradeAnalysis,
+  MonthlyPerformance,
+  RiskMetrics,
+  PerformanceScorecard,
+  DrawdownAnalysis,
+  PositionAnalysis,
+  TradeDistribution,
+  ReportExportOptions,
+} from './backtest-analysis';
+
 // Risk Alerting Module
 export {
   RiskCalculator,
@@ -24,7 +46,7 @@ export type {
   RiskAlertStatus,
   NotificationChannels,
   RiskAlertRule,
-  RiskMetrics,
+  RiskMetrics as RiskAlertMetrics,
   RiskAlert,
   PositionData,
   PortfolioData,
