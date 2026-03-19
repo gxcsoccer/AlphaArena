@@ -188,7 +188,7 @@ const VirtualAccountPage: React.FC = () => {
     if (!accessToken) return;
     
     try {
-      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/buy`, user.token, {
+      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/buy`, accessToken, {
         method: 'POST',
         body: JSON.stringify(values),
       });
@@ -209,7 +209,7 @@ const VirtualAccountPage: React.FC = () => {
     if (!accessToken) return;
     
     try {
-      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/sell`, user.token, {
+      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/sell`, accessToken, {
         method: 'POST',
         body: JSON.stringify(values),
       });
@@ -230,7 +230,7 @@ const VirtualAccountPage: React.FC = () => {
     if (!accessToken) return;
     
     try {
-      const result = await fetchWithAuth(`${API_BASE}/api/account/reset`, user.token, {
+      const result = await fetchWithAuth(`${API_BASE}/api/account/reset`, accessToken, {
         method: 'POST',
         body: JSON.stringify(values),
       });
@@ -251,7 +251,7 @@ const VirtualAccountPage: React.FC = () => {
     if (!accessToken) return;
     
     try {
-      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/${orderId}/cancel`, user.token, {
+      const result = await fetchWithAuth(`${API_BASE}/api/account/orders/${orderId}/cancel`, accessToken, {
         method: 'POST',
       });
       
@@ -269,7 +269,7 @@ const VirtualAccountPage: React.FC = () => {
     if (!accessToken) return;
     
     try {
-      await fetchWithAuth(`${API_BASE}/api/account/refresh-prices`, user.token, {
+      await fetchWithAuth(`${API_BASE}/api/account/refresh-prices`, accessToken, {
         method: 'POST',
       });
       Message.success('Prices refreshed');
