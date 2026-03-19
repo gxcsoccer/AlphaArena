@@ -1270,6 +1270,184 @@ paths:
                   timestamp: {type: integer}
         '404':
           description: 'Order book not found for symbol'
+  /recommendations:
+    get:
+      summary: 'Get personalized strategy recommendations'
+      description: 'Returns AI-powered strategy recommendations based on user history, preferences, and collaborative filtering'
+      tags:
+        - Recommendations
+      parameters:
+        -
+          name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 20
+      responses:
+        '200':
+          description: 'List of recommended strategies with match scores and reasons'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {type: object, properties: {strategy: {$ref: '#/components/schemas/MarketplaceStrategy'}, score: {type: number, description: 'Match score (0-100)'}, reasons: {type: array, items: {type: string}}, algorithm: {type: string, enum: [collaborative, content_based, hybrid, trending]}}}}
+  '/recommendations/{recommendationId}/dismiss':
+    post:
+      summary: 'Dismiss a recommendation'
+      tags:
+        - Recommendations
+      parameters:
+        -
+          name: recommendationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Recommendation dismissed'
+  '/recommendations/{recommendationId}/click':
+    post:
+      summary: 'Mark recommendation as clicked'
+      tags:
+        - Recommendations
+      parameters:
+        -
+          name: recommendationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Recommendation marked as clicked'
+  '/recommendations/explain/{strategyId}':
+    get:
+      summary: 'Get explanation for why a strategy is recommended'
+      tags:
+        - Recommendations
+      parameters:
+        -
+          name: strategyId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Recommendation explanation with score breakdown'
+  /recommendations/feedback:
+    post:
+      summary: 'Record user feedback on a strategy'
+      description: 'Submit like/dislike feedback to improve future recommendations'
+      tags:
+        - Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - strategyId
+                - feedbackType
+              properties:
+                strategyId:
+                  type: string
+                feedbackType:
+                  type: string
+                  enum: [like, dislike, not_interested]
+                reason:
+                  type: string
+                  description: 'Optional reason for feedback'
+      responses:
+        '200':
+          description: 'Feedback recorded successfully'
+  /recommendations/interactions:
+    post:
+      summary: 'Record user interaction with a strategy'
+      description: 'Automatically track user interactions to improve recommendations'
+      tags:
+        - Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - strategyId
+                - interactionType
+              properties:
+                strategyId:
+                  type: string
+                interactionType:
+                  type: string
+                  enum: [view, subscribe, review, signal_follow]
+                metadata:
+                  type: object
+                  description: 'Optional additional data'
+      responses:
+        '200':
+          description: 'Interaction recorded'
+  /recommendations/profile:
+    get:
+      summary: 'Get user''s recommendation profile'
+      tags:
+        - Recommendations
+      responses:
+        '200':
+          description: 'User profile with preferences'
+    put:
+      summary: 'Update user''s recommendation profile'
+      description: 'Set preferences to improve recommendation quality'
+      tags:
+        - Recommendations
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                riskTolerance:
+                  type: string
+                  enum: [conservative, moderate, aggressive, very_aggressive]
+                capitalScale:
+                  type: string
+                  enum: [small, medium, large, institutional]
+                preferredCategories:
+                  type: array
+                  items: {type: string}
+                preferredStrategyTypes:
+                  type: array
+                  items: {type: string}
+                preferredSymbols:
+                  type: array
+                  items: {type: string}
+      responses:
+        '200':
+          description: 'Profile updated'
+  /recommendations/stats:
+    get:
+      summary: 'Get recommendation system statistics'
+      tags:
+        - Recommendations
+      responses:
+        '200':
+          description: 'System statistics'
+  /recommendations/cleanup:
+    post:
+      summary: 'Clear expired recommendations (admin)'
+      tags:
+        - Recommendations
+      responses:
+        '200':
+          description: 'Number of expired recommendations cleared'
   /marketplace/strategies:
     get:
       summary: 'List strategies in the marketplace'
