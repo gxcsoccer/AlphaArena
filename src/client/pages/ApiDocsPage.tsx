@@ -29,17 +29,38 @@ const ApiDocsPage: React.FC = () => {
   const { isMobile, isTablet } = useMediaQuery();
 
   useEffect(() => {
-    // Fetch the OpenAPI spec - try static file first, then backend API
+    // Fetch the OpenAPI spec - try static JSON first (works in production without backend)
     const loadSpec = async () => {
-      // Try static openapi.yaml first (works in production without backend)
+      // Try static openapi.json first (works in production without backend, no YAML parser needed)
       try {
-        const staticResponse = await fetch('/openapi.yaml');
+        const staticResponse = await fetch('/openapi.json');
         if (staticResponse.ok) {
-          const yamlText = await staticResponse.text();
-          const specData = YAML.parse(yamlText);
+          const specData = await staticResponse.json();
+          console.log('Loaded OpenAPI spec from static JSON');
           setSpec(specData);
           setLoading(false);
           return;
+        }
+      } catch (err) {
+        console.log('Static openapi.json not available, trying YAML...');
+      }
+
+      // Try static openapi.yaml as fallback
+      try {
+        const yamlResponse = await fetch('/openapi.yaml');
+        if (yamlResponse.ok) {
+          const yamlText = await yamlResponse.text();
+          // @ts-ignore
+          if (window.jsyaml) {
+            // @ts-ignore
+            const specData = window.jsyaml.load(yamlText);
+            console.log('Loaded OpenAPI spec from static YAML');
+            setSpec(specData);
+            setLoading(false);
+            return;
+          } else {
+            console.warn('js-yaml not loaded, cannot parse YAML');
+          }
         }
       } catch (err) {
         console.log('Static openapi.yaml not available, trying backend...');
@@ -50,6 +71,7 @@ const ApiDocsPage: React.FC = () => {
         const response = await fetch('/docs/api/openapi.json');
         if (response.ok) {
           const specData = await response.json();
+          console.log('Loaded OpenAPI spec from backend');
           setSpec(specData);
           setLoading(false);
           return;
@@ -70,11 +92,10 @@ const ApiDocsPage: React.FC = () => {
     setError(null);
     
     try {
-      // Try static file first
-      const staticResponse = await fetch('/openapi.yaml');
+      // Try static JSON first
+      const staticResponse = await fetch('/openapi.json');
       if (staticResponse.ok) {
-        const yamlText = await staticResponse.text();
-        const specData = YAML.parse(yamlText);
+        const specData = await staticResponse.json();
         setSpec(specData);
         setLoading(false);
         return;
@@ -331,23 +352,6 @@ const ApiDocsPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-// Simple YAML parser for fallback
-const YAML = {
-  parse: (yaml: string): object => {
-    try {
-      // @ts-ignore
-      if (window.jsyaml) {
-        // @ts-ignore
-        return window.jsyaml.load(yaml);
-      }
-      return JSON.parse(yaml);
-    } catch {
-      console.warn('YAML parsing failed, returning empty object');
-      return {};
-    }
-  }
 };
 
 export default ApiDocsPage;

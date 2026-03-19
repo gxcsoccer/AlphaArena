@@ -15,10 +15,15 @@ import * as path from 'path';
 import YAML from 'yamljs';
 import { generateOpenApiSpec } from '../src/api/swaggerConfig';
 
-const outputPaths = [
+const yamlOutputPaths = [
   path.join(__dirname, '../docs/api/openapi.yaml'),
   path.join(__dirname, '../public/openapi.yaml'),
   path.join(__dirname, '../dist/client/openapi.yaml'),
+];
+
+const jsonOutputPaths = [
+  path.join(__dirname, '../docs/api/openapi.json'),
+  path.join(__dirname, '../public/openapi.json'),
 ];
 
 function main() {
@@ -31,7 +36,7 @@ function main() {
     const yamlContent = YAML.stringify(spec, 10, 2);
     
     // Ensure output directories exist
-    const dirs = new Set(outputPaths.map(p => path.dirname(p)));
+    const dirs = new Set([...yamlOutputPaths, ...jsonOutputPaths].map(p => path.dirname(p)));
     dirs.forEach(dir => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -39,16 +44,18 @@ function main() {
       }
     });
     
-    // Write to all output paths
-    outputPaths.forEach(outputPath => {
+    // Write YAML to all output paths
+    yamlOutputPaths.forEach(outputPath => {
       fs.writeFileSync(outputPath, yamlContent, 'utf-8');
-      console.log(`✅ Written: ${outputPath}`);
+      console.log(`✅ Written (YAML): ${outputPath}`);
     });
     
-    // Also write JSON version
-    const jsonPath = path.join(__dirname, '../docs/api/openapi.json');
-    fs.writeFileSync(jsonPath, JSON.stringify(spec, null, 2), 'utf-8');
-    console.log(`✅ Written: ${jsonPath}`);
+    // Write JSON to all output paths
+    const jsonContent = JSON.stringify(spec, null, 2);
+    jsonOutputPaths.forEach(outputPath => {
+      fs.writeFileSync(outputPath, jsonContent, 'utf-8');
+      console.log(`✅ Written (JSON): ${outputPath}`);
+    });
     
     console.log('\n🎉 OpenAPI specification generated successfully!');
     console.log(`📊 Total endpoints documented: ${Object.keys(spec.paths || {}).length}`);
