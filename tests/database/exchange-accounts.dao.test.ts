@@ -2,38 +2,41 @@
  * Tests for Exchange Accounts DAO
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ExchangeAccountsDAO, ExchangeType, AccountEnvironment } from '../../src/database/exchange-accounts.dao';
 
 // Mock Supabase client
-vi.mock('../../src/database/client', () => ({
+jest.mock('../../src/database/client', () => ({
   getSupabaseClient: () => ({
-    from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          single: vi.fn(() => ({
+    from: jest.fn(() => ({
+      select: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          single: jest.fn(() => ({
             data: null,
             error: { code: 'PGRST116' }
           })),
-          order: vi.fn(() => ({
+          order: jest.fn(() => ({
+            order: jest.fn(() => ({
+              data: [],
+              error: null
+            })),
             data: [],
             error: null
           }))
         })),
-        in: vi.fn(() => ({
-          gt: vi.fn(() => ({
+        in: jest.fn(() => ({
+          gt: jest.fn(() => ({
             data: [],
             error: null
           }))
         })),
-        gt: vi.fn(() => ({
+        gt: jest.fn(() => ({
           data: [],
           error: null
         }))
       })),
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => ({
+      insert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => ({
             data: {
               id: 'test-account-id',
               user_id: 'test-user-id',
@@ -52,10 +55,10 @@ vi.mock('../../src/database/client', () => ({
           }))
         }))
       })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(() => ({
+      update: jest.fn(() => ({
+        eq: jest.fn(() => ({
+          select: jest.fn(() => ({
+            single: jest.fn(() => ({
               data: {
                 id: 'test-account-id',
                 user_id: 'test-user-id',
@@ -75,14 +78,14 @@ vi.mock('../../src/database/client', () => ({
           }))
         }))
       })),
-      delete: vi.fn(() => ({
-        eq: vi.fn(() => ({
+      delete: jest.fn(() => ({
+        eq: jest.fn(() => ({
           error: null
         }))
       })),
-      upsert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(() => ({
+      upsert: jest.fn(() => ({
+        select: jest.fn(() => ({
+          single: jest.fn(() => ({
             data: {
               id: 'test-balance-id',
               account_id: 'test-account-id',
@@ -99,7 +102,7 @@ vi.mock('../../src/database/client', () => ({
         error: null
       }))
     })),
-    rpc: vi.fn(() => ({
+    rpc: jest.fn(() => ({
       error: null
     }))
   })
@@ -203,9 +206,4 @@ describe('ExchangeAccountsDAO', () => {
       expect(groupData.account_ids).toContain(testAccountId);
     });
   });
-});
-
-describe('ExchangeAccountsService', () => {
-  // Service tests would go here
-  // They would mock the DAO and test business logic
 });
