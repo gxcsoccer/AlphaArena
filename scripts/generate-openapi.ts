@@ -24,6 +24,7 @@ const yamlOutputPaths = [
 const jsonOutputPaths = [
   path.join(__dirname, '../docs/api/openapi.json'),
   path.join(__dirname, '../public/openapi.json'),
+  path.join(__dirname, '../dist/client/openapi.json'), // Also output to dist for Vercel deployment
 ];
 
 function main() {
