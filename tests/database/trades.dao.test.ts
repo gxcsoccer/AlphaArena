@@ -1,3 +1,66 @@
+// Mock the database client before importing
+jest.mock('../../src/database/client', () => {
+  const createMockQueryBuilder = (initialData: any[] = []) => {
+    const data: any[] = [...initialData];
+    
+    const builder: any = {
+      // Make the builder "thenable" so it can be awaited
+      then: (resolve: (value: any) => void) => {
+        return Promise.resolve({ data, error: null, count: data.length }).then(resolve);
+      },
+      // Also support catch and finally for Promise-like behavior
+      catch: (reject: (reason: any) => void) => Promise.resolve({ data, error: null }).catch(reject),
+      finally: (onFinally: () => void) => Promise.resolve({ data, error: null }).finally(onFinally),
+    };
+
+    builder.select = jest.fn().mockImplementation((columns?: string) => builder);
+    builder.insert = jest.fn().mockImplementation((rows: any[]) => {
+      const inserted = rows.map((row: any, i: number) => ({ id: `mock-id-${Date.now()}-${i}`, createdAt: new Date(), ...row }));
+      data.push(...inserted);
+      // Return a new builder that resolves with the inserted data
+      return createMockQueryBuilder(inserted);
+    });
+    builder.update = jest.fn().mockImplementation((updates: any) => {
+      Object.assign(data, updates);
+      return builder;
+    });
+    builder.delete = jest.fn().mockImplementation(() => {
+      data.length = 0;
+      return builder;
+    });
+    builder.eq = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.neq = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.gt = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.gte = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.lt = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.lte = jest.fn().mockImplementation((column: string, value: any) => builder);
+    builder.in = jest.fn().mockImplementation((column: string, values: any[]) => builder);
+    builder.order = jest.fn().mockImplementation((column: string, options?: any) => builder);
+    builder.limit = jest.fn().mockImplementation((count: number) => builder);
+    builder.offset = jest.fn().mockImplementation((count: number) => builder);
+    builder.range = jest.fn().mockImplementation((start: number, end: number) => builder);
+    builder.single = jest.fn().mockImplementation(() => Promise.resolve({ data: data[0] || null, error: null }));
+    builder.maybeSingle = jest.fn().mockImplementation(() => Promise.resolve({ data: data[0] || null, error: null }));
+    builder.rpc = jest.fn().mockResolvedValue({ data: null, error: null });
+
+    return builder;
+  };
+
+  const mockSupabaseClient = {
+    from: jest.fn().mockImplementation((table: string) => createMockQueryBuilder()),
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
+    },
+  };
+
+  return {
+    getSupabaseClient: () => mockSupabaseClient,
+    getSupabaseAdminClient: () => mockSupabaseClient,
+    default: mockSupabaseClient,
+  };
+});
+
 import { TradesDAO } from '../../src/database/trades.dao';
 import { StrategiesDAO } from '../../src/database/strategies.dao';
 

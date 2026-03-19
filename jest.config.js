@@ -69,10 +69,12 @@ module.exports = {
     '^uuid$': '<rootDir>/tests/__mocks__/uuid.ts',
     // Handle .js extensions in imports
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    // Mock config for import.meta.env
+    // Mock config for import.meta.env - use specific paths to avoid matching @testing-library/dom
+    '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
-    '^./config$': '<rootDir>/tests/__mocks__/config.ts',
+    // Mock Supabase client for database tests
+    '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Handle marked ESM module - use UMD build
     '^marked$': '<rootDir>/node_modules/marked/lib/marked.umd.js',
     // Mock CSS files
@@ -84,6 +86,6 @@ module.exports = {
   },
   // Transform ESM modules that need to be transpiled
   transformIgnorePatterns: [
-    'node_modules/(?!(jsdom|@exodus/bytes|html-encoding-sniffer|whatwg-url|whatwg-encoding|parse5|w3c-xmlserializer|xml-name-validator|saxes|symbol-tree|tough-cookie|data-urls|form-data|domexception|abort-controller|node-fetch|web-streams-polyfill|encoding-sniffer)/)',
+    'node_modules/(?!(jsdom|@exodus/bytes|html-encoding-sniffer|whatwg-url|whatwg-encoding|parse5|w3c-xmlserializer|xml-name-validator|saxes|symbol-tree|tough-cookie|data-urls|form-data|domexception|abort-controller|node-fetch|web-streams-polyfill|encoding-sniffer|@testing-library/dom)/)',
   ],
 };
