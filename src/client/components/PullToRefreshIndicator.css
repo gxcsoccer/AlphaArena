@@ -1,0 +1,70 @@
+/* Pull to Refresh Indicator */
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  background: var(--color-bg-2);
+  border-radius: 20px;
+  box-shadow: var(--shadow-1);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.pull-to-refresh-indicator__spinner,
+.pull-to-refresh-indicator__pull {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.pull-to-refresh-indicator__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  transition: transform 0.15s ease;
+}
+
+.pull-to-refresh-indicator__text {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.pull-to-refresh-indicator__progress {
+  width: 60px;
+  height: 3px;
+  background: var(--color-fill-2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.pull-to-refresh-indicator__progress-bar {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: 2px;
+  transition: width 0.1s ease;
+}
+
+/* Dark mode */
+:root.dark .pull-to-refresh-indicator,
+:root[data-theme='dark'] .pull-to-refresh-indicator {
+  background: var(--color-bg-3);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .pull-to-refresh-indicator,
+  .pull-to-refresh-indicator__icon,
+  .pull-to-refresh-indicator__progress-bar {
+    transition: none;
+  }
+}

@@ -1,0 +1,234 @@
+/* Touch Feedback Utilities */
+
+/**
+ * These classes provide consistent touch feedback across the application.
+ * They follow iOS HIG and Material Design touch feedback patterns.
+ */
+
+/* Base touch target - ensures 44px minimum touch target */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Touch ripple effect (for supported browsers) */
+.touch-ripple {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-ripple::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: var(--color-primary);
+  opacity: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.touch-ripple:active::after {
+  opacity: 0.1;
+  transform: translate(-50%, -50%) scale(2);
+}
+
+/* Scale feedback - simple scale down on active */
+.touch-scale {
+  transition: transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-scale:active {
+  transform: scale(0.97);
+}
+
+/* Opacity feedback - subtle opacity change on active */
+.touch-opacity {
+  transition: opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-opacity:active {
+  opacity: 0.7;
+}
+
+/* Background feedback - subtle background change on active */
+.touch-bg {
+  transition: background-color 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-bg:active {
+  background-color: var(--color-fill-2);
+}
+
+/* Combined feedback - scale + opacity */
+.touch-combined {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.touch-combined:active {
+  transform: scale(0.98);
+  opacity: 0.85;
+}
+
+/* Swipe hint - visual hint for swipeable content */
+.swipe-hint {
+  position: relative;
+}
+
+.swipe-hint::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 40%;
+  background: var(--color-primary);
+  border-radius: 2px;
+  opacity: 0.5;
+}
+
+/* Card swipe actions */
+.swipe-actions {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-actions__content {
+  transition: transform 0.2s ease;
+}
+
+.swipe-actions__left,
+.swipe-actions__right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.swipe-actions__left {
+  right: 100%;
+  background: var(--color-success);
+  color: white;
+}
+
+.swipe-actions__right {
+  left: 100%;
+  background: var(--color-danger);
+  color: white;
+}
+
+/* Haptic feedback simulation via visual cues */
+.haptic-light:active {
+  animation: haptic-pulse-light 0.1s ease;
+}
+
+.haptic-medium:active {
+  animation: haptic-pulse-medium 0.15s ease;
+}
+
+.haptic-heavy:active {
+  animation: haptic-pulse-heavy 0.2s ease;
+}
+
+@keyframes haptic-pulse-light {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.98); }
+}
+
+@keyframes haptic-pulse-medium {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+}
+
+@keyframes haptic-pulse-heavy {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.92); }
+}
+
+/* Long press indicator */
+.long-press-indicator {
+  position: relative;
+}
+
+.long-press-indicator::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid var(--color-primary);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  pointer-events: none;
+}
+
+.long-press-indicator--active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Touch scroll containers */
+.touch-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.touch-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.touch-scroll__item {
+  scroll-snap-align: start;
+  flex-shrink: 0;
+}
+
+/* Momentum scroll for iOS */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Disable text selection on touch elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Disable callout on iOS */
+.no-callout {
+  -webkit-touch-callout: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .touch-ripple::after,
+  .touch-scale,
+  .touch-opacity,
+  .touch-bg,
+  .touch-combined,
+  .swipe-actions__content,
+  .haptic-light:active,
+  .haptic-medium:active,
+  .haptic-heavy:active {
+    transition: none;
+    animation: none;
+  }
+}

@@ -318,6 +318,7 @@ router.get('/', optionalAuthMiddleware, async (req: Request, res: Response) => {
 /**
  * GET /api/signals/publisher/:publisherId
  * Get signals from a specific publisher
+ * NOTE: This must be defined BEFORE /:id to avoid route conflicts in Express
  */
 router.get('/publisher/:publisherId', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
@@ -343,6 +344,7 @@ router.get('/publisher/:publisherId', optionalAuthMiddleware, async (req: Reques
 /**
  * GET /api/signals/history
  * Get user's signal history (published signals)
+ * NOTE: This must be defined BEFORE /:id to avoid route conflicts in Express
  */
 router.get('/history', authMiddleware, async (req: Request, res: Response) => {
   try {
