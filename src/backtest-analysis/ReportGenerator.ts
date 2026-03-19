@@ -12,6 +12,9 @@ import {
   EquityCurvePoint,
   TradeAnalysis,
   MonthlyPerformance,
+  ShareOptions,
+  ShareResult,
+  EnhancedExportResult,
 } from './types';
 import { PerformanceScorecard } from './types';
 import * as fs from 'fs';
@@ -23,22 +26,160 @@ import * as path from 'path';
  */
 export class ReportGenerator {
   /**
-   * Generate report in specified format
+   * Generate report in specified format with enhanced features
    */
   async generate(report: DeepAnalysisReport, options: ReportExportOptions): Promise<{
     content: string | Buffer;
     contentType: string;
     filename: string;
   }> {
+    // Apply time range filter if specified
+    const filteredReport = this.applyTimeRangeFilter(report, options);
+
     switch (options.format) {
       case 'pdf':
-        return this.generatePDF(report, options);
+        return this.generatePDF(filteredReport, options);
       case 'excel':
-        return this.generateExcel(report, options);
+        return this.generateExcel(filteredReport, options);
       case 'json':
       default:
-        return this.generateJSON(report, options);
+        return this.generateJSON(filteredReport, options);
     }
+  }
+
+  /**
+   * Generate enhanced export with share functionality
+   */
+  async generateWithShare(
+    report: DeepAnalysisReport,
+    options: ReportExportOptions,
+    shareOptions?: ShareOptions
+  ): Promise<EnhancedExportResult> {
+    const result = await this.generate(report, options);
+
+    let share: ShareResult | undefined;
+    if (shareOptions?.generateLink) {
+      share = await this.generateShareLink(result, shareOptions);
+    }
+
+    return {
+      content: result.content,
+      contentType: result.contentType,
+      filename: result.filename,
+      size: typeof result.content === 'string'
+        ? Buffer.byteLength(result.content, 'utf-8')
+        : result.content.length,
+      share,
+    };
+  }
+
+  /**
+   * Generate shareable link for report
+   */
+  private async generateShareLink(
+    result: { content: string | Buffer; contentType: string; filename: string },
+    options: ShareOptions
+  ): Promise<ShareResult> {
+    const expirationHours = options.linkExpirationHours || 24;
+    const expiresAt = Date.now() + expirationHours * 60 * 60 * 1000;
+
+    // Generate a unique share ID (in production, this would be stored in a database)
+    const shareId = this.generateShareId();
+
+    // In a real implementation, this would:
+    // 1. Store the report content in cloud storage (S3, GCS, etc.)
+    // 2. Create a database record with the share ID and expiration
+    // 3. Return the shareable URL
+
+    // For now, we'll generate a mock share link
+    const baseUrl = process.env.BASE_URL || 'https://alphaarena.app';
+    const link = `${baseUrl}/share/${shareId}`;
+
+    return {
+      link,
+      expiresAt,
+    };
+  }
+
+  /**
+   * Generate a unique share ID
+   */
+  private generateShareId(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 16; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  /**
+   * Apply time range filter to report data
+   */
+  private applyTimeRangeFilter(
+    report: DeepAnalysisReport,
+    options: ReportExportOptions
+  ): DeepAnalysisReport {
+    // If no time range filter, return original report
+    if (!options.startTime && !options.endTime) {
+      return report;
+    }
+
+    const startTime = options.startTime || 0;
+    const endTime = options.endTime || Date.now();
+
+    // Filter equity curve
+    const filteredEquityCurve = report.equityCurve.filter(
+      point => point.timestamp >= startTime && point.timestamp <= endTime
+    );
+
+    // Filter trade analysis
+    const filteredTradeAnalysis = report.tradeAnalysis.filter(
+      trade => trade.entryTime >= startTime && trade.entryTime <= endTime
+    );
+
+    // Filter monthly performance
+    const filteredMonthlyPerformance = report.monthlyPerformance.filter(month => {
+      const monthStart = new Date(month.year, month.month - 1).getTime();
+      const monthEnd = new Date(month.year, month.month).getTime() - 1;
+      return monthStart >= startTime && monthEnd <= endTime;
+    });
+
+    return {
+      ...report,
+      equityCurve: filteredEquityCurve,
+      tradeAnalysis: filteredTradeAnalysis,
+      monthlyPerformance: filteredMonthlyPerformance,
+    };
+  }
+
+  /**
+   * Generate filename with strategy name and date
+   */
+  private generateFilename(
+    options: ReportExportOptions,
+    extension: string,
+    prefix: string = 'backtest_report'
+  ): string {
+    const timestamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const timeStr = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+
+    // Build filename parts
+    const parts: string[] = [];
+
+    if (options.strategyName) {
+      parts.push(options.strategyName.replace(/[^a-zA-Z0-9_-]/g, '_'));
+    } else {
+      parts.push(prefix);
+    }
+
+    parts.push(timestamp);
+
+    if (options.title) {
+      parts.push(options.title.replace(/\s+/g, '_').substring(0, 50));
+    }
+
+    return `${parts.join('_')}.${extension}`;
   }
 
   /**
@@ -70,13 +211,52 @@ export class ReportGenerator {
     report: DeepAnalysisReport,
     options: ReportExportOptions
   ): { content: string; contentType: string; filename: string } {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = options.title 
-      ? `${options.title.replace(/\s+/g, '_')}_${timestamp}.json`
-      : `backtest_report_${timestamp}.json`;
+    const filename = this.generateFilename(options, 'json');
+
+    // Build the export object based on options
+    const exportData: any = {
+      generatedAt: report.generatedAt,
+      config: report.config,
+      basicStats: report.basicStats,
+    };
+
+    // Add optional sections based on options
+    if (options.includeRiskMetrics !== false) {
+      exportData.riskMetrics = report.riskMetrics;
+    }
+
+    if (options.includeEquityCurve !== false) {
+      exportData.equityCurve = report.equityCurve;
+    }
+
+    if (options.includeTradeList !== false) {
+      exportData.tradeAnalysis = report.tradeAnalysis;
+    }
+
+    if (options.includeDrawdownAnalysis !== false) {
+      exportData.drawdownAnalysis = report.drawdownAnalysis;
+    }
+
+    if (options.includePositionAnalysis !== false) {
+      exportData.positionAnalysis = report.positionAnalysis;
+    }
+
+    if (options.includeMonthlyBreakdown !== false) {
+      exportData.monthlyPerformance = report.monthlyPerformance;
+    }
+
+    if (options.includeDistribution !== false) {
+      exportData.tradeDistribution = report.tradeDistribution;
+    }
+
+    exportData.performanceScorecard = report.performanceScorecard;
+
+    if (options.includeRecommendations !== false) {
+      exportData.recommendations = report.recommendations;
+    }
 
     return {
-      content: JSON.stringify(report, null, 2),
+      content: JSON.stringify(exportData, null, 2),
       contentType: 'application/json',
       filename,
     };
@@ -93,19 +273,57 @@ export class ReportGenerator {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { createPdf } = require('pdfmake');
 
+    const strategyName = options.strategyName || report.config.strategy;
     const content: any[] = [
-      // Title
+      // Header with logo placeholder and title
       {
-        text: options.title || '深度回测分析报告',
-        style: 'header',
-        alignment: 'center',
+        columns: [
+          {
+            width: '*',
+            stack: [
+              {
+                text: options.title || '深度回测分析报告',
+                style: 'header',
+              },
+              {
+                text: `策略: ${strategyName} | 交易对: ${report.config.symbol}`,
+                style: 'subtitle',
+                margin: [0, 5, 0, 0],
+              },
+            ],
+          },
+          {
+            width: 'auto',
+            stack: [
+              {
+                text: 'AlphaArena',
+                style: 'brand',
+                alignment: 'right',
+              },
+              {
+                text: `生成时间: ${new Date(report.generatedAt).toLocaleString('zh-CN')}`,
+                style: 'subheader',
+                alignment: 'right',
+                margin: [0, 5, 0, 0],
+              },
+            ],
+          },
+        ],
         margin: [0, 0, 0, 20] as [number, number, number, number],
       },
-      // Generation info
+      // Separator line
       {
-        text: `生成时间: ${new Date(report.generatedAt).toLocaleString('zh-CN')}`,
-        style: 'subheader',
-        alignment: 'right',
+        canvas: [
+          {
+            type: 'line',
+            x1: 0,
+            y1: 0,
+            x2: 515,
+            y2: 0,
+            lineWidth: 1,
+            lineColor: '#E0E0E0',
+          },
+        ],
         margin: [0, 0, 0, 20] as [number, number, number, number],
       },
     ];
@@ -113,10 +331,16 @@ export class ReportGenerator {
     // Configuration section
     content.push(
       this.generateConfigSection(report),
-      this.generateBasicStatsSection(report),
-      this.generateRiskMetricsSection(report),
-      this.generateScorecardSection(report.performanceScorecard)
+      this.generateBasicStatsSection(report)
     );
+
+    // Risk metrics section (optional)
+    if (options.includeRiskMetrics !== false) {
+      content.push(this.generateRiskMetricsSection(report));
+    }
+
+    // Scorecard section
+    content.push(this.generateScorecardSection(report.performanceScorecard));
 
     // Optional sections
     if (options.includeEquityCurve !== false && report.equityCurve.length > 0) {
@@ -131,32 +355,62 @@ export class ReportGenerator {
       content.push(this.generateDistributionSection(report));
     }
 
+    if (options.includeTradeList !== false && report.tradeAnalysis.length > 0) {
+      content.push(this.generateTradeListSection(report.tradeAnalysis));
+    }
+
     if (options.includeRecommendations !== false && report.recommendations.length > 0) {
       content.push(this.generateRecommendationsSection(report.recommendations));
     }
+
+    // Footer
+    content.push({
+      canvas: [
+        {
+          type: 'line',
+          x1: 0,
+          y1: 0,
+          x2: 515,
+          y2: 0,
+          lineWidth: 1,
+          lineColor: '#E0E0E0',
+        },
+      ],
+      margin: [0, 20, 0, 10] as [number, number, number, number],
+    });
+
+    content.push({
+      text: '本报告由 AlphaArena 自动生成 | 仅供参考，不构成投资建议',
+      style: 'footer',
+      alignment: 'center',
+    });
 
     const docDefinition = {
       pageSize: 'A4' as const,
       pageMargins: [40, 60, 40, 60],
       content,
       styles: {
-        header: { fontSize: 20, bold: true },
-        subheader: { fontSize: 10, color: '#666666' },
-        sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 5] as [number, number, number, number] },
-        tableHeader: { bold: true, fontSize: 9, fillColor: '#EEEEEE' },
+        header: { fontSize: 22, bold: true, color: '#1a1a1a' },
+        subtitle: { fontSize: 11, color: '#666666' },
+        brand: { fontSize: 14, bold: true, color: '#1890ff' },
+        subheader: { fontSize: 9, color: '#999999' },
+        sectionHeader: {
+          fontSize: 14,
+          bold: true,
+          color: '#1a1a1a',
+          margin: [0, 15, 0, 8] as [number, number, number, number],
+        },
+        tableHeader: { bold: true, fontSize: 9, fillColor: '#F5F5F5', color: '#333333' },
+        footer: { fontSize: 8, color: '#999999' },
       },
-      defaultStyle: { font: 'Helvetica' as const },
+      defaultStyle: { font: 'Helvetica' as const, fontSize: 10 },
     };
 
     return new Promise((resolve, reject) => {
       try {
         const pdfDoc = createPdf(docDefinition);
         pdfDoc.getBuffer((buffer: Buffer) => {
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-          const filename = options.title 
-            ? `${options.title.replace(/\s+/g, '_')}_${timestamp}.pdf`
-            : `backtest_report_${timestamp}.pdf`;
-
+          const filename = this.generateFilename(options, 'pdf');
           resolve({ content: buffer, contentType: 'application/pdf', filename });
         });
       } catch (error) {
@@ -166,44 +420,192 @@ export class ReportGenerator {
   }
 
   /**
-   * Generate Excel report
+   * Generate Excel report (CSV format with proper structure)
    */
   private async generateExcel(
     report: DeepAnalysisReport,
     options: ReportExportOptions
   ): Promise<{ content: Buffer; contentType: string; filename: string }> {
-    // Simplified Excel generation using CSV format for now
-    // A full implementation would use a library like exceljs
-    const sheets: string[] = [];
+    const filename = this.generateFilename(options, 'csv');
 
-    // Summary sheet
-    sheets.push(this.generateSummaryCSV(report));
+    // Generate comprehensive CSV with multiple sections
+    const sections: string[] = [];
 
-    // Equity curve sheet
-    if (options.includeEquityCurve !== false) {
-      sheets.push(this.generateEquityCurveCSV(report.equityCurve));
+    // Header with report info
+    sections.push(this.generateCSVHeader(report, options));
+
+    // Summary statistics section
+    sections.push('\n# 汇总统计 Summary Statistics');
+    sections.push(this.generateSummaryCSV(report));
+
+    // Risk metrics section
+    if (options.includeRiskMetrics !== false) {
+      sections.push('\n# 风险指标 Risk Metrics');
+      sections.push(this.generateRiskMetricsCSV(report));
     }
 
-    // Monthly performance sheet
-    if (options.includeMonthlyBreakdown !== false) {
-      sheets.push(this.generateMonthlyCSV(report.monthlyPerformance));
+    // Equity curve section
+    if (options.includeEquityCurve !== false && report.equityCurve.length > 0) {
+      sections.push('\n# 资金曲线 Equity Curve');
+      sections.push(this.generateEquityCurveCSV(report.equityCurve));
     }
 
-    // Trade list sheet
+    // Monthly performance section
+    if (options.includeMonthlyBreakdown !== false && report.monthlyPerformance.length > 0) {
+      sections.push('\n# 月度表现 Monthly Performance');
+      sections.push(this.generateMonthlyCSV(report.monthlyPerformance));
+    }
+
+    // Trade list section (complete trading details)
     if (options.includeTradeList !== false && report.tradeAnalysis.length > 0) {
-      sheets.push(this.generateTradeListCSV(report.tradeAnalysis));
+      sections.push('\n# 交易明细 Trade Details');
+      sections.push(this.generateTradeListCSV(report.tradeAnalysis));
     }
 
-    const content = sheets.join('\n\n--- Sheet ---\n\n');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const filename = options.title 
-      ? `${options.title.replace(/\s+/g, '_')}_${timestamp}.csv`
-      : `backtest_report_${timestamp}.csv`;
+    // Drawdown analysis section
+    if (options.includeDrawdownAnalysis !== false) {
+      sections.push('\n# 回撤分析 Drawdown Analysis');
+      sections.push(this.generateDrawdownCSV(report.drawdownAnalysis));
+    }
+
+    const content = sections.join('\n');
 
     return {
       content: Buffer.from(content, 'utf-8'),
       contentType: 'text/csv',
       filename,
+    };
+  }
+
+  /**
+   * Generate CSV header with report metadata
+   */
+  private generateCSVHeader(report: DeepAnalysisReport, options: ReportExportOptions): string {
+    const lines: string[] = [
+      `# 回测分析报告 Backtest Analysis Report`,
+      `# 生成时间 Generated: ${new Date(report.generatedAt).toLocaleString('zh-CN')}`,
+      `# 策略 Strategy: ${options.strategyName || report.config.strategy}`,
+      `# 交易对 Symbol: ${report.config.symbol}`,
+      `# 初始资金 Initial Capital: $${report.config.initialCapital.toFixed(2)}`,
+      `# 时间范围 Period: ${new Date(report.config.startTime).toLocaleDateString('zh-CN')} - ${new Date(report.config.endTime).toLocaleDateString('zh-CN')}`,
+    ];
+    return lines.join('\n');
+  }
+
+  /**
+   * Generate risk metrics CSV
+   */
+  private generateRiskMetricsCSV(report: DeepAnalysisReport): string {
+    const risk = report.riskMetrics;
+    const lines: string[] = [
+      '指标,数值,说明',
+      `夏普比率,${risk.sharpeRatio.toFixed(4)},风险调整后收益`,
+      `索提诺比率,${risk.sortinoRatio.toFixed(4)},下行风险调整后收益`,
+      `卡尔马比率,${risk.calmarRatio.toFixed(4)},年化收益与最大回撤比`,
+      `年化波动率,${(risk.volatility * 100).toFixed(2)}%,收益率标准差`,
+      `下行偏差,${(risk.downsideDeviation * 100).toFixed(2)}%,负收益波动率`,
+      `VaR (95%),${(risk.var95 * 100).toFixed(2)}%,95%置信度最大损失`,
+      `CVaR (95%),${(risk.cvar95 * 100).toFixed(2)}%,极端损失平均值`,
+      `最大连续亏损,${risk.maxConsecutiveLosses},连续亏损次数`,
+      `最大连续盈利,${risk.maxConsecutiveWins},连续盈利次数`,
+    ];
+    return lines.join('\n');
+  }
+
+  /**
+   * Generate drawdown analysis CSV
+   */
+  private generateDrawdownCSV(drawdown: any): string {
+    const lines: string[] = [
+      '指标,数值',
+      `最大回撤,${drawdown.maxDrawdown.toFixed(2)}%`,
+      `最大回撤持续时间,${(drawdown.maxDrawdownDuration / 1000 / 60 / 60).toFixed(2)}小时`,
+      `平均回撤,${drawdown.avgDrawdown.toFixed(2)}%`,
+      `恢复因子,${drawdown.recoveryFactor.toFixed(2)}`,
+      `水下时间占比,${(drawdown.timeUnderwater * 100).toFixed(2)}%`,
+    ];
+
+    if (drawdown.drawdownPeriods && drawdown.drawdownPeriods.length > 0) {
+      lines.push('\n回撤周期详情:');
+      lines.push('开始时间,谷底时间,结束时间,回撤%,持续时间(小时)');
+      for (const period of drawdown.drawdownPeriods.slice(0, 10)) {
+        lines.push(
+          `${new Date(period.startTimestamp).toLocaleString('zh-CN')},` +
+          `${new Date(period.troughTimestamp).toLocaleString('zh-CN')},` +
+          `${period.endTimestamp ? new Date(period.endTimestamp).toLocaleString('zh-CN') : '未恢复'},` +
+          `${period.drawdownPercent.toFixed(2)}%,` +
+          `${(period.duration / 1000 / 60 / 60).toFixed(2)}`
+        );
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Generate trade list section for PDF
+   */
+  private generateTradeListSection(trades: TradeAnalysis[]): any {
+    // Show first 10 and last 10 trades if too many
+    const displayTrades = trades.length <= 20 ? trades : [...trades.slice(0, 10), ...trades.slice(-10)];
+
+    const tableBody: any[][] = [
+      [
+        { text: 'ID', style: 'tableHeader' },
+        { text: '入场时间', style: 'tableHeader' },
+        { text: '出场时间', style: 'tableHeader' },
+        { text: '方向', style: 'tableHeader' },
+        { text: '入场价', style: 'tableHeader' },
+        { text: '出场价', style: 'tableHeader' },
+        { text: '数量', style: 'tableHeader' },
+        { text: '盈亏', style: 'tableHeader' },
+        { text: '盈亏%', style: 'tableHeader' },
+      ],
+    ];
+
+    for (const trade of displayTrades) {
+      tableBody.push([
+        trade.id.substring(0, 6),
+        new Date(trade.entryTime).toLocaleDateString('zh-CN'),
+        new Date(trade.exitTime).toLocaleDateString('zh-CN'),
+        trade.side === 'long' ? '多' : '空',
+        trade.entryPrice.toFixed(4),
+        trade.exitPrice.toFixed(4),
+        trade.quantity.toFixed(4),
+        {
+          text: `$${trade.pnl.toFixed(2)}`,
+          color: trade.pnl >= 0 ? 'green' : 'red',
+        },
+        {
+          text: `${trade.pnlPercent.toFixed(2)}%`,
+          color: trade.pnlPercent >= 0 ? 'green' : 'red',
+        },
+      ]);
+    }
+
+    return {
+      stack: [
+        { text: '交易明细', style: 'sectionHeader' },
+        {
+          text: `共 ${trades.length} 笔交易`,
+          style: 'subheader',
+          margin: [0, 0, 0, 5] as [number, number, number, number],
+        },
+        {
+          table: {
+            headerRows: 1,
+            widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto'],
+            body: tableBody,
+          },
+          layout: {
+            hLineWidth: () => 1,
+            vLineWidth: () => 1,
+            hLineColor: () => '#CCCCCC',
+            vLineColor: () => '#CCCCCC',
+          },
+        },
+      ],
+      margin: [0, 0, 0, 20] as [number, number, number, number],
     };
   }
 
@@ -492,19 +894,26 @@ export class ReportGenerator {
   }
 
   /**
-   * Generate summary CSV
+   * Generate summary CSV with complete metrics
    */
   private generateSummaryCSV(report: DeepAnalysisReport): string {
     const lines: string[] = [
-      '指标,数值',
-      `总回报率,${report.basicStats.totalReturn.toFixed(2)}%`,
-      `年化回报率,${report.basicStats.annualizedReturn.toFixed(2)}%`,
-      `最大回撤,${report.basicStats.maxDrawdown.toFixed(2)}%`,
-      `夏普比率,${report.basicStats.sharpeRatio.toFixed(4)}`,
-      `总交易数,${report.basicStats.totalTrades}`,
-      `胜率,${report.basicStats.winRate.toFixed(2)}%`,
-      `盈亏比,${report.basicStats.profitFactor.toFixed(4)}`,
-      `综合评分,${report.performanceScorecard.overallScore.toFixed(1)}`,
+      '指标,数值,说明',
+      `总回报率,${report.basicStats.totalReturn.toFixed(2)}%,策略总收益`,
+      `年化回报率,${report.basicStats.annualizedReturn.toFixed(2)}%,年化收益`,
+      `最大回撤,${report.basicStats.maxDrawdown.toFixed(2)}%,最大资金回撤`,
+      `夏普比率,${report.basicStats.sharpeRatio.toFixed(4)},风险调整后收益`,
+      `索提诺比率,${report.riskMetrics.sortinoRatio.toFixed(4)},下行风险调整后收益`,
+      `卡尔马比率,${report.riskMetrics.calmarRatio.toFixed(4)},收益回撤比`,
+      `总交易数,${report.basicStats.totalTrades},交易次数`,
+      `盈利交易,${report.basicStats.winningTrades},盈利次数`,
+      `亏损交易,${report.basicStats.losingTrades},亏损次数`,
+      `胜率,${report.basicStats.winRate.toFixed(2)}%,盈利交易占比`,
+      `平均盈利,${report.basicStats.avgWin.toFixed(2)},单笔平均盈利`,
+      `平均亏损,${report.basicStats.avgLoss.toFixed(2)},单笔平均亏损`,
+      `盈亏比,${report.basicStats.profitFactor.toFixed(4)},总盈亏比`,
+      `恢复因子,${report.drawdownAnalysis.recoveryFactor.toFixed(2)},收益/最大回撤`,
+      `综合评分,${report.performanceScorecard.overallScore.toFixed(1)},综合表现评分`,
     ];
     return lines.join('\n');
   }
@@ -536,13 +945,27 @@ export class ReportGenerator {
   }
 
   /**
-   * Generate trade list CSV
+   * Generate trade list CSV with complete trading details
    */
   private generateTradeListCSV(trades: TradeAnalysis[]): string {
     const lines: string[] = [
-      'ID,入场时间,出场时间,方向,入场价,出场价,数量,盈亏,盈亏%,持续时间(ms),是否盈利',
-      ...trades.map(t => 
-        `${t.id},${new Date(t.entryTime).toISOString()},${new Date(t.exitTime).toISOString()},${t.side},${t.entryPrice.toFixed(4)},${t.exitPrice.toFixed(4)},${t.quantity.toFixed(4)},${t.pnl.toFixed(4)},${t.pnlPercent.toFixed(4)},${t.duration},${t.isWinner}`
+      'ID,入场时间,出场时间,方向,入场价,出场价,数量,盈亏,盈亏%,持续时间(小时),是否盈利,MFE,MAE,风险回报比,出场原因',
+      ...trades.map(t =>
+        `${t.id},` +
+        `${new Date(t.entryTime).toISOString()},` +
+        `${new Date(t.exitTime).toISOString()},` +
+        `${t.side},` +
+        `${t.entryPrice.toFixed(4)},` +
+        `${t.exitPrice.toFixed(4)},` +
+        `${t.quantity.toFixed(4)},` +
+        `${t.pnl.toFixed(4)},` +
+        `${t.pnlPercent.toFixed(4)},` +
+        `${(t.duration / 1000 / 60 / 60).toFixed(2)},` +
+        `${t.isWinner},` +
+        `${t.mfe.toFixed(4)},` +
+        `${t.mae.toFixed(4)},` +
+        `${t.riskRewardRatio.toFixed(4)},` +
+        `${t.exitReason || 'signal'}`
       ),
     ];
     return lines.join('\n');
@@ -616,11 +1039,11 @@ export class ReportGenerator {
       try {
         const pdfDoc = createPdf(docDefinition);
         pdfDoc.getBuffer((buffer: Buffer) => {
-          const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+          const filename = this.generateFilename(options, 'pdf', 'strategy_comparison');
           resolve({
             content: buffer,
             contentType: 'application/pdf',
-            filename: `strategy_comparison_${timestamp}.pdf`,
+            filename,
           });
         });
       } catch (error) {
@@ -768,11 +1191,11 @@ export class ReportGenerator {
       lines.push(`${m.label},${values.join(',')}`);
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = this.generateFilename(options, 'csv', 'strategy_comparison');
     return {
       content: Buffer.from(lines.join('\n'), 'utf-8'),
       contentType: 'text/csv',
-      filename: `strategy_comparison_${timestamp}.csv`,
+      filename,
     };
   }
 
@@ -783,11 +1206,11 @@ export class ReportGenerator {
     comparison: ComparisonReport,
     options: ReportExportOptions
   ): { content: string; contentType: string; filename: string } {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = this.generateFilename(options, 'json', 'strategy_comparison');
     return {
       content: JSON.stringify(comparison, null, 2),
       contentType: 'application/json',
-      filename: `strategy_comparison_${timestamp}.json`,
+      filename,
     };
   }
 }

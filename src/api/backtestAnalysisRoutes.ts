@@ -273,4 +273,61 @@ router.get('/export-formats', (req: Request, res: Response) => {
   });
 });
 
+/**
+ * POST /api/backtest-analysis/export-with-share
+ * Export analysis report with shareable link
+ */
+router.post('/export-with-share', async (req: Request, res: Response) => {
+  try {
+    const { config, exportOptions, shareOptions } = req.body as {
+      config: BacktestConfig;
+      exportOptions: ReportExportOptions;
+      shareOptions?: { generateLink?: boolean; linkExpirationHours?: number };
+    };
+
+    log.info('Exporting backtest report with share:', { format: exportOptions?.format });
+
+    if (!config) {
+      return res.status(400).json({ error: 'Backtest configuration is required' });
+    }
+
+    if (!exportOptions || !exportOptions.format) {
+      return res.status(400).json({ error: 'Export format is required' });
+    }
+
+    // Run backtest
+    const engine = new BacktestEngine(config);
+    const backtestResult = engine.run();
+
+    // Generate analysis
+    const analyzer = new BacktestAnalyzer(backtestResult);
+    const report = analyzer.generateReport();
+
+    // Generate export with share
+    const generator = new ReportGenerator();
+    const exportResult = await generator.generateWithShare(report, exportOptions, shareOptions);
+
+    log.info('Report exported with share:', {
+      filename: exportResult.filename,
+      shareLink: exportResult.share?.link,
+    });
+
+    // Return export result with share info
+    res.json({
+      success: true,
+      filename: exportResult.filename,
+      size: exportResult.size,
+      contentType: exportResult.contentType,
+      share: exportResult.share,
+      // Include the content as base64 for download
+      content: exportResult.content.toString('base64'),
+    });
+  } catch (error: any) {
+    log.error('Report export with share failed:', error);
+    res.status(500).json({
+      error: error.message || 'Report export failed',
+    });
+  }
+});
+
 export default router;

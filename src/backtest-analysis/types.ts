@@ -402,6 +402,60 @@ export interface ReportExportOptions {
   title?: string;
   /** Locale for formatting */
   locale?: string;
+  /** Strategy name for filename */
+  strategyName?: string;
+  /** Time range filter - start timestamp */
+  startTime?: number;
+  /** Time range filter - end timestamp */
+  endTime?: number;
+  /** Include risk metrics */
+  includeRiskMetrics?: boolean;
+  /** Include drawdown analysis */
+  includeDrawdownAnalysis?: boolean;
+  /** Include position analysis */
+  includePositionAnalysis?: boolean;
+}
+
+/**
+ * Share options for reports
+ */
+export interface ShareOptions {
+  /** Generate shareable link */
+  generateLink?: boolean;
+  /** Link expiration time in hours (default: 24) */
+  linkExpirationHours?: number;
+  /** Share to social platforms */
+  shareTo?: ('twitter' | 'telegram' | 'wechat')[];
+  /** Custom share message */
+  shareMessage?: string;
+}
+
+/**
+ * Share result
+ */
+export interface ShareResult {
+  /** Shareable link */
+  link: string;
+  /** Expiration timestamp */
+  expiresAt: number;
+  /** QR code data URL (for mobile sharing) */
+  qrCodeDataUrl?: string;
+}
+
+/**
+ * Export result with share info
+ */
+export interface EnhancedExportResult {
+  /** File content (string for JSON/CSV, Buffer for PDF) */
+  content: string | Buffer;
+  /** Content type (mime type) */
+  contentType: string;
+  /** Suggested filename */
+  filename: string;
+  /** File size in bytes */
+  size: number;
+  /** Share result (if share options provided) */
+  share?: ShareResult;
 }
 
 /**
