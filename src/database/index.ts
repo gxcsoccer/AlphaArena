@@ -33,6 +33,25 @@ export { CommentsDAO, commentsDAO, StrategyComment, CommentLike, CommentReport, 
 export { RiskMonitorDAO, riskMonitorDAO, type RiskAlert, type CreateRiskAlertInput, type UpdateRiskAlertInput, type RiskAlertHistoryEntry, type RiskHistoryEntry, type CreateRiskHistoryInput, type PositionRisk, type CreatePositionRiskInput, type CorrelationEntry, type CreateCorrelationInput, type RiskHistoryFilters, type RiskAlertFilters, type RiskMetric, type AlertOperator, type AlertChannel, type RiskPeriodType } from './risk-monitor.dao';
 export * from './ai.dao.js';
 
+// Exchange Accounts DAO
+export { 
+  ExchangeAccountsDAO, 
+  type ExchangeAccount, 
+  type AccountBalance, 
+  type AccountPosition, 
+  type AccountGroup,
+  type UnifiedAccountSummary,
+  type AccountSummaryItem,
+  type UnifiedPositionSummary,
+  type CreateExchangeAccountData, 
+  type UpdateExchangeAccountData,
+  type CreateAccountGroupData,
+  type UpdateAccountGroupData,
+  type ExchangeType,
+  type AccountStatus,
+  type AccountEnvironment
+} from './exchange-accounts.dao';
+
 // Database manager for easy access
 import { StrategiesDAO } from './strategies.dao';
 import { TradesDAO } from './trades.dao';
