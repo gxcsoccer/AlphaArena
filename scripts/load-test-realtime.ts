@@ -8,7 +8,6 @@ import {
   LRUCache,
   IncrementalUpdater,
   PerformanceMetricsCollector,
-  RealtimePerformanceManager,
 } from '../src/realtime';
 
 interface LoadTestResult {
@@ -33,7 +32,7 @@ async function runLoadTest(name: string, iterations: number, fn: () => Promise<v
   for (let i = 0; i < iterations; i++) {
     try {
       await metrics.measure(name, async () => { await fn(); });
-    } catch (error) {
+    } catch {
       errors++;
     }
   }
