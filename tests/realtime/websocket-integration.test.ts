@@ -8,6 +8,9 @@
  * - Disconnection reconnection mechanism
  * - Multi-client synchronization
  * 
+ * Related: Issue #409 - WebSocket 实时信号推送集成测试
+ * See also: websocket-signal-integration.test.ts for comprehensive signal push tests
+ * 
  * Note: Uses mocked WebSocket components for JSDOM compatibility
  */
 
