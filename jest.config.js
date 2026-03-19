@@ -21,8 +21,20 @@ module.exports = {
   clearMocks: true,
   restoreMocks: true,
   // Memory-intensive test files that should run in isolation
+  // E2E tests use Puppeteer, not Jest - exclude them
+  // Vitest-based tests should be run with vitest, not jest - exclude them
   testPathIgnorePatterns: [
     '/node_modules/',
+    '/tests/e2e/',
+    '/tests/ui/',
+    // Vitest-based test files (they import from 'vitest')
+    'useBacktest\\.test\\.ts$',
+    'useNotifications\\.test\\.ts$',
+    'usePortfolioRealtime\\.test\\.ts$',
+    'useStrategyComparison\\.test\\.ts$',
+    'virtual-account\\.dao\\.test\\.ts$',
+    'VirtualAccountService\\.test\\.ts$',
+    'BacktestCharts\\.test\\.tsx$',
   ],
   // Run memory-heavy tests sequentially to avoid OOM
   maxConcurrency: 5,
@@ -63,7 +75,15 @@ module.exports = {
     '^./config$': '<rootDir>/tests/__mocks__/config.ts',
     // Handle marked ESM module - use UMD build
     '^marked$': '<rootDir>/node_modules/marked/lib/marked.umd.js',
+    // Mock CSS files
+    '^.+\\.css$': '<rootDir>/tests/__mocks__/styleMock.ts',
+    // Mock jsdom to avoid ESM issues
+    '^jsdom$': '<rootDir>/tests/__mocks__/jsdom.ts',
+    // Mock pdfmake for tests
+    '^pdfmake$': '<rootDir>/tests/__mocks__/pdfmake.ts',
   },
-  // Don't transform any node_modules - let them use their native format
-  transformIgnorePatterns: ['node_modules/'],
+  // Transform ESM modules that need to be transpiled
+  transformIgnorePatterns: [
+    'node_modules/(?!(jsdom|@exodus/bytes|html-encoding-sniffer|whatwg-url|whatwg-encoding|parse5|w3c-xmlserializer|xml-name-validator|saxes|symbol-tree|tough-cookie|data-urls|form-data|domexception|abort-controller|node-fetch|web-streams-polyfill|encoding-sniffer)/)',
+  ],
 };
