@@ -7,6 +7,7 @@
 
 import { APIServer } from './api/server';
 import { getPriceAlertMonitor } from './monitoring/PriceAlertMonitor';
+import { PaperTradingEngine } from './services/PaperTradingEngine';
 
 // Get port from environment variable or use default
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
@@ -27,7 +28,7 @@ const server = new APIServer({
 });
 
 server.start()
-  .then(() => {
+  .then(async () => {
     console.log(`[Startup] Server is running on port ${PORT}`);
     console.log(`[Startup] Health check: http://localhost:${PORT}/health`);
     
@@ -37,6 +38,23 @@ server.start()
     });
     alertMonitor.start();
     console.log('[Startup] Price alert monitor started');
+    
+    // Start paper trading engine
+    try {
+      const tradingEngine = PaperTradingEngine.getInstance({
+        feeConfig: {
+          commission: 0.0003,      // 0.03%
+          minCommission: 5,        // $5 minimum
+          stamp: 0.001,            // 0.1% (sell only)
+          transfer: 0.00001,       // 0.001%
+        },
+        priceCheckIntervalMs: 1000,
+      });
+      await tradingEngine.start();
+      console.log('[Startup] Paper trading engine started');
+    } catch (error) {
+      console.error('[Startup] Error starting paper trading engine:', error);
+    }
   })
   .catch((error) => {
     console.error('[Startup] Failed to start server:', error);
@@ -46,6 +64,15 @@ server.start()
 // Handle graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`[Startup] ${signal} received, shutting down gracefully...`);
+  
+  // Stop paper trading engine
+  try {
+    const tradingEngine = PaperTradingEngine.getInstance();
+    tradingEngine.stop();
+    console.log('[Startup] Paper trading engine stopped');
+  } catch (error) {
+    console.error('[Startup] Error stopping trading engine:', error);
+  }
   
   // Stop price alert monitor
   try {

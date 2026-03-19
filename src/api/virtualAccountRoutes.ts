@@ -427,7 +427,7 @@ export function createVirtualAccountRouter(): Router {
    * /api/account/orders/buy:
    *   post:
    *     summary: Place a buy order
-   *     description: Place a buy order (market or limit)
+   *     description: Place a buy order (market, limit, stop, or stop-limit)
    *     tags: [Virtual Account]
    *     security:
    *       - bearerAuth: []
@@ -448,10 +448,13 @@ export function createVirtualAccountRouter(): Router {
    *                 type: number
    *               orderType:
    *                 type: string
-   *                 enum: [market, limit]
+   *                 enum: [market, limit, stop, stop_limit]
    *               price:
    *                 type: number
-   *                 description: Required for limit orders
+   *                 description: Required for limit and stop-limit orders
+   *               stopPrice:
+   *                 type: number
+   *                 description: Required for stop and stop-limit orders
    *               timeInForce:
    *                 type: string
    *                 enum: [GTC, IOC, FOK, GTD]
@@ -475,7 +478,7 @@ export function createVirtualAccountRouter(): Router {
         });
       }
 
-      const { symbol, quantity, orderType, price, timeInForce, expiresAt } = req.body;
+      const { symbol, quantity, orderType, price, stopPrice, timeInForce, expiresAt } = req.body;
 
       if (!symbol || !quantity || !orderType) {
         return res.status(400).json({
@@ -491,12 +494,27 @@ export function createVirtualAccountRouter(): Router {
         });
       }
 
+      if ((orderType === 'stop' || orderType === 'stop_limit') && !stopPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Stop price is required for stop and stop-limit orders',
+        });
+      }
+
+      if (orderType === 'stop_limit' && !price) {
+        return res.status(400).json({
+          success: false,
+          error: 'Price is required for stop-limit orders',
+        });
+      }
+
       const result = await service.placeBuyOrder({
         userId: req.user.id,
         symbol,
         quantity,
         orderType,
         price,
+        stopPrice,
         timeInForce,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
       });
@@ -529,7 +547,7 @@ export function createVirtualAccountRouter(): Router {
    * /api/account/orders/sell:
    *   post:
    *     summary: Place a sell order
-   *     description: Place a sell order (market or limit)
+   *     description: Place a sell order (market, limit, stop, stop-limit, or take-profit)
    *     tags: [Virtual Account]
    *     security:
    *       - bearerAuth: []
@@ -550,10 +568,13 @@ export function createVirtualAccountRouter(): Router {
    *                 type: number
    *               orderType:
    *                 type: string
-   *                 enum: [market, limit]
+   *                 enum: [market, limit, stop, stop_limit, take_profit]
    *               price:
    *                 type: number
-   *                 description: Required for limit orders
+   *                 description: Required for limit and stop-limit orders
+   *               stopPrice:
+   *                 type: number
+   *                 description: Required for stop, stop-limit, and take-profit orders
    *               timeInForce:
    *                 type: string
    *                 enum: [GTC, IOC, FOK, GTD]
@@ -577,7 +598,7 @@ export function createVirtualAccountRouter(): Router {
         });
       }
 
-      const { symbol, quantity, orderType, price, timeInForce, expiresAt } = req.body;
+      const { symbol, quantity, orderType, price, stopPrice, timeInForce, expiresAt } = req.body;
 
       if (!symbol || !quantity || !orderType) {
         return res.status(400).json({
@@ -593,12 +614,27 @@ export function createVirtualAccountRouter(): Router {
         });
       }
 
+      if ((orderType === 'stop' || orderType === 'stop_limit' || orderType === 'take_profit') && !stopPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Stop price is required for stop, stop-limit, and take-profit orders',
+        });
+      }
+
+      if (orderType === 'stop_limit' && !price) {
+        return res.status(400).json({
+          success: false,
+          error: 'Price is required for stop-limit orders',
+        });
+      }
+
       const result = await service.placeSellOrder({
         userId: req.user.id,
         symbol,
         quantity,
         orderType,
         price,
+        stopPrice,
         timeInForce,
         expiresAt: expiresAt ? new Date(expiresAt) : undefined,
       });
@@ -675,6 +711,441 @@ export function createVirtualAccountRouter(): Router {
       }
     } catch (error: any) {
       log.error('Error cancelling order:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/account/orders/{orderId}/modify:
+   *   put:
+   *     summary: Modify an order
+   *     description: Modify price, stop price, or quantity of an open order
+   *     tags: [Virtual Account]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: orderId
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               price:
+   *                 type: number
+   *               stopPrice:
+   *                 type: number
+   *               quantity:
+   *                 type: number
+   *     responses:
+   *       200:
+   *         description: Order modified successfully
+   *       400:
+   *         description: Cannot modify order
+   *       404:
+   *         description: Order not found
+   */
+  router.put('/account/orders/:orderId/modify', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      const orderId = Array.isArray(req.params.orderId) ? req.params.orderId[0] : req.params.orderId;
+      const { price, stopPrice, quantity } = req.body;
+
+      const result = await service.modifyOrder(req.user.id, orderId, {
+        price,
+        stopPrice,
+        quantity,
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: result.order,
+          message: 'Order modified successfully',
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error: any) {
+      log.error('Error modifying order:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  // ============================================
+  // Advanced Order Endpoints
+  // ============================================
+
+  /**
+   * @swagger
+   * /api/account/orders/stop-loss:
+   *   post:
+   *     summary: Place a stop-loss order
+   *     description: Place a stop-loss order that triggers a market order when price reaches stop price
+   *     tags: [Virtual Account]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - symbol
+   *               - side
+   *               - quantity
+   *               - stopPrice
+   *             properties:
+   *               symbol:
+   *                 type: string
+   *               side:
+   *                 type: string
+   *                 enum: [buy, sell]
+   *               quantity:
+   *                 type: number
+   *               stopPrice:
+   *                 type: number
+   *               timeInForce:
+   *                 type: string
+   *                 enum: [GTC, IOC, FOK, GTD]
+   *               expiresAt:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       200:
+   *         description: Stop-loss order placed successfully
+   */
+  router.post('/account/orders/stop-loss', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      const { symbol, side, quantity, stopPrice, timeInForce, expiresAt } = req.body;
+
+      if (!symbol || !side || !quantity || !stopPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: symbol, side, quantity, stopPrice',
+        });
+      }
+
+      const result = await service.placeStopLossOrder({
+        userId: req.user.id,
+        symbol,
+        side,
+        quantity,
+        stopPrice,
+        timeInForce,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: result.order,
+          message: 'Stop-loss order placed successfully',
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error: any) {
+      log.error('Error placing stop-loss order:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/account/orders/stop-limit:
+   *   post:
+   *     summary: Place a stop-limit order
+   *     description: Place a stop-limit order that becomes a limit order when price reaches stop price
+   *     tags: [Virtual Account]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - symbol
+   *               - side
+   *               - quantity
+   *               - stopPrice
+   *               - limitPrice
+   *             properties:
+   *               symbol:
+   *                 type: string
+   *               side:
+   *                 type: string
+   *                 enum: [buy, sell]
+   *               quantity:
+   *                 type: number
+   *               stopPrice:
+   *                 type: number
+   *               limitPrice:
+   *                 type: number
+   *               timeInForce:
+   *                 type: string
+   *                 enum: [GTC, IOC, FOK, GTD]
+   *               expiresAt:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       200:
+   *         description: Stop-limit order placed successfully
+   */
+  router.post('/account/orders/stop-limit', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      const { symbol, side, quantity, stopPrice, limitPrice, timeInForce, expiresAt } = req.body;
+
+      if (!symbol || !side || !quantity || !stopPrice || !limitPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: symbol, side, quantity, stopPrice, limitPrice',
+        });
+      }
+
+      const result = await service.placeStopLimitOrder({
+        userId: req.user.id,
+        symbol,
+        side,
+        quantity,
+        stopPrice,
+        limitPrice,
+        timeInForce,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: result.order,
+          message: 'Stop-limit order placed successfully',
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error: any) {
+      log.error('Error placing stop-limit order:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/account/orders/take-profit:
+   *   post:
+   *     summary: Place a take-profit order
+   *     description: Place a take-profit order to sell when price reaches target
+   *     tags: [Virtual Account]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - symbol
+   *               - quantity
+   *               - targetPrice
+   *             properties:
+   *               symbol:
+   *                 type: string
+   *               quantity:
+   *                 type: number
+   *               targetPrice:
+   *                 type: number
+   *               timeInForce:
+   *                 type: string
+   *                 enum: [GTC, IOC, FOK, GTD]
+   *               expiresAt:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       200:
+   *         description: Take-profit order placed successfully
+   */
+  router.post('/account/orders/take-profit', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      const { symbol, quantity, targetPrice, timeInForce, expiresAt } = req.body;
+
+      if (!symbol || !quantity || !targetPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: symbol, quantity, targetPrice',
+        });
+      }
+
+      const result = await service.placeTakeProfitOrder({
+        userId: req.user.id,
+        symbol,
+        quantity,
+        targetPrice,
+        timeInForce,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: result.order,
+          message: 'Take-profit order placed successfully',
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error: any) {
+      log.error('Error placing take-profit order:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * @swagger
+   * /api/account/orders/bracket:
+   *   post:
+   *     summary: Place a bracket order (OCO)
+   *     description: Place a bracket order combining stop-loss and take-profit orders
+   *     tags: [Virtual Account]
+   *     security:
+   *       - bearerAuth: []
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - symbol
+   *               - quantity
+   *               - stopLossPrice
+   *               - takeProfitPrice
+   *             properties:
+   *               symbol:
+   *                 type: string
+   *               quantity:
+   *                 type: number
+   *               stopLossPrice:
+   *                 type: number
+   *               takeProfitPrice:
+   *                 type: number
+   *               timeInForce:
+   *                 type: string
+   *                 enum: [GTC, IOC, FOK, GTD]
+   *               expiresAt:
+   *                 type: string
+   *                 format: date-time
+   *     responses:
+   *       200:
+   *         description: Bracket order placed successfully
+   */
+  router.post('/account/orders/bracket', authMiddleware, async (req: Request, res: Response) => {
+    try {
+      if (!req.user?.id) {
+        return res.status(401).json({
+          success: false,
+          error: 'User not authenticated',
+        });
+      }
+
+      const { symbol, quantity, stopLossPrice, takeProfitPrice, timeInForce, expiresAt } = req.body;
+
+      if (!symbol || !quantity || !stopLossPrice || !takeProfitPrice) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: symbol, quantity, stopLossPrice, takeProfitPrice',
+        });
+      }
+
+      const result = await service.placeBracketOrder({
+        userId: req.user.id,
+        symbol,
+        quantity,
+        stopLossPrice,
+        takeProfitPrice,
+        timeInForce,
+        expiresAt: expiresAt ? new Date(expiresAt) : undefined,
+      });
+
+      if (result.success) {
+        res.json({
+          success: true,
+          data: {
+            stopLossOrder: result.stopLossOrder,
+            takeProfitOrder: result.takeProfitOrder,
+          },
+          message: 'Bracket order placed successfully',
+        });
+      } else {
+        res.status(400).json({
+          success: false,
+          error: result.error,
+        });
+      }
+    } catch (error: any) {
+      log.error('Error placing bracket order:', error);
       res.status(500).json({
         success: false,
         error: error.message,

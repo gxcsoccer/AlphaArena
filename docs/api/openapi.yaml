@@ -1465,7 +1465,7 @@ paths:
   /api/account/orders/buy:
     post:
       summary: 'Place a buy order'
-      description: 'Place a buy order (market or limit)'
+      description: 'Place a buy order (market, limit, stop, or stop-limit)'
       tags:
         - 'Virtual Account'
       security:
@@ -1488,10 +1488,13 @@ paths:
                   type: number
                 orderType:
                   type: string
-                  enum: [market, limit]
+                  enum: [market, limit, stop, stop_limit]
                 price:
                   type: number
-                  description: 'Required for limit orders'
+                  description: 'Required for limit and stop-limit orders'
+                stopPrice:
+                  type: number
+                  description: 'Required for stop and stop-limit orders'
                 timeInForce:
                   type: string
                   enum: [GTC, IOC, FOK, GTD]
@@ -1508,7 +1511,7 @@ paths:
   /api/account/orders/sell:
     post:
       summary: 'Place a sell order'
-      description: 'Place a sell order (market or limit)'
+      description: 'Place a sell order (market, limit, stop, stop-limit, or take-profit)'
       tags:
         - 'Virtual Account'
       security:
@@ -1531,10 +1534,13 @@ paths:
                   type: number
                 orderType:
                   type: string
-                  enum: [market, limit]
+                  enum: [market, limit, stop, stop_limit, take_profit]
                 price:
                   type: number
-                  description: 'Required for limit orders'
+                  description: 'Required for limit and stop-limit orders'
+                stopPrice:
+                  type: number
+                  description: 'Required for stop, stop-limit, and take-profit orders'
                 timeInForce:
                   type: string
                   enum: [GTC, IOC, FOK, GTD]
@@ -1571,6 +1577,195 @@ paths:
           description: 'Cannot cancel order'
         '404':
           description: 'Order not found'
+  '/api/account/orders/{orderId}/modify':
+    put:
+      summary: 'Modify an order'
+      description: 'Modify price, stop price, or quantity of an open order'
+      tags:
+        - 'Virtual Account'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: orderId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                price:
+                  type: number
+                stopPrice:
+                  type: number
+                quantity:
+                  type: number
+      responses:
+        '200':
+          description: 'Order modified successfully'
+        '400':
+          description: 'Cannot modify order'
+        '404':
+          description: 'Order not found'
+  /api/account/orders/stop-loss:
+    post:
+      summary: 'Place a stop-loss order'
+      description: 'Place a stop-loss order that triggers a market order when price reaches stop price'
+      tags:
+        - 'Virtual Account'
+      security:
+        -
+          bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - side
+                - quantity
+                - stopPrice
+              properties:
+                symbol:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                quantity:
+                  type: number
+                stopPrice:
+                  type: number
+                timeInForce:
+                  type: string
+                  enum: [GTC, IOC, FOK, GTD]
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'Stop-loss order placed successfully'
+  /api/account/orders/stop-limit:
+    post:
+      summary: 'Place a stop-limit order'
+      description: 'Place a stop-limit order that becomes a limit order when price reaches stop price'
+      tags:
+        - 'Virtual Account'
+      security:
+        -
+          bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - side
+                - quantity
+                - stopPrice
+                - limitPrice
+              properties:
+                symbol:
+                  type: string
+                side:
+                  type: string
+                  enum: [buy, sell]
+                quantity:
+                  type: number
+                stopPrice:
+                  type: number
+                limitPrice:
+                  type: number
+                timeInForce:
+                  type: string
+                  enum: [GTC, IOC, FOK, GTD]
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'Stop-limit order placed successfully'
+  /api/account/orders/take-profit:
+    post:
+      summary: 'Place a take-profit order'
+      description: 'Place a take-profit order to sell when price reaches target'
+      tags:
+        - 'Virtual Account'
+      security:
+        -
+          bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - quantity
+                - targetPrice
+              properties:
+                symbol:
+                  type: string
+                quantity:
+                  type: number
+                targetPrice:
+                  type: number
+                timeInForce:
+                  type: string
+                  enum: [GTC, IOC, FOK, GTD]
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'Take-profit order placed successfully'
+  /api/account/orders/bracket:
+    post:
+      summary: 'Place a bracket order (OCO)'
+      description: 'Place a bracket order combining stop-loss and take-profit orders'
+      tags:
+        - 'Virtual Account'
+      security:
+        -
+          bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - symbol
+                - quantity
+                - stopLossPrice
+                - takeProfitPrice
+              properties:
+                symbol:
+                  type: string
+                quantity:
+                  type: number
+                stopLossPrice:
+                  type: number
+                takeProfitPrice:
+                  type: number
+                timeInForce:
+                  type: string
+                  enum: [GTC, IOC, FOK, GTD]
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 'Bracket order placed successfully'
   /api/account/transactions:
     get:
       summary: 'Get transaction history'

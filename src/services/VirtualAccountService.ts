@@ -17,8 +17,9 @@ export interface BuyOrderParams {
   userId: string;
   symbol: string;
   quantity: number;
-  orderType: 'market' | 'limit';
-  price?: number;  // Required for limit orders
+  orderType: 'market' | 'limit' | 'stop' | 'stop_limit';
+  price?: number;        // Required for limit/stop-limit orders
+  stopPrice?: number;    // Required for stop/stop-limit orders
   timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
   expiresAt?: Date;
 }
@@ -27,8 +28,9 @@ export interface SellOrderParams {
   userId: string;
   symbol: string;
   quantity: number;
-  orderType: 'market' | 'limit';
-  price?: number;
+  orderType: 'market' | 'limit' | 'stop' | 'stop_limit' | 'take_profit';
+  price?: number;        // Required for limit/stop-limit orders
+  stopPrice?: number;    // Required for stop/stop-limit/take_profit orders
   timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
   expiresAt?: Date;
 }
@@ -384,6 +386,161 @@ export class VirtualAccountService {
     }
     
     return order;
+  }
+
+  // ============================================
+  // Advanced Order Types
+  // ============================================
+
+  /**
+   * Place a stop-loss order
+   */
+  async placeStopLossOrder(params: {
+    userId: string;
+    symbol: string;
+    side: 'buy' | 'sell';
+    quantity: number;
+    stopPrice: number;
+    timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
+    expiresAt?: Date;
+  }): Promise<OrderResult> {
+    const { PaperTradingEngine } = await import('./PaperTradingEngine');
+    const engine = PaperTradingEngine.getInstance();
+    return engine.submitOrder({
+      userId: params.userId,
+      symbol: params.symbol,
+      side: params.side,
+      type: 'stop',
+      quantity: params.quantity,
+      stopPrice: params.stopPrice,
+      timeInForce: params.timeInForce,
+      expiresAt: params.expiresAt,
+    });
+  }
+
+  /**
+   * Place a stop-limit order
+   */
+  async placeStopLimitOrder(params: {
+    userId: string;
+    symbol: string;
+    side: 'buy' | 'sell';
+    quantity: number;
+    stopPrice: number;
+    limitPrice: number;
+    timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
+    expiresAt?: Date;
+  }): Promise<OrderResult> {
+    const { PaperTradingEngine } = await import('./PaperTradingEngine');
+    const engine = PaperTradingEngine.getInstance();
+    return engine.submitOrder({
+      userId: params.userId,
+      symbol: params.symbol,
+      side: params.side,
+      type: 'stop_limit',
+      quantity: params.quantity,
+      price: params.limitPrice,
+      stopPrice: params.stopPrice,
+      timeInForce: params.timeInForce,
+      expiresAt: params.expiresAt,
+    });
+  }
+
+  /**
+   * Place a take-profit order
+   */
+  async placeTakeProfitOrder(params: {
+    userId: string;
+    symbol: string;
+    quantity: number;
+    targetPrice: number;
+    timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
+    expiresAt?: Date;
+  }): Promise<OrderResult> {
+    const { PaperTradingEngine } = await import('./PaperTradingEngine');
+    const engine = PaperTradingEngine.getInstance();
+    return engine.submitOrder({
+      userId: params.userId,
+      symbol: params.symbol,
+      side: 'sell',
+      type: 'take_profit',
+      quantity: params.quantity,
+      stopPrice: params.targetPrice,
+      timeInForce: params.timeInForce,
+      expiresAt: params.expiresAt,
+    });
+  }
+
+  /**
+   * Place a bracket order (OCO: One-Cancels-Other)
+   */
+  async placeBracketOrder(params: {
+    userId: string;
+    symbol: string;
+    quantity: number;
+    stopLossPrice: number;
+    takeProfitPrice: number;
+    timeInForce?: 'GTC' | 'IOC' | 'FOK' | 'GTD';
+    expiresAt?: Date;
+  }): Promise<{ success: boolean; stopLossOrder?: VirtualOrder; takeProfitOrder?: VirtualOrder; error?: string }> {
+    try {
+      // Create stop-loss order
+      const stopLossResult = await this.placeStopLossOrder({
+        userId: params.userId,
+        symbol: params.symbol,
+        side: 'sell',
+        quantity: params.quantity,
+        stopPrice: params.stopLossPrice,
+        timeInForce: params.timeInForce,
+        expiresAt: params.expiresAt,
+      });
+
+      if (!stopLossResult.success) {
+        return { success: false, error: stopLossResult.error };
+      }
+
+      // Create take-profit order
+      const takeProfitResult = await this.placeTakeProfitOrder({
+        userId: params.userId,
+        symbol: params.symbol,
+        quantity: params.quantity,
+        targetPrice: params.takeProfitPrice,
+        timeInForce: params.timeInForce,
+        expiresAt: params.expiresAt,
+      });
+
+      if (!takeProfitResult.success) {
+        // Cancel the stop-loss order if take-profit fails
+        await this.cancelOrder(params.userId, stopLossResult.order!.id);
+        return { success: false, error: takeProfitResult.error };
+      }
+
+      return {
+        success: true,
+        stopLossOrder: stopLossResult.order,
+        takeProfitOrder: takeProfitResult.order,
+      };
+    } catch (error: any) {
+      log.error('Error placing bracket order:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Modify an existing order
+   */
+  async modifyOrder(
+    userId: string,
+    orderId: string,
+    updates: {
+      price?: number;
+      stopPrice?: number;
+      quantity?: number;
+    }
+  ): Promise<OrderResult> {
+    const { PaperTradingEngine } = await import('./PaperTradingEngine');
+    const engine = PaperTradingEngine.getInstance();
+    return engine.modifyOrder(userId, orderId, updates);
   }
 
   // ============================================
