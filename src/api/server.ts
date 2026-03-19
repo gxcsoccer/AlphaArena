@@ -63,6 +63,7 @@ import backtestLiveRoutes from './backtestLiveRoutes';
 import riskAlertsRoutes from './risk-alerts';
 import { createRecommendationRouter } from './recommendationRoutes';
 import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
+import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createLogger } from '../utils/logger';
 
 // Create logger for this module
@@ -981,6 +982,9 @@ export class APIServer extends EventEmitter {
 
     // AI Strategy Recommendation routes
     this.app.use('/api', createRecommendationRouter());
+
+    // Multi-Exchange Account Management routes
+    this.app.use('/api', createExchangeAccountsRouter());
 
     // 404 handler
     this.app.use((req: Request, res: Response) => {
