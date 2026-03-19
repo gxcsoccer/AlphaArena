@@ -1,0 +1,29 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "虚拟账户页面测试"
+    flow:
+      - ai: "直接导航到 /virtual-account 页面"
+      - aiWaitFor: "等待页面加载完成"
+      - aiAssert: "页面成功加载，没有显示404错误"
+      - aiQuery: "描述页面上显示的内容和功能"
+  - name: "策略组合页面测试"
+    flow:
+      - ai: "导航到 /strategy-portfolio 页面"
+      - aiWaitFor: "等待页面加载完成"
+      - aiAssert: "页面成功加载"
+      - aiQuery: "描述页面上显示的内容和功能"
+  - name: "策略性能页面测试"
+    flow:
+      - ai: "导航到 /performance 页面"
+      - aiWaitFor: "等待页面加载完成"
+      - aiAssert: "页面成功加载"
+      - aiQuery: "描述页面上显示的内容和功能"
+  - name: "主页交互测试"
+    flow:
+      - ai: "导航到主页 /"
+      - aiAssert: "主页正常显示，可以看到四个智能代理"
+      - ai: "点击页面上任何可能的“开始交易”或“进入交易”按钮"
+      - aiWaitFor: "等待页面跳转或功能展开"
+      - aiQuery: "描述页面上所有可交互的按钮和链接"

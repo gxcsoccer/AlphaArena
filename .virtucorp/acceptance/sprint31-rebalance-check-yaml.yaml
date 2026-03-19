@@ -1,0 +1,9 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "再平衡页面验证"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/rebalance"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面成功加载，显示再平衡或资产配置相关内容"

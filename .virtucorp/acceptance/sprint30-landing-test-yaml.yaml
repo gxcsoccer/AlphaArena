@@ -1,0 +1,15 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "落地页和钱包连接"
+    flow:
+      - ai: "访问主页 https://alpha-arena.vercel.app"
+      - aiAssert: "落地页正常显示，可以看到四个智能代理(Prophet, Trend Hunter, Data Demon, Sentiment Sage)和“Trade Against Smart Agents”标题"
+      - ai: "点击页面上的“Connect Wallet”按钮"
+      - ai: "如果没有钱包弹窗出现，检查是否有其他入口可以进入应用"
+  - name: "页面交互元素分析"
+    flow:
+      - aiQuery: "列出页面上所有可点击的按钮和链接"
+      - aiAssert: "页面有Connect Wallet按钮"
+      - ai: "如果有“Join Waitlist”按钮，尝试点击查看功能"

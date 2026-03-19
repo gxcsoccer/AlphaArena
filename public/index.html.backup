@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlphaArena - 算法交易平台</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+    header p {
+      font-size: 1.2em;
+      opacity: 0.9;
+    }
+    .content {
+      padding: 40px;
+    }
+    section {
+      margin-bottom: 30px;
+    }
+    h2 {
+      color: #667eea;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: #1a1a2e;
+      margin: 20px 0 10px;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Consolas', monospace;
+      font-size: 0.9em;
+    }
+    pre {
+      background: #1a1a2e;
+      color: #f8f8f2;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 15px 0;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    .feature-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      border-left: 4px solid #667eea;
+    }
+    .feature-card h4 {
+      color: #1a1a2e;
+      margin-bottom: 10px;
+    }
+    .btn {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 12px 30px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      margin: 10px 10px 10px 0;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #5568d3;
+    }
+    .btn-secondary {
+      background: #6c757d;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+    footer {
+      background: #f8f9fa;
+      padding: 20px 40px;
+      text-align: center;
+      color: #666;
+      border-top: 1px solid #e9ecef;
+    }
+    ul {
+      margin-left: 20px;
+      margin-bottom: 15px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🚀 AlphaArena</h1>
+      <p>算法交易平台 - Algorithmic Trading Platform</p>
+    </header>
+    
+    <div class="content">
+      <section>
+        <h2>项目介绍</h2>
+        <p>AlphaArena 是一个功能完整的算法交易平台，为量化交易者提供交易策略开发、测试和执行的完整环境。支持订单簿模拟、撮合引擎、投资组合跟踪、策略开发和回测功能。</p>
+      </section>
+
+      <section>
+        <h2>核心功能</h2>
+        <div class="features">
+          <div class="feature-card">
+            <h4>📊 订单簿 (OrderBook)</h4>
+            <p>模拟真实市场的订单簿结构，支持限价单和市价单，价格优先、时间优先排序。</p>
+          </div>
+          <div class="feature-card">
+            <h4>⚡ 撮合引擎 (MatchingEngine)</h4>
+            <p>高效的价格时间优先撮合算法，实时处理订单匹配。</p>
+          </div>
+          <div class="feature-card">
+            <h4>💼 投资组合 (Portfolio)</h4>
+            <p>实时跟踪持仓、盈亏和资金状况，提供详细的绩效统计。</p>
+          </div>
+          <div class="feature-card">
+            <h4>🧠 策略框架 (Strategy)</h4>
+            <p>灵活的交易策略接口，支持自定义策略开发和回测。</p>
+          </div>
+          <div class="feature-card">
+            <h4>📈 回测引擎 (Backtest)</h4>
+            <p>基于历史数据的策略回测功能，评估策略表现。</p>
+          </div>
+          <div class="feature-card">
+            <h4>💻 CLI 工具</h4>
+            <p>便捷的命令行接口，支持策略运行、回测和投资组合管理。</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>快速开始</h2>
+        <h3>安装</h3>
+        <pre><code># 克隆仓库
+git clone https://github.com/gxcsoccer/AlphaArena.git
+cd AlphaArena
+
+# 安装依赖
+npm install
+
+# 构建项目
+npm run build</code></pre>
+
+        <h3>CLI 命令</h3>
+        <pre><code># 查看帮助
+npx alpha-arena --help
+
+# 运行策略
+npx alpha-arena run --strategy &lt;strategy-name&gt; --symbol &lt;trading-pair&gt;
+
+# 运行回测
+npx alpha-arena backtest --strategy &lt;strategy-name&gt; --start &lt;date&gt; --end &lt;date&gt;
+
+# 查看投资组合
+npx alpha-arena portfolio --show</code></pre>
+
+        <h3>使用示例</h3>
+        <pre><code># 运行 SMA 交叉策略
+npx alpha-arena run --strategy sma --symbol BTC/USDT --timeframe 1h
+
+# 执行历史回测
+npx alpha-arena backtest --strategy sma --symbol BTC/USDT \
+  --start 2024-01-01 --end 2024-12-31 --initial-capital 10000</code></pre>
+      </section>
+
+      <section>
+        <h2>代码示例</h2>
+        <pre><code>import { OrderBook, MatchingEngine, Portfolio, SMAStrategy } from 'alphaarena';
+
+// 创建订单簿
+const orderBook = new OrderBook('BTC/USDT');
+
+// 添加订单
+orderBook.addLimitOrder('buy', 50000, 1.5);
+orderBook.addLimitOrder('sell', 50100, 2.0);
+
+// 创建投资组合
+const portfolio = new Portfolio(10000); // 初始资金 10000 USDT
+
+// 创建策略
+const strategy = new SMAStrategy({ shortPeriod: 10, longPeriod: 30 });</code></pre>
+      </section>
+
+      <section>
+        <h2>链接</h2>
+        <a href="https://github.com/gxcsoccer/AlphaArena" class="btn" target="_blank">📦 GitHub 仓库</a>
+        <a href="https://github.com/gxcsoccer/AlphaArena#readme" class="btn btn-secondary" target="_blank">📖 完整文档</a>
+      </section>
+    </div>
+
+    <footer>
+      <p>AlphaArena © 2024 | ISC License</p>
+      <p>Powered by Node.js & TypeScript</p>
+    </footer>
+  </div>
+</body>
+</html>

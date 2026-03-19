@@ -1,0 +1,19 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "策略市场页面验证"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/marketplace"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面成功加载，显示策略市场相关内容，包含策略模板或市场功能"
+  - name: "风险告警页面验证"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/risk"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面成功加载，显示风险监控或风险告警相关内容"
+  - name: "再平衡页面验证"
+    flow:
+      - ai: "直接访问 https://alpha-arena.vercel.app/rebalance"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面成功加载，显示再平衡或资产配置相关内容"

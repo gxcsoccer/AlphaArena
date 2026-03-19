@@ -1,0 +1,30 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "连接钱包并进入应用"
+    flow:
+      - ai: "等待页面加载完成"
+      - aiAssert: "页面显示了 Alpha Arena 落地页"
+      - ai: "点击 Connect Wallet 按钮"
+      - aiWaitFor: "等待钱包连接弹窗或选项出现"
+      - aiAssert: "可以看到钱包连接选项或连接界面"
+  - name: "虚拟账户系统测试"
+    flow:
+      - ai: "连接钱包后查看应用主界面"
+      - aiAssert: "可以看到应用的仪表板或主页"
+      - ai: "查找账户或钱包相关的功能入口"
+      - aiAssert: "可以看到虚拟账户信息或账户管理功能"
+  - name: "模拟交易执行测试"
+    flow:
+      - ai: "导航到交易页面"
+      - aiAssert: "交易界面正常显示"
+      - ai: "验证下单功能可见"
+  - name: "策略性能分析测试"
+    flow:
+      - ai: "查找策略或绩效分析入口"
+      - aiAssert: "可以看到策略相关功能"
+  - name: "策略组合管理测试"
+    flow:
+      - ai: "查找组合管理入口"
+      - aiAssert: "可以看到组合管理功能"

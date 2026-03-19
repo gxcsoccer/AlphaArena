@@ -301,7 +301,7 @@ export class MarketplaceStrategiesDAO {
 
     if (error) throw error;
 
-    const categories = [...new Set((data || []).map((row) => row.category))];
+    const categories = Array.from(new Set((data || []).map((row) => row.category)));
     return categories.sort();
   }
 

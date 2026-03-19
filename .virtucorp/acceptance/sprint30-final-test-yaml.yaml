@@ -1,0 +1,24 @@
+web:
+  url: "https://alpha-arena.vercel.app"
+
+tasks:
+  - name: "关闭新手引导"
+    flow:
+      - ai: "访问主页 https://alpha-arena.vercel.app"
+      - aiAssert: "页面显示新手引导弹窗，标题为“欢迎来到 AI Alpha Arena”"
+      - ai: "点击弹窗右上角的关闭按钮(X)或跳过按钮，关闭新手引导"
+  - name: "虚拟账户功能验证"
+    flow:
+      - aiAssert: "新手引导已关闭，可以看到完整的主界面"
+      - ai: "点击左侧导航菜单中的“虚拟账户”或类似入口"
+      - aiQuery: "描述当前显示的页面内容"
+  - name: "策略组合功能验证"
+    flow:
+      - ai: "在左侧导航菜单中查找“策略组合”或类似入口"
+      - ai: "点击进入策略组合页面"
+      - aiQuery: "描述策略组合页面的内容和功能"
+  - name: "策略性能分析验证"
+    flow:
+      - ai: "查找“绩效”或“性能分析”相关的导航入口"
+      - ai: "点击进入策略性能分析页面"
+      - aiQuery: "描述策略性能分析页面的内容和功能"
