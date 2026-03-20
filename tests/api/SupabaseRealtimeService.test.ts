@@ -17,6 +17,7 @@ const mockTrack = jest.fn();
 const mockPresenceState = jest.fn();
 const mockOn = jest.fn();
 const mockOff = jest.fn();
+const mockOffInternal = jest.fn(); // Internal _off method
 
 const mockChannel = {
   subscribe: mockSubscribe,
@@ -25,6 +26,7 @@ const mockChannel = {
   presenceState: mockPresenceState,
   on: mockOn,
   off: mockOff,
+  _off: mockOffInternal,
 };
 
 const mockRemoveChannel = jest.fn();
@@ -345,7 +347,8 @@ describe('SupabaseRealtimeService', () => {
       const callback = jest.fn();
       const unsubscribe = service.onBroadcast('test:channel', 'test:event', callback);
 
-      expect(mockOn).toHaveBeenCalledWith('broadcast', expect.any(Function));
+      // channel.on('broadcast', filter, handler)
+      expect(mockOn).toHaveBeenCalledWith('broadcast', { event: 'test:event' }, expect.any(Function));
       expect(typeof unsubscribe).toBe('function');
     });
 
@@ -354,7 +357,8 @@ describe('SupabaseRealtimeService', () => {
       service.onBroadcast('test:channel', 'specific:event', callback);
 
       // Simulate broadcast handler being called
-      const handler = mockOn.mock.calls.find((call) => call[0] === 'broadcast')?.[1];
+      // channel.on('broadcast', filter, handler) - handler is the 3rd argument
+      const handler = mockOn.mock.calls.find((call) => call[0] === 'broadcast')?.[2];
       if (handler) {
         handler({ event: 'other:event', payload: {} });
         handler({ event: 'specific:event', payload: { data: 'test' } });
@@ -368,7 +372,8 @@ describe('SupabaseRealtimeService', () => {
       const callback = jest.fn();
       service.onBroadcast('test:channel', '*', callback);
 
-      const handler = mockOn.mock.calls.find((call) => call[0] === 'broadcast')?.[1];
+      // channel.on('broadcast', filter, handler) - handler is the 3rd argument
+      const handler = mockOn.mock.calls.find((call) => call[0] === 'broadcast')?.[2];
       if (handler) {
         handler({ event: 'event1', payload: {} });
         handler({ event: 'event2', payload: {} });
@@ -383,7 +388,8 @@ describe('SupabaseRealtimeService', () => {
 
       unsubscribe();
 
-      expect(mockOff).toHaveBeenCalledWith('broadcast', expect.any(Function));
+      // createBroadcastUnsubscribe uses _off internally
+      expect(mockOffInternal).toHaveBeenCalledWith('broadcast', { event: 'test:event' });
     });
   });
 
