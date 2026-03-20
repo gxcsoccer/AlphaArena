@@ -18,7 +18,6 @@ import {
   AreaChart,
   Area,
   Line,
-  Line,
 } from 'recharts';
 import { api, LeaderboardEntry } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
