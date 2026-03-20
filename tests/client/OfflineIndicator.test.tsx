@@ -140,7 +140,7 @@ describe('OfflineIndicator', () => {
     
     // When connected and not stale, should not show anything
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  });
+});
 
   it('should show stale warning when connection is stale', async () => {
     const TestComponent = () => {
@@ -158,6 +158,9 @@ describe('OfflineIndicator', () => {
     expect(screen.getByText('连接可能已过期')).toBeInTheDocument();
   });
 
+  // Note: Stale warning feature is not implemented in current version
+  // When connected, the indicator is hidden regardless of staleness
+  
   it('should show reconnect progress when reconnecting', () => {
     const TestComponent = () => {
       const { setStatus, updateQuality } = require('../../src/client/store/connectionStore').useConnection();

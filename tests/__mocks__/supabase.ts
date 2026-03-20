@@ -40,7 +40,7 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   let operation: 'select' | 'insert' | 'update' | 'delete' | null = null;
   let insertPayload: any[] = [];
   let updatePayload: any = null;
-  let _selectColumns = '*';
+let _selectColumns = '*';
   let isSingle = false;
   let _wantSelectAfterMutation = false; // For insert().select() or update().select()
   

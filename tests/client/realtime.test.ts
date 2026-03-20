@@ -54,19 +54,7 @@ describe('RealtimeClient', () => {
       expect(['disconnected', 'connected']).toContain(status);
     });
 
-    it('should have connect method for backward compatibility', async () => {
-      // connect() should exist and resolve without error
-      await expect(client.connect()).resolves.not.toThrow();
-      expect(client.getConnectionStatus()).toBe('connected');
-    });
-
-    it('should allow multiple connect() calls', async () => {
-      await client.connect();
-      await client.connect();
-      await client.connect();
-      
-      expect(client.getConnectionStatus()).toBe('connected');
-    });
+    // Note: connect() method removed - connection is established lazily via subscribe()
   });
 
   describe('channel subscription', () => {
