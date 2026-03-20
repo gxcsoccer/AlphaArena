@@ -25,8 +25,6 @@ import {
 } from '@arco-design/web-react';
 import {
   IconDelete,
-  IconInfoCircle,
-  IconExperiment,
 } from '@arco-design/web-react/icon';
 import {
   CreatePortfolioInput,

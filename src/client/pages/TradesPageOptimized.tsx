@@ -4,9 +4,9 @@
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Typography, Card, Tag, Select, Space, Grid, Button } from '@arco-design/web-react';
+import { Typography, Card, Tag, Select, Space, Grid } from '@arco-design/web-react';
 const { Row, Col } = Grid;
-import { useOptimizedQuery, usePaginatedData } from '../hooks/useOptimizedData';
+import { useOptimizedQuery } from '../hooks/useOptimizedData';
 import { useDebounce } from '../utils/performance';
 import { dataCache } from '../utils/cache';
 import VirtualizedTable from '../components/VirtualizedTable';
@@ -32,7 +32,7 @@ const TradesPageOptimized: React.FC = () => {
   // Local state
   const [symbol, setSymbol] = useState<string | undefined>(undefined);
   const [side, setSide] = useState<'buy' | 'sell' | undefined>(undefined);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, _setSearchQuery] = useState('');
 
   // Debounce search query
   const _debouncedSearch = useDebounce(searchQuery, 300);

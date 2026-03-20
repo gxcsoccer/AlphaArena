@@ -283,7 +283,7 @@ export function calculatePerformanceMetrics(
   trades: Trade[],
   portfolioValue: number,
   initialCapital: number,
-  historicalValues: HistoricalDataPoint[]
+  _historicalValues: HistoricalDataPoint[]
 ): PerformanceMetrics {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -529,7 +529,7 @@ export function calculateCorrelationMatrix(
 export function calculatePnLBreakdown(
   trades: Trade[],
   currentUnrealizedPnL: number,
-  portfolioValue: number
+  _portfolioValue: number
 ): PnLBreakdown {
   const now = new Date();
   const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);

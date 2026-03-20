@@ -29,7 +29,7 @@ import {
   AlertConfiguration,
 } from '../database/alert-configurations.dao';
 import { createRiskNotification } from '../notification/NotificationService';
-import { getEmailService, EmailService } from '../notification/EmailService';
+import { getEmailService } from '../notification/EmailService';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('AlertService');

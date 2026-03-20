@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Typography, Card, Table, Tag, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Empty } from '@arco-design/web-react';
+import { Typography, Card, Table, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Empty } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -14,8 +14,6 @@ import {
   Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
 import { usePortfolioRealtime } from '../hooks/usePortfolioRealtime';

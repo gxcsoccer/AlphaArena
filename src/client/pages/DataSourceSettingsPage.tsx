@@ -32,7 +32,6 @@ import {
   IconClose,
   IconLoading,
   IconSettings,
-  IconLink,
   IconExclamationCircle,
 } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';

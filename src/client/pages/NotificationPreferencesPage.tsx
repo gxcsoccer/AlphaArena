@@ -26,8 +26,6 @@ import {
   TimePicker,
   Form,
   Alert,
-  Tag,
-  Tooltip,
 } from '@arco-design/web-react';
 import {
   IconEmail,
@@ -44,7 +42,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
-const FormItem = Form.Item;
+const _FormItem = Form.Item;
 const Option = Select.Option;
 
 // Types
@@ -93,7 +91,7 @@ const timezoneOptions = [
 ];
 
 const NotificationPreferencesPage: React.FC = () => {
-  const { user, accessToken } = useAuth();
+  const { user: _user, accessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
