@@ -502,7 +502,7 @@ const LeaderboardPage: React.FC = () => {
               pagination={false}
               size="small"
               scroll={isMobile ? { x: 1400 } : undefined}
-              onChange={(_pagination, _filters, sorter) => {
+              onChange={(_pagination, _filters, _sorter) => {
                 // Handle table sorting if needed
               }}
             />

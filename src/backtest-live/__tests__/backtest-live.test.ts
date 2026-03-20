@@ -8,8 +8,6 @@ import { OptimizationFeedback } from '../OptimizationFeedback';
 import { BacktestLiveIntegration } from '../BacktestLiveIntegration';
 import type {
   IntegratedStrategyConfig,
-  PerformanceComparison,
-  OptimizationSuggestion,
 } from '../types';
 import type { BacktestStats } from '../../backtest/types';
 

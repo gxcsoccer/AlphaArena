@@ -7,7 +7,6 @@ import {
   useThrottle,
   sampleDataForChart,
   chunkArray,
-  useMemoizedSelector,
 } from '../performance';
 import { renderHook, act } from '@testing-library/react';
 

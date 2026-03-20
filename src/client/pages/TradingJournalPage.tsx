@@ -172,7 +172,7 @@ const TradingJournalPage: React.FC = () => {
   }, [entries]);
 
   // Create/Update entry
-  const handleSubmit = async (values: any) => {
+  const handleSubmit = async (_values: any) => {
     try {
       Message.success(editingEntry ? '更新成功' : '创建成功');
       setShowModal(false);

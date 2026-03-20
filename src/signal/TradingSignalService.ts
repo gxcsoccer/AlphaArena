@@ -10,7 +10,6 @@ import {
   SignalExecutionsDAO,
   SignalPublisherStatsDAO,
   TradingSignal,
-  CreateSignalInput,
   SignalStatus,
   SignalType,
   RiskLevel,
@@ -463,7 +462,7 @@ export class TradingSignalService extends EventEmitter {
   private async sendPushNotification(
     subscriberId: string,
     signal: TradingSignal,
-    config: SignalPushConfig
+    _config: SignalPushConfig
   ): Promise<void> {
     try {
       // Check if push service is configured

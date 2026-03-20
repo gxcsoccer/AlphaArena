@@ -22,7 +22,7 @@ jest.mock('../apiKeyMiddleware', () => ({
     };
     next();
   },
-  requireApiPermission: (permission: string) => (req: any, res: any, next: any) => next(),
+  requireApiPermission: (_permission: string) => (req: any, res: any, next: any) => next(),
 }));
 
 jest.mock('../../database/strategies.dao', () => {

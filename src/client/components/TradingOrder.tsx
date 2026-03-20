@@ -149,7 +149,7 @@ const TradingOrder: React.FC<TradingOrderProps> = ({
     percentageOfPortfolio: number;
   } | null>(null);
   const [orderSuccess, setOrderSuccess] = useState(false);
-  const [successOrderId, setSuccessOrderId] = useState<string | null>(null);
+  const [_successOrderId, setSuccessOrderId] = useState<string | null>(null);
   const [formPrice, setFormPrice] = useState<number | undefined>(undefined);
   const navigate = useNavigate();
   const formRef = React.useRef<FormInstance>(null);

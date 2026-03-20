@@ -49,7 +49,7 @@ function VirtualizedTable<T extends Record<string, any>>({
   ...restProps
 }: VirtualizedTableProps<T>) {
   const listRef = useRef<List>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const [_scrollTop, setScrollTop] = useState(0);
 
   // Calculate column widths
   const columnWidths = useMemo(() => {

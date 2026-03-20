@@ -5,7 +5,6 @@
 import {
   getPlanIdFromPriceId,
   mapStripeStatus,
-  getPriceId,
 } from '../stripeService';
 
 // Mock Stripe
