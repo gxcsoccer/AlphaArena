@@ -44,8 +44,9 @@ export function usePriceAlerts(options: UsePriceAlertsOptions = {}) {
   
   const unsubscribeRef = useRef<(() => void) | null>(null);
   const isMountedRef = useRef(false);
-
-  const notificationService = getNotificationService();
+  
+  // Use ref to avoid re-creating the effect when notificationService changes
+  const notificationServiceRef = useRef(getNotificationService());
 
   // Fetch alerts
   const fetchAlerts = useCallback(async () => {
@@ -173,6 +174,7 @@ export function usePriceAlerts(options: UsePriceAlertsOptions = {}) {
 
     // Subscribe to realtime updates
     const client = getRealtimeClient();
+    const notificationService = notificationServiceRef.current;
     
     const handleAlertTriggered = (data: any) => {
       if (!isMountedRef.current) return;
@@ -233,7 +235,7 @@ export function usePriceAlerts(options: UsePriceAlertsOptions = {}) {
         unsubscribeRef.current();
       }
     };
-  }, [fetchAlerts, autoRefresh, refreshInterval, notificationService]);
+  }, [fetchAlerts, autoRefresh, refreshInterval]);
 
   // Get alerts by status
   const getAlertsByStatus = useCallback((status: PriceAlert['status']) => {
