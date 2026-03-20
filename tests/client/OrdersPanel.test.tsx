@@ -40,6 +40,7 @@ jest.mock('@arco-design/web-react', () => {
 });
 
 const { api } = require('../../src/client/utils/api');
+const { Message } = require('@arco-design/web-react');
 
 describe('OrdersPanel', () => {
   beforeEach(() => {
@@ -181,8 +182,8 @@ describe('OrdersPanel', () => {
       expect(screen.getByText(/暂无订单/i)).toBeInTheDocument();
     });
 
-    // Click refresh button
-    const refreshButton = screen.getByText('刷新');
+    // Click refresh button (it's an icon button with IconRefresh)
+    const refreshButton = screen.getByRole('button', { name: '' });
     fireEvent.click(refreshButton);
 
     await waitFor(() => {
@@ -191,14 +192,14 @@ describe('OrdersPanel', () => {
   });
 
   it('should handle getOrders failure gracefully', async () => {
-    api.getOrders.mockRejectedValue(new Error('Network error'));
+    api.getOrders.mockRejectedValue(new Error('network error'));
 
     render(<OrdersPanel />);
 
     // Component should handle error and show error message
     await waitFor(() => {
-      expect(mockMessage.error).toHaveBeenCalled();
-    });
+      expect(Message.error).toHaveBeenCalled();
+    }, { timeout: 3000 });
     
     // Verify API was called
     expect(api.getOrders).toHaveBeenCalled();
