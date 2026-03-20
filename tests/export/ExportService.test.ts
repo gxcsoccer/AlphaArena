@@ -3,24 +3,14 @@
  */
 
 // Mock pdfmake before any imports
-jest.mock('pdfmake', () => {
-  return jest.fn().mockImplementation(() => ({
-    createPdfKitDocument: jest.fn().mockReturnValue({
-      on: jest.fn((event: string, callback: any) => {
-        if (event === 'end') {
-          setTimeout(() => callback(), 10);
-        }
-      }),
-      end: jest.fn(),
+jest.mock('pdfmake', () => ({
+  createPdf: jest.fn().mockImplementation(() => ({
+    getBuffer: jest.fn((callback: any) => {
+      setTimeout(() => callback(Buffer.from('mock-pdf-content')), 10);
     }),
-    createPdf: jest.fn().mockImplementation(() => ({
-      getBuffer: jest.fn((callback: any) => {
-        setTimeout(() => callback(Buffer.from('mock-pdf-content')), 10);
-      }),
-      download: jest.fn(),
-    })),
-  }));
-});
+    download: jest.fn(),
+  })),
+}));
 
 // Mock dependencies - use factory function to properly mock classes
 jest.mock('../../src/database/trades.dao', () => ({
