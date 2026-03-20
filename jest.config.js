@@ -54,6 +54,34 @@ module.exports = {
         jsx: 'react-jsx',
         types: ['jest', '@testing-library/jest-dom'],
         isolatedModules: true,
+      },
+      // Ignore TypeScript error 1343 for import.meta
+      diagnostics: {
+        ignoreCodes: [1343]
+      },
+      // Transform import.meta to a mock object
+      astTransformers: {
+        before: [
+          {
+            path: 'ts-jest-mock-import-meta',
+            options: {
+              metaObjectReplacement: {
+                env: {
+                  VITE_API_URL: 'http://localhost:3001',
+                  VITE_WS_URL: 'ws://localhost:3001',
+                  VITE_SUPABASE_URL: 'https://test.supabase.co',
+                  VITE_SUPABASE_ANON_KEY: 'test-anon-key-for-testing',
+                  MODE: 'test',
+                  DEV: false,
+                  PROD: false,
+                  SSR: false,
+                  BASE_URL: '/',
+                },
+                url: 'http://localhost:3001',
+              }
+            }
+          }
+        ]
       }
     }],
   },
