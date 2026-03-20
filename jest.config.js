@@ -81,6 +81,9 @@ module.exports = {
     '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     // Mock Supabase client for database tests
     '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
+    // Also mock relative imports from DAO files (e.g., './client' in database directory)
+    '^\\./client$': '<rootDir>/tests/__mocks__/supabase.ts',
+    '^\\./client\\.js$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Handle marked ESM module - use UMD build
     '^marked$': '<rootDir>/node_modules/marked/lib/marked.umd.js',
     // Mock CSS files

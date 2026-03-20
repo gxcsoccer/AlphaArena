@@ -54,3 +54,13 @@ jest.mock('pdfmake', () => {
     }
   };
 });
+
+// Clear Supabase mock data between tests
+beforeEach(() => {
+  try {
+    const { clearMockData } = require('./supabase');
+    clearMockData();
+  } catch {
+    // Ignore if module not found
+  }
+});

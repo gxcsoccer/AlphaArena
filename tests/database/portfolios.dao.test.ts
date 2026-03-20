@@ -63,7 +63,8 @@ describe('PortfoliosDAO', () => {
         snapshotAt: now,
       });
 
-      const retrieved = await dao.getLatest('TEST/USDT');
+      // getLatest(strategyId, symbol) - pass undefined for strategyId to filter by symbol only
+      const retrieved = await dao.getLatest(undefined, 'TEST/USDT');
 
       expect(retrieved).not.toBeNull();
       expect(retrieved!.baseBalance).toBe(150);
