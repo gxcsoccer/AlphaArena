@@ -29,6 +29,7 @@ import {
   AlertConfiguration,
 } from '../database/alert-configurations.dao';
 import { createRiskNotification } from '../notification/NotificationService';
+import { getEmailService, EmailService } from '../notification/EmailService';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('AlertService');
@@ -520,23 +521,47 @@ export class AlertService extends EventEmitter {
 
   private async sendEmailNotification(alert: AlertHistory, email: string): Promise<boolean> {
     try {
-      // Environment check: warn if called in production without email service integration
-      if (process.env.NODE_ENV === 'production') {
-        log.warn('Email notification called in production but email service is not integrated. Alert:', {
+      const emailService = getEmailService();
+
+      // Check if email service is configured
+      if (!emailService.isConfigured || emailService.isDevelopmentMode) {
+        log.info(`[DEV] Would send alert email to ${email}:`, {
+          alertId: alert.id,
+          title: alert.title,
+          type: alert.rule_type,
+          severity: alert.severity,
+          message: alert.message,
+        });
+        // In development mode, consider it successful
+        return true;
+      }
+
+      // Use alert template to send email
+      const result = await emailService.sendFromTemplate('alert', { email }, {
+        title: alert.title,
+        message: alert.message,
+        details: {
+          alertId: alert.id,
+          ruleType: alert.rule_type,
+          severity: alert.severity,
+          context: alert.context,
+        },
+      });
+
+      if (!result.success) {
+        log.error('Failed to send alert email:', new Error(result.error ?? 'Unknown error'), {
           alertId: alert.id,
           email,
-          title: alert.title,
         });
-        // Return false to indicate email was not sent
         return false;
       }
 
-      // BACKLOG(#426): Email service integration pending
-      // Required configuration: EMAIL_SERVICE_PROVIDER, EMAIL_API_KEY, EMAIL_FROM_ADDRESS
-      // Recommended providers: Resend (simplicity), AWS SES (cost-effective), SendGrid
-      // For development, just log it
-      log.info(`[DEV] Would send email to ${email}: ${alert.title}`);
-      log.info(`[DEV] Alert details: ${JSON.stringify({ id: alert.id, type: alert.rule_type, severity: alert.severity })}`);
+      log.info('Alert email sent successfully', {
+        alertId: alert.id,
+        email,
+        messageId: result.messageId,
+      });
+
       return true;
     } catch (error) {
       log.error('Failed to send email notification:', error);

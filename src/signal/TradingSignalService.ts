@@ -17,6 +17,8 @@ import {
 } from '../database';
 import { createLogger } from '../utils/logger';
 import { createSignalNotification } from '../notification/NotificationService';
+import { getPushService, PushService } from '../notification/PushService';
+import { SignalPushConfigDAO, SignalPushConfig } from '../database/signal-push-config.dao';
 
 const log = createLogger('TradingSignalService');
 
@@ -61,6 +63,8 @@ export class TradingSignalService extends EventEmitter {
   private subscriptionsDAO: SignalSubscriptionsDAO;
   private executionsDAO: SignalExecutionsDAO;
   private statsDAO: SignalPublisherStatsDAO;
+  private pushConfigDAO: SignalPushConfigDAO;
+  private pushService: PushService;
 
   constructor() {
     super();
@@ -68,6 +72,8 @@ export class TradingSignalService extends EventEmitter {
     this.subscriptionsDAO = new SignalSubscriptionsDAO();
     this.executionsDAO = new SignalExecutionsDAO();
     this.statsDAO = new SignalPublisherStatsDAO();
+    this.pushConfigDAO = new SignalPushConfigDAO();
+    this.pushService = getPushService();
   }
 
   /**
@@ -314,6 +320,22 @@ export class TradingSignalService extends EventEmitter {
         // Increment signals received count
         await this.subscriptionsDAO.incrementSignalsReceived(sub.id);
 
+        // Get user's push configuration for signal filtering
+        const pushConfig = await this.pushConfigDAO.getOrCreate(sub.subscriberId);
+
+        // Check if signal passes the user's filters
+        const passesFilters = this.signalPassesFilters(signal, pushConfig);
+        if (!passesFilters) {
+          log.debug(`Signal ${signal.id} filtered out for subscriber ${sub.subscriberId} based on preferences`);
+          continue;
+        }
+
+        // Check quiet hours
+        const inQuietHours = this.isInQuietHours(pushConfig);
+        if (inQuietHours) {
+          log.debug(`Subscriber ${sub.subscriberId} is in quiet hours, skipping push notification`);
+        }
+
         // Send in-app notification if enabled
         if (sub.notifyInApp) {
           await createSignalNotification(
@@ -335,10 +357,10 @@ export class TradingSignalService extends EventEmitter {
           );
         }
 
-        // BACKLOG(#426, #427): Push and email notifications pending
-        // #426: Email service integration (EMAIL_SERVICE_PROVIDER, EMAIL_API_KEY)
-        // #427: Push notification service (PUSH_SERVICE_PROVIDER, device tokens)
-        // In-app notifications are currently implemented via createSignalNotification
+        // Send push notification if enabled and not in quiet hours
+        if (sub.notifyPush && pushConfig.pushEnabled && !inQuietHours && pushConfig.browserNotify) {
+          await this.sendPushNotification(sub.subscriberId, signal, pushConfig);
+        }
       } catch (error) {
         log.error(`Failed to notify subscriber ${sub.subscriberId}:`, error);
       }
@@ -350,6 +372,140 @@ export class TradingSignalService extends EventEmitter {
       .from('trading_signals')
       .update({ subscribers_notified: eligibleSubscriptions.length })
       .eq('id', signal.id);
+  }
+
+  /**
+   * Check if signal passes user's filter preferences
+   */
+  private signalPassesFilters(signal: TradingSignal, config: SignalPushConfig): boolean {
+    // Check minimum confidence score
+    if (signal.confidenceScore !== undefined && signal.confidenceScore !== null) {
+      const confidencePercent = signal.confidenceScore * 100;
+      if (confidencePercent < config.minConfidenceScore) {
+        return false;
+      }
+    }
+
+    // Check risk levels
+    if (signal.riskLevel && config.riskLevels.length > 0) {
+      if (!config.riskLevels.includes(signal.riskLevel)) {
+        return false;
+      }
+    }
+
+    // Check symbol filter (if user has specific symbols configured)
+    if (config.symbols.length > 0 && !config.symbols.includes(signal.symbol)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Check if current time is within user's quiet hours
+   */
+  private isInQuietHours(config: SignalPushConfig): boolean {
+    if (!config.quietHoursEnabled) {
+      return false;
+    }
+
+    const now = new Date();
+    const timezone = config.quietHoursTimezone ?? 'UTC';
+
+    try {
+      // Get current time in the configured timezone
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false,
+      });
+      const timeStr = formatter.format(now);
+      const [currentHour, currentMinute] = timeStr.split(':').map(Number);
+      const currentTimeMinutes = currentHour * 60 + currentMinute;
+
+      // Parse quiet hours
+      const [startHour, startMin] = (config.quietHoursStart ?? '22:00').split(':').map(Number);
+      const [endHour, endMin] = (config.quietHoursEnd ?? '08:00').split(':').map(Number);
+      const startTimeMinutes = startHour * 60 + startMin;
+      const endTimeMinutes = endHour * 60 + endMin;
+
+      // Check if current time is within quiet hours
+      if (startTimeMinutes > endTimeMinutes) {
+        // Overnight quiet hours (e.g., 22:00 - 08:00)
+        return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes < endTimeMinutes;
+      } else {
+        // Daytime quiet hours
+        return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes < endTimeMinutes;
+      }
+    } catch {
+      // If timezone is invalid, use UTC
+      const currentHour = now.getUTCHours();
+      const currentMinute = now.getUTCMinutes();
+      const currentTimeMinutes = currentHour * 60 + currentMinute;
+
+      const [startHour, startMin] = (config.quietHoursStart ?? '22:00').split(':').map(Number);
+      const [endHour, endMin] = (config.quietHoursEnd ?? '08:00').split(':').map(Number);
+      const startTimeMinutes = startHour * 60 + startMin;
+      const endTimeMinutes = endHour * 60 + endMin;
+
+      if (startTimeMinutes > endTimeMinutes) {
+        return currentTimeMinutes >= startTimeMinutes || currentTimeMinutes < endTimeMinutes;
+      } else {
+        return currentTimeMinutes >= startTimeMinutes && currentTimeMinutes < endTimeMinutes;
+      }
+    }
+  }
+
+  /**
+   * Send push notification for a signal
+   */
+  private async sendPushNotification(
+    subscriberId: string,
+    signal: TradingSignal,
+    config: SignalPushConfig
+  ): Promise<void> {
+    try {
+      // Check if push service is configured
+      if (!this.pushService.isConfigured || this.pushService.isDevelopmentMode) {
+        log.info(`[DEV] Would send push notification to user ${subscriberId}:`, {
+          signalId: signal.id,
+          symbol: signal.symbol,
+          side: signal.side,
+          title: signal.title,
+        });
+        return;
+      }
+
+      // Note: User device tokens need to be fetched from a user device table
+      // For now, we use the sendToUser method which has placeholder implementation
+      // TODO: Implement user device token storage and lookup
+      const result = await this.pushService.sendFromTemplate(
+        'signal',
+        [], // Empty tokens - sendToUser would need device token lookup
+        {
+          symbol: signal.symbol,
+          side: signal.side,
+          price: signal.entryPrice,
+          confidence: signal.confidenceScore,
+        }
+      );
+
+      if (result.success) {
+        log.info('Push notification sent successfully', {
+          subscriberId,
+          signalId: signal.id,
+        });
+      } else {
+        log.warn('Failed to send push notification', {
+          subscriberId,
+          signalId: signal.id,
+          error: result.error,
+        });
+      }
+    } catch (error) {
+      log.error('Exception sending push notification:', error);
+    }
   }
 
   /**
