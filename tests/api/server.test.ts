@@ -14,10 +14,13 @@ jest.mock('../../src/database/portfolios.dao');
 
 describe('APIServer', () => {
   let server: APIServer;
-  const testPort = 3002;
+  let testPort: number;
+  // Use a base port + process pid to avoid conflicts when tests run in parallel
+  const getUniquePort = () => 32000 + (process.pid % 1000) + Math.floor(Math.random() * 100);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    testPort = getUniquePort();
     
     // Setup mock implementations
     (StrategiesDAO as jest.Mock).mockImplementation(() => ({
@@ -50,8 +53,10 @@ describe('APIServer', () => {
   });
 
   afterEach(async () => {
-    if (server.getIsRunning()) {
+    if (server && server.getIsRunning()) {
       await server.stop();
+      // Add small delay to ensure port is released
+      await new Promise(resolve => setTimeout(resolve, 100));
     }
   });
 
