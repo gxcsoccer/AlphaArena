@@ -78,6 +78,7 @@ const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailP
 const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
 const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
 const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
+const NotificationHistoryPage = lazyWithRetry(() => import('./pages/NotificationHistoryPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -440,6 +441,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/notification-preferences" icon={<IconNotification aria-hidden="true" />} role="menuitem">
             通知设置
           </MenuItem>
+          <MenuItem key="/notifications" icon={<IconList aria-hidden="true" />} role="menuitem">
+            通知历史
+          </MenuItem>
           <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
             数据源
           </MenuItem>
@@ -499,6 +503,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/strategy-portfolio" element={<StrategyPortfolioPage />} />
         <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
         <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
+        <Route path="/notifications" element={<NotificationHistoryPage />} />
       </Routes>
     </Suspense>
   );
