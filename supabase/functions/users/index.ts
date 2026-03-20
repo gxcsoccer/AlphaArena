@@ -97,7 +97,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:username
-    const usernameMatch = path.match(/^\/(api\/)?users\/([^\/]+)$/);
+    const usernameMatch = path.match(/^\/(api\/)?users\/([^/]+)$/);
     if (method === 'GET' && usernameMatch) {
       const username = usernameMatch[2];
       if (username === 'me' || username === 'search') {
@@ -116,7 +116,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:username/stats
-    const statsMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/stats$/);
+    const statsMatch = path.match(/^\/(api\/)?users\/([^/]+)\/stats$/);
     if (method === 'GET' && statsMatch) {
       const username = statsMatch[2];
       const { data: user, error } = await supabase.from('users').select('*').eq('username', username).single();
@@ -127,7 +127,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:username/badges
-    const badgesMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/badges$/);
+    const badgesMatch = path.match(/^\/(api\/)?users\/([^/]+)\/badges$/);
     if (method === 'GET' && badgesMatch) {
       const username = badgesMatch[2];
       const { data: user, error: userError } = await supabase.from('users').select('id').eq('username', username).single();
@@ -140,7 +140,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:username/strategies
-    const strategiesMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/strategies$/);
+    const strategiesMatch = path.match(/^\/(api\/)?users\/([^/]+)\/strategies$/);
     if (method === 'GET' && strategiesMatch) {
       const username = strategiesMatch[2];
       const limit = parseInt(url.searchParams.get('limit') || '20');
@@ -155,7 +155,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:username/activities
-    const activitiesMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/activities$/);
+    const activitiesMatch = path.match(/^\/(api\/)?users\/([^/]+)\/activities$/);
     if (method === 'GET' && activitiesMatch) {
       const username = activitiesMatch[2];
       const { data: user, error } = await supabase.from('users').select('id').eq('username', username).single();
@@ -166,7 +166,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // POST /users/:userId/follow
-    const followMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/follow$/);
+    const followMatch = path.match(/^\/(api\/)?users\/([^/]+)\/follow$/);
     if (method === 'POST' && followMatch) {
       if (!currentUserId) {
         return new Response(JSON.stringify({ success: false, error: 'User not authenticated' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
@@ -200,7 +200,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:userId/followers
-    const followersMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/followers$/);
+    const followersMatch = path.match(/^\/(api\/)?users\/([^/]+)\/followers$/);
     if (method === 'GET' && followersMatch) {
       const userId = followersMatch[2];
       const limit = parseInt(url.searchParams.get('limit') || '50');
@@ -224,7 +224,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /users/:userId/following
-    const followingMatch = path.match(/^\/(api\/)?users\/([^\/]+)\/following$/);
+    const followingMatch = path.match(/^\/(api\/)?users\/([^/]+)\/following$/);
     if (method === 'GET' && followingMatch) {
       const userId = followingMatch[2];
       const limit = parseInt(url.searchParams.get('limit') || '50');

@@ -137,22 +137,6 @@ function clearMockInstances(): void {
 }
 
 // ============================================================================
-// Types
-// ============================================================================
-interface MockSupabaseChannel {
-  send: jest.Mock;
-  subscribe: jest.Mock;
-  unsubscribe: jest.Mock;
-  on: jest.Mock;
-  state: string;
-}
-
-interface MockSupabaseClient {
-  channel: jest.Mock;
-  removeChannel: jest.Mock;
-}
-
-// ============================================================================
 // Test Suites
 // ============================================================================
 

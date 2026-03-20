@@ -268,7 +268,7 @@ export class ReportGenerator {
     options: ReportExportOptions
   ): Promise<{ content: Buffer; contentType: string; filename: string }> {
     // Use pdfmake 0.3.x API
-     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createPdf } = require('pdfmake');
 
     const strategyName = options.strategyName || report.config.strategy;
@@ -977,7 +977,7 @@ export class ReportGenerator {
     options: ReportExportOptions
   ): Promise<{ content: Buffer; contentType: string; filename: string }> {
     // Use pdfmake 0.3.x API
-     
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { createPdf } = require('pdfmake');
 
     const content: any[] = [

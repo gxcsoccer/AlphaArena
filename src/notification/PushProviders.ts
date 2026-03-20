@@ -284,6 +284,7 @@ export class FCMProvider implements IPushProvider {
 
       // Initialize from service account path
       if (this.config.serviceAccountPath) {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
         const serviceAccount = require(this.config.serviceAccountPath);
         this.app = initializeApp({
           credential: cert(serviceAccount),
