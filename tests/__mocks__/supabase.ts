@@ -45,7 +45,7 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   let wantSelectAfterMutation = false; // For insert().select() or update().select()
   
   // Track filters applied
-  let filters: Array<{ type: string; column: string; value: any }> = [];
+  const filters: Array<{ type: string; column: string; value: any }> = [];
   let orderConfig: { column: string; ascending: boolean } | null = null;
   let limitCount: number | null = null;
   let offsetCount: number | null = null;
@@ -137,6 +137,32 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
       tableData.push(...insertPayload);
       // DEBUG
       // console.log(`[Mock ${tableName}] insert: ${insertPayload.length} records, total now: ${tableData.length}`);
+    }
+    return builder;
+  });
+
+  // Upsert - returns builder for chaining (insert or update if exists)
+  builder.upsert = jest.fn().mockImplementation((rows: any[]) => {
+    operation = 'insert'; // Treat as insert for simplicity
+    // Support both array and single object
+    const rowsArray = Array.isArray(rows) ? rows : [rows];
+    insertPayload = rowsArray.map((row, i) => ({
+      id: row.id || `mock-id-${Date.now()}-${i}`,
+      ...row,
+      created_at: row.created_at || new Date().toISOString(),
+      updated_at: row.updated_at || new Date().toISOString(),
+    }));
+    // Add to mock data store, updating if id matches
+    if (tableName) {
+      const tableData = getTableData(tableName);
+      insertPayload.forEach(newRow => {
+        const existingIndex = tableData.findIndex(r => r.id === newRow.id);
+        if (existingIndex >= 0) {
+          tableData[existingIndex] = { ...tableData[existingIndex], ...newRow };
+        } else {
+          tableData.push(newRow);
+        }
+      });
     }
     return builder;
   });
