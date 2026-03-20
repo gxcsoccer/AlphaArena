@@ -22,6 +22,8 @@ jest.mock('../../src/database/portfolios.dao');
 jest.mock('../../src/database/strategies.dao');
 
 import { ExportService } from '../../src/export/ExportService';
+import TradesDAO from '../../src/database/trades.dao';
+import PortfoliosDAO from '../../src/database/portfolios.dao';
 
 describe('ExportService', () => {
   let service: ExportService;
@@ -33,8 +35,6 @@ describe('ExportService', () => {
 
   describe('exportTrades', () => {
     it('should export trades to CSV format', async () => {
-      // Mock the TradesDAO
-import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([
         {
           id: '1',
@@ -52,7 +52,7 @@ import TradesDAO from '../../src/database/trades.dao';
           createdAt: new Date(),
         },
       ]);
-      TradesDAO.mockImplementation(() => ({
+      (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
       }));
 
@@ -67,7 +67,6 @@ import TradesDAO from '../../src/database/trades.dao';
     });
 
     it('should export trades to PDF format', async () => {
-import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([
         {
           id: '1',
@@ -85,7 +84,7 @@ import TradesDAO from '../../src/database/trades.dao';
           createdAt: new Date(),
         },
       ]);
-      TradesDAO.mockImplementation(() => ({
+      (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
       }));
 
@@ -100,9 +99,8 @@ import TradesDAO from '../../src/database/trades.dao';
     });
 
     it('should apply filters when exporting trades', async () => {
-import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
-      TradesDAO.mockImplementation(() => ({
+      (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
       }));
 
@@ -128,7 +126,6 @@ import TradesDAO from '../../src/database/trades.dao';
 
   describe('exportPortfolio', () => {
     it('should export portfolio to CSV format', async () => {
-import PortfoliosDAO from '../../src/database/portfolios.dao';
       const mockGetLatest = jest.fn().mockResolvedValue({
         id: '1',
         symbol: 'BTC/USDT',
@@ -140,7 +137,7 @@ import PortfoliosDAO from '../../src/database/portfolios.dao';
         snapshotAt: new Date(),
         createdAt: new Date(),
       });
-      PortfoliosDAO.mockImplementation(() => ({
+      (PortfoliosDAO as jest.Mock).mockImplementation(() => ({
         getLatest: mockGetLatest,
       }));
 
@@ -154,9 +151,8 @@ import PortfoliosDAO from '../../src/database/portfolios.dao';
     });
 
     it('should export portfolio to PDF format', async () => {
-import PortfoliosDAO from '../../src/database/portfolios.dao';
       const mockGetLatest = jest.fn().mockResolvedValue(null);
-      PortfoliosDAO.mockImplementation(() => ({
+      (PortfoliosDAO as jest.Mock).mockImplementation(() => ({
         getLatest: mockGetLatest,
       }));
 
@@ -172,7 +168,6 @@ import PortfoliosDAO from '../../src/database/portfolios.dao';
 
   describe('exportPerformance', () => {
     it('should export performance report to CSV', async () => {
-import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
       const mockGetStats = jest.fn().mockResolvedValue({
         totalTrades: 0,
@@ -180,7 +175,7 @@ import TradesDAO from '../../src/database/trades.dao';
         buyCount: 0,
         sellCount: 0,
       });
-      TradesDAO.mockImplementation(() => ({
+      (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
         getStats: mockGetStats,
       }));
@@ -195,7 +190,6 @@ import TradesDAO from '../../src/database/trades.dao';
     });
 
     it('should export performance report to PDF', async () => {
-import TradesDAO from '../../src/database/trades.dao';
       const mockGetMany = jest.fn().mockResolvedValue([]);
       const mockGetStats = jest.fn().mockResolvedValue({
         totalTrades: 0,
@@ -203,7 +197,7 @@ import TradesDAO from '../../src/database/trades.dao';
         buyCount: 0,
         sellCount: 0,
       });
-      TradesDAO.mockImplementation(() => ({
+      (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
         getStats: mockGetStats,
       }));

@@ -215,26 +215,36 @@ describe('TradingEngine', () => {
   });
 
   describe('Event Emission', () => {
-    it('should emit tick events', (done) => {
+    it('should emit tick events', async () => {
       let ticks = 0;
+      
+      await new Promise<void>((resolve) => {
+        const handler = () => {
+          ticks++;
+          if (ticks >= 5) {
+            engine.off('engine:tick', handler);
+            resolve();
+          }
+        };
 
-      engine.on('engine:tick', () => {
-        ticks++;
-        if (ticks >= 5) {
-          done();
-        }
+        engine.on('engine:tick', handler);
+        engine.start();
       });
 
-      engine.start();
+      expect(ticks).toBeGreaterThanOrEqual(5);
     });
 
     it('should emit signal events', (done) => {
       const strategy = new TestStrategy();
       engine.addStrategy(strategy);
 
+      let signalReceived = false;
       engine.on('signal:generated', (event: any) => {
-        expect(event.data?.signal.id).toBeDefined();
-        done();
+        if (!signalReceived) {
+          signalReceived = true;
+          expect(event.data?.signal.id).toBeDefined();
+          done();
+        }
       });
 
       engine.start();
