@@ -3,114 +3,33 @@
  */
 
 import { ExchangeAccountsDAO, ExchangeType, AccountEnvironment } from '../../src/database/exchange-accounts.dao';
+import { seedMockData } from '../__mocks__/supabase';
 
-// Mock Supabase client
-jest.mock('../../src/database/client', () => ({
-  getSupabaseClient: () => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn(() => ({
-            data: null,
-            error: { code: 'PGRST116' }
-          })),
-          order: jest.fn(() => ({
-            order: jest.fn(() => ({
-              data: [],
-              error: null
-            })),
-            data: [],
-            error: null
-          }))
-        })),
-        in: jest.fn(() => ({
-          gt: jest.fn(() => ({
-            data: [],
-            error: null
-          }))
-        })),
-        gt: jest.fn(() => ({
-          data: [],
-          error: null
-        }))
-      })),
-      insert: jest.fn(() => ({
-        select: jest.fn(() => ({
-          single: jest.fn(() => ({
-            data: {
-              id: 'test-account-id',
-              user_id: 'test-user-id',
-              name: 'Test Account',
-              exchange: 'alpaca',
-              environment: 'paper',
-              api_key: 'encrypted-key',
-              api_secret: 'encrypted-secret',
-              is_primary: true,
-              status: 'active',
-              metadata: {},
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            error: null
-          }))
-        }))
-      })),
-      update: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          select: jest.fn(() => ({
-            single: jest.fn(() => ({
-              data: {
-                id: 'test-account-id',
-                user_id: 'test-user-id',
-                name: 'Updated Account',
-                exchange: 'alpaca',
-                environment: 'paper',
-                api_key: 'encrypted-key',
-                api_secret: 'encrypted-secret',
-                is_primary: true,
-                status: 'active',
-                metadata: {},
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              },
-              error: null
-            }))
-          }))
-        }))
-      })),
-      delete: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          error: null
-        }))
-      })),
-      upsert: jest.fn(() => ({
-        select: jest.fn(() => ({
-          single: jest.fn(() => ({
-            data: {
-              id: 'test-balance-id',
-              account_id: 'test-account-id',
-              currency: 'USD',
-              total_balance: 10000,
-              available_balance: 8000,
-              frozen_balance: 2000,
-              usd_value: 10000,
-              last_updated: new Date().toISOString()
-            },
-            error: null
-          }))
-        })),
-        error: null
-      }))
-    })),
-    rpc: jest.fn(() => ({
-      error: null
-    }))
-  })
-}));
+// Use the shared Supabase mock
+jest.mock('../../src/database/client');
 
 describe('ExchangeAccountsDAO', () => {
   const testUserId = 'test-user-id';
   const testAccountId = 'test-account-id';
+
+  // Helper to create mock account row
+  function createMockAccountRow(overrides: Partial<any> = {}) {
+    return {
+      id: testAccountId,
+      user_id: testUserId,
+      name: 'Test Account',
+      exchange: 'alpaca',
+      environment: 'paper',
+      api_key: 'encrypted-key',
+      api_secret: 'encrypted-secret',
+      is_primary: true,
+      status: 'active',
+      metadata: {},
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      ...overrides,
+    };
+  }
 
   describe('createAccount', () => {
     it('should create a new exchange account', async () => {
@@ -164,6 +83,9 @@ describe('ExchangeAccountsDAO', () => {
 
   describe('updateAccount', () => {
     it('should update account name', async () => {
+      // Seed the mock data with an existing account
+      seedMockData('exchange_accounts', [createMockAccountRow({ id: testAccountId })]);
+
       const updates = { name: 'Updated Account' };
       const account = await ExchangeAccountsDAO.updateAccount(testAccountId, updates);
 
@@ -174,6 +96,8 @@ describe('ExchangeAccountsDAO', () => {
 
   describe('Account Balance Operations', () => {
     it('should upsert account balance', async () => {
+      seedMockData('account_balances', []);
+
       const balance = await ExchangeAccountsDAO.upsertBalance(
         testAccountId,
         'USD',

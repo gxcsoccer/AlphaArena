@@ -1,36 +1,13 @@
 import { FollowersDAO, CreateFollowerInput } from '../../src/database/followers.dao';
 import { getSupabaseClient } from '../../src/database/client';
+import { seedMockData } from '../__mocks__/supabase';
 
-// Mock Supabase client
-jest.mock('../../src/database/client', () => ({
-  getSupabaseClient: jest.fn(),
-}));
+// Use the shared Supabase mock
+jest.mock('../../src/database/client');
 
-// In-memory storage for mock database
-let mockFollowers: Array<{
-  id: string;
-  follower_user_id: string;
-  leader_user_id: string;
-  status: string;
-  copy_mode: string;
-  copy_ratio: string;
-  fixed_amount: string | null;
-  max_copy_amount: string | null;
-  stop_loss_pct: number | null;
-  take_profit_pct: number | null;
-  max_daily_trades: number;
-  max_daily_volume: string | null;
-  allowed_symbols: string[];
-  blocked_symbols: string[];
-  total_copied_trades: number;
-  total_copied_volume: string;
-  total_pnl: string;
-  created_at: string;
-  updated_at: string;
-}> = [];
-
-function createMockFollower(input: Partial<any>) {
-  const id = `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+// Create a mock follower row
+function createMockFollowerRow(input: Partial<any> = {}) {
+  const id = input.id || `mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   const now = new Date().toISOString();
   return {
     id,
@@ -55,86 +32,11 @@ function createMockFollower(input: Partial<any>) {
   };
 }
 
-// Create a chainable mock query builder
-function createMockQuery() {
-  const filters: Array<{ key: string; value: any; type: string }> = [];
-  let insertData: any = null;
-
-  function applyFilters(): any[] {
-    let result = [...mockFollowers];
-    
-    filters.forEach((filter: { key: string; value: any; type: string }) => {
-      if (filter.type === 'eq') {
-        result = result.filter(r => (r as any)[filter.key] === filter.value);
-      }
-    });
-
-    return result;
-  }
-
-  const chainable: any = {
-    select: jest.fn(() => chainable),
-    insert: jest.fn((rows: any[]) => {
-      const newRows = rows.map(row => createMockFollower(row));
-      mockFollowers.push(...newRows);
-      return {
-        select: jest.fn(() => chainable),
-        single: jest.fn().mockResolvedValue({ data: newRows[0], error: null }),
-      };
-    }),
-    update: jest.fn((data: any) => {
-      insertData = data;
-      return chainable;
-    }),
-    delete: jest.fn(() => chainable),
-    single: jest.fn().mockImplementation(async () => {
-      const result = applyFilters();
-      const data = result[0] || null;
-      return { data, error: data ? null : { code: 'PGRST116' } };
-    }),
-    then: function(resolve: any, reject: any) {
-      try {
-        if (insertData) {
-          // Handle update
-          const result = applyFilters();
-          if (result.length > 0) {
-            Object.assign(result[0], insertData);
-            resolve({ data: result[0], error: null });
-          } else {
-            resolve({ data: null, error: { code: 'PGRST116' } });
-          }
-        } else {
-          const result = applyFilters();
-          resolve({ data: result, error: null });
-        }
-      } catch (err) {
-        reject(err);
-      }
-      return this;
-    },
-    eq: jest.fn((key: string, value: any) => {
-      filters.push({ key, value, type: 'eq' });
-      return chainable;
-    }),
-    order: jest.fn(() => chainable),
-    limit: jest.fn(() => chainable),
-    range: jest.fn(() => chainable),
-  };
-
-  return chainable;
-}
-
 describe('FollowersDAO', () => {
   let dao: FollowersDAO;
-  let mockClient: any;
 
   beforeEach(() => {
-    mockFollowers = [];
     dao = new FollowersDAO();
-    mockClient = {
-      from: jest.fn().mockReturnValue(createMockQuery()),
-    };
-    (getSupabaseClient as jest.Mock).mockReturnValue(mockClient);
   });
 
   describe('create', () => {
@@ -183,9 +85,11 @@ describe('FollowersDAO', () => {
 
   describe('getMany', () => {
     it('should return all followers when no filters', async () => {
-      // Add some mock followers
-      mockFollowers.push(createMockFollower({ follower_user_id: 'user1', leader_user_id: 'leader1' }));
-      mockFollowers.push(createMockFollower({ follower_user_id: 'user1', leader_user_id: 'leader2' }));
+      // Seed the mock data
+      seedMockData('followers', [
+        createMockFollowerRow({ follower_user_id: 'user1', leader_user_id: 'leader1' }),
+        createMockFollowerRow({ follower_user_id: 'user1', leader_user_id: 'leader2' }),
+      ]);
 
       const result = await dao.getMany();
 
@@ -193,8 +97,10 @@ describe('FollowersDAO', () => {
     });
 
     it('should filter by followerUserId', async () => {
-      mockFollowers.push(createMockFollower({ follower_user_id: 'user1', leader_user_id: 'leader1' }));
-      mockFollowers.push(createMockFollower({ follower_user_id: 'user2', leader_user_id: 'leader1' }));
+      seedMockData('followers', [
+        createMockFollowerRow({ follower_user_id: 'user1', leader_user_id: 'leader1' }),
+        createMockFollowerRow({ follower_user_id: 'user2', leader_user_id: 'leader1' }),
+      ]);
 
       const result = await dao.getMany({ followerUserId: 'user1' });
 
@@ -205,13 +111,13 @@ describe('FollowersDAO', () => {
 
   describe('update', () => {
     it('should update follower status', async () => {
-      const existingFollower = createMockFollower({ id: 'test-id', status: 'active' });
-      mockFollowers.push(existingFollower);
+      const existingFollower = createMockFollowerRow({ status: 'active' });
+      seedMockData('followers', [existingFollower]);
 
-      const _result = await dao.update('test-id', { status: 'paused' });
+      const result = await dao.update(existingFollower.id, { status: 'paused' });
 
-      // The update should be called
-      expect(mockClient.from).toHaveBeenCalledWith('followers');
+      expect(result).toBeDefined();
+      expect(result.status).toBe('paused');
     });
   });
 

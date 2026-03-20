@@ -207,7 +207,7 @@ export class SendGridProvider implements IEmailProvider {
 
       // Add attachments if provided
       if (message.attachments && message.attachments.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         
         emailData.attachments = message.attachments.map(att => ({
           filename: att.filename,
           content: att.content instanceof Buffer 
