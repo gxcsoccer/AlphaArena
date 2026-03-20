@@ -232,7 +232,7 @@ export class RebalanceScheduler {
         }
         break;
 
-      case ScheduleFrequency.WEEKLY:
+      case ScheduleFrequency.WEEKLY: {
         const targetDay = schedule.dayOfWeek ?? 1; // Default Monday
         const currentDay = now.getDay();
         let daysUntilTarget = targetDay - currentDay;
@@ -243,8 +243,9 @@ export class RebalanceScheduler {
         
         nextRun.setDate(nextRun.getDate() + daysUntilTarget);
         break;
+      }
 
-      case ScheduleFrequency.MONTHLY:
+      case ScheduleFrequency.MONTHLY: {
         const targetDate = schedule.dayOfMonth ?? 1;
         const _currentDate = now.getDate();
         
@@ -255,6 +256,7 @@ export class RebalanceScheduler {
           nextRun.setMonth(nextRun.getMonth() + 1);
         }
         break;
+      }
     }
 
     return nextRun;
