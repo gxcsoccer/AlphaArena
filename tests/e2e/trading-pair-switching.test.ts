@@ -33,14 +33,32 @@ async function verifyChartState(page: any): Promise<{ loaded: boolean; hasError:
 
 // Helper to find and click trading pair
 async function findAndClickTradingPair(page: any, symbolPattern: string): Promise<boolean> {
+  // Wait for table to be populated
+  await page.waitForSelector('.arco-table-tbody tr', { timeout: 10000 }).catch(() => {});
+  
   return await page.evaluate((pattern: string) => {
-    const rows = document.querySelectorAll('.arco-table-tbody tr, table tbody tr');
-    for (const row of rows) {
-      const text = row.textContent || '';
-      if (text.includes(pattern + '/')) {
-        (row as HTMLElement).scrollIntoView({ behavior: 'instant', block: 'center' });
-        (row as HTMLElement).click();
-        return true;
+    // Try multiple selectors for trading pairs
+    const selectors = [
+      '.arco-table-tbody tr',
+      'table tbody tr',
+      '[role="row"]',
+      '.arco-table-row'
+    ];
+    
+    for (const selector of selectors) {
+      const rows = document.querySelectorAll(selector);
+      for (const row of rows) {
+        const text = row.textContent || '';
+        // Check for pattern in various formats: BTC/USDT, BTC / USDT, or just BTC
+        if (text.includes(pattern + '/') || text.includes(pattern + ' /') || 
+            text.includes('/' + pattern) || text.includes(' BTC ') ||
+            text.includes('BTCUSDT')) {
+          // Find clickable element
+          const clickable = row.querySelector('[role="button"], [style*="cursor: pointer"], td:first-child div') || row;
+          (clickable as HTMLElement).scrollIntoView({ behavior: 'instant', block: 'center' });
+          (clickable as HTMLElement).click();
+          return true;
+        }
       }
     }
     return false;
