@@ -92,9 +92,6 @@ export class RealtimeClient {
     lastReconnectAt: null,
   };
   
-  // Track successfully subscribed topics
-  private subscribedTopics: Set<string> = new Set();
-  
   // Message queue for offline actions
   private messageQueue: QueuedMessage[] = [];
   private isProcessingQueue: boolean = false;
