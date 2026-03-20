@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Card,
   Typography,
@@ -75,121 +75,23 @@ const SIDE_CONFIG = {
   sell: { color: 'red', text: '卖出' },
 };
 
-const OrdersPanel: React.FC<OrdersPanelProps> = ({
-  symbol,
-  limit = 50,
-}) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
+// Memoized mobile detection hook
+const useMobileDetection = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile on mount and resize
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load orders
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await api.getOrders({
-        symbol,
-        limit,
-      });
-      setOrders(data);
-      setLastUpdated(new Date());
-    } catch (error: any) {
-      // Better error categorization
-      if (error.message?.includes('network') || error.message?.includes('timeout')) {
-        Message.error('网络连接失败，无法加载订单');
-      } else {
-        Message.error('加载订单失败：' + (error.message || '未知错误'));
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [symbol, limit]);
+  return isMobile;
+};
 
-  // Initial load
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  // Handle cancel order with better feedback
-  const handleCancelOrder = async (orderId: string) => {
-    Modal.confirm({
-      title: '确认取消订单',
-      content: (
-        <div>
-          <p>确定要取消这个订单吗？此操作不可撤销。</p>
-          <p style={{ color: '#86909c', fontSize: 12, marginTop: 8 }}>
-            订单ID: {orderId.slice(0, 8)}...
-          </p>
-        </div>
-      ),
-      okText: '确认取消',
-      cancelText: '再想想',
-      okButtonProps: {
-        status: 'danger',
-        loading: cancelingOrderId === orderId,
-      },
-      onOk: async () => {
-        try {
-          setCancelingOrderId(orderId);
-          const result = await api.cancelOrder(orderId);
-          
-          if (result) {
-            setCancelSuccess(orderId);
-            Message.success({
-              content: '订单已取消',
-              icon: <IconCheckCircle />,
-            });
-            // Update local state
-            setOrders(prev =>
-              prev.map(order =>
-                order.id === orderId
-                  ? { ...order, status: 'cancelled', cancelledAt: new Date().toISOString() }
-                  : order
-              )
-            );
-            
-            // Clear success state after animation
-            setTimeout(() => {
-              setCancelSuccess(null);
-            }, 2000);
-          } else {
-            Message.error('取消失败，请稍后重试');
-          }
-        } catch (error: any) {
-          // Better error handling
-          if (error.message?.includes('network') || error.message?.includes('timeout')) {
-            Message.error('网络连接失败，无法取消订单');
-          } else if (error.message?.includes('not found')) {
-            Message.error('订单不存在或已被处理');
-          } else {
-            Message.error(error.message || '取消失败');
-          }
-        } finally {
-          setCancelingOrderId(null);
-        }
-      },
-    });
-  };
-
-  // Count pending orders
-  const pendingCount = orders.filter(o => o.status === 'pending').length;
-
-  // Table columns
-  const columns: TableProps<Order>['columns'] = [
+// Memoized columns factory
+const useOrdersColumns = (isMobile: boolean, cancelingOrderId: string | null, cancelSuccess: string | null, handleCancelOrder: (id: string) => void): TableProps<Order>['columns'] => {
+  return useMemo(() => [
     {
       title: '时间',
       dataIndex: 'createdAt',
@@ -286,7 +188,116 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
         );
       },
     },
-  ];
+  ], [isMobile, cancelingOrderId, cancelSuccess, handleCancelOrder]);
+};
+
+const OrdersPanel: React.FC<OrdersPanelProps> = memo(({
+  symbol,
+  limit = 50,
+}) => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
+  const isMobile = useMobileDetection();
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [cancelSuccess, setCancelSuccess] = useState<string | null>(null);
+
+  // Load orders
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.getOrders({
+        symbol,
+        limit,
+      });
+      setOrders(data);
+      setLastUpdated(new Date());
+    } catch (error: any) {
+      // Better error categorization
+      if (error.message?.includes('network') || error.message?.includes('timeout')) {
+        Message.error('网络连接失败，无法加载订单');
+      } else {
+        Message.error('加载订单失败：' + (error.message || '未知错误'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [symbol, limit]);
+
+  // Initial load
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  // Count pending orders
+  const pendingCount = useMemo(() => 
+    orders.filter(o => o.status === 'pending').length, 
+    [orders]
+  );
+
+  // Handle cancel order with stable callback
+  const handleCancelOrder = useCallback(async (orderId: string) => {
+    Modal.confirm({
+      title: '确认取消订单',
+      content: (
+        <div>
+          <p>确定要取消这个订单吗？此操作不可撤销。</p>
+          <p style={{ color: '#86909c', fontSize: 12, marginTop: 8 }}>
+            订单ID: {orderId.slice(0, 8)}...
+          </p>
+        </div>
+      ),
+      okText: '确认取消',
+      cancelText: '再想想',
+      okButtonProps: {
+        status: 'danger',
+        loading: cancelingOrderId === orderId,
+      },
+      onOk: async () => {
+        try {
+          setCancelingOrderId(orderId);
+          const result = await api.cancelOrder(orderId);
+          
+          if (result) {
+            setCancelSuccess(orderId);
+            Message.success({
+              content: '订单已取消',
+              icon: <IconCheckCircle />,
+            });
+            // Update local state
+            setOrders(prev =>
+              prev.map(order =>
+                order.id === orderId
+                  ? { ...order, status: 'cancelled', cancelledAt: new Date().toISOString() }
+                  : order
+              )
+            );
+            
+            // Clear success state after animation
+            setTimeout(() => {
+              setCancelSuccess(null);
+            }, 2000);
+          } else {
+            Message.error('取消失败，请稍后重试');
+          }
+        } catch (error: any) {
+          // Better error handling
+          if (error.message?.includes('network') || error.message?.includes('timeout')) {
+            Message.error('网络连接失败，无法取消订单');
+          } else if (error.message?.includes('not found')) {
+            Message.error('订单不存在或已被处理');
+          } else {
+            Message.error(error.message || '取消失败');
+          }
+        } finally {
+          setCancelingOrderId(null);
+        }
+      },
+    });
+  }, [cancelingOrderId]);
+
+  // Memoized columns
+  const columns = useOrdersColumns(isMobile, cancelingOrderId, cancelSuccess, handleCancelOrder);
 
   return (
     <Card
@@ -354,6 +365,8 @@ const OrdersPanel: React.FC<OrdersPanelProps> = ({
       )}
     </Card>
   );
-};
+});
+
+OrdersPanel.displayName = 'OrdersPanel';
 
 export default OrdersPanel;

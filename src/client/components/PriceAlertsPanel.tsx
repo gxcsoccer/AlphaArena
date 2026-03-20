@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Card,
   Typography,
@@ -29,145 +29,28 @@ interface PriceAlertsPanelProps {
   limit?: number;
 }
 
-const PriceAlertsPanel: React.FC<PriceAlertsPanelProps> = ({
-  symbol,
-  limit = 50,
-}) => {
-  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [form] = Form.useForm();
+// Memoized mobile detection hook
+const useMobileDetection = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile on mount and resize
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load price alerts
-  const loadAlerts = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await api.getPriceAlerts({
-        symbol,
-        limit,
-      });
-      setAlerts(data);
-    } catch (error: any) {
-      Message.error('加载价格提醒失败：' + (error.message || '未知错误'));
-    } finally {
-      setLoading(false);
-    }
-  }, [symbol, limit]);
+  return isMobile;
+};
 
-  // Initial load
-  useEffect(() => {
-    loadAlerts();
-
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(loadAlerts, 10000);
-    return () => clearInterval(interval);
-  }, [loadAlerts]);
-
-  // Handle create alert
-  const handleCreateAlert = async () => {
-    try {
-      const values = await form.validate();
-      setActionLoading('create');
-
-      const alertData = {
-        symbol: values.symbol.toUpperCase(),
-        conditionType: values.conditionType,
-        targetPrice: values.targetPrice,
-        notificationMethod: values.notificationMethod || 'in_app',
-        isRecurring: values.isRecurring || false,
-        notes: values.notes,
-        expiresAt: values.expiresAt ? new Date(values.expiresAt).toISOString() : undefined,
-      };
-
-      const result = await api.createPriceAlert(alertData);
-
-      if (result) {
-        Message.success('价格提醒创建成功');
-        setShowCreateModal(false);
-        form.resetFields();
-        loadAlerts();
-      } else {
-        Message.error('创建失败');
-      }
-    } catch (error: any) {
-      if (error.fields) {
-        // Validation error
-        return;
-      }
-      Message.error(error.message || '创建失败');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Handle delete alert
-  const handleDeleteAlert = async (alertId: string) => {
-    Modal.confirm({
-      title: '确认删除价格提醒',
-      content: '确定要删除这个价格提醒吗？此操作不可撤销。',
-      okText: '确认删除',
-      cancelText: '取消',
-      okButtonProps: {
-        status: 'danger',
-        loading: actionLoading === `delete-${alertId}`,
-      },
-      onOk: async () => {
-        try {
-          setActionLoading(`delete-${alertId}`);
-          const result = await api.deletePriceAlert(alertId);
-
-          if (result) {
-            Message.success('价格提醒已删除');
-            setAlerts(prev => prev.filter(a => a.id !== alertId));
-          } else {
-            Message.error('删除失败');
-          }
-        } catch (error: any) {
-          Message.error(error.message || '删除失败');
-        } finally {
-          setActionLoading(null);
-        }
-      },
-    });
-  };
-
-  // Handle toggle alert status
-  const handleToggleAlert = async (alert: PriceAlert) => {
-    try {
-      setActionLoading(`toggle-${alert.id}`);
-      const newStatus = alert.status === 'active' ? 'disabled' : 'active';
-      const result = await api.updatePriceAlert(alert.id, { status: newStatus });
-
-      if (result) {
-        Message.success(newStatus === 'active' ? '提醒已启用' : '提醒已禁用');
-        setAlerts(prev =>
-          prev.map(a => (a.id === alert.id ? { ...a, status: newStatus } : a))
-        );
-      } else {
-        Message.error('操作失败');
-      }
-    } catch (error: any) {
-      Message.error(error.message || '操作失败');
-    } finally {
-      setActionLoading(null);
-    }
-  };
-
-  // Table columns
-  const columns: TableProps<PriceAlert>['columns'] = [
+// Memoized columns factory
+const usePriceAlertsColumns = (
+  isMobile: boolean,
+  actionLoading: string | null,
+  handleToggleAlert: (alert: PriceAlert) => void,
+  handleDeleteAlert: (alertId: string) => void
+): TableProps<PriceAlert>['columns'] => {
+  return useMemo(() => [
     {
       title: '时间',
       dataIndex: 'createdAt',
@@ -288,7 +171,143 @@ const PriceAlertsPanel: React.FC<PriceAlertsPanelProps> = ({
         </Space>
       ),
     },
-  ];
+  ], [isMobile, actionLoading, handleToggleAlert, handleDeleteAlert]);
+};
+
+const PriceAlertsPanel: React.FC<PriceAlertsPanelProps> = memo(({
+  symbol,
+  limit = 50,
+}) => {
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const isMobile = useMobileDetection();
+  const [form] = Form.useForm();
+
+  // Load price alerts
+  const loadAlerts = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.getPriceAlerts({
+        symbol,
+        limit,
+      });
+      setAlerts(data);
+    } catch (error: any) {
+      Message.error('加载价格提醒失败：' + (error.message || '未知错误'));
+    } finally {
+      setLoading(false);
+    }
+  }, [symbol, limit]);
+
+  // Initial load
+  useEffect(() => {
+    loadAlerts();
+
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(loadAlerts, 10000);
+    return () => clearInterval(interval);
+  }, [loadAlerts]);
+
+  // Handle create alert
+  const handleCreateAlert = useCallback(async () => {
+    try {
+      const values = await form.validate();
+      setActionLoading('create');
+
+      const alertData = {
+        symbol: values.symbol.toUpperCase(),
+        conditionType: values.conditionType,
+        targetPrice: values.targetPrice,
+        notificationMethod: values.notificationMethod || 'in_app',
+        isRecurring: values.isRecurring || false,
+        notes: values.notes,
+        expiresAt: values.expiresAt ? new Date(values.expiresAt).toISOString() : undefined,
+      };
+
+      const result = await api.createPriceAlert(alertData);
+
+      if (result) {
+        Message.success('价格提醒创建成功');
+        setShowCreateModal(false);
+        form.resetFields();
+        loadAlerts();
+      } else {
+        Message.error('创建失败');
+      }
+    } catch (error: any) {
+      if (error.fields) {
+        // Validation error
+        return;
+      }
+      Message.error(error.message || '创建失败');
+    } finally {
+      setActionLoading(null);
+    }
+  }, [form, loadAlerts]);
+
+  // Handle delete alert
+  const handleDeleteAlert = useCallback((alertId: string) => {
+    Modal.confirm({
+      title: '确认删除价格提醒',
+      content: '确定要删除这个价格提醒吗？此操作不可撤销。',
+      okText: '确认删除',
+      cancelText: '取消',
+      okButtonProps: {
+        status: 'danger',
+        loading: actionLoading === `delete-${alertId}`,
+      },
+      onOk: async () => {
+        try {
+          setActionLoading(`delete-${alertId}`);
+          const result = await api.deletePriceAlert(alertId);
+
+          if (result) {
+            Message.success('价格提醒已删除');
+            setAlerts(prev => prev.filter(a => a.id !== alertId));
+          } else {
+            Message.error('删除失败');
+          }
+        } catch (error: any) {
+          Message.error(error.message || '删除失败');
+        } finally {
+          setActionLoading(null);
+        }
+      },
+    });
+  }, [actionLoading]);
+
+  // Handle toggle alert status
+  const handleToggleAlert = useCallback(async (alert: PriceAlert) => {
+    try {
+      setActionLoading(`toggle-${alert.id}`);
+      const newStatus = alert.status === 'active' ? 'disabled' : 'active';
+      const result = await api.updatePriceAlert(alert.id, { status: newStatus });
+
+      if (result) {
+        Message.success(newStatus === 'active' ? '提醒已启用' : '提醒已禁用');
+        setAlerts(prev =>
+          prev.map(a => (a.id === alert.id ? { ...a, status: newStatus } : a))
+        );
+      } else {
+        Message.error('操作失败');
+      }
+    } catch (error: any) {
+      Message.error(error.message || '操作失败');
+    } finally {
+      setActionLoading(null);
+    }
+  }, []);
+
+  // Handle modal close
+  const handleModalClose = useCallback(() => {
+    setShowCreateModal(false);
+    form.resetFields();
+  }, [form]);
+
+  // Memoized columns
+  const columns = usePriceAlertsColumns(isMobile, actionLoading, handleToggleAlert, handleDeleteAlert);
 
   return (
     <>
@@ -344,10 +363,7 @@ const PriceAlertsPanel: React.FC<PriceAlertsPanelProps> = ({
         title="创建价格提醒"
         visible={showCreateModal}
         onOk={handleCreateAlert}
-        onCancel={() => {
-          setShowCreateModal(false);
-          form.resetFields();
-        }}
+        onCancel={handleModalClose}
         okText="创建"
         cancelText="取消"
         okButtonProps={{ loading: actionLoading === 'create' }}
@@ -437,6 +453,8 @@ const PriceAlertsPanel: React.FC<PriceAlertsPanelProps> = ({
       </Modal>
     </>
   );
-};
+});
+
+PriceAlertsPanel.displayName = 'PriceAlertsPanel';
 
 export default PriceAlertsPanel;
