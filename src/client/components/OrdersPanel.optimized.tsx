@@ -500,4 +500,6 @@ const OrdersPanel: React.FC<OrdersPanelProps> = memo(({
   );
 });
 
+OrdersPanel.displayName = 'OrdersPanel';
+
 export default OrdersPanel;

@@ -215,6 +215,20 @@ export class RealtimeClient {
   }
 
   /**
+   * Connect to realtime - for backward compatibility
+   * This method ensures the client is ready to receive messages
+   */
+  public async connect(): Promise<void> {
+    // Connection is established lazily via subscribe(), so this is a no-op
+    // that just ensures the client is ready
+    if (this.connectionStatus === 'disconnected') {
+      this.connectionStatus = 'connected';
+      this.startQualityMonitoring();
+      this.notifyConnectionListeners();
+    }
+  }
+
+  /**
    * Subscribe to a channel with automatic reconnection and timeout handling
    */
   public async subscribe(topic: string): Promise<RealtimeChannel> {

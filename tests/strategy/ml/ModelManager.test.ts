@@ -194,6 +194,10 @@ describe('ModelManager', () => {
       const model2 = { version: 2 };
       
       const id1 = await manager.saveModel(model1, 'multi-version', 'classification');
+      
+      // Add a small delay to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+      
       const id2 = await manager.saveModel(model2, 'multi-version', 'classification');
 
       // Should have same base ID but different timestamps

@@ -59,7 +59,7 @@ export function useMediaQuery(): ScreenInfo {
     if (width < BREAKPOINTS.md) {
       deviceType = 'mobile';
       breakpoint = width < BREAKPOINTS.xs ? 'xs' : 
-                   width < BREAKPOINTS.sm ? 'sm' : 'md';
+                   width < BREAKPOINTS.sm ? 'sm' : 'sm'; // 480-768 is still 'sm' for mobile
     } else if (width < BREAKPOINTS.lg) {
       deviceType = 'tablet';
       breakpoint = 'md';

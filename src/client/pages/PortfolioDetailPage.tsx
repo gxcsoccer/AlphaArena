@@ -109,6 +109,20 @@ const PortfolioDetailPage: React.FC = () => {
     }
   };
 
+  // Prepare data for pie chart - must be called before any early returns
+  const pieData = useMemo(() => {
+    if (!portfolio?.strategies || portfolio.strategies.length === 0) {
+      return [];
+    }
+
+    return portfolio.strategies.map((s, index) => ({
+      name: s.strategyName || `策略 ${index + 1}`,
+      value: s.weight * 100,
+      allocation: s.allocation,
+      currentValue: s.currentValue,
+    }));
+  }, [portfolio?.strategies]);
+
   // Loading state
   if (loading) {
     return (
@@ -133,20 +147,6 @@ const PortfolioDetailPage: React.FC = () => {
       </Card>
     );
   }
-
-  // Prepare data for pie chart
-  const pieData = useMemo(() => {
-    if (!portfolio.strategies || portfolio.strategies.length === 0) {
-      return [];
-    }
-
-    return portfolio.strategies.map((s, index) => ({
-      name: s.strategyName || `策略 ${index + 1}`,
-      value: s.weight * 100,
-      allocation: s.allocation,
-      currentValue: s.currentValue,
-    }));
-  }, [portfolio.strategies]);
 
   return (
     <div>

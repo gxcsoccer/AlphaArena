@@ -56,8 +56,8 @@ jest.mock('../../database/performance-metrics.dao', () => ({
       { page: '/strategies', count: 25, avg_lcp: 2400, avg_fcp: 1700, avg_fid: 50, avg_cls: 0.05, avg_tti: 3000 },
     ]),
     getMetrics: jest.fn().mockResolvedValue([
-      { id: 'metric-1', session_id: 'session-1', lcp: 2000, fcp: 1500, device_type: 'mobile' },
-      { id: 'metric-2', session_id: 'session-2', lcp: 2500, fcp: 1800, device_type: 'desktop' },
+      { id: 'metric-1', session_id: 'session-1', lcp: 2000, fcp: 1500, device_type: 'mobile', created_at: new Date().toISOString() },
+      { id: 'metric-2', session_id: 'session-2', lcp: 2500, fcp: 1800, device_type: 'desktop', created_at: new Date().toISOString() },
     ]),
   }),
 }));

@@ -479,12 +479,12 @@ describe('KLineChart', () => {
     it('should render timeframe selector', () => {
       render(<KLineChart symbol="BTC/USD" />);
 
-      expect(screen.getByText('1 分钟')).toBeInTheDocument();
-      expect(screen.getByText('5 分钟')).toBeInTheDocument();
-      expect(screen.getByText('15 分钟')).toBeInTheDocument();
-      expect(screen.getByText('1 小时')).toBeInTheDocument();
-      expect(screen.getByText('4 小时')).toBeInTheDocument();
-      expect(screen.getByText('1 天')).toBeInTheDocument();
+      expect(screen.getByText('1分')).toBeInTheDocument();
+      expect(screen.getByText('5分')).toBeInTheDocument();
+      expect(screen.getByText('15分')).toBeInTheDocument();
+      expect(screen.getByText('1时')).toBeInTheDocument();
+      expect(screen.getByText('4时')).toBeInTheDocument();
+      expect(screen.getByText('1天')).toBeInTheDocument();
     });
 
     it('should have 1h as default timeframe', () => {

@@ -12,7 +12,7 @@ const { _RangePicker } = DatePicker;
 import {
   BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, RadarChart,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area
+  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area, Cell
 } from 'recharts';
 
 import { 
@@ -607,10 +607,10 @@ const EnhancedLeaderboardPage: React.FC = () => {
         <Divider style={{ margin: '12px 0' }} />
         <Row gutter={16}>
           <Col span={6}>
-            <Statistic title="Prize Pool" value={`\$${competition.prizePool.toLocaleString()}`} />
+            <Statistic title="Prize Pool" value={`$${competition.prizePool.toLocaleString()}`} />
           </Col>
           <Col span={6}>
-            <Statistic title="Entry Fee" value={`\$${competition.entryFee}`} />
+            <Statistic title="Entry Fee" value={`$${competition.entryFee}`} />
           </Col>
           <Col span={6}>
             <Statistic title="Participants" value={competition.participantCount} suffix={competition.maxParticipants ? `/ ${competition.maxParticipants}` : ''} />

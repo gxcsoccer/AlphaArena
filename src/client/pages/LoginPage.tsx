@@ -125,7 +125,7 @@ const LoginPage: React.FC = () => {
 
           <div style={styles.footer}>
             <Text type="secondary">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link>
                 <RouterLink to="/register">Sign up</RouterLink>
               </Link>

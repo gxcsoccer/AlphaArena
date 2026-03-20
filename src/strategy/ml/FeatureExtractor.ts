@@ -175,16 +175,19 @@ export class FeatureExtractor {
         case 'zscore':
           normalized = (v - mean[i]) / std[i];
           break;
-        case 'minmax':
+        case 'minmax': {
           const range = (max?.[i] ?? 1) - (min?.[i] ?? 0);
           normalized = range > 0 ? (v - (min?.[i] ?? 0)) / range : 0;
           break;
-        case 'robust':
+        }
+        case 'robust': {
           // Median absolute deviation based normalization
           normalized = (v - mean[i]) / (std[i] * 1.4826); // Scale factor for MAD
           break;
-        default:
+        }
+        default: {
           normalized = v;
+        }
       }
 
       // Handle NaN and Infinity
@@ -257,15 +260,17 @@ export class FeatureExtractor {
       case 'volume':
         return { volume: volumes[volumes.length - 1] || 0 };
       
-      case 'returns':
+      case 'returns': {
         if (closes.length < 2) return { returns: 0 };
         const returns = (closes[closes.length - 1] - closes[closes.length - 2]) / closes[closes.length - 2];
         return { returns };
+      }
       
-      case 'log-returns':
+      case 'log-returns': {
         if (closes.length < 2) return { 'log-returns': 0 };
         const logReturns = Math.log(closes[closes.length - 1] / closes[closes.length - 2]);
         return { 'log-returns': logReturns };
+      }
       
       case 'sma-5':
         return { 'sma-5': this.calculateSMA(closes, 5) };
@@ -303,9 +308,10 @@ export class FeatureExtractor {
       case 'bollinger-lower':
         return { 'bollinger-lower': this.calculateBollingerBands(closes, 20).lower };
       
-      case 'bollinger-width':
+      case 'bollinger-width': {
         const bb = this.calculateBollingerBands(closes, 20);
         return { 'bollinger-width': bb.upper - bb.lower };
+      }
       
       case 'atr-14':
         return { 'atr-14': this.calculateATR(highs, lows, closes, 14) };
@@ -338,9 +344,10 @@ export class FeatureExtractor {
         return { adl: this.calculateADL(highs, lows, closes, volumes) };
       
       case 'stoch-k':
-      case 'stoch-d':
+      case 'stoch-d': {
         const stoch = this.calculateStochastic(highs, lows, closes, 14);
         return { 'stoch-k': stoch.k, 'stoch-d': stoch.d };
+      }
       
       case 'williams-r':
         return { 'williams-r': this.calculateWilliamsR(highs, lows, closes, 14) };

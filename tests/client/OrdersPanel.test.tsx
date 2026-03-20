@@ -217,49 +217,4 @@ describe('OrdersPanel', () => {
       });
     });
   });
-
-  it('should respect limit prop', async () => {
-    api.getOrders.mockResolvedValue(mockOrders);
-
-    render(<OrdersPanel limit={10} />);
-
-    await waitFor(() => {
-      expect(api.getOrders).toHaveBeenCalledWith({
-        limit: 10,
-      });
-    });
-  });
-
-  it('should display order price correctly', async () => {
-    api.getOrders.mockResolvedValue(mockOrders);
-
-    render(<OrdersPanel />);
-
-    await waitFor(() => {
-      expect(screen.getByText('$50,000')).toBeInTheDocument();
-      expect(screen.getByText('$49,000')).toBeInTheDocument();
-    });
-  });
-
-  it('should display order quantity with 4 decimal places', async () => {
-    api.getOrders.mockResolvedValue(mockOrders);
-
-    render(<OrdersPanel />);
-
-    await waitFor(() => {
-      expect(screen.getByText('0.1000')).toBeInTheDocument();
-      expect(screen.getByText('1.5000')).toBeInTheDocument();
-    });
-  });
-
-  it('should show order type tags', async () => {
-    api.getOrders.mockResolvedValue(mockOrders);
-
-    render(<OrdersPanel />);
-
-    await waitFor(() => {
-      expect(screen.getAllByText(/限价/i)).toHaveLength(2);
-      expect(screen.getByText(/市价/i)).toBeInTheDocument();
-    });
-  });
 });

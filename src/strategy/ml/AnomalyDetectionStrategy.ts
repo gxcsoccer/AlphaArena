@@ -413,27 +413,32 @@ export class AnomalyDetectionStrategy extends MLStrategy {
     let side: 'buy' | 'sell';
     
     switch (anomalyPred.anomalyType) {
-      case 'spike':
+      case 'spike': {
         // Price spike - potential mean reversion (sell)
         side = 'sell';
         break;
-      case 'drop':
+      }
+      case 'drop': {
         // Price drop - potential mean reversion (buy)
         side = 'buy';
         break;
-      case 'volatility':
+      }
+      case 'volatility': {
         // High volatility - reduce position (sell)
         side = 'sell';
         break;
-      case 'pattern-break':
+      }
+      case 'pattern-break': {
         // Pattern break - follow the break direction
         const lastPrice = this.priceHistory[this.priceHistory.length - 1];
         const prevPrice = this.priceHistory[this.priceHistory.length - 2] || lastPrice;
         side = lastPrice > prevPrice ? 'buy' : 'sell';
         break;
-      default:
+      }
+      default: {
         // Default: don't trade
         return null;
+      }
     }
 
     // Check position constraints

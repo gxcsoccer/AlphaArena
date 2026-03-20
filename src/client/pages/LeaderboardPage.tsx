@@ -17,6 +17,7 @@ import {
   Radar,
   AreaChart,
   Area,
+  Line,
 } from 'recharts';
 import { api, LeaderboardEntry } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';

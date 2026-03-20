@@ -137,6 +137,7 @@ function parseArgs(args: string[]): Partial<RunnerConfig> {
       case '-h':
         printHelp();
         process.exit(0);
+        break; // Added break to prevent fallthrough
 
       default:
         if (arg.startsWith('-')) {

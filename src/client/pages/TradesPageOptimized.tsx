@@ -10,7 +10,7 @@ import { useOptimizedQuery } from '../hooks/useOptimizedData';
 import { useDebounce } from '../utils/performance';
 import { dataCache } from '../utils/cache';
 import VirtualizedTable from '../components/VirtualizedTable';
-import {  SkeletonTable } from '../components/Skeleton';
+import { SkeletonTable, SkeletonChart } from '../components/Skeleton';
 import { LazyLoadWrapper } from '../components/LazyLoadWrapper';
 import {  OptimizedBarChart, OptimizedLineChart } from '../components/OptimizedChart';
 import { usePerformanceTracking, usePerformanceMetrics } from '../hooks/usePerformanceMonitor';
