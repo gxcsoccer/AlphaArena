@@ -9,7 +9,6 @@ import { StrategyConfig, StrategyContext, OrderSignal, MarketData } from '../typ
 import {
   MLStrategyBaseConfig,
   FeatureVector,
-  FeatureSet,
   MarketDataPoint,
   PredictionResult,
 } from './MLTypes';

@@ -3,8 +3,7 @@
  */
 
 import { MultiTimeframeSMAStrategy } from '../strategies/MultiTimeframeSMAStrategy';
-import {  KLineDataPoint } from '../types';
-import { StrategyContext } from '../../strategy/types';
+import { KLineDataPoint } from '../types';
 
 // Helper to generate test K-line data
 function generateKLineData(numCandles: number, basePrice: number = 100): KLineDataPoint[] {
@@ -63,27 +62,6 @@ function generateTrendingKLineData(
   }
 
   return data;
-}
-
-// Mock strategy context
-function createMockContext(): StrategyContext {
-  return {
-    portfolio: {
-      cash: 10000,
-      positions: [],
-      totalValue: 10000,
-      unrealizedPnL: 0,
-      timestamp: Date.now(),
-    },
-    clock: Date.now(),
-    getMarketData: () => ({
-      orderBook: {} as any,
-      trades: [],
-      timestamp: Date.now(),
-    }),
-    getPosition: () => 0,
-    getCash: () => 10000,
-  };
 }
 
 describe('MultiTimeframeSMAStrategy', () => {

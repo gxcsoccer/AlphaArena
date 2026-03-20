@@ -4,7 +4,7 @@
  */
 
 import { createLogger } from '../utils/logger';
-import type { MailDataRequired, ClientResponse } from '@sendgrid/mail';
+import type { ClientResponse } from '@sendgrid/mail';
 
 const log = createLogger('EmailProviders');
 
@@ -312,7 +312,7 @@ export class AWSSESProvider implements IEmailProvider {
     return !!(this.config.accessKeyId && this.config.secretAccessKey);
   }
 
-  async send(message: EmailMessage): Promise<EmailSendResult> {
+  async send(_message: EmailMessage): Promise<EmailSendResult> {
     if (!this.isConfigured) {
       return {
         success: false,
@@ -356,7 +356,7 @@ export class ResendProvider implements IEmailProvider {
     return !!this.apiKey;
   }
 
-  async send(message: EmailMessage): Promise<EmailSendResult> {
+  async send(_message: EmailMessage): Promise<EmailSendResult> {
     if (!this.isConfigured) {
       return {
         success: false,
@@ -410,7 +410,7 @@ export class SMTPProvider implements IEmailProvider {
     return !!(this.config.host);
   }
 
-  async send(message: EmailMessage): Promise<EmailSendResult> {
+  async send(_message: EmailMessage): Promise<EmailSendResult> {
     if (!this.isConfigured) {
       return {
         success: false,

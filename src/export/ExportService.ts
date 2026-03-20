@@ -11,7 +11,6 @@ import { StrategiesDAO } from '../database/strategies.dao';
 import { CSVExporter } from './CSVExporter';
 import { PDFReporter } from './PDFReporter';
 import {
-  ExportFormat,
   TradeExportOptions,
   PerformanceExportOptions,
   BacktestExportOptions,

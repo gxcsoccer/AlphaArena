@@ -20,7 +20,6 @@ import {
   Bar,
   Trade,
   OrderBook,
-  Ticker,
   BarInterval,
   DataSourceStatus,
   DataSourceConfig,
@@ -374,7 +373,7 @@ export class AlpacaDataProvider extends EventEmitter implements IStockDataProvid
 
   // ========== Order Book ==========
 
-  async getOrderBook(symbol: string, depth: number = 20): Promise<OrderBook> {
+  async getOrderBook(symbol: string, _depth: number = 20): Promise<OrderBook> {
     this.ensureConnected();
     const normalized = this.normalizeSymbol(symbol);
 

@@ -23,7 +23,6 @@ const corsHeaders = {
 };
 
 // OKX API endpoints
-const OKX_WS_URL = "wss://ws.okx.com:8443/ws/v5/public";
 const OKX_REST_API = "https://www.okx.com";
 
 // Trading pairs to monitor

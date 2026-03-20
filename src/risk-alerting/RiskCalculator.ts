@@ -6,7 +6,6 @@
 
 import {
   PortfolioData,
-  PositionData,
   RiskMetrics,
   RiskCalculationResult,
   RiskType,

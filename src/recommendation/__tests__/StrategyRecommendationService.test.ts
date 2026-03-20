@@ -7,8 +7,8 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 // Mock the database client
 jest.mock('../../database/client', () => ({
   getSupabaseClient: jest.fn(() => ({
-    from: jest.fn((table: string) => ({
-      select: jest.fn((columns?: string) => ({
+    from: jest.fn((_table: string) => ({
+      select: jest.fn((_columns?: string) => ({
         eq: jest.fn(() => ({
           single: jest.fn(() => Promise.resolve({ data: null, error: null })),
           gt: jest.fn(() => ({

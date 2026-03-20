@@ -368,9 +368,9 @@ export class PushService {
    */
   async sendToUser(
     userId: string,
-    title: string,
-    body: string,
-    options?: PushOptions
+    _title: string,
+    _body: string,
+    _options?: PushOptions
   ): Promise<PushSendResult> {
     // TODO: Implement user device token lookup
     // For now, return a placeholder result

@@ -12,7 +12,6 @@ import {
   Bar,
   Trade,
   OrderBook,
-  Ticker,
   BarInterval,
   DataSourceStatus,
   DataSourceConfig,

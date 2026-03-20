@@ -11,13 +11,8 @@ import {
   RiskMetrics,
   RiskAlert,
   RiskType,
-  RiskSeverity,
-  RiskAlertStatus,
-  NotificationChannels,
   PortfolioData,
-  RiskAlertHistory,
   UserRiskConfig,
-  RiskAlertStats,
   RiskCalculationResult,
 } from './types';
 import { RiskCalculator } from './RiskCalculator';

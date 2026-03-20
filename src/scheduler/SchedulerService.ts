@@ -7,8 +7,7 @@ import { CronJob } from 'cron';
 import { 
   tradingSchedulesDAO, 
   TradingSchedule, 
-  ScheduleExecution,
-  ScheduleSafetyConfig
+  ScheduleExecution
 } from '../database/trading-schedules.dao';
 import { getSupabaseClient } from '../database/client';
 import { createLogger } from '../utils/logger';

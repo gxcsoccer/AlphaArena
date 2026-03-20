@@ -4,8 +4,8 @@
 import { EventEmitter } from 'events';
 import {
   IExchangeAdapter, ExchangeConfig, Balance, Ticker, OrderBook,
-  OrderParams, OrderResult, Order, TradeCallback, TickerCallback,
-  OrderBookCallback, ConnectionStatus, ExchangeError, ExchangeErrorType,
+  OrderParams, OrderResult, Order, TradeCallback,
+  ConnectionStatus, ExchangeError, ExchangeErrorType,
   ExchangeCapabilities, TimeInForce,
 } from './types';
 

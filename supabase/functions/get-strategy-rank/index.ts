@@ -95,7 +95,7 @@ serve(async (req) => {
         .select('side, total')
         .eq('strategy_id', s.id);
 
-      const sTotalTrades = sTrades?.length || 0;
+      const _sTotalTrades = sTrades?.length || 0;
       const sBuys = sTrades?.filter((t) => t.side === 'buy') || [];
       const sSells = sTrades?.filter((t) => t.side === 'sell') || [];
       const sTotalCost = sBuys.reduce((sum, t) => sum + (parseFloat(t.total.toString()) || 0), 0);

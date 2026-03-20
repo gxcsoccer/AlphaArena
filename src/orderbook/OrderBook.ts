@@ -10,7 +10,6 @@ import {
   OrderBookEvent,
   IcebergOrder,
   AnyOrder,
-  OrderCategory,
   isIcebergOrder,
 } from './types';
 
