@@ -114,7 +114,7 @@ const HoldingsPage: React.FC = () => {
   });
 
   // Calculate P&L from trades
-  const pnlData: PnLData = useMemo(() => {
+  const _pnlData: PnLData = useMemo(() => {
     if (trades.length === 0) {
       return {
         realizedPnL: 0,

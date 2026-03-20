@@ -228,7 +228,7 @@ const EquityCurveChart: React.FC<{ data: Array<{ date: string; value: number }> 
   </ResponsiveContainer>
 );
 
-const StrategiesTab: React.FC<{ userId: string }> = ({ userId }) => {
+const StrategiesTab: React.FC<{ userId: string }> = ({ userId: _userId }) => {
   const [strategies, setStrategies] = useState<UserStrategy[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string | undefined>();
@@ -348,7 +348,7 @@ const StrategiesTab: React.FC<{ userId: string }> = ({ userId }) => {
   );
 };
 
-const TradesTab: React.FC<{ userId: string }> = ({ userId }) => {
+const TradesTab: React.FC<{ userId: string }> = ({ userId: _userId }) => {
   const [trades, setTrades] = useState<UserTrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -488,7 +488,7 @@ const TradesTab: React.FC<{ userId: string }> = ({ userId }) => {
   );
 };
 
-const PerformanceTab: React.FC<{ userId: string }> = ({ userId }) => {
+const PerformanceTab: React.FC<{ userId: string }> = ({ userId: _userId }) => {
   const [performance, setPerformance] = useState<UserPerformance | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -640,7 +640,7 @@ const UserDashboardPage: React.FC = () => {
   const [overview, setOverview] = useState<UserOverview | null>(null);
   const [overviewLoading, setOverviewLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
 
   // Detect mobile
   useEffect(() => {

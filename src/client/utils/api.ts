@@ -851,7 +851,7 @@ export class RealtimeClient {
     }
   }
 
-  off(event: string, callback: Function): void {
+  off(_event: string, _callback: Function): void {
     log.warn('off() is deprecated - use the unsubscribe function from on()');
   }
 

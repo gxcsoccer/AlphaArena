@@ -11,7 +11,6 @@
 
 import { render } from '@testing-library/react';
 import fs from 'fs';
-import path from 'path';
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({

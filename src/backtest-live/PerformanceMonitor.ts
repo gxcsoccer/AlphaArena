@@ -436,7 +436,7 @@ export class PerformanceMonitor {
    * Stop all monitoring
    */
   stopAllMonitoring(): void {
-    for (const [id, interval] of this.comparisonIntervals) {
+    for (const [_id, interval] of this.comparisonIntervals) {
       clearInterval(interval);
     }
     this.comparisonIntervals.clear();

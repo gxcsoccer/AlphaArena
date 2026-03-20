@@ -183,7 +183,7 @@ export class PaperTradingEngine extends EventEmitter {
     }
     
     // Unsubscribe from all price feeds
-    for (const [symbol, unsubscribe] of this.priceSubscriptions) {
+    for (const [_symbol, unsubscribe] of this.priceSubscriptions) {
       unsubscribe();
     }
     this.priceSubscriptions.clear();

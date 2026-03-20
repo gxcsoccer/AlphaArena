@@ -394,7 +394,7 @@ export class AutoRebalanceService {
    */
   private enforceMaxWeight(
     adjustments: RebalanceAdjustment[],
-    maxWeight: number
+    _maxWeight: number
   ): RebalanceAdjustment[] {
     return adjustments.map(adj => {
       // If buying would exceed max weight, reduce quantity
@@ -424,7 +424,7 @@ export class AutoRebalanceService {
     plan: RebalancePlan,
     positions: any[],
     retryConfig?: RetryConfig,
-    onProgress?: (progress: RebalanceProgress) => void
+    _onProgress?: (progress: RebalanceProgress) => void
   ): Promise<RebalanceResult> {
     const maxRetries = retryConfig?.maxRetries ?? 0;
     let lastError: string | undefined;

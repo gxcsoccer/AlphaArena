@@ -7,7 +7,6 @@
 import { EventEmitter } from 'events';
 import {
   Trade,
-  Delta,
   CumulativeDeltaPoint,
   LargeOrder,
   OrderBookImbalance,

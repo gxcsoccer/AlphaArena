@@ -22,7 +22,6 @@ import {
   StrategyPerformance,
   PortfolioPerformanceSnapshot,
   SnapshotType,
-  RebalanceConfig,
 } from './types';
 
 /**

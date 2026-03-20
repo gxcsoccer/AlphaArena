@@ -54,7 +54,7 @@ const CustomTooltip: React.FC<{
   active?: boolean;
   payload?: any[];
   label?: string;
-}> = ({ active, payload, label }) => {
+}> = ({ active, payload, label: _label }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (

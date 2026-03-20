@@ -201,7 +201,7 @@ const KLineChartInner: React.FC<KLineChartProps> = ({
     e.preventDefault();
   }, []);
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
+  const handleTouchEnd = useCallback((_e: TouchEvent) => {
     pinchStateRef.current = null;
   }, []);
 

@@ -87,7 +87,7 @@ const TradeTooltip: React.FC<{
 
 export const TradeAnalysisChart: React.FC<TradeAnalysisChartProps> = ({
   trades,
-  priceData,
+  priceData: _priceData,
   loading = false,
   title = '交易分析',
   height = 300,

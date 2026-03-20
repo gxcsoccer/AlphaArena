@@ -209,7 +209,7 @@ export class AttributionDAO {
     };
   }
 
-  private calculateStrategyAttribution(trades: any[], filters: AttributionFilters): StrategyAttribution[] {
+  private calculateStrategyAttribution(trades: any[], _filters: AttributionFilters): StrategyAttribution[] {
     const strategyMap = new Map<string, { trades: any[]; pnl: number }>();
     for (const trade of trades) {
       const strategyId = trade.strategy_id || 'default';
@@ -240,7 +240,7 @@ export class AttributionDAO {
     return results.sort((a, b) => b.contribution - a.contribution);
   }
 
-  private calculateSymbolAttribution(trades: any[], filters: AttributionFilters): SymbolAttribution[] {
+  private calculateSymbolAttribution(trades: any[], _filters: AttributionFilters): SymbolAttribution[] {
     const symbolMap = new Map<string, { trades: any[]; pnl: number; holdingTimes: number[] }>();
     for (const trade of trades) {
       const symbol = trade.symbol;
@@ -269,7 +269,7 @@ export class AttributionDAO {
     return results.sort((a, b) => b.contribution - a.contribution);
   }
 
-  private calculateTimeAttribution(trades: any[], filters: AttributionFilters, priceHistory: Map<string, number[]>): TimeAttribution[] {
+  private calculateTimeAttribution(trades: any[], filters: AttributionFilters, _priceHistory: Map<string, number[]>): TimeAttribution[] {
     const periodMap = new Map<string, { trades: any[]; pnl: number }>();
     const period = filters.period || 'daily';
     for (const trade of trades) {
@@ -309,7 +309,7 @@ export class AttributionDAO {
     return results.sort((a, b) => a.period.localeCompare(b.period));
   }
 
-  private calculateRiskAttribution(trades: any[], filters: AttributionFilters, priceHistory: Map<string, number[]>): RiskAttribution {
+  private calculateRiskAttribution(trades: any[], _filters: AttributionFilters, _priceHistory: Map<string, number[]>): RiskAttribution {
     const returns = this.calculateReturnsFromTrades(trades);
     return {
       totalRisk: this.calculateVolatility(returns),
@@ -320,7 +320,7 @@ export class AttributionDAO {
     };
   }
 
-  private calculateBenchmarkComparison(trades: any[], filters: AttributionFilters, priceHistory: Map<string, number[]>): BenchmarkComparison[] {
+  private calculateBenchmarkComparison(trades: any[], _filters: AttributionFilters, priceHistory: Map<string, number[]>): BenchmarkComparison[] {
     let totalPnL = 0, totalCost = 0;
     for (const trade of trades) {
       if (trade.side === 'sell') totalPnL += parseFloat(trade.total || '0');
@@ -343,7 +343,7 @@ export class AttributionDAO {
     return results;
   }
 
-  private calculateEfficiencyMetrics(trades: any[], filters: AttributionFilters): StrategyEfficiency[] {
+  private calculateEfficiencyMetrics(trades: any[], _filters: AttributionFilters): StrategyEfficiency[] {
     const strategyMap = new Map<string, any[]>();
     for (const trade of trades) {
       const strategyId = trade.strategy_id || 'default';
@@ -372,7 +372,7 @@ export class AttributionDAO {
     return results;
   }
 
-  private generateChartData(strategyAttribution: StrategyAttribution[], symbolAttribution: SymbolAttribution[], timeAttribution: TimeAttribution[]): AttributionChartData {
+  private generateChartData(strategyAttribution: StrategyAttribution[], symbolAttribution: SymbolAttribution[], _timeAttribution: TimeAttribution[]): AttributionChartData {
     const waterfallData = strategyAttribution.map(s => ({ name: s.strategyName, value: s.contribution, type: s.contribution >= 0 ? 'positive' as const : 'negative' as const }));
     waterfallData.push({ name: '总计', value: strategyAttribution.reduce((sum, s) => sum + s.contribution, 0), type: 'positive' as const });
     const totalContribution = symbolAttribution.reduce((sum, s) => sum + Math.abs(s.contribution), 0);

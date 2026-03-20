@@ -5,7 +5,6 @@
 import { AutoRebalanceService } from '../AutoRebalanceService';
 import {
   RebalanceTrigger,
-  ScheduleFrequency,
   RebalancePlan,
   TargetAllocation,
   DEFAULT_REBALANCE_CONFIG,

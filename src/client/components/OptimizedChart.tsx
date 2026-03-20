@@ -66,11 +66,11 @@ export const OptimizedAreaChart: React.FC<OptimizedChartProps> = memo(
     gradientId = 'chartGradient',
     onExport,
     showStats = true,
-    enableZoom = false,
+    enableZoom: _enableZoom = false,
     enableSampling = true,
     maxPoints,
   }) => {
-    const [zoomDomain, setZoomDomain] = useState<{ start?: number; end?: number }>({});
+    const [_zoomDomain, setZoomDomain] = useState<{ start?: number; end?: number }>({});
     const [isZoomed, setIsZoomed] = useState(false);
 
     // Sample data for better performance

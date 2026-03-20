@@ -9,7 +9,6 @@ import {
   SignalExecutionsDAO,
   TradingSignalsDAO,
   SignalSubscription,
-  CreateSubscriptionInput,
   UpdateSubscriptionInput,
   SubscriptionType,
   SubscriptionStatus,

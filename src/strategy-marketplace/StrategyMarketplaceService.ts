@@ -25,7 +25,6 @@ import {
   StrategyFilters,
   CreateSubscriptionInput,
   UpdateSubscriptionInput,
-  SubscriptionFilters,
   CreateReviewInput,
   UpdateReviewInput,
   CreateSignalInput,

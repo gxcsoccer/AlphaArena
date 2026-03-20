@@ -13,26 +13,17 @@ import type {
   OptimizationSuggestion,
   BacktestResultRecord,
   HistoricalComparisonRecord,
-  StrategyConfig,
   TradingEnvironment,
   IntegrationStatus,
 } from '../backtest-live/types';
-import { BacktestConfig } from '../backtest/types';
+
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('BacktestLiveDAO');
 
 /**
- * Database table row types
+ * Database table row types - used for type inference
  */
-type IntegratedStrategyRow = Database['public']['Tables']['integrated_strategies']['Row'];
-type IntegratedStrategyInsert = Database['public']['Tables']['integrated_strategies']['Insert'];
-type BacktestResultRow = Database['public']['Tables']['backtest_results']['Row'];
-type BacktestResultInsert = Database['public']['Tables']['backtest_results']['Insert'];
-type PerformanceComparisonRow = Database['public']['Tables']['performance_comparisons']['Row'];
-type PerformanceComparisonInsert = Database['public']['Tables']['performance_comparisons']['Insert'];
-type OptimizationSuggestionRow = Database['public']['Tables']['optimization_suggestions']['Row'];
-type OptimizationSuggestionInsert = Database['public']['Tables']['optimization_suggestions']['Insert'];
 
 /**
  * BacktestLiveDAO - Data access for backtest-live integration
