@@ -191,7 +191,6 @@ describe('OrdersPanel', () => {
   });
 
   it('should handle getOrders failure gracefully', async () => {
-import mockMessage from '@arco-design/web-react';
     api.getOrders.mockRejectedValue(new Error('Network error'));
 
     render(<OrdersPanel />);
