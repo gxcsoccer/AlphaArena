@@ -22,7 +22,7 @@ class MockStrategy extends Strategy {
     this.signalToGenerate = signalToGenerate;
   }
 
-  onTick(context: StrategyContext): OrderSignal | null {
+  onTick(_context: StrategyContext): OrderSignal | null {
     this.tickCount++;
 
     if (this.signalToGenerate) {

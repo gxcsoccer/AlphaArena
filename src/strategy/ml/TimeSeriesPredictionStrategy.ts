@@ -326,9 +326,9 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
    */
   private calculateQuantity(
     confidence: number,
-    price: number,
-    availableCash: number,
-    side: 'buy' | 'sell'
+    _price: number,
+    _availableCash: number,
+    _side: 'buy' | 'sell'
   ): number {
     const baseQuantity = this.config.params?.trading?.quantity ?? 10;
 
@@ -336,13 +336,14 @@ export class TimeSeriesPredictionStrategy extends MLStrategy {
       case 'confidence-based':
         // Scale by confidence
         return Math.floor(baseQuantity * confidence);
-      
-      case 'volatility-adjusted':
+
+      case 'volatility-adjusted': {
         // Adjust based on recent volatility
         const volatility = this.calculateVolatility();
         const volatilityFactor = Math.max(0.5, 1 - volatility);
         return Math.floor(baseQuantity * volatilityFactor);
-      
+      }
+
       default:
         return baseQuantity;
     }

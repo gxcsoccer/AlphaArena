@@ -95,7 +95,7 @@ export class ClassificationStrategy extends MLStrategy {
    */
   private createClassificationResult(
     modelOutput: any,
-    features: FeatureVector
+    _features: FeatureVector
   ): ClassificationResult {
     // Assume model outputs probabilities [buy, sell, hold] or class index
     let probabilities: { buy: number; sell: number; hold: number };

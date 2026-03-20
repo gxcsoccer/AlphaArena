@@ -1,5 +1,4 @@
 import { FollowersDAO, CreateFollowerInput } from '../../src/database/followers.dao';
-import { getSupabaseClient } from '../../src/database/client';
 import { seedMockData } from '../__mocks__/supabase';
 
 // Use the shared Supabase mock

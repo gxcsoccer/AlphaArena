@@ -150,7 +150,7 @@ export class MockExchangeAdapter extends BaseExchangeAdapter {
     return { ...mockOrder };
   }
 
-  async cancelOrder(orderId: string, symbol?: string): Promise<void> {
+  async cancelOrder(orderId: string, _symbol?: string): Promise<void> {
     this.ensureConnected();
     const order = this._orders.get(orderId);
     if (!order) throw new ExchangeError(ExchangeErrorType.ORDER_NOT_FOUND, `Order not found: ${orderId}`, this.exchangeId);

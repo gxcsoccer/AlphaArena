@@ -3,7 +3,7 @@
  * RESTful endpoints for automated trading schedules
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { 
   tradingSchedulesDAO, 
 } from '../database/trading-schedules.dao';
@@ -23,7 +23,7 @@ function getParam(value: string | string[] | undefined): string | undefined {
 }
 
 // Authentication middleware
-async function authenticateUser(req: Request, res: Response, next: Function) {
+async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

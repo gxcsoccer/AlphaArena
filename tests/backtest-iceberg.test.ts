@@ -2,7 +2,7 @@ import { BacktestEngine } from '../src/backtest/BacktestEngine';
 import { BacktestConfig } from '../src/backtest/types';
 import { OrderBook } from '../src/orderbook/OrderBook';
 import { MatchingEngine } from '../src/matching/MatchingEngine';
-import { Order, OrderType, IcebergOrder } from '../src/orderbook/types';
+import { Order, OrderType } from '../src/orderbook/types';
 
 describe('BacktestEngine with Iceberg Orders', () => {
   let backtestEngine: BacktestEngine;

@@ -6,7 +6,7 @@
 
 import { LLMClient, LLMClientConfig, MarketDataForLLM } from '../../src/strategy/LLMClient';
 import { LLMStrategy, LLMStrategyConfig } from '../../src/strategy/LLMStrategy';
-import { StrategyContext, MarketData } from '../../src/strategy/types';
+import { StrategyContext } from '../../src/strategy/types';
 import { OrderBook } from '../../src/orderbook';
 
 // Mock fetch globally

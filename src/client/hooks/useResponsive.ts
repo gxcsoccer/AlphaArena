@@ -62,7 +62,7 @@ function detectTouchDevice(): boolean {
   return (
     'ontouchstart' in window ||
     navigator.maxTouchPoints > 0 ||
-    // @ts-ignore
+    // @ts-expect-error - msMaxTouchPoints is IE-specific
     navigator.msMaxTouchPoints > 0
   );
 }

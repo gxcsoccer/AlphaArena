@@ -140,6 +140,22 @@ describe('OfflineIndicator', () => {
     
     // When connected and not stale, should not show anything
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+});
+
+  it('should show stale warning when connection is stale', async () => {
+    const TestComponent = () => {
+      const { setRealtimeConnected, updateQuality } = require('../../src/client/store/connectionStore').useConnection();
+      React.useEffect(() => {
+        setRealtimeConnected(true); // This sets status to 'connected'
+        updateQuality({ latency: 100, isStale: true });
+      }, [setRealtimeConnected, updateQuality]);
+      return <OfflineIndicator />;
+    };
+
+    renderWithProvider(<TestComponent />);
+    
+    await screen.findByText('连接可能已过期');
+    expect(screen.getByText('连接可能已过期')).toBeInTheDocument();
   });
 
   // Note: Stale warning feature is not implemented in current version

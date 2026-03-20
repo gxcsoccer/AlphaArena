@@ -40,9 +40,9 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   let operation: 'select' | 'insert' | 'update' | 'delete' | null = null;
   let insertPayload: any[] = [];
   let updatePayload: any = null;
-  let selectColumns = '*';
+let _selectColumns = '*';
   let isSingle = false;
-  let wantSelectAfterMutation = false; // For insert().select() or update().select()
+  let _wantSelectAfterMutation = false; // For insert().select() or update().select()
   
   // Track filters applied
   const filters: Array<{ type: string; column: string; value: any }> = [];
@@ -112,11 +112,11 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   builder.select = jest.fn().mockImplementation((columns?: string) => {
     // If we already have an insert/update operation, this select is to return the data
     if (operation === 'insert' || operation === 'update') {
-      wantSelectAfterMutation = true;
+      _wantSelectAfterMutation = true;
     } else {
       operation = 'select';
     }
-    if (columns) selectColumns = columns;
+    if (columns) _selectColumns = columns;
     return builder;
   });
 

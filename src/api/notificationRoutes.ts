@@ -3,7 +3,7 @@
  * RESTful endpoints for notification management
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { NotificationService } from '../notification/NotificationService.js';
 import getSupabaseClient from '../database/client.js';
 
@@ -13,7 +13,7 @@ const router = Router();
  * Authentication middleware
  * Extracts user ID from Supabase auth token
  */
-async function authenticateUser(req: Request, res: Response, next: Function) {
+async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {

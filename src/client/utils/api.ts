@@ -827,7 +827,7 @@ export class RealtimeClient {
     await this.client.unsubscribe(`orderbook:${symbol}`);
   }
 
-  on(event: string, callback: Function): () => void {
+  on(event: string, callback: (...args: any[]) => void): () => void {
     // Map legacy Socket.IO events to Supabase Realtime channels
     const [channelType, ...eventParts] = event.split(':');
     const eventName = eventParts.join(':');
@@ -851,7 +851,7 @@ export class RealtimeClient {
     }
   }
 
-  off(_event: string, _callback: Function): void {
+  off(_event: string, _callback: (...args: any[]) => void): void {
     log.warn('off() is deprecated - use the unsubscribe function from on()');
   }
 

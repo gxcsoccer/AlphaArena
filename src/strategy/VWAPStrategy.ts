@@ -472,7 +472,7 @@ export class VWAPStrategy extends Strategy {
   /**
    * Calculate confidence for crossing signals
    */
-  private calculateCrossingConfidence(deviation: number, side: 'buy' | 'sell'): number {
+  private calculateCrossingConfidence(deviation: number, _side: 'buy' | 'sell'): number {
     // Higher confidence for stronger crossings (larger deviation being corrected)
     const baseConfidence = 0.6;
     const deviationBonus = Math.min(Math.abs(deviation) * 10, 0.3); // Up to 0.3 bonus
@@ -482,7 +482,7 @@ export class VWAPStrategy extends Strategy {
   /**
    * Calculate confidence for deviation signals
    */
-  private calculateDeviationConfidence(absDeviation: number, side: 'buy' | 'sell'): number {
+  private calculateDeviationConfidence(absDeviation: number, _side: 'buy' | 'sell'): number {
     // Higher confidence for larger deviations
     const baseConfidence = 0.5;
     const deviationBonus = Math.min(absDeviation * 50, 0.4); // Up to 0.4 bonus

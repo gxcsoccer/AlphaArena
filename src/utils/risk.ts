@@ -519,7 +519,7 @@ export function calculatePositionRiskContributions(
     weight: number;
     volatility: number;
   }>,
-  correlationMatrix: Map<string, Map<string, number>>
+  _correlationMatrix: Map<string, Map<string, number>>
 ): PositionRisk[] {
   return positions.map(pos => {
     // Simplified calculation assuming equal correlation

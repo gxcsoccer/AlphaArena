@@ -3,7 +3,7 @@
  * Admin-only endpoints for revenue analytics and reporting
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { 
   getRevenueDAO,
 } from '../database/revenue.dao';
@@ -17,7 +17,7 @@ const router = Router();
 /**
  * Admin middleware - checks if user has admin role
  */
-const adminMiddleware = async (req: Request, res: Response, next: Function) => {
+const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const user = req.user;
   
   // Check if user has admin role

@@ -7,10 +7,10 @@ import { OCOOrdersDAO } from '../src/database/oco-orders.dao';
  */
 
 describe('OCOOrdersDAO', () => {
-  let dao: OCOOrdersDAO;
+  let _dao: OCOOrdersDAO;
 
   beforeEach(() => {
-    dao = new OCOOrdersDAO();
+    _dao = new OCOOrdersDAO();
   });
 
   describe('getOrdersToTrigger', () => {

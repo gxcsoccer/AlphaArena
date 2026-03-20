@@ -218,7 +218,7 @@ const SchedulerExecutionLog: React.FC<SchedulerExecutionLogProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Text type="secondary">日志已暂停，点击"继续"恢复</Text>
+            <Text type="secondary">日志已暂停，点击&ldquo;继续&rdquo;恢复</Text>
           </div>
         )}
       </div>

@@ -207,7 +207,7 @@ export class RiskAlertService extends EventEmitter {
    */
   private async sendNotifications(
     alert: RiskAlert,
-    rule: RiskAlertRule
+    _rule: RiskAlertRule
   ): Promise<void> {
     try {
       const alertService = getAlertService();

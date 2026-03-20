@@ -25,7 +25,7 @@ export const createChart = jest.fn(() => ({
 }));
 
 export type IChartApi = any;
-export type ISeriesApi<T = any> = any;
-export type CandlestickData<T = any> = any;
+export type ISeriesApi<_T = any> = any;
+export type CandlestickData<_T = any> = any;
 export type Time = number | string;
 export type UTCTimestamp = number;

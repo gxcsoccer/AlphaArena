@@ -757,7 +757,7 @@ export class ElliottWaveStrategy extends Strategy {
   private generateImpulseSignal(
     pattern: ElliottWavePattern,
     currentPrice: number,
-    timestamp: number
+    _timestamp: number
   ): OrderSignal | null {
     const waves = pattern.waves;
     const wave5 = waves[4];
@@ -794,7 +794,7 @@ export class ElliottWaveStrategy extends Strategy {
   private generateCorrectiveSignal(
     pattern: ElliottWavePattern,
     currentPrice: number,
-    timestamp: number
+    _timestamp: number
   ): OrderSignal | null {
     const waves = pattern.waves;
     const waveC = waves[2];

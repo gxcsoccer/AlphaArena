@@ -13,7 +13,7 @@ jest.mock('../../src/database/client', () => {
       finally: (onFinally: () => void) => Promise.resolve({ data, error: null }).finally(onFinally),
     };
 
-    builder.select = jest.fn().mockImplementation((columns?: string) => builder);
+    builder.select = jest.fn().mockImplementation((_columns?: string) => builder);
     builder.insert = jest.fn().mockImplementation((rows: any[]) => {
       const inserted = rows.map((row: any, i: number) => ({ id: `mock-id-${Date.now()}-${i}`, createdAt: new Date(), ...row }));
       data.push(...inserted);
@@ -28,17 +28,17 @@ jest.mock('../../src/database/client', () => {
       data.length = 0;
       return builder;
     });
-    builder.eq = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.neq = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.gt = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.gte = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.lt = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.lte = jest.fn().mockImplementation((column: string, value: any) => builder);
-    builder.in = jest.fn().mockImplementation((column: string, values: any[]) => builder);
-    builder.order = jest.fn().mockImplementation((column: string, options?: any) => builder);
-    builder.limit = jest.fn().mockImplementation((count: number) => builder);
-    builder.offset = jest.fn().mockImplementation((count: number) => builder);
-    builder.range = jest.fn().mockImplementation((start: number, end: number) => builder);
+    builder.eq = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.neq = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.gt = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.gte = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.lt = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.lte = jest.fn().mockImplementation((_column: string, _value: any) => builder);
+    builder.in = jest.fn().mockImplementation((_column: string, _values: any[]) => builder);
+    builder.order = jest.fn().mockImplementation((_column: string, _options?: any) => builder);
+    builder.limit = jest.fn().mockImplementation((_count: number) => builder);
+    builder.offset = jest.fn().mockImplementation((_count: number) => builder);
+    builder.range = jest.fn().mockImplementation((_start: number, _end: number) => builder);
     builder.single = jest.fn().mockImplementation(() => Promise.resolve({ data: data[0] || null, error: null }));
     builder.maybeSingle = jest.fn().mockImplementation(() => Promise.resolve({ data: data[0] || null, error: null }));
     builder.rpc = jest.fn().mockResolvedValue({ data: null, error: null });
@@ -47,7 +47,7 @@ jest.mock('../../src/database/client', () => {
   };
 
   const mockSupabaseClient = {
-    from: jest.fn().mockImplementation((table: string) => createMockQueryBuilder()),
+    from: jest.fn().mockImplementation((_table: string) => createMockQueryBuilder()),
     auth: {
       getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
       getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),

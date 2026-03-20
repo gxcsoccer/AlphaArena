@@ -237,7 +237,7 @@ export function useVirtualList<T>(
   totalHeight: number;
   offsetY: number;
 } {
-  const [scrollTop, setScrollTop] = useState(0);
+  const [scrollTop, _setScrollTop] = useState(0);
 
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(

@@ -50,9 +50,9 @@ const ApiDocsPage: React.FC = () => {
         const yamlResponse = await fetch('/openapi.yaml');
         if (yamlResponse.ok) {
           const yamlText = await yamlResponse.text();
-          // @ts-ignore
+          // @ts-expect-error - jsyaml is loaded from CDN
           if (window.jsyaml) {
-            // @ts-ignore
+            // @ts-expect-error - jsyaml is loaded from CDN
             const specData = window.jsyaml.load(yamlText);
             console.log('Loaded OpenAPI spec from static YAML');
             setSpec(specData);

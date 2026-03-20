@@ -15,7 +15,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { WebSocketConnectionPool, PooledConnection } from '../../src/realtime/WebSocketConnectionPool';
+import { WebSocketConnectionPool } from '../../src/realtime/WebSocketConnectionPool';
 
 // Mock WebSocket for JSDOM environment
 jest.mock('ws', () => {
@@ -226,7 +226,7 @@ describe('WebSocket Integration Tests', () => {
       sentMessages = [];
       
       mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           sentMessages.push(message);
           return Promise.resolve('ok');
         }),
@@ -604,7 +604,7 @@ describe('WebSocket Integration Tests', () => {
     describe('Event Sequencing', () => {
       it('should maintain correct event sequence for execution lifecycle', async () => {
         const mockChannel = {
-          send: jest.fn((message: any) => {
+          send: jest.fn((_message: any) => {
             sentMessages.push(message);
             return Promise.resolve('ok');
           }),
@@ -657,7 +657,7 @@ describe('WebSocket Integration Tests', () => {
         const messages: any[] = [];
         
         const mockChannel = {
-          send: jest.fn((message: any) => {
+          send: jest.fn((_message: any) => {
             messages.push(message);
             return Promise.resolve('ok');
           }),
@@ -696,7 +696,7 @@ describe('WebSocket Integration Tests', () => {
         const messages: any[] = [];
         
         const mockChannel = {
-          send: jest.fn((message: any) => {
+          send: jest.fn((_message: any) => {
             messages.push(message);
             return Promise.resolve('ok');
           }),
@@ -740,7 +740,7 @@ describe('WebSocket Integration Tests', () => {
         const messages: any[] = [];
         
         const mockChannel = {
-          send: jest.fn((message: any) => {
+          send: jest.fn((_message: any) => {
             messages.push(message);
             return Promise.resolve('ok');
           }),
@@ -774,7 +774,7 @@ describe('WebSocket Integration Tests', () => {
   describe('Type Safety', () => {
     it('should have correct types for SchedulerStatusEvent', async () => {
       const mockChannel = {
-        send: jest.fn((message: any) => Promise.resolve('ok')),
+        send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
       const mockSupabase = {
@@ -806,7 +806,7 @@ describe('WebSocket Integration Tests', () => {
 
     it('should have correct types for ExecutionEvent', async () => {
       const mockChannel = {
-        send: jest.fn((message: any) => Promise.resolve('ok')),
+        send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
       const mockSupabase = {
@@ -845,7 +845,7 @@ describe('WebSocket Integration Tests', () => {
 
     it('should have correct types for ScheduleUpdatedEvent', async () => {
       const mockChannel = {
-        send: jest.fn((message: any) => Promise.resolve('ok')),
+        send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
       const mockSupabase = {
@@ -924,7 +924,7 @@ describe('WebSocket Integration Tests', () => {
     it('should handle empty schedule name', async () => {
       const messages: any[] = [];
       const mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           messages.push(message);
           return Promise.resolve('ok');
         }),
@@ -961,7 +961,7 @@ describe('WebSocket Integration Tests', () => {
     it('should handle zero activeJobs', async () => {
       const messages: any[] = [];
       const mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           messages.push(message);
           return Promise.resolve('ok');
         }),
@@ -991,7 +991,7 @@ describe('WebSocket Integration Tests', () => {
     it('should handle large numbers of activeJobs', async () => {
       const messages: any[] = [];
       const mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           messages.push(message);
           return Promise.resolve('ok');
         }),
@@ -1021,7 +1021,7 @@ describe('WebSocket Integration Tests', () => {
     it('should handle special characters in schedule name', async () => {
       const messages: any[] = [];
       const mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           messages.push(message);
           return Promise.resolve('ok');
         }),
@@ -1058,7 +1058,7 @@ describe('WebSocket Integration Tests', () => {
     it('should handle unicode in user IDs', async () => {
       const messages: any[] = [];
       const mockChannel = {
-        send: jest.fn((message: any) => {
+        send: jest.fn((_message: any) => {
           messages.push(message);
           return Promise.resolve('ok');
         }),

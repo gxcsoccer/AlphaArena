@@ -7,8 +7,6 @@
 import {
   IchimokuCloudStrategy,
   IchimokuCloudStrategyConfig,
-  IchimokuComponents,
-  IchimokuSignal,
 } from '../../src/strategy/IchimokuCloudStrategy';
 import { StrategyContext, OrderSignal } from '../../src/strategy/types';
 

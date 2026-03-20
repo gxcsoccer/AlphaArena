@@ -8,11 +8,11 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor, act } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import KLineChart from '../../src/client/components/KLineChart';
 import type { KLineDataPoint } from '../../src/client/components/KLineChart';
-import { createChart, CandlestickSeries } from 'lightweight-charts';
+import { createChart } from 'lightweight-charts';
 
 // Mock the useKLineData hook
 jest.mock('../../src/client/hooks/useKLineData', () => ({
@@ -90,7 +90,7 @@ describe('KLineChart', () => {
       update: jest.fn(),
     };
     mockChart = {
-      addSeries: jest.fn((type: any, options?: any) => {
+      addSeries: jest.fn((type: any, _options?: any) => {
         if (String(type).includes("Candlestick")) return mockCandleSeries;
         return mockVolumeSeries;
       }),

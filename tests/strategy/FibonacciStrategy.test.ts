@@ -7,10 +7,7 @@
 import {
   FibonacciStrategy,
   FibonacciStrategyConfig,
-  FibonacciLevel,
   FIBONACCI_LEVELS,
-  SwingPoint,
-  TrendDirection,
 } from '../../src/strategy/FibonacciStrategy';
 import { StrategyContext, OrderSignal } from '../../src/strategy';
 
@@ -702,7 +699,7 @@ describe('FibonacciStrategy', () => {
         105, 108, 111, 114, 117, 120,
       ];
 
-      let foundSignal = false;
+      let _foundSignal = false;
       let clock = Date.now();
 
       for (const price of prices) {
@@ -710,7 +707,7 @@ describe('FibonacciStrategy', () => {
         context.clock = clock++;
         const signal = strategy.onTick(context);
         if (signal) {
-          foundSignal = true;
+          _foundSignal = true;
           expect(signal.confidence).toBeGreaterThanOrEqual(0.3);
           expect(signal.confidence).toBeLessThanOrEqual(0.95);
           expect(signal.reason).toBeDefined();

@@ -2,7 +2,7 @@
  * Tests for LeaderboardService
  */
 
-import { LeaderboardService, StrategyMetrics } from '../../src/strategy/LeaderboardService';
+import { LeaderboardService } from '../../src/strategy/LeaderboardService';
 
 describe('LeaderboardService', () => {
   let leaderboardService: LeaderboardService;
@@ -40,28 +40,28 @@ describe('LeaderboardService', () => {
   describe('calculateSharpeRatio', () => {
     it('should return 0 for empty array', () => {
       const service = new LeaderboardService();
-      // @ts-ignore - accessing private method for testing
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateSharpeRatio([]);
       expect(result).toBe(0);
     });
 
     it('should return 0 for single element', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateSharpeRatio([100]);
       expect(result).toBe(0);
     });
 
     it('should calculate positive sharpe ratio for profitable trades', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateSharpeRatio([100, 150, 200, 180, 220]);
       expect(result).toBeGreaterThan(0);
     });
 
     it('should handle mixed P&L', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateSharpeRatio([100, -50, 75, -30, 120]);
       expect(result).toBeDefined();
     });
@@ -70,7 +70,7 @@ describe('LeaderboardService', () => {
   describe('calculateMaxDrawdown', () => {
     it('should return 0 for empty array', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateMaxDrawdown([]);
       expect(result).toBe(0);
     });
@@ -78,7 +78,7 @@ describe('LeaderboardService', () => {
     it('should calculate drawdown correctly', () => {
       const service = new LeaderboardService();
       // Simulate: +100, +50 (peak 150), -80 (drawdown from 150 to 70)
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateMaxDrawdown([100, 50, -80]);
       expect(result).toBeGreaterThan(0);
       expect(result).toBeLessThanOrEqual(100);
@@ -86,7 +86,7 @@ describe('LeaderboardService', () => {
 
     it('should return 0 for consistently profitable trades', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateMaxDrawdown([100, 100, 100, 100]);
       expect(result).toBe(0);
     });
@@ -95,7 +95,7 @@ describe('LeaderboardService', () => {
   describe('calculateConsecutive', () => {
     it('should count consecutive wins', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateConsecutive([100, 150, 200, -50, 100]);
       expect(result.consecutiveWins).toBe(3);
       expect(result.consecutiveLosses).toBe(1);
@@ -103,7 +103,7 @@ describe('LeaderboardService', () => {
 
     it('should count consecutive losses', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateConsecutive([-100, -150, -200, 50, -100]);
       expect(result.consecutiveWins).toBe(1);
       expect(result.consecutiveLosses).toBe(3);
@@ -111,7 +111,7 @@ describe('LeaderboardService', () => {
 
     it('should handle empty array', () => {
       const service = new LeaderboardService();
-      // @ts-ignore
+      // @ts-expect-error - accessing private method for testing
       const result = service.calculateConsecutive([]);
       expect(result.consecutiveWins).toBe(0);
       expect(result.consecutiveLosses).toBe(0);

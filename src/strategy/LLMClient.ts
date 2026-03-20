@@ -475,7 +475,7 @@ Be conservative and risk-aware. Only recommend trades with clear rationale.`;
    * Calculate estimated cost based on token count
    * (Adjust pricing based on your LLM provider)
    */
-  private calculateCost(totalTokens: number): number {
+  private calculateCost(_totalTokens: number): number {
     // Example pricing for GPT-4 (adjust as needed)
     // $0.03 per 1K prompt tokens, $0.06 per 1K completion tokens
     const promptCost = (this.totalUsage.promptTokens / 1000) * 0.03;

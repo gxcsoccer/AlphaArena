@@ -410,7 +410,7 @@ export class PushService {
 
     // Trade executed template
     this.registerTemplate('trade-executed', {
-      title: (data) => `✅ Trade Executed`,
+      title: (_data) => `✅ Trade Executed`,
       body: (data) =>
         `${data.side === 'buy' ? 'Bought' : 'Sold'} ${data.quantity ?? ''} ${data.symbol ?? 'Asset'} @ ${data.price ?? 'market price'}`,
       options: (data) => ({
@@ -425,7 +425,7 @@ export class PushService {
 
     // Trade closed template
     this.registerTemplate('trade-closed', {
-      title: (data) => `🔒 Trade Closed`,
+      title: (_data) => `🔒 Trade Closed`,
       body: (data) => {
         const pnl = data.pnl as number | undefined;
         const pnlStr = pnl !== undefined ? (pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`) : '';

@@ -30,6 +30,7 @@ export interface ApiKeyUser {
  * Extend Express Request to include API key user
  */
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
     interface Request {
       apiKeyUser?: ApiKeyUser;
