@@ -1,6 +1,5 @@
 import React from 'react';
 import { Typography, Spin, Tag } from '@arco-design/web-react';
-import { IconArrowRise } from '@arco-design/web-react/icon';
 import { useBalance } from '../hooks/useBalance';
 
 const { Text } = Typography;

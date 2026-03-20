@@ -3,7 +3,6 @@ import { Button, Space, Badge } from '@arco-design/web-react';
 import {
   IconMenu,
   IconBell,
-  IconSettings,
   IconUser,
 } from '@arco-design/web-react/icon';
 import ThemeToggle from './ThemeToggle';

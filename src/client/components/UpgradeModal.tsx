@@ -11,7 +11,6 @@ import {
   Button,
   List,
   Divider,
-  Tag,
   Grid,
   Card,
 } from '@arco-design/web-react';
@@ -67,7 +66,7 @@ const UpgradeModal: React.FC<UpgradeModalProps> = ({
   visible,
   onClose,
   onUpgrade,
-  currentPlan = 'free',
+  currentPlan: _currentPlan = 'free',
   featureName,
   loading = false,
 }) => {

@@ -22,7 +22,7 @@ interface UsageProgressProps {
 }
 
 const UsageProgress: React.FC<UsageProgressProps> = ({
-  featureKey,
+  featureKey: _featureKey,
   label,
   current,
   limit,

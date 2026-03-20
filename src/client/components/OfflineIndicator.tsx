@@ -12,7 +12,7 @@ import { Alert, Tag, Progress, Button } from '@arco-design/web-react';
 import { IconSync, IconCheckCircle, IconExclamationCircle, IconRefresh } from '@arco-design/web-react/icon';
 import { useConnection } from '../store/connectionStore';
 
-const ReconnectingIcon = IconSync;
+const _ReconnectingIcon = IconSync;
 const _ConnectedIcon = IconCheckCircle;
 const _WarningIcon = IconExclamationCircle;
 const RefreshIcon = IconRefresh;

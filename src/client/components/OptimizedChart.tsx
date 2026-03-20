@@ -18,8 +18,8 @@ import {
   BarChart,
   Bar,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Button } from '@arco-design/web-react';
-import { IconDownload, IconFullscreen } from '@arco-design/web-react/icon';
+import { Card, Empty, Typography, Space, Button } from '@arco-design/web-react';
+import { IconDownload } from '@arco-design/web-react/icon';
 import { sampleDataForChart } from '../utils/performance';
 import { SkeletonChart } from './Skeleton';
 

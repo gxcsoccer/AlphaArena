@@ -13,8 +13,6 @@ import {
   ComparisonReport,
   ComparisonRanking,
   EquityCurvePoint,
-  MonthlyPerformance,
-  RiskMetrics,
 } from './types';
 import { BacktestAnalyzer } from './BacktestAnalyzer';
 

@@ -27,12 +27,6 @@ interface PerformanceMetrics {
   customMetrics: Record<string, number>;
 }
 
-interface PerformanceEntry {
-  name: string;
-  duration: number;
-  timestamp: number;
-}
-
 class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: Partial<PerformanceMetrics> = {};

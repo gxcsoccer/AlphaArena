@@ -125,9 +125,9 @@ export function useRiskMetrics(
   options: UseRiskMetricsOptions
 ): UseRiskMetricsResult {
   const {
-    trades,
+    trades: _trades,
     portfolioValue,
-    initialCapital,
+    initialCapital: _initialCapital,
     positions,
     historicalValues,
     benchmarkData,

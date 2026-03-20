@@ -8,7 +8,6 @@ import { Router, Request, Response } from 'express';
 import {
   strategyComparisonService,
   ComparisonConfig,
-  StrategyComparisonResult,
 } from '../strategy/StrategyComparisonService';
 import { createLogger } from '../utils/logger';
 

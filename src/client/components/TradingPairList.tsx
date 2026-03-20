@@ -106,7 +106,7 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       dataIndex: 'priceChangePercent24h',
       key: 'priceChangePercent24h',
       width: 100,
-      render: (percent: number, record: TradingPair) => {
+      render: (percent: number, _record: TradingPair) => {
         const isPositive = percent >= 0;
         return (
           <Tag color={isPositive ? 'red' : 'green'} aria-label={`24小时涨跌 ${isPositive ? '+' : ''}${percent.toFixed(2)}%`}>

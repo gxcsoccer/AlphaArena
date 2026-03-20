@@ -38,8 +38,8 @@ interface RebalancePreviewProps {
 
 export const RebalancePreviewComponent: React.FC<RebalancePreviewProps> = ({
   preview,
-  onExecute,
-  executing = false,
+  onExecute: _onExecute,
+  executing: _executing = false,
 }) => {
   // Calculate summary statistics
   const stats = useMemo(() => {

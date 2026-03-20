@@ -300,7 +300,7 @@ export class PerformanceMonitor {
   /**
    * Determine alert status based on deviation
    */
-  private determineAlertStatus(deviation: PerformanceDeviation, threshold: number): AlertStatus {
+  private determineAlertStatus(deviation: PerformanceDeviation, _threshold: number): AlertStatus {
     const messages: AlertMessage[] = [];
     let level: 'info' | 'warning' | 'error' | 'critical' = 'info';
 

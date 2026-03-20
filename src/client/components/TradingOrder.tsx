@@ -33,14 +33,6 @@ const { TabPane } = Tabs;
 export type OrderType = 'limit' | 'market' | 'stop_loss' | 'take_profit' | 'advanced';
 export type OrderSide = 'buy' | 'sell';
 
-interface OrderFormData {
-  type: OrderType;
-  side: OrderSide;
-  price?: number;
-  triggerPrice?: number;
-  quantity: number;
-}
-
 interface TradingOrderProps {
   /**
    * Optional base currency (e.g., "BTC", "AAPL")
