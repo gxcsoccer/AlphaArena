@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
-import {  Button, Spin } from '@arco-design/web-react';
+import { Button, Spin } from '@arco-design/web-react';
 import { IconLock } from '@arco-design/web-react/icon';
 import { useSubscription } from '../hooks/useSubscription';
 import UpgradeModal from './UpgradeModal';
@@ -34,7 +34,7 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
   showUpgradeOnLimit = true,
   onLimitReached,
 }) => {
-  const { _subscription, usage, isLoading, isPro } = useSubscription();
+  const { subscription: _subscription, usage, isLoading, isPro } = useSubscription();
   const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
 
@@ -58,7 +58,7 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
     }
   }, [isLoading]);
 
-  const { hasAccess, _remaining } = checkAccess();
+  const { hasAccess, remaining: _remaining } = checkAccess();
 
   const handleUpgrade = () => {
     window.location.href = '/subscription';
@@ -141,7 +141,7 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
  * Returns access state and handlers for programmatic use
  */
 export function useFeatureGate(featureKey: string) {
-  const { _subscription, usage, isLoading, isPro, refreshSubscription } = useSubscription();
+  const { subscription: _subscription, usage, isLoading, isPro, refreshSubscription } = useSubscription();
   const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
 
   const checkAccess = useCallback(() => {

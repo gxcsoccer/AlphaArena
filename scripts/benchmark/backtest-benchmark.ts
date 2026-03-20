@@ -18,7 +18,6 @@ import {
   getMemoryUsage,
   calculateStats,
   compareWithBaseline,
-  progressBar,
 } from './utils';
 
 // Baseline performance metrics (can be updated over time)

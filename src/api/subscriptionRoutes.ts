@@ -5,11 +5,10 @@
 
 import { Router, Request, Response } from 'express';
 import { 
-  SubscriptionDAO, 
   getSubscriptionDAO, 
   UserSubscription,
 } from '../database/subscription.dao';
-import {  getPaymentDAO } from '../database/payment.dao';
+import { getPaymentDAO } from '../database/payment.dao';
 import { getWebhookEventDAO } from '../database/webhookEvent.dao';
 import { getPromoCodeDAO } from '../database/promo-code.dao';
 import { authMiddleware } from './authMiddleware';
@@ -20,7 +19,6 @@ import {
   createCustomerPortalSession,
   getSubscription as getStripeSubscription,
   cancelSubscription as cancelStripeSubscription,
-  reactivateSubscription,
   verifyWebhookSignature,
   getPriceId,
   mapStripeStatus,

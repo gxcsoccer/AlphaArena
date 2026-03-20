@@ -8,8 +8,6 @@ import { rebalanceDAO } from '../database/rebalance.dao';
 import { RebalanceEngine } from '../portfolio/rebalance/RebalanceEngine';
 import {
   RebalanceTrigger,
-  RebalanceOrderType,
-  ScheduleFrequency,
   type TargetAllocation,
   type RebalancePlan,
   type RebalancePreview,
@@ -457,7 +455,7 @@ export function createRebalanceRouter(): Router {
       // Create price provider mock for now
       // In real implementation, this would fetch from market data
       const priceProvider = {
-        getPrice: async (symbol: string) => {
+        getPrice: async (_symbol: string) => {
           // Mock price - in production, fetch from market data service
           return 50000; // Default price
         },
@@ -776,7 +774,7 @@ export function createRebalanceRouter(): Router {
 
       // Create price provider
       const priceProvider = {
-        getPrice: async (symbol: string) => {
+        getPrice: async (_symbol: string) => {
           return 50000; // Mock price
         },
         getPrices: async (symbols: string[]) => {

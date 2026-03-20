@@ -11,7 +11,6 @@ import {
   stripe,
   createCoupon,
   createPromotionCode,
-  deleteCoupon,
   createCheckoutSession,
   getPriceId,
 } from '../services/stripeService';

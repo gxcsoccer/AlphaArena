@@ -530,7 +530,7 @@ export class BotExecutor extends EventEmitter {
   /**
    * Create strategy context
    */
-  private createStrategyContext(price?: number, bid?: number, ask?: number): StrategyContext {
+  private createStrategyContext(price?: number, _bid?: number, _ask?: number): StrategyContext {
     const _currentPrice = price || this.lastPrice || 0;
     const positions: Position[] = this.state.positionQuantity > 0
       ? [{

@@ -5,8 +5,8 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { BotManager, BotConfig, CreateBotRequest, UpdateBotRequest, StrategyType, TradingMode, TimeInterval } from '../bot';
-import { apiKeyAuthMiddleware, combinedAuthMiddleware } from './apiKeyMiddleware';
+import { BotManager, CreateBotRequest, UpdateBotRequest, StrategyType, TradingMode, TimeInterval } from '../bot';
+import { combinedAuthMiddleware } from './apiKeyMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('BotRoutes');

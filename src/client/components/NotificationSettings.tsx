@@ -16,7 +16,6 @@ import {
   Space,
   Button,
 } from '@arco-design/web-react';
-import { IconCheck, IconPushpin, IconMail } from '@arco-design/web-react/icon';
 import './NotificationSettings.css';
 import { useNotifications } from '../hooks/useNotifications.js';
 import type { NotificationPreferences } from '../hooks/useNotifications.js';

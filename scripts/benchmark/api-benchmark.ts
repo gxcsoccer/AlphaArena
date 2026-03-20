@@ -5,11 +5,9 @@
  */
 
 import {
-  formatBytes,
   formatDuration,
   formatNumber,
   calculateStats,
-  sleep,
 } from './utils';
 
 export interface APIEndpointConfig {

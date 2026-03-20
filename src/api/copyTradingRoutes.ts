@@ -3,9 +3,7 @@ import {
   FollowersDAO, 
   CopyTradesDAO, 
   FollowerStatsDAO,
-  Follower,
-  CreateFollowerInput,
-  FollowerSettings
+  CreateFollowerInput
 } from '../database';
 import { createLogger } from '../utils/logger';
 

@@ -23,7 +23,6 @@ import {
   PerformanceReport,
   AnalyticsQueryOptions,
   BenchmarkData,
-  EnhancedStrategyComparison,
 } from './types';
 import { createLogger } from '../utils/logger';
 
@@ -45,7 +44,7 @@ export class PerformanceAnalyticsService {
     snapshots: PortfolioSnapshot[],
     trades: any[],
     initialCapital: number,
-    options?: AnalyticsQueryOptions
+    _options?: AnalyticsQueryOptions
   ): PerformanceMetrics {
     log.debug('Calculating performance metrics', {
       snapshotCount: snapshots.length,
@@ -131,7 +130,7 @@ export class PerformanceAnalyticsService {
   /**
    * Calculate risk metrics
    */
-  calculateRiskMetrics(snapshots: PortfolioSnapshot[], initialCapital: number): RiskMetrics {
+  calculateRiskMetrics(snapshots: PortfolioSnapshot[], _initialCapital: number): RiskMetrics {
     if (snapshots.length < 2) {
       return this.getEmptyRiskMetrics();
     }
@@ -326,7 +325,7 @@ export class PerformanceAnalyticsService {
    */
   calculateMonthlyReturnsHeatmap(
     snapshots: PortfolioSnapshot[],
-    initialCapital: number
+    _initialCapital: number
   ): MonthlyReturnsHeatmap {
     const monthlyData = new Map<string, { startValue: number; endValue: number; trades: number; pnl: number }>();
 
@@ -755,7 +754,6 @@ export class PerformanceAnalyticsService {
     if (dailyReturns.length === 0) return 0;
 
     const avgDailyReturn = dailyReturns.reduce((sum, r) => sum + r, 0) / dailyReturns.length;
-    const _mean = avgDailyReturn;
     const negativeReturns = dailyReturns.filter((r) => r < 0);
 
     if (negativeReturns.length === 0) return 0;
