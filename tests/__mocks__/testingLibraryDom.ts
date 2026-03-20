@@ -7,6 +7,7 @@ const config = jest.requireActual('@testing-library/dom/dist/config.js');
 const events = jest.requireActual('@testing-library/dom/dist/events.js');
 const getQueries = jest.requireActual('@testing-library/dom/dist/get-queries-for-element.js');
 const queries = jest.requireActual('@testing-library/dom/dist/queries/index.js');
+const waitForModule = jest.requireActual('@testing-library/dom/dist/wait-for.js');
 
 // Create a new object by manually copying properties
 const mockDom: Record<string, unknown> = {};
@@ -21,6 +22,12 @@ for (const key of Object.keys(realDom)) {
   } catch {
     // Ignore errors from getters
   }
+}
+
+// Explicitly add waitFor from the wait-for module (fixes "waitFor is not a function" error)
+// This is needed because the getter on realDom might fail in certain contexts
+if (waitForModule.waitFor) {
+  mockDom.waitFor = waitForModule.waitFor;
 }
 
 // Override configure and getConfig with actual functions

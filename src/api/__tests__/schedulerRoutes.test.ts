@@ -5,6 +5,7 @@
 import request from 'supertest';
 import express from 'express';
 import { createSchedulerRouter } from '../schedulerRoutes';
+import getSupabaseClient from '../../database/client';
 
 // Mock dependencies
 jest.mock('../../database/client', () => {
@@ -96,7 +97,6 @@ describe('Scheduler Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     // Setup auth mock - getSupabaseClient() returns the client object
-import getSupabaseClient from '../../database/client';
     const mockClient = getSupabaseClient();
     mockClient.auth.getUser.mockResolvedValue({
       data: { user: mockUser },

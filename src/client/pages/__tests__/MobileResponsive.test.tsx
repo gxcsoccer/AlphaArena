@@ -10,6 +10,8 @@
  */
 
 import { render } from '@testing-library/react';
+import fs from 'fs';
+import path from 'path';
 
 // Mock ResizeObserver
 global.ResizeObserver = jest.fn().mockImplementation(() => ({
@@ -36,9 +38,6 @@ Object.defineProperty(window, 'matchMedia', {
 describe('Mobile Responsive Optimizations - Issue #401', () => {
   describe('CSS Media Queries', () => {
     it('should have mobile breakpoints defined', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
         'utf-8'
@@ -50,9 +49,6 @@ import path from 'path';
     });
 
     it('should have touch target sizing (min 44px)', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
         'utf-8'
@@ -63,9 +59,6 @@ import path from 'path';
     });
 
     it('should have safe area insets for notched devices', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
         'utf-8'
@@ -76,9 +69,6 @@ import path from 'path';
     });
 
     it('should support reduced motion preferences', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
         'utf-8'
@@ -88,9 +78,6 @@ import path from 'path';
     });
 
     it('should support high contrast mode', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../index.css'),
         'utf-8'
@@ -102,9 +89,6 @@ import path from 'path';
 
   describe('Mobile Bottom Navigation CSS', () => {
     it('should have mobile bottom nav styles', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileBottomNav.css'),
         'utf-8'
@@ -116,9 +100,6 @@ import path from 'path';
     });
 
     it('should hide bottom nav on desktop', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileBottomNav.css'),
         'utf-8'
@@ -130,9 +111,6 @@ import path from 'path';
 
   describe('Mobile Header CSS', () => {
     it('should have mobile header styles', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileHeader.css'),
         'utf-8'
@@ -143,9 +121,6 @@ import path from 'path';
     });
 
     it('should have safe area support for notched devices', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileHeader.css'),
         'utf-8'
@@ -157,9 +132,6 @@ import path from 'path';
 
   describe('Mobile Table Card CSS', () => {
     it('should have mobile table card styles', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const cssFile = fs.readFileSync(
         path.join(__dirname, '../../components/MobileTableCard.css'),
         'utf-8'
@@ -171,9 +143,6 @@ import path from 'path';
 
   describe('Page Component Structure', () => {
     it('BacktestVisualizationPage should use useMediaQuery', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../BacktestVisualizationPage.tsx'),
         'utf-8'
@@ -184,9 +153,6 @@ import path from 'path';
     });
 
     it('HomePage should have mobile detection', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../HomePage.tsx'),
         'utf-8'
@@ -197,9 +163,6 @@ import path from 'path';
     });
 
     it('DashboardPage should have mobile layout', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../DashboardPage.tsx'),
         'utf-8'
@@ -210,9 +173,6 @@ import path from 'path';
     });
 
     it('StrategiesPage should have mobile layout', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../StrategiesPage.tsx'),
         'utf-8'
@@ -223,9 +183,6 @@ import path from 'path';
     });
 
     it('ApiDocsPage should have mobile layout', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../ApiDocsPage.tsx'),
         'utf-8'
@@ -238,9 +195,6 @@ import path from 'path';
 
   describe('Touch Gesture Hooks', () => {
     it('useTouchGestures should be properly structured', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../../hooks/useTouchGestures.ts'),
         'utf-8'
@@ -252,9 +206,6 @@ import path from 'path';
     });
 
     it('useMediaQuery should export necessary types and functions', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../../hooks/useMediaQuery.ts'),
         'utf-8'
@@ -268,9 +219,6 @@ import path from 'path';
 
   describe('App Layout Mobile Support', () => {
     it('App.tsx should have mobile detection', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),
         'utf-8'
@@ -282,9 +230,6 @@ import path from 'path';
     });
 
     it('App.tsx should render mobile drawer menu', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),
         'utf-8'
@@ -295,9 +240,6 @@ import path from 'path';
     });
 
     it('App.tsx should render mobile bottom navigation', () => {
-import fs from 'fs';
-import path from 'path';
-      
       const file = fs.readFileSync(
         path.join(__dirname, '../../App.tsx'),
         'utf-8'

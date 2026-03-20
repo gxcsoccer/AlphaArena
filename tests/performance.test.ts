@@ -5,6 +5,10 @@
  * Run with: npm test -- performance.test.ts
  */
 
+import fs from 'fs';
+import path from 'path';
+import zlib from 'zlib';
+
 describe('Performance Benchmarks', () => {
   describe('Data Processing Performance', () => {
     it('should process order book data within 5ms', () => {
@@ -117,10 +121,6 @@ describe('Performance Benchmarks', () => {
 
   describe('Bundle Size Verification', () => {
     it('should have chunks under size limits', () => {
-import fs from 'fs';
-import path from 'path';
-import zlib from 'zlib';
-      
       const distPath = path.join(__dirname, '../dist/client/assets');
       
       if (!fs.existsSync(distPath)) {
