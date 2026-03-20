@@ -77,6 +77,7 @@ export class RealtimeClient {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();
   private listeners: Map<string, Array<{ callback: (...args: any[]) => void; handler: (...args: any[]) => void }>> = new Map();
+  private subscribedTopics: Set<string> = new Set(); // Track successfully subscribed topics
   
   // Connection state
   private connectionStatus: ConnectionStatus = 'disconnected';
@@ -232,7 +233,8 @@ export class RealtimeClient {
    * Subscribe to a channel with automatic reconnection and timeout handling
    */
   public async subscribe(topic: string): Promise<RealtimeChannel> {
-    if (this.channels.has(topic)) {
+    // If already successfully subscribed, return the existing channel
+    if (this.subscribedTopics.has(topic) && this.channels.has(topic)) {
       return this.channels.get(topic)!;
     }
 
@@ -243,13 +245,18 @@ export class RealtimeClient {
     }
 
     const channel = this.getChannel(topic);
-    this.connectionStatus = 'connecting';
-    this.notifyConnectionListeners();
+    
+    // Only set to 'connecting' if we're not already connected or reconnecting
+    if (this.connectionStatus !== 'connected' && this.connectionStatus !== 'reconnecting') {
+      this.connectionStatus = 'connecting';
+      this.notifyConnectionListeners();
+    }
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         console.error(`[RealtimeClient] Subscription timeout for ${topic}`);
         // Update connection status to disconnected on timeout
+        this.subscribedTopics.delete(topic);
         this.connectionStatus = 'disconnected';
         this.notifyConnectionListeners();
         this.handleReconnect(topic);
@@ -260,6 +267,7 @@ export class RealtimeClient {
         if (status === 'SUBSCRIBED') {
           clearTimeout(timeout);
           console.log(`[RealtimeClient] Subscribed to ${topic}`);
+          this.subscribedTopics.add(topic);
           this.connectionStatus = 'connected';
           this.reconnectDelay = INITIAL_RECONNECT_DELAY; // Reset on success
           this.connectionQuality.reconnectAttempts = 0;
@@ -270,10 +278,11 @@ export class RealtimeClient {
           this.processMessageQueue();
           
           resolve(channel);
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           clearTimeout(timeout);
           console.error(`[RealtimeClient] Subscription error for ${topic}:`, status);
           // Update connection status on error
+          this.subscribedTopics.delete(topic);
           this.connectionStatus = 'disconnected';
           this.notifyConnectionListeners();
           this.handleReconnect(topic);
@@ -292,6 +301,9 @@ export class RealtimeClient {
       clearTimeout(this.reconnectTimers.get(topic)!);
     }
 
+    // Remove from subscribed topics since we're reconnecting
+    this.subscribedTopics.delete(topic);
+    
     this.connectionStatus = 'reconnecting';
     this.connectionQuality.reconnectAttempts++;
     this.connectionQuality.lastReconnectAt = Date.now();
@@ -322,6 +334,9 @@ export class RealtimeClient {
     console.log('[RealtimeClient] Network recovered, attempting to reconnect all channels');
     this.connectionQuality.reconnectAttempts = 0;
     this.reconnectDelay = INITIAL_RECONNECT_DELAY;
+    
+    // Clear subscribed topics since we're reconnecting
+    this.subscribedTopics.clear();
     
     // Re-subscribe to all channels
     const topics = Array.from(this.channels.keys());
@@ -376,6 +391,7 @@ export class RealtimeClient {
 
   /**
    * Listen to broadcast messages
+   * Auto-subscribes to the channel if not already subscribed
    */
   public on(topic: string, event: string, callback: (payload: any) => void): () => void {
     const channel = this.getChannel(topic);
@@ -399,6 +415,15 @@ export class RealtimeClient {
     }
     const eventListeners = this.listeners.get(listenerKey)!;
     eventListeners.push({ callback, handler });
+
+    // Auto-subscribe to the channel if not already subscribed
+    // This ensures that when `on` is called (e.g., by useMarketData), the channel is actually connected
+    if (!this.subscribedTopics.has(topic)) {
+      this.subscribe(topic).catch((error) => {
+        console.warn(`[RealtimeClient] Auto-subscribe failed for ${topic}:`, error.message);
+        // Don't throw - the listener is still registered and will work if connection is established later
+      });
+    }
 
     return () => {
       // Remove listener using type-safe utility
@@ -604,6 +629,7 @@ export class RealtimeClient {
 
     this.supabase.removeChannel(channel);
     this.channels.delete(topic);
+    this.subscribedTopics.delete(topic);
     
     // Clean up listeners
     for (const [key] of this.listeners.entries()) {
@@ -626,6 +652,7 @@ export class RealtimeClient {
     const topics = Array.from(this.channels.keys());
     await Promise.all(topics.map((topic) => this.unsubscribe(topic)));
     this.channels.clear();
+    this.subscribedTopics.clear();
     this.listeners.clear();
     this.connectionStatus = 'disconnected';
     this.notifyConnectionListeners();

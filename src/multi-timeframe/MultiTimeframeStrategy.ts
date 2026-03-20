@@ -147,9 +147,9 @@ export abstract class MultiTimeframeStrategy extends Strategy {
         const primaryTf = this.mtfConfig.timeframes[0];
         return this.getCurrentPrice(primaryTf);
       },
-      getSignal: (timeframe: Timeframe) => self.signals.get(timeframe) ?? null,
-      getAllSignals: () => Array.from(self.signals.values()),
-      getCombinedSignal: () => self.getCombinedSignal(),
+      getSignal: (timeframe: Timeframe) => this.signals.get(timeframe) ?? null,
+      getAllSignals: () => Array.from(this.signals.values()),
+      getCombinedSignal: () => this.getCombinedSignal(),
       timestamp: Date.now(),
     };
   }
