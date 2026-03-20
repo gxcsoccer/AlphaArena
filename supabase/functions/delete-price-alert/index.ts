@@ -38,7 +38,7 @@ serve(async (req) => {
     }
 
     // Check if alert exists
-    const { data: existingAlert, error: fetchError } = await supabase
+    const { data: _existingAlert, error: fetchError } = await supabase
       .from('price_alerts')
       .select('id, status')
       .eq('id', alertId)

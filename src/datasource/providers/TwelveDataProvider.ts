@@ -98,29 +98,6 @@ interface TwelveDataBarData {
 }
 
 /**
- * Twelve Data time series response
- */
-interface TwelveDataTimeSeriesResponse {
-  meta: {
-    symbol: string;
-    interval: string;
-    currency: string;
-    exchange_timezone: string;
-    exchange: string;
-    type: string;
-  };
-  values: Array<{
-    datetime: string;
-    open: string;
-    high: string;
-    low: string;
-    close: string;
-    volume: string;
-  }>;
-  status: string;
-}
-
-/**
  * Twelve Data quote response
  */
 interface TwelveDataQuoteResponse {
@@ -440,7 +417,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
 
   // ========== Order Book ==========
 
-  async getOrderBook(symbol: string, depth: number = 20): Promise<OrderBook> {
+  async getOrderBook(symbol: string, _depth: number = 20): Promise<OrderBook> {
     this.ensureConnected();
     const normalized = this.normalizeSymbol(symbol);
 

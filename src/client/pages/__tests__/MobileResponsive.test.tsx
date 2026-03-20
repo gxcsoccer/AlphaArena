@@ -9,7 +9,6 @@
  * - Mobile Lighthouse performance score > 80
  */
 
-import { render } from '@testing-library/react';
 import fs from 'fs';
 
 // Mock ResizeObserver

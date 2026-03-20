@@ -76,7 +76,7 @@ serve(async (req) => {
     }
 
     // Get slice details
-    const { data: slices, error: slicesError } = await supabase
+    const { data: slices, error: _slicesError } = await supabase
       .from('twap_order_slices')
       .select('*')
       .eq('twap_order_id', orderId)

@@ -3,7 +3,7 @@
  */
 
 import { TwelveDataProvider } from '../providers/TwelveDataProvider';
-import { DataSourceStatus, DataSourceError } from '../types';
+import { DataSourceStatus } from '../types';
 
 describe('TwelveDataProvider', () => {
   let provider: TwelveDataProvider;

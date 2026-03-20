@@ -42,7 +42,7 @@ serve(async (req) => {
     const { status, targetPrice, notificationMethod, isRecurring, notes } = body;
 
     // Check if alert exists
-    const { data: existingAlert, error: fetchError } = await supabase
+    const { data: _existingAlert, error: fetchError } = await supabase
       .from('price_alerts')
       .select('*')
       .eq('id', alertId)

@@ -1,6 +1,6 @@
 // Mock JSDOM for tests - avoid ESM issues with jsdom and its dependencies
 export class JSDOM {
-  constructor(html: string) {}
+  constructor(_html: string) {}
   get window() {
     return {
       document: {

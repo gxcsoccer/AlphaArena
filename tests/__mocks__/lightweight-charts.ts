@@ -6,7 +6,7 @@ export const CandlestickSeries = 'CandlestickSeries';
 export const HistogramSeries = 'HistogramSeries';
 
 export const createChart = jest.fn(() => ({
-  addSeries: jest.fn((type: string, options?: any) => ({
+  addSeries: jest.fn((_type: string, _options?: any) => ({
     setData: jest.fn(),
     update: jest.fn(),
     applyOptions: jest.fn(),

@@ -3,7 +3,7 @@
  */
 import { BaseExchangeAdapter } from './BaseExchangeAdapter';
 import {
-  ExchangeConfig, Balance, BalanceItem, Ticker, OrderBook, OrderParams,
+  ExchangeConfig, Balance, Ticker, OrderBook, OrderParams,
   OrderResult, Order, OrderSide, OrderType, OrderStatus, Trade, TradeCallback,
   TickerCallback, OrderBookCallback, ConnectionStatus, ExchangeError,
   ExchangeErrorType, ExchangeCapabilities, TimeInForce,

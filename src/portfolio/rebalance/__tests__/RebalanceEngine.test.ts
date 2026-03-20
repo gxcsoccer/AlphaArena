@@ -8,7 +8,6 @@ import {
   RebalancePlan,
   RebalanceTrigger,
   RebalanceExecutionStatus,
-  RebalanceOrderType,
 } from '../types';
 import { Position } from '../../types';
 

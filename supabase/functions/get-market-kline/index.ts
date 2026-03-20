@@ -6,9 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Default trading symbols for simulation
-const DEFAULT_SYMBOLS = ['BTC/USD', 'ETH/USD', 'AAPL', 'GOOGL', 'TSLA', 'MSFT', 'NVDA'];
-
 // Initial prices for simulation
 const INITIAL_PRICES: Record<string, number> = {
   'BTC/USD': 67500.00,

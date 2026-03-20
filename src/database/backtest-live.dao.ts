@@ -6,7 +6,7 @@
  * @module database/backtest-live.dao
  */
 
-import { getSupabaseClient, type Database } from './client';
+import { getSupabaseClient } from './client';
 import type {
   IntegratedStrategyConfig,
   PerformanceComparison,

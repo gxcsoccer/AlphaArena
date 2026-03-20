@@ -5,7 +5,7 @@
  * position risks, and correlation matrix.
  */
 
-import { getSupabaseClient, type Database } from './client';
+import { getSupabaseClient } from './client';
 
 // Types
 export type RiskMetric = 

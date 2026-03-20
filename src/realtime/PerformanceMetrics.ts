@@ -195,7 +195,7 @@ export class PerformanceMetricsCollector extends EventEmitter {
     return sorted[Math.max(0, Math.ceil(sorted.length * p) - 1)];
   }
 
-  private checkThresholds(operation: string, value: number): void {
+  private checkThresholds(operation: string, _value: number): void {
     const stats = this.getLatencyStats(operation);
     if (!stats) return;
     for (const threshold of this.config.thresholds) {

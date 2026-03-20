@@ -1,10 +1,10 @@
 // Mock pdfmake for tests
 class PdfPrinter {
-  constructor(fonts: any) {
+  constructor(_fonts: any) {
     // Mock constructor
   }
   
-  createPdfKitDocument(docDefinitions: any, options?: any): any {
+  createPdfKitDocument(_docDefinitions: any, _options?: any): any {
     return {
       pipe: () => this,
       end: () => {},

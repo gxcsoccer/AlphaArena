@@ -16,12 +16,9 @@ import {
   UserFeedback,
   UserInteraction,
   UserProfile,
-  StrategyRecommendation,
   CreateFeedbackInput,
   CreateInteractionInput,
   UpdateUserProfileInput,
-  FeedbackType,
-  InteractionType,
 } from '../database/strategy-recommendation.dao';
 import {
   MarketplaceStrategiesDAO,
@@ -29,8 +26,6 @@ import {
   getMarketplaceStrategiesDAO,
   getStrategySubscriptionsDAO,
   MarketplaceStrategy,
-  StrategySubscription,
-  StrategyFilters,
 } from '../database/strategy-marketplace.dao';
 import { createLogger } from '../utils/logger';
 

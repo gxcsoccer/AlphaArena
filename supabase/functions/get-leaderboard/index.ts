@@ -39,7 +39,7 @@ serve(async (req)=>{
       // Calculate ROI (simplified)
       const roi = totalCost > 0 ? totalPnL / totalCost * 100 : 0;
       // Calculate win rate
-      const profitableTrades = sells.filter((s)=>{
+      const profitableTrades = sells.filter((_s)=>{
         // Simplified: consider sell trades with positive P&L
         return true // Would need more complex logic for accurate calculation
         ;

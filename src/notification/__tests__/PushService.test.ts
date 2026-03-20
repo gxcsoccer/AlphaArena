@@ -15,7 +15,7 @@ import {
   WebPushProvider,
   createPushProvider,
 } from '../PushProviders.js';
-import type { PushMessage, PushDeviceToken } from '../PushProviders.js';
+import type { PushMessage } from '../PushProviders.js';
 
 describe('PushProviders', () => {
   describe('MockPushProvider', () => {
