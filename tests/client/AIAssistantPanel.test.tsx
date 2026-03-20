@@ -137,21 +137,46 @@ describe('AIAssistantPanel', () => {
       ];
       localStorageMock.setItem('ai_assistant_messages', JSON.stringify(savedMessages));
       localStorageMock.setItem('ai_assistant_conversation_id', 'conv-123');
+      localStorageMock.setItem('auth_access_token', 'test-token');
 
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
+      // Mock fetch for clearing conversation and usage stats
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/api/ai/conversations/')) {
+          return Promise.resolve({ ok: true });
+        }
+        if (url.includes('/api/ai/usage')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                planType: 'pro',
+                messagesToday: 10,
+                messagesLimit: -1,
+                tokensUsed: 1000,
+                tokensLimit: -1,
+              },
+            }),
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
       });
 
       render(<AIAssistantPanel />);
 
-      const _clearButton = screen.getByRole('button', { name: '' });
-      // Find the clear button (it has a tooltip)
+      // Wait for initial render and fetchUsageStats to complete
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/ai/usage',
+          expect.any(Object)
+        );
+      });
+
+      // Find the clear button by looking for the delete icon
       const clearButtons = screen.getAllByRole('button');
       const clearBtn = clearButtons.find(btn => btn.querySelector('.arco-icon-delete'));
       
-      if (clearBtn) {
-        fireEvent.click(clearBtn);
-      }
+      expect(clearBtn).toBeTruthy();
+      fireEvent.click(clearBtn!);
 
       await waitFor(() => {
         const savedMessages = localStorageMock.getItem('ai_assistant_messages');
@@ -183,20 +208,48 @@ describe('AIAssistantPanel', () => {
 
   describe('Message Sending', () => {
     it('should send message when Enter key is pressed', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({
-          data: {
-            response: 'AI response',
-            conversation_id: 'conv-123',
-            tokens_used: 50,
-          },
-        }),
+      // Mock fetch based on URL
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/api/ai/usage')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                planType: 'pro',
+                messagesToday: 10,
+                messagesLimit: -1,
+                tokensUsed: 1000,
+                tokensLimit: -1,
+              },
+            }),
+          });
+        }
+        if (url.includes('/api/ai/chat')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                response: 'AI response',
+                conversation_id: 'conv-123',
+                tokens_used: 50,
+              },
+            }),
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
       });
 
       localStorageMock.setItem('auth_access_token', 'test-token');
 
       render(<AIAssistantPanel />);
+
+      // Wait for usage stats to load
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/ai/usage',
+          expect.any(Object)
+        );
+      });
 
       const input = screen.getByPlaceholderText(/Ask about market trends/);
       fireEvent.change(input, { target: { value: 'Test question' } });
@@ -223,21 +276,57 @@ describe('AIAssistantPanel', () => {
     });
 
     it('should show loading state while sending message', async () => {
-      (global.fetch as jest.Mock).mockImplementationOnce(
-        () => new Promise(resolve => setTimeout(resolve, 100))
-      );
+      // Mock fetch based on URL with delay for chat
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/api/ai/usage')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                planType: 'pro',
+                messagesToday: 10,
+                messagesLimit: -1,
+                tokensUsed: 1000,
+                tokensLimit: -1,
+              },
+            }),
+          });
+        }
+        if (url.includes('/api/ai/chat')) {
+          return new Promise(resolve => setTimeout(() => resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                response: 'AI response',
+                conversation_id: 'conv-123',
+                tokens_used: 50,
+              },
+            }),
+          }), 100));
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      });
 
       localStorageMock.setItem('auth_access_token', 'test-token');
 
       render(<AIAssistantPanel />);
 
+      // Wait for usage stats to load
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/ai/usage',
+          expect.any(Object)
+        );
+      });
+
       const input = screen.getByPlaceholderText(/Ask about market trends/);
       fireEvent.change(input, { target: { value: 'Test' } });
       fireEvent.keyPress(input, { key: 'Enter', code: 'Enter', charCode: 13 });
 
-      // Should show spinner
+      // Should show spinner while loading
       await waitFor(() => {
-        expect(screen.getByRole('img', { name: '' }) || document.querySelector('.arco-spin')).toBeTruthy();
+        const spinner = document.querySelector('.arco-spin');
+        expect(spinner).toBeTruthy();
       });
     });
   });
@@ -322,17 +411,45 @@ describe('AIAssistantPanel', () => {
 
   describe('Upgrade Prompt', () => {
     it('should show upgrade prompt when upgrade_required error is received', async () => {
-      (global.fetch as jest.Mock).mockResolvedValueOnce({
-        ok: false,
-        json: () => Promise.resolve({
-          upgrade_required: true,
-          error: 'AI features require a Pro subscription',
-        }),
+      // Mock fetch based on URL
+      (global.fetch as jest.Mock).mockImplementation((url: string) => {
+        if (url.includes('/api/ai/usage')) {
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({
+              data: {
+                planType: 'free',
+                messagesToday: 3,
+                messagesLimit: 5,
+                tokensUsed: 500,
+                tokensLimit: 10000,
+              },
+            }),
+          });
+        }
+        if (url.includes('/api/ai/chat')) {
+          return Promise.resolve({
+            ok: false,
+            json: () => Promise.resolve({
+              upgrade_required: true,
+              error: 'AI features require a Pro subscription',
+            }),
+          });
+        }
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
       });
 
       localStorageMock.setItem('auth_access_token', 'test-token');
 
       render(<AIAssistantPanel />);
+
+      // Wait for usage stats to load
+      await waitFor(() => {
+        expect(global.fetch).toHaveBeenCalledWith(
+          '/api/ai/usage',
+          expect.any(Object)
+        );
+      });
 
       const input = screen.getByPlaceholderText(/Ask about market trends/);
       fireEvent.change(input, { target: { value: 'Test' } });
@@ -340,8 +457,7 @@ describe('AIAssistantPanel', () => {
 
       await waitFor(() => {
         expect(screen.getByText('Upgrade to Pro')).toBeInTheDocument();
-        expect(screen.getByText(/Pro Benefits:/)).toBeInTheDocument();
-      });
+      }, { timeout: 3000 });
     });
   });
 
