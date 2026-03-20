@@ -4,6 +4,7 @@
  */
 
 import { createLogger } from '../utils/logger';
+import type { MailDataRequired, ClientResponse } from '@sendgrid/mail';
 
 const log = createLogger('EmailProviders');
 
@@ -121,18 +122,33 @@ export interface SendGridConfig {
 
 /**
  * SendGrid Email Provider
- * Note: Actual implementation requires @sendgrid/mail package
+ * Uses @sendgrid/mail package to send emails via SendGrid API
  */
 export class SendGridProvider implements IEmailProvider {
   readonly name = 'sendgrid';
   private apiKey: string | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private client: any = null;
 
   constructor(config?: SendGridConfig) {
     this.apiKey = config?.apiKey ?? process.env.SENDGRID_API_KEY ?? null;
+    
+    if (this.apiKey) {
+      // Import and configure SendGrid client
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const sgMail = require('@sendgrid/mail');
+        sgMail.setApiKey(this.apiKey);
+        this.client = sgMail;
+        log.info('SendGrid client initialized successfully');
+      } catch (error) {
+        log.error('Failed to initialize SendGrid client', error);
+      }
+    }
   }
 
   get isConfigured(): boolean {
-    return !!this.apiKey;
+    return !!this.apiKey && !!this.client;
   }
 
   async send(message: EmailMessage): Promise<EmailSendResult> {
@@ -144,15 +160,126 @@ export class SendGridProvider implements IEmailProvider {
       };
     }
 
-    // Placeholder for actual SendGrid implementation
-    // To implement: install @sendgrid/mail and use it here
-    log.warn('SendGrid provider not fully implemented - falling back to mock');
-    
-    return {
-      success: false,
-      provider: 'sendgrid',
-      error: 'SendGrid integration not implemented. Install @sendgrid/mail and implement the send method.',
-    };
+    if (!this.client) {
+      return {
+        success: false,
+        provider: 'sendgrid',
+        error: 'SendGrid client not initialized',
+      };
+    }
+
+    try {
+      // Build SendGrid email data
+      const toList = Array.isArray(message.to) ? message.to : [message.to];
+      const toEmails = toList.map(a => (a.name ? `${a.name} <${a.email}>` : a.email));
+      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const emailData: any = {
+        to: toEmails,
+        from: message.from 
+          ? (message.from.name ? `${message.from.name} <${message.from.email}>` : message.from.email)
+          : 'noreply@alphaarena.com',
+        subject: message.subject,
+      };
+
+      // Add content
+      if (message.text) {
+        emailData.text = message.text;
+      }
+      if (message.html) {
+        emailData.html = message.html;
+      }
+
+      // Add CC/BCC if provided
+      if (message.cc && message.cc.length > 0) {
+        emailData.cc = message.cc.map(a => (a.name ? `${a.name} <${a.email}>` : a.email));
+      }
+      if (message.bcc && message.bcc.length > 0) {
+        emailData.bcc = message.bcc.map(a => (a.name ? `${a.name} <${a.email}>` : a.email));
+      }
+
+      // Add reply-to if provided
+      if (message.replyTo) {
+        emailData.replyTo = message.replyTo.name 
+          ? `${message.replyTo.name} <${message.replyTo.email}>`
+          : message.replyTo.email;
+      }
+
+      // Add attachments if provided
+      if (message.attachments && message.attachments.length > 0) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        emailData.attachments = message.attachments.map(att => ({
+          filename: att.filename,
+          content: att.content instanceof Buffer 
+            ? att.content.toString('base64') 
+            : att.content,
+          type: att.contentType,
+          contentId: att.contentId,
+        })) as any;
+      }
+
+      // Add custom headers if provided
+      if (message.headers) {
+        emailData.headers = message.headers;
+      }
+
+      // Add tags as custom arguments if provided
+      if (message.tags) {
+        emailData.customArgs = message.tags;
+      }
+
+      log.debug('Sending email via SendGrid', {
+        to: toEmails,
+        subject: message.subject,
+        hasHtml: !!message.html,
+        hasAttachments: !!(message.attachments?.length),
+      });
+
+      // Send the email
+      const [response] = await this.client.send(emailData) as [ClientResponse, object];
+
+      const messageId = response.headers?.['x-message-id'] as string | undefined;
+      
+      log.info('Email sent successfully via SendGrid', {
+        to: toEmails,
+        subject: message.subject,
+        messageId,
+        statusCode: response.statusCode,
+      });
+
+      return {
+        success: true,
+        messageId,
+        provider: 'sendgrid',
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorDetails: Record<string, unknown> = {
+        error: errorMessage,
+      };
+
+      // Extract SendGrid error details if available
+      if (error && typeof error === 'object' && 'response' in error) {
+        const sgError = error as { response?: { body?: { errors?: Array<{ message: string }> } } };
+        if (sgError.response?.body?.errors) {
+          errorDetails.sendGridErrors = sgError.response.body.errors.map(e => e.message).join('; ');
+        }
+      }
+
+      log.error('Failed to send email via SendGrid', error, {
+        to: Array.isArray(message.to) 
+          ? message.to.map(a => a.email).join(', ') 
+          : message.to.email,
+        subject: message.subject,
+        ...errorDetails,
+      });
+
+      return {
+        success: false,
+        provider: 'sendgrid',
+        error: errorMessage,
+      };
+    }
   }
 }
 

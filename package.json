@@ -94,6 +94,7 @@
   },
   "dependencies": {
     "@arco-design/web-react": "^2.66.11",
+    "@sendgrid/mail": "^8.1.6",
     "@supabase/supabase-js": "^2.99.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
