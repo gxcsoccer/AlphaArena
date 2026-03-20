@@ -1,0 +1,28 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Homepage Load"
+    flow:
+      - aiWaitFor: "页面完全加载，没有 loading 状态"
+      - aiAssert: "页面标题包含 AlphaArena 或类似股票/交易相关的文字"
+      - aiAssert: "页面主要内容区域可见，没有空白或错误提示"
+      - aiAssert: "没有明显的 404 或 500 错误页面"
+      - aiAssert: "页面布局正常，没有元素重叠或错位"
+  - name: "Navigation Test"
+    flow:
+      - aiAssert: "导航栏或菜单区域可见"
+      - ai: "尝试找到并点击主要的导航链接或按钮（如首页、股票列表等）"
+      - aiWaitFor: "页面响应导航操作，URL 或内容发生变化"
+      - aiAssert: "导航后页面内容正确显示，没有错误"
+  - name: "Core Functionality"
+    flow:
+      - aiAssert: "股票列表或交易相关的核心组件可见"
+      - aiAssert: "可以查看股票信息或价格数据"
+      - aiAssert: "页面交互元素（按钮、输入框等）响应正常"
+      - ai: "滚动页面查看更多内容，验证无限加载或分页功能正常"
+  - name: "Console Error Check"
+    flow:
+      - aiAssert: "页面没有显示 JavaScript 错误弹窗"
+      - aiAssert: "页面没有显示 API 错误或网络错误提示"
+      - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"

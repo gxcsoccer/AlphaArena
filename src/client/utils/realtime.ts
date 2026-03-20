@@ -22,6 +22,11 @@ const CONNECTION_TIMEOUT = 10000; // 10 seconds timeout for subscription
 const STALE_CONNECTION_THRESHOLD = 60000; // 60 seconds without ping = stale
 const PING_INTERVAL = 15000; // 15 seconds ping interval
 
+// Service health settings
+const MAX_CONSECUTIVE_FAILURES = 3; // After this many failures, consider service down
+const SERVICE_DOWN_COOLDOWN = 60000; // 1 minute cooldown before trying again after service is marked down
+const HEALTH_CHECK_INTERVAL = 30000; // Check service health every 30 seconds when in degraded mode
+
 // Connection states
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
 
@@ -31,6 +36,19 @@ export interface ConnectionQuality {
   isStale: boolean;
   reconnectAttempts: number;
   lastReconnectAt: number | null;
+}
+
+/**
+ * Service health status for Realtime
+ */
+export type ServiceHealthStatus = 'healthy' | 'degraded' | 'down' | 'unknown';
+
+export interface ServiceHealth {
+  status: ServiceHealthStatus;
+  consecutiveFailures: number;
+  lastHealthCheckAt: number | null;
+  lastSuccessfulConnectionAt: number | null;
+  errorMessage: string | null;
 }
 
 export interface RealtimeMessage {
@@ -92,6 +110,16 @@ export class RealtimeClient {
     lastReconnectAt: null,
   };
   
+  // Service health tracking
+  private serviceHealth: ServiceHealth = {
+    status: 'unknown',
+    consecutiveFailures: 0,
+    lastHealthCheckAt: null,
+    lastSuccessfulConnectionAt: null,
+    errorMessage: null,
+  };
+  private healthCheckTimer: NodeJS.Timeout | null = null;
+  
   // Message queue for offline actions
   private messageQueue: QueuedMessage[] = [];
   private isProcessingQueue: boolean = false;
@@ -99,6 +127,7 @@ export class RealtimeClient {
   // Event listeners for connection state changes
   private connectionListeners: Array<(status: ConnectionStatus) => void> = [];
   private qualityListeners: Array<(quality: ConnectionQuality) => void> = [];
+  private healthListeners: Array<(health: ServiceHealth) => void> = [];
 
   constructor() {
     const config = validateConfig();
@@ -164,6 +193,90 @@ export class RealtimeClient {
     this.pingTimer = setInterval(() => {
       this.checkConnectionHealth();
     }, PING_INTERVAL);
+  }
+
+  /**
+   * Start periodic health checks when in degraded mode
+   */
+  private startHealthCheckTimer() {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+    }
+
+    this.healthCheckTimer = setInterval(() => {
+      // Only check if service is marked as down
+      if (this.serviceHealth.status === 'down') {
+        console.log('[RealtimeClient] Periodic health check - attempting to reconnect...');
+        this.serviceHealth.status = 'degraded';
+        this.serviceHealth.consecutiveFailures = 0;
+        this.notifyHealthListeners();
+        
+        // Try to reconnect
+        const topics = Array.from(this.subscribedTopics);
+        if (topics.length > 0) {
+          this.subscribe(topics[0]).catch(() => {});
+        }
+      }
+    }, HEALTH_CHECK_INTERVAL);
+  }
+
+  /**
+   * Stop health check timer
+   */
+  private stopHealthCheckTimer() {
+    if (this.healthCheckTimer) {
+      clearInterval(this.healthCheckTimer);
+      this.healthCheckTimer = null;
+    }
+  }
+
+  /**
+   * Record a connection failure and update service health
+   */
+  private recordFailure(error: string) {
+    this.serviceHealth.consecutiveFailures++;
+    this.serviceHealth.lastHealthCheckAt = Date.now();
+    this.serviceHealth.errorMessage = error;
+
+    if (this.serviceHealth.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      const previousStatus = this.serviceHealth.status;
+      this.serviceHealth.status = 'down';
+      
+      if (previousStatus !== 'down') {
+        console.error('[RealtimeClient] 🚨 Realtime service appears to be DOWN');
+        console.error('[RealtimeClient] Error:', error);
+        console.error('[RealtimeClient] Switching to degraded mode - will use HTTP polling fallback');
+        console.error('[RealtimeClient] Will attempt to reconnect in', SERVICE_DOWN_COOLDOWN / 1000, 'seconds');
+        
+        // Start health check timer for periodic reconnection attempts
+        this.startHealthCheckTimer();
+      }
+    } else {
+      this.serviceHealth.status = 'degraded';
+      console.warn(`[RealtimeClient] Connection failure ${this.serviceHealth.consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES}: ${error}`);
+    }
+
+    this.notifyHealthListeners();
+  }
+
+  /**
+   * Record a successful connection
+   */
+  private recordSuccess() {
+    const wasDown = this.serviceHealth.status === 'down';
+    
+    this.serviceHealth.consecutiveFailures = 0;
+    this.serviceHealth.lastHealthCheckAt = Date.now();
+    this.serviceHealth.lastSuccessfulConnectionAt = Date.now();
+    this.serviceHealth.errorMessage = null;
+    this.serviceHealth.status = 'healthy';
+
+    if (wasDown) {
+      console.log('[RealtimeClient] ✅ Realtime service is back online!');
+      this.stopHealthCheckTimer();
+    }
+
+    this.notifyHealthListeners();
   }
 
   /**
@@ -233,6 +346,16 @@ export class RealtimeClient {
    * Subscribe to a channel with automatic reconnection and timeout handling
    */
   public async subscribe(topic: string): Promise<RealtimeChannel> {
+    // Check if service is marked as down
+    if (this.serviceHealth.status === 'down') {
+      const timeSinceLastCheck = Date.now() - (this.serviceHealth.lastHealthCheckAt || 0);
+      if (timeSinceLastCheck < SERVICE_DOWN_COOLDOWN) {
+        throw new Error('Realtime service is currently unavailable. Using HTTP polling fallback.');
+      }
+      // Cooldown period passed, try again
+      this.serviceHealth.status = 'degraded';
+    }
+
     // If already successfully subscribed, return the existing channel
     if (this.subscribedTopics.has(topic) && this.channels.has(topic)) {
       return this.channels.get(topic)!;
@@ -254,19 +377,28 @@ export class RealtimeClient {
 
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
+        const errorMsg = `订阅超时：${topic}`;
         console.error(`[RealtimeClient] Subscription timeout for ${topic}`);
+        
+        // Record failure for health tracking
+        this.recordFailure(errorMsg);
+        
         // Update connection status to disconnected on timeout
         this.subscribedTopics.delete(topic);
         this.connectionStatus = 'disconnected';
         this.notifyConnectionListeners();
         this.handleReconnect(topic);
-        reject(new Error(`订阅超时：${topic}`));
+        reject(new Error(errorMsg));
       }, CONNECTION_TIMEOUT);
 
       channel.subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           clearTimeout(timeout);
           console.log(`[RealtimeClient] Subscribed to ${topic}`);
+          
+          // Record successful connection
+          this.recordSuccess();
+          
           this.subscribedTopics.add(topic);
           this.connectionStatus = 'connected';
           this.reconnectDelay = INITIAL_RECONNECT_DELAY; // Reset on success
@@ -280,13 +412,18 @@ export class RealtimeClient {
           resolve(channel);
         } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
           clearTimeout(timeout);
+          const errorMsg = `订阅失败：${status}`;
           console.error(`[RealtimeClient] Subscription error for ${topic}:`, status);
+          
+          // Record failure for health tracking
+          this.recordFailure(errorMsg);
+          
           // Update connection status on error
           this.subscribedTopics.delete(topic);
           this.connectionStatus = 'disconnected';
           this.notifyConnectionListeners();
           this.handleReconnect(topic);
-          reject(new Error(`订阅失败：${status}`));
+          reject(new Error(errorMsg));
         }
       });
     });
@@ -612,6 +749,32 @@ export class RealtimeClient {
     this.qualityListeners.forEach(cb => cb({ ...this.connectionQuality }));
   }
 
+  private notifyHealthListeners() {
+    this.healthListeners.forEach(cb => cb({ ...this.serviceHealth }));
+  }
+
+  /**
+   * Subscribe to service health changes
+   */
+  public onHealthChange(callback: (health: ServiceHealth) => void): () => void {
+    this.healthListeners.push(callback);
+    // Immediately notify of current state
+    callback({ ...this.serviceHealth });
+    return () => {
+      const index = this.healthListeners.indexOf(callback);
+      if (index !== -1) {
+        this.healthListeners.splice(index, 1);
+      }
+    };
+  }
+
+  /**
+   * Get service health status
+   */
+  public getServiceHealth(): ServiceHealth {
+    return { ...this.serviceHealth };
+  }
+
   /**
    * Unsubscribe from a channel
    */
@@ -667,6 +830,8 @@ export class RealtimeClient {
       this.pingTimer = null;
     }
 
+    this.stopHealthCheckTimer();
+
     if (this.reconnectTimers.size > 0) {
       this.reconnectTimers.forEach((timer) => clearTimeout(timer));
       this.reconnectTimers.clear();
@@ -680,6 +845,13 @@ export class RealtimeClient {
       isStale: false,
       reconnectAttempts: 0,
       lastReconnectAt: null,
+    };
+    this.serviceHealth = {
+      status: 'unknown',
+      consecutiveFailures: 0,
+      lastHealthCheckAt: null,
+      lastSuccessfulConnectionAt: null,
+      errorMessage: null,
     };
   }
 
@@ -709,6 +881,73 @@ export class RealtimeClient {
    */
   public getQueuedMessageCount(): number {
     return this.messageQueue.length;
+  }
+
+  /**
+   * Check Realtime service health via HTTP endpoint
+   * This is useful for detecting if the service is down before attempting WebSocket connection
+   */
+  public async checkServiceHealth(): Promise<{ healthy: boolean; status: number; message: string }> {
+    const config = validateConfig();
+    const supabaseUrl = config.supabaseUrl;
+    const supabaseKey = config.supabaseAnonKey;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return {
+        healthy: false,
+        status: 0,
+        message: 'Supabase configuration missing',
+      };
+    }
+
+    try {
+      // Try to hit the Realtime health endpoint
+      const healthUrl = `${supabaseUrl}/realtime/v1/health?apikey=${supabaseKey}`;
+      
+      const response = await fetch(healthUrl, {
+        method: 'GET',
+        headers: {
+          'apikey': supabaseKey,
+        },
+      });
+
+      if (response.ok) {
+        this.serviceHealth.status = 'healthy';
+        this.serviceHealth.errorMessage = null;
+        this.notifyHealthListeners();
+        return {
+          healthy: true,
+          status: response.status,
+          message: 'Realtime service is healthy',
+        };
+      } else {
+        const message = response.status === 500 
+          ? 'Realtime service is experiencing issues (500 error)'
+          : `Realtime service returned status ${response.status}`;
+        
+        this.serviceHealth.status = 'down';
+        this.serviceHealth.errorMessage = message;
+        this.notifyHealthListeners();
+        
+        return {
+          healthy: false,
+          status: response.status,
+          message,
+        };
+      }
+    } catch (error) {
+      const message = `Failed to check Realtime health: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      
+      this.serviceHealth.status = 'down';
+      this.serviceHealth.errorMessage = message;
+      this.notifyHealthListeners();
+      
+      return {
+        healthy: false,
+        status: 0,
+        message,
+      };
+    }
   }
 }
 

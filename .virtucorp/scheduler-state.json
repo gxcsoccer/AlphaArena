@@ -1,0 +1,10 @@
+{
+  "lastDispatch": {
+    "digestHash": "spawn_dev_bugfix|bug:484|prs:0|ready:1|no-sprint",
+    "timestamp": 1774047286134,
+    "consecutiveCount": 1
+  },
+  "highWaterMark": 43,
+  "paused": false,
+  "pauseReason": ""
+}
