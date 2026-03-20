@@ -13,17 +13,43 @@ jest.mock('pdfmake', () => {
       }),
       end: jest.fn(),
     }),
+    createPdf: jest.fn().mockImplementation(() => ({
+      getBuffer: jest.fn((callback: any) => {
+        setTimeout(() => callback(Buffer.from('mock-pdf-content')), 10);
+      }),
+      download: jest.fn(),
+    })),
   }));
 });
 
-// Mock dependencies
-jest.mock('../../src/database/trades.dao');
-jest.mock('../../src/database/portfolios.dao');
-jest.mock('../../src/database/strategies.dao');
+// Mock dependencies - use factory function to properly mock classes
+jest.mock('../../src/database/trades.dao', () => ({
+  TradesDAO: jest.fn().mockImplementation(() => ({
+    getMany: jest.fn().mockResolvedValue([]),
+    getStats: jest.fn().mockResolvedValue({
+      totalTrades: 0,
+      buyCount: 0,
+      sellCount: 0,
+      totalVolume: 0,
+      avgTradeSize: 0,
+    }),
+    exportToCSV: jest.fn().mockResolvedValue(''),
+  })),
+}));
+jest.mock('../../src/database/portfolios.dao', () => ({
+  PortfoliosDAO: jest.fn().mockImplementation(() => ({
+    getLatest: jest.fn().mockResolvedValue(null),
+  })),
+}));
+jest.mock('../../src/database/strategies.dao', () => ({
+  StrategiesDAO: jest.fn().mockImplementation(() => ({
+    getMany: jest.fn().mockResolvedValue([]),
+  })),
+}));
 
 import { ExportService } from '../../src/export/ExportService';
-import TradesDAO from '../../src/database/trades.dao';
-import PortfoliosDAO from '../../src/database/portfolios.dao';
+import { TradesDAO } from '../../src/database/trades.dao';
+import { PortfoliosDAO } from '../../src/database/portfolios.dao';
 
 describe('ExportService', () => {
   let service: ExportService;
@@ -52,8 +78,18 @@ describe('ExportService', () => {
           createdAt: new Date(),
         },
       ]);
+      
+      // Reset and reconfigure the mock
       (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
+        getStats: jest.fn().mockResolvedValue({
+          totalTrades: 1,
+          buyCount: 1,
+          sellCount: 0,
+          totalVolume: 5000,
+          avgTradeSize: 5000,
+        }),
+        exportToCSV: jest.fn().mockResolvedValue(''),
       }));
 
       const newService = new ExportService();
@@ -86,6 +122,13 @@ describe('ExportService', () => {
       ]);
       (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
+        getStats: jest.fn().mockResolvedValue({
+          totalTrades: 1,
+          buyCount: 1,
+          sellCount: 0,
+          totalVolume: 5000,
+          avgTradeSize: 5000,
+        }),
       }));
 
       const newService = new ExportService();
@@ -102,6 +145,13 @@ describe('ExportService', () => {
       const mockGetMany = jest.fn().mockResolvedValue([]);
       (TradesDAO as jest.Mock).mockImplementation(() => ({
         getMany: mockGetMany,
+        getStats: jest.fn().mockResolvedValue({
+          totalTrades: 0,
+          buyCount: 0,
+          sellCount: 0,
+          totalVolume: 0,
+          avgTradeSize: 0,
+        }),
       }));
 
       const newService = new ExportService();
