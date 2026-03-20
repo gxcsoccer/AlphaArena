@@ -20,13 +20,11 @@ import {
   Empty,
   Spin,
   Alert,
-  Badge,
   Tooltip,
   Popconfirm,
   Select,
   InputNumber,
   Form,
-  Divider,
 } from '@arco-design/web-react';
 import {
   IconPlus,
@@ -35,11 +33,6 @@ import {
   IconPlay,
   IconEye,
   IconRefresh,
-  IconSettings,
-  IconClockCircle,
-  IconCheck,
-  IconClose,
-  IconWarning,
 } from '@arco-design/web-react/icon';
 import { useRebalance } from '../../hooks/useRebalance';
 import { usePortfolioRealtime } from '../../hooks/usePortfolioRealtime';
@@ -49,8 +42,6 @@ import {
   TargetAllocation,
   RebalancePlan,
   RebalanceTrigger,
-  ScheduleFrequency,
-  RebalanceExecutionStatus,
 } from '../../../portfolio/rebalance/types';
 
 const { Title, Text } = Typography;
@@ -80,7 +71,7 @@ export const RebalancePanel: React.FC<RebalancePanelProps> = ({
     plansLoading,
     preview,
     previewLoading,
-    execution,
+    execution: _execution,
     executionLoading,
     createTargetAllocation,
     updateTargetAllocation,

@@ -15,12 +15,8 @@ import {
   Button,
   Space,
   Tag,
-  Statistic,
-  Divider,
   Table,
   Progress,
-  Tooltip,
-  Modal,
   Empty,
 } from '@arco-design/web-react';
 import {
@@ -32,11 +28,8 @@ import {
   IconExclamationCircle,
   IconDashboard,
   IconApps,
-  IconFire,
 } from '@arco-design/web-react/icon';
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   PieChart,
@@ -53,7 +46,6 @@ import {
   FunnelChart,
   Funnel,
   LabelList,
-  Treemap,
 } from 'recharts';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 

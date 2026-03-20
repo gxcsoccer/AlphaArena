@@ -14,25 +14,15 @@ import {
   Input,
   InputNumber,
   Message,
-  Tabs,
   Statistic,
-  Row,
-  Col,
   Empty,
-  Spin,
   Popconfirm,
-  Tooltip,
 } from '@arco-design/web-react';
 import {
   IconPlus,
   IconEdit,
   IconDelete,
   IconDownload,
-  IconUpload,
-  IconCheckCircle,
-  IconCloseCircle,
-  IconTrendingUp,
-  IconTrendingDown,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import type { TableColumnProps } from '@arco-design/web-react';
@@ -68,9 +58,9 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const _MOCK_USER_ID = 'demo-user-001';
 
 const TradingJournalPage: React.FC = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [_isMobile, setIsMobile] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [statsLoading, setStatsLoading] = useState(false);
+  const [_statsLoading, setStatsLoading] = useState(false);
   const [entries, setEntries] = useState<TradeJournal[]>([]);
   const [stats, setStats] = useState<TradeJournalStats | null>(null);
   const [filters, setFilters] = useState<{
@@ -195,7 +185,7 @@ const TradingJournalPage: React.FC = () => {
   };
 
   // Close trade
-  const handleClose = async (values: any) => {
+  const handleClose = async (_values: any) => {
     try {
       Message.success('交易已关闭');
       setShowCloseModal(false);
@@ -209,7 +199,7 @@ const TradingJournalPage: React.FC = () => {
   };
 
   // Delete entry
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (_id: string) => {
     try {
       Message.success('删除成功');
       fetchEntries();

@@ -15,10 +15,6 @@ import {
   Tag,
   Modal,
   Form,
-  Input,
-  InputNumber,
-  Select,
-  Message,
   Spin,
   Empty,
   Statistic,
@@ -31,17 +27,13 @@ import {
 } from '@arco-design/web-react';
 import {
   IconPlus,
-  IconEdit,
   IconDelete,
   IconPlayArrow,
   IconPause,
   IconStop,
   IconRefresh,
-  IconTrendingUp,
-  IconTrendingDown,
   IconSettings,
   IconEye,
-  IconExperiment,
   IconInfoCircle,
 } from '@arco-design/web-react/icon';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +41,6 @@ import {
   usePortfolios,
   usePortfolioOperations,
   StrategyPortfolio,
-  CreatePortfolioInput,
   AllocationMethod,
 } from '../hooks/useStrategyPortfolio';
 import { useStrategies } from '../hooks/useData';

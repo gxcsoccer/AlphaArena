@@ -18,18 +18,15 @@ import {
   Form,
   Message,
   Spin,
-  Divider,
   Tabs,
 
   Tag,
-  Modal,
   Descriptions,
   Drawer,
 } from '@arco-design/web-react';
 import {
   IconPlayArrow,
   IconDownload,
-  IconRefresh,
   IconSettings,
   IconExperiment,
   
@@ -39,7 +36,7 @@ import { EquityCurveChart, EquityDataPoint } from '../components/EquityCurveChar
 import { DrawdownChart, DrawdownDataPoint } from '../components/DrawdownChart';
 import { ReturnsDistributionChart, ReturnDataPoint } from '../components/ReturnsDistributionChart';
 import { ReturnsHeatmapChart, MonthlyReturn } from '../components/ReturnsHeatmapChart';
-import { StrategyComparisonChart, StrategyMetrics } from '../components/StrategyComparisonChart';
+import { StrategyComparisonChart } from '../components/StrategyComparisonChart';
 import { TradeAnalysisChart, TradePoint } from '../components/TradeAnalysisChart';
 import { HoldingTimeChart, HoldingPeriod } from '../components/HoldingTimeChart';
 import { useBacktest, STRATEGIES, SYMBOLS, BacktestResult } from '../hooks/useBacktest';

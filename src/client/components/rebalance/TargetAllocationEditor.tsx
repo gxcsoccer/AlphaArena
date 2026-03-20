@@ -13,21 +13,15 @@ import {
   Button,
   Space,
   Table,
-  Tag,
   message,
-  Modal,
   Select,
   Typography,
-  Divider,
   Tooltip,
   Alert,
 } from '@arco-design/web-react';
 import {
   IconPlus,
   IconDelete,
-  IconEdit,
-  IconCheck,
-  IconClose,
   IconInfoCircle,
 } from '@arco-design/web-react/icon';
 import { AssetAllocation, TargetAllocation } from '../../../portfolio/rebalance/types';
@@ -66,7 +60,7 @@ export const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({
   const [allocations, setAllocations] = useState<AssetAllocation[]>(
     allocation?.allocations || []
   );
-  const [totalWeight, setTotalWeight] = useState<number>(
+  const [_totalWeight, _setTotalWeight] = useState<number>(
     allocation?.totalWeight || 0
   );
   const [saving, setSaving] = useState(false);
