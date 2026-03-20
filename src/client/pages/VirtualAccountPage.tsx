@@ -19,7 +19,6 @@ import {
   Divider,
   Progress,
   Tabs,
-  Badge,
 } from '@arco-design/web-react';
 import {
   IconPlus,
@@ -27,9 +26,7 @@ import {
   IconRefresh,
   IconDelete,
   IconSafe,
-  IconBook,
 } from '@arco-design/web-react/icon';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, AreaChart } from 'recharts';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 

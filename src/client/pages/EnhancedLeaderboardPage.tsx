@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { 
   Typography, Card, Table, Tag, Statistic, Avatar, Progress, Space, Select, Button, 
   Tooltip, Grid, Tabs, Modal, Form, Input, InputNumber, DatePicker, Message, 
-  Badge, _Popover, List, Comment, Divider, Empty, Spin
+  List, Comment, Divider, Empty
 } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { TabPane } = Tabs;
@@ -10,16 +10,14 @@ const { Title, Text, _Paragraph } = Typography;
 const { _RangePicker } = DatePicker;
 
 import {
-  BarChart, Bar, _LineChart, Line, XAxis, YAxis, CartesianGrid, 
+  BarChart, Bar, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, Legend, ResponsiveContainer, RadarChart,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area,
-  PieChart, _Pie, Cell
+  PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, AreaChart, Area
 } from 'recharts';
 
 import { 
   IconRefresh, IconTrophy, IconArrowRise, IconArrowFall, IconHeart, 
-  IconMessage, IconUser, IconUserAdd, _IconStar, _IconFire, IconCrown,
-  IconThunderbolt, _IconCalendar, _IconFilter, IconPlus, IconShareAlt
+  IconMessage, IconUser, IconUserAdd, IconThunderbolt, IconPlus
 } from '@arco-design/web-react/icon';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -274,7 +272,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
   // Modal states
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [competitionModalVisible, setCompetitionModalVisible] = useState(false);
-  const [strategyModalVisible, setStrategyModalVisible] = useState(false);
+  const [_strategyModalVisible, _setStrategyModalVisible] = useState(false);
   const [selectedStrategy, setSelectedStrategy] = useState<EnhancedLeaderboardEntry | null>(null);
   const [comments, setComments] = useState<StrategyComment[]>([]);
   
@@ -327,14 +325,14 @@ const EnhancedLeaderboardPage: React.FC = () => {
   }, [fetchLeaderboard, fetchCompetitions]);
 
   // Handlers
-  const handleLike = async (strategyId: string) => {
+  const handleLike = async (_strategyId: string) => {
     Message.success('Liked strategy!');
-    // In production: await fetch(`/api/strategies/${strategyId}/like`, { method: 'POST' });
+    // In production: await fetch(`/api/strategies/${_strategyId}/like`, { method: 'POST' });
   };
 
-  const handleFollow = async (userId: string) => {
+  const handleFollow = async (_userId: string) => {
     Message.success('Following user!');
-    // In production: await fetch('/api/follow', { method: 'POST', body: JSON.stringify({ followingId: userId }) });
+    // In production: await fetch('/api/follow', { method: 'POST', body: JSON.stringify({ followingId: _userId }) });
   };
 
   const handleViewComments = async (strategy: EnhancedLeaderboardEntry) => {
@@ -368,7 +366,7 @@ const EnhancedLeaderboardPage: React.FC = () => {
     competitionForm.resetFields();
   };
 
-  const handleJoinCompetition = async (competitionId: string) => {
+  const handleJoinCompetition = async (_competitionId: string) => {
     Message.success('Joined competition!');
   };
 

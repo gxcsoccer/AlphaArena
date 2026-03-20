@@ -17,17 +17,12 @@ import {
   Radio,
   Divider,
   List,
-  Badge,
-  Tooltip,
 } from '@arco-design/web-react';
 import {
   IconCheck,
-  IconClose,
   IconStar,
   IconTrophy,
-  IconTrophy,
   IconThunderbolt,
-  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import HelpButton, { HelpButtons } from '../components/HelpButton';

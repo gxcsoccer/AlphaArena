@@ -16,7 +16,6 @@ import {
   Button,
   Space,
   Tag,
-  Progress,
   Tooltip,
   Empty,
   Statistic,
@@ -31,15 +30,9 @@ import {
   IconWifi,
   IconCloud,
   IconRefresh,
-  IconDownload,
-  IconTrophy,
-  IconExclamationCircle,
-  IconCheckCircle,
 } from '@arco-design/web-react/icon';
 import {
-  LineChart,
   Line,
-  AreaChart,
   Area,
   PieChart,
   Pie,

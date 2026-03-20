@@ -10,7 +10,6 @@ import {
   Spin,
   Empty,
   Tabs,
-  Tooltip,
   Badge,
   Avatar,
   Space,
@@ -18,7 +17,6 @@ import {
   Message,
   Switch,
   Slider,
-  Form,
   Typography,
   Statistic,
   Grid,
@@ -26,16 +24,11 @@ import {
   Popconfirm,
 } from '@arco-design/web-react';
 import {
-  IconSearch,
   IconStar,
   IconUser,
   IconFire,
-  IconThumbUp,
-  IconCopy,
   IconTags,
-  IconInfoCircle,
   IconPlus,
-  IconDelete,
   IconEye,
   IconTrophy,
   IconDriveFile,
@@ -43,7 +36,6 @@ import {
   IconPauseCircle,
   IconCheck,
   IconClose,
-  IconMessage,
   IconNotification,
 } from '@arco-design/web-react/icon';
 import './StrategyMarketplacePage.css';

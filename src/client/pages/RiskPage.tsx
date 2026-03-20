@@ -32,12 +32,9 @@ import {
   Badge,
 } from '@arco-design/web-react';
 import {
-  IconWarning,
-  IconCheckCircle,
   IconExclamationCircle,
   IconDelete,
   IconPlus,
-  IconSettings,
 } from '@arco-design/web-react/icon';
 const { Row, Col } = Grid;
 const { Title, Text } = Typography;
@@ -47,9 +44,6 @@ import {
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -57,20 +51,17 @@ import {
   Legend,
   ResponsiveContainer,
   ComposedChart,
-  AreaChart,
   Area,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
-  HeatmapLayer,
 } from 'recharts';
 
 import { useStats, useTrades, usePortfolio } from '../hooks/useData';
 import { useRiskMetrics } from '../hooks/useRiskMetrics';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { formatPercent } from '../utils/portfolioAnalytics';
 import type { RiskAlert } from '../../utils/risk';
 
 const _COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];

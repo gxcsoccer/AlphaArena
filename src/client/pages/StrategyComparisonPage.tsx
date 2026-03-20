@@ -26,9 +26,6 @@ import {
   Table,
   Statistic,
   Progress,
-  Modal,
-  Tabs,
-  Tooltip,
   Alert,
   Empty,
 } from '@arco-design/web-react';
@@ -36,12 +33,8 @@ import {
   IconPlayArrow,
   IconDownload,
   IconRefresh,
-  IconPlus,
   IconDelete,
   IconTrophy,
-  IconArrowRise,
-  IconArrowFall,
-  IconInfoCircle,
 } from '@arco-design/web-react/icon';
 import {
   LineChart,
@@ -52,8 +45,6 @@ import {
   Tooltip as ChartTooltip,
   ResponsiveContainer,
   Legend,
-  BarChart,
-  Bar,
   RadarChart,
   PolarGrid,
   PolarAngleAxis,
@@ -66,7 +57,6 @@ import {
   useStrategyComparison,
   AVAILABLE_STRATEGIES,
   AVAILABLE_SYMBOLS,
-  StrategyComparisonResult,
   StrategyResult,
   StrategyRanking,
 } from '../hooks/useStrategyComparison';
@@ -170,7 +160,7 @@ interface MetricsTableProps {
   rankings: StrategyRanking[];
 }
 
-const MetricsTable: React.FC<MetricsTableProps> = ({ results, rankings }) => {
+const MetricsTable: React.FC<MetricsTableProps> = ({ results, rankings: _rankings }) => {
   const columns = [
     {
       title: '排名',

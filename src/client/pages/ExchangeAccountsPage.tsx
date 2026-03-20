@@ -27,13 +27,9 @@ import {
   Spin,
   Empty,
   Popconfirm,
-  Divider,
-  Progress,
   Tabs,
-  Badge,
   Typography,
   Tooltip,
-  Descriptions,
   Alert,
 } from '@arco-design/web-react';
 import {
@@ -41,8 +37,6 @@ import {
   IconRefresh,
   IconDelete,
   IconSwap,
-  IconCheck,
-  IconClose,
   IconExclamationCircle,
   IconStar,
   IconStarFill,
@@ -196,8 +190,8 @@ const ExchangeAccountsPage: React.FC = () => {
   const [unifiedSummary, setUnifiedSummary] = useState<UnifiedAccountSummary | null>(null);
   const [accountGroups, setAccountGroups] = useState<AccountGroup[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<ExchangeAccount | null>(null);
-  const [balances, setBalances] = useState<AccountBalance[]>([]);
-  const [positions, setPositions] = useState<AccountPosition[]>([]);
+  const [_balances, setBalances] = useState<AccountBalance[]>([]);
+  const [_positions, setPositions] = useState<AccountPosition[]>([]);
   
   // Modal states
   const [addAccountVisible, setAddAccountVisible] = useState(false);

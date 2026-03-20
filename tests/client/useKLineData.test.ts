@@ -218,7 +218,7 @@ describe('useKLineData', () => {
       // Second call for ETH/USD - will be fast
       const ethData = createMockKLineData('ETH/USD');
 
-      let _callCount = 0;
+      const _callCount = 0;
       (api.getKLineData as jest.Mock).mockImplementation(async (symbol: string) => {
         callCount++;
         if (symbol === 'BTC/USD') {
@@ -437,7 +437,7 @@ describe('useKLineData', () => {
         'ETH/USD-4h': createMockKLineData('ETH/USD', 20),
       };
 
-      let _callCount = 0;
+      const _callCount = 0;
       (api.getKLineData as jest.Mock).mockImplementation(async (symbol: string, timeframe: string) => {
         callCount++;
         // Add delay to simulate network
