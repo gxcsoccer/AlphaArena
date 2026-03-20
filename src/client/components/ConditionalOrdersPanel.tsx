@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import {
   Card,
   Typography,
@@ -32,91 +32,27 @@ interface ConditionalOrdersPanelProps {
   limit?: number;
 }
 
-const ConditionalOrdersPanel: React.FC<ConditionalOrdersPanelProps> = ({
-  symbol,
-  limit = 50,
-}) => {
-  const [orders, setOrders] = useState<ConditionalOrder[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
-  const [isMobile, setIsMobile] = React.useState(false);
+// Memoized mobile detection hook
+const useMobileDetection = () => {
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Detect mobile on mount and resize
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth <= 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
+    window.addEventListener('resize', checkMobile, { passive: true });
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Load conditional orders
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const data = await api.getConditionalOrders({
-        symbol,
-        limit,
-      });
-      setOrders(data);
-    } catch (error: any) {
-      Message.error('加载条件单失败：' + (error.message || '未知错误'));
-    } finally {
-      setLoading(false);
-    }
-  }, [symbol, limit]);
+  return isMobile;
+};
 
-  // Initial load
-  useEffect(() => {
-    loadOrders();
-
-    // Auto-refresh every 10 seconds
-    const interval = setInterval(loadOrders, 10000);
-    return () => clearInterval(interval);
-  }, [loadOrders]);
-
-  // Handle cancel order
-  const handleCancelOrder = async (orderId: string) => {
-    Modal.confirm({
-      title: '确认取消条件单',
-      content: '确定要取消这个条件单吗？此操作不可撤销。',
-      okText: '确认取消',
-      cancelText: '取消',
-      okButtonProps: {
-        status: 'danger',
-        loading: cancelingOrderId === orderId,
-      },
-      onOk: async () => {
-        try {
-          setCancelingOrderId(orderId);
-          const result = await api.cancelConditionalOrder(orderId);
-          
-          if (result) {
-            Message.success('条件单已取消');
-            // Update local state
-            setOrders(prev =>
-              prev.map(order =>
-                order.id === orderId
-                  ? { ...order, status: 'cancelled' }
-                  : order
-              )
-            );
-          } else {
-            Message.error('取消失败');
-          }
-        } catch (error: any) {
-          Message.error(error.message || '取消失败');
-        } finally {
-          setCancelingOrderId(null);
-        }
-      },
-    });
-  };
-
-  // Table columns
-  const columns: TableProps<ConditionalOrder>['columns'] = [
+// Memoized columns factory
+const useConditionalOrdersColumns = (
+  isMobile: boolean, 
+  cancelingOrderId: string | null, 
+  handleCancelOrder: (id: string) => void
+): TableProps<ConditionalOrder>['columns'] => {
+  return useMemo(() => [
     {
       title: '时间',
       dataIndex: 'createdAt',
@@ -228,7 +164,83 @@ const ConditionalOrdersPanel: React.FC<ConditionalOrdersPanelProps> = ({
         </Button>
       ),
     },
-  ];
+  ], [isMobile, cancelingOrderId, handleCancelOrder]);
+};
+
+const ConditionalOrdersPanel: React.FC<ConditionalOrdersPanelProps> = memo(({
+  symbol,
+  limit = 50,
+}) => {
+  const [orders, setOrders] = useState<ConditionalOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [cancelingOrderId, setCancelingOrderId] = useState<string | null>(null);
+  const isMobile = useMobileDetection();
+
+  // Load conditional orders
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await api.getConditionalOrders({
+        symbol,
+        limit,
+      });
+      setOrders(data);
+    } catch (error: any) {
+      Message.error('加载条件单失败：' + (error.message || '未知错误'));
+    } finally {
+      setLoading(false);
+    }
+  }, [symbol, limit]);
+
+  // Initial load
+  useEffect(() => {
+    loadOrders();
+
+    // Auto-refresh every 10 seconds
+    const interval = setInterval(loadOrders, 10000);
+    return () => clearInterval(interval);
+  }, [loadOrders]);
+
+  // Handle cancel order with stable callback
+  const handleCancelOrder = useCallback((orderId: string) => {
+    Modal.confirm({
+      title: '确认取消条件单',
+      content: '确定要取消这个条件单吗？此操作不可撤销。',
+      okText: '确认取消',
+      cancelText: '取消',
+      okButtonProps: {
+        status: 'danger',
+        loading: cancelingOrderId === orderId,
+      },
+      onOk: async () => {
+        try {
+          setCancelingOrderId(orderId);
+          const result = await api.cancelConditionalOrder(orderId);
+          
+          if (result) {
+            Message.success('条件单已取消');
+            // Update local state
+            setOrders(prev =>
+              prev.map(order =>
+                order.id === orderId
+                  ? { ...order, status: 'cancelled' }
+                  : order
+              )
+            );
+          } else {
+            Message.error('取消失败');
+          }
+        } catch (error: any) {
+          Message.error(error.message || '取消失败');
+        } finally {
+          setCancelingOrderId(null);
+        }
+      },
+    });
+  }, [cancelingOrderId]);
+
+  // Memoized columns
+  const columns = useConditionalOrdersColumns(isMobile, cancelingOrderId, handleCancelOrder);
 
   return (
     <Card
@@ -267,6 +279,8 @@ const ConditionalOrdersPanel: React.FC<ConditionalOrdersPanelProps> = ({
       )}
     </Card>
   );
-};
+});
+
+ConditionalOrdersPanel.displayName = 'ConditionalOrdersPanel';
 
 export default ConditionalOrdersPanel;
