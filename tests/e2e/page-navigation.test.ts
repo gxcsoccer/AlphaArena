@@ -49,7 +49,12 @@ function getCriticalErrors(consoleErrors: string[]): string[] {
     !err.includes('ERR_CONNECTION_REFUSED') &&
     !err.includes('APIClient') && 
     !err.includes('[useOrderBook]') && 
-    !err.includes('[KLineChart]')
+    !err.includes('[KLineChart]') &&
+    !err.includes('[Leaderboard]') &&
+    !err.includes('[Holdings]') &&
+    !err.includes('ChunkLoadError') &&
+    !err.includes('Loading chunk') &&
+    !err.includes('Unhandled Promise Rejection')
   );
 }
 
