@@ -97,7 +97,7 @@ export class ConfigSync {
   async migrateEnvironment(
     request: EnvironmentMigrationRequest
   ): Promise<EnvironmentMigrationResult> {
-    const { integrationId, targetEnvironment, copyBacktestResults, resetPaperStats, configOverride } = request;
+    const { integrationId, targetEnvironment, copyBacktestResults: _copyBacktestResults, resetPaperStats: _resetPaperStats, configOverride } = request;
 
     log.info(`Migrating integration ${integrationId} to ${targetEnvironment}`);
 

@@ -5,8 +5,6 @@
  * to the AlphaArena trading platform.
  */
 
-import { Request } from 'express';
-
 // Mock dependencies BEFORE importing the module
 jest.mock('../apiKeyMiddleware', () => ({
   apiKeyAuthMiddleware: (req: any, res: any, next: any) => {

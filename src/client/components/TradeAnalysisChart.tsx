@@ -15,10 +15,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-  Cell,
-  ComposedChart,
-  Area,
-  ReferenceDot,
 } from 'recharts';
 import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tag } from '@arco-design/web-react';
 

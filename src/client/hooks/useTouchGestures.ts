@@ -35,7 +35,7 @@ export function useTouchGestures(
 ) {
   const {
     swipeThreshold = 50,
-    pinchThreshold = 0.1,
+    pinchThreshold: _pinchThreshold = 0.1,
     longPressDelay = 500,
     doubleTapDelay = 300,
   } = options;

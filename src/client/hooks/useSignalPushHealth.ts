@@ -87,7 +87,7 @@ export function useSignalPushHealth(
   options: SignalPushHealthOptions = {}
 ): SignalPushHealthReturn {
   const {
-    userId,
+    userId: _userId,
     healthCheckInterval = 30000,
     latencySampleSize = 10,
     onHealthChange,

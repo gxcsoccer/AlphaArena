@@ -41,7 +41,6 @@ import {
   IconBell,
   IconBellOff,
   IconHistory,
-  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import { usePriceAlerts, CreateAlertParams, UpdateAlertParams } from '../hooks/usePriceAlerts';
 import { PriceAlert } from '../utils/api';

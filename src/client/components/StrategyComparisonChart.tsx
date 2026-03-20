@@ -22,7 +22,7 @@ import {
   PolarRadiusAxis,
   Radar,
 } from 'recharts';
-import { Card, Spin, Empty, Typography, Space, Grid, Statistic, Tabs } from '@arco-design/web-react';
+import { Card, Spin, Empty, Typography, Grid, Tabs } from '@arco-design/web-react';
 
 const { Text, _Title } = Typography;
 const { _Row, _Col } = Grid;

@@ -9,7 +9,6 @@
 import {
   IntegratedStrategyConfig,
   StrategyConfig,
-  TradingEnvironment,
   PerformanceComparison,
   OptimizationSuggestion,
   EnvironmentMigrationRequest,

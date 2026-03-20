@@ -141,7 +141,7 @@ const UserGuide: React.FC<UserGuideProps> = ({
 }) => {
   const [visible, setVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const [completed, _setCompleted] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false);
 
   useEffect(() => {

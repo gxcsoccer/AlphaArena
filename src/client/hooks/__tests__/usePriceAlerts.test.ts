@@ -68,7 +68,7 @@ const mockAlerts: PriceAlert[] = [
 describe('usePriceAlerts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (api.getPriceAlerts as jest.Mock).mockImplementation(async (...args: any[]) => {
+    (api.getPriceAlerts as jest.Mock).mockImplementation(async (..._args: any[]) => {
       console.log('[Mock API] getPriceAlerts called');
       return mockAlerts;
     });

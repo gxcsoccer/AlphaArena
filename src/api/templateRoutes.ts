@@ -3,7 +3,6 @@ import {
   StrategyTemplatesDAO,
   CreateTemplateInput,
   TemplateFilter,
-  StrategyTemplate,
 } from '../database/strategyTemplates.dao';
 import { StrategiesDAO } from '../database/strategies.dao';
 import { createLogger } from '../utils/logger';

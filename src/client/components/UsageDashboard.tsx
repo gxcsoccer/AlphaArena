@@ -19,7 +19,6 @@ import {
   IconTrophy,
   IconStar,
   IconRight,
-  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import UsageProgress from './UsageProgress';
 import UpgradeModal from './UpgradeModal';
@@ -43,7 +42,7 @@ const UsageDashboard: React.FC<UsageDashboardProps> = ({
   const { subscription, usage, isLoading, isPro, isEnterprise } = useSubscription();
   const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
 
-  const handleUpgrade = async (planId: string) => {
+  const handleUpgrade = async (_planId: string) => {
     // Navigate to subscription page
     window.location.href = '/subscription';
   };

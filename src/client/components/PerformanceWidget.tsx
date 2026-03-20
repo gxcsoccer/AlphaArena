@@ -4,9 +4,9 @@
  * Only rendered in development mode
  */
 
-import React, { memo, useEffect } from 'react';
+import React, { memo } from 'react';
 import { Card, Typography, Space, Tag, Grid, Progress } from '@arco-design/web-react';
-import { IconDashboard, IconThunderbolt } from '@arco-design/web-react/icon';
+import { IconDashboard } from '@arco-design/web-react/icon';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 
 const { Text, _Title } = Typography;

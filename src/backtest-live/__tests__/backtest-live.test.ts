@@ -7,9 +7,7 @@ import { PerformanceMonitor } from '../PerformanceMonitor';
 import { OptimizationFeedback } from '../OptimizationFeedback';
 import { BacktestLiveIntegration } from '../BacktestLiveIntegration';
 import type {
-  StrategyConfig,
   IntegratedStrategyConfig,
-  TradingEnvironment,
   PerformanceComparison,
   OptimizationSuggestion,
 } from '../types';
