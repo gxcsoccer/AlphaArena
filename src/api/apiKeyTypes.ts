@@ -144,7 +144,7 @@ export async function verifyApiKey(key: string, hash: string): Promise<boolean> 
  * Extract key ID from secret key
  * Key format: aa_live_<random> or aa_test_<random>
  */
-export function extractKeyIdFromSecret(secretKey: string): string | null {
+export function extractKeyIdFromSecret(_secretKey: string): string | null {
   // The key ID should be stored separately and looked up by prefix
   // For now, return null - the actual ID will be looked up via database
   return null;

@@ -6,11 +6,6 @@
 import { Router, Request, Response } from 'express';
 import { 
   tradingSchedulesDAO, 
-  TradingSchedule,
-  CreateScheduleInput,
-  UpdateScheduleInput,
-  CreateSafetyConfigInput,
-  UpdateSafetyConfigInput
 } from '../database/trading-schedules.dao';
 import { getSchedulerService } from '../scheduler/SchedulerService';
 import { getSchedulerRealtimeService } from '../realtime/SchedulerRealtimeService';

@@ -208,7 +208,7 @@ async function runSprint3AcceptanceTest() {
       });
       
       // Check WebSocket connections
-      const wsConnections: string[] = [];
+      const _wsConnections: string[] = [];
       
       if (updatedState !== initialState) {
         results.push({

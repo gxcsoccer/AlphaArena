@@ -19,8 +19,6 @@ import { BacktestEngine } from '../backtest/BacktestEngine';
 import { BacktestConfig } from '../backtest/types';
 import {
   VirtualAccountDAO,
-  VirtualAccount,
-  VirtualPosition,
   VirtualOrder,
   CreateOrderData,
 } from '../database/virtual-account.dao';

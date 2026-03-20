@@ -10,7 +10,6 @@ import {
   IntegratedStrategyConfig,
   OptimizationSuggestion,
   PerformanceComparison,
-  PerformanceDeviation,
 } from './types';
 import { backtestLiveDAO } from '../database/backtest-live.dao';
 import { createLogger } from '../utils/logger';

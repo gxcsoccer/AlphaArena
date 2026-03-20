@@ -6,11 +6,6 @@
 import { Router, Request, Response } from 'express';
 import { 
   getRevenueDAO,
-  RevenueMetrics,
-  RevenueTrend,
-  SubscriptionDistribution,
-  ConversionFunnel,
-  ChurnData,
 } from '../database/revenue.dao';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';

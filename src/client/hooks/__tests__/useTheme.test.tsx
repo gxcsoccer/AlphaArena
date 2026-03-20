@@ -22,9 +22,9 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Mock matchMedia
-const matchMediaMock = jest.fn().mockImplementation(query => ({
-  matches: false,
+// Helper to create a complete matchMedia mock
+const createMatchMediaMock = (matches: boolean) => (query: string) => ({
+  matches,
   media: query,
   onchange: null,
   addListener: jest.fn(),
@@ -32,7 +32,11 @@ const matchMediaMock = jest.fn().mockImplementation(query => ({
   addEventListener: jest.fn(),
   removeEventListener: jest.fn(),
   dispatchEvent: jest.fn(),
-}));
+});
+
+// Mock matchMedia
+const matchMediaMock = jest.fn().mockImplementation(createMatchMediaMock(false));
+
 Object.defineProperty(window, 'matchMedia', {
   value: matchMediaMock,
   writable: true,
@@ -44,6 +48,8 @@ describe('useTheme', () => {
     localStorageMock.clear();
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.removeAttribute('data-theme');
+    // Reset to default mock
+    matchMediaMock.mockImplementation(createMatchMediaMock(false));
   });
 
   const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
@@ -53,7 +59,7 @@ describe('useTheme', () => {
   describe('initial theme detection', () => {
     it('should use localStorage preference if available', () => {
       localStorageMock.getItem.mockReturnValue('dark');
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -63,7 +69,7 @@ describe('useTheme', () => {
 
     it('should use system preference if no localStorage value', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: true });
+      matchMediaMock.mockImplementation(createMatchMediaMock(true));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -72,7 +78,7 @@ describe('useTheme', () => {
 
     it('should default to light if no preference', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -83,7 +89,7 @@ describe('useTheme', () => {
   describe('toggleTheme', () => {
     it('should toggle from light to dark', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -114,7 +120,7 @@ describe('useTheme', () => {
   describe('setTheme', () => {
     it('should set theme to dark', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -141,7 +147,7 @@ describe('useTheme', () => {
   describe('localStorage persistence', () => {
     it('should save theme to localStorage when changed', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -156,7 +162,7 @@ describe('useTheme', () => {
   describe('DOM updates', () => {
     it('should add theme class to document root', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       renderHook(() => useTheme(), { wrapper });
 
@@ -167,7 +173,7 @@ describe('useTheme', () => {
 
     it('should update theme class when theme changes', () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({ matches: false });
+      matchMediaMock.mockImplementation(createMatchMediaMock(false));
 
       const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -182,21 +188,35 @@ describe('useTheme', () => {
   });
 
   describe('system preference listener', () => {
-    it('should listen for system theme changes', () => {
+    it('should listen for system theme changes', async () => {
       localStorageMock.getItem.mockReturnValue(null);
-      matchMediaMock.mockReturnValue({
+      
+      // Create a mock that tracks addEventListener calls
+      const addEventListenerMock = jest.fn();
+      const removeEventListenerMock = jest.fn();
+      
+      matchMediaMock.mockImplementation((query: string) => ({
         matches: false,
-        addEventListener: jest.fn(),
-        removeEventListener: jest.fn(),
-      });
+        media: query,
+        onchange: null,
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+        addEventListener: addEventListenerMock,
+        removeEventListener: removeEventListenerMock,
+        dispatchEvent: jest.fn(),
+      }));
 
       const { unmount } = renderHook(() => useTheme(), { wrapper });
 
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      expect(mediaQuery.addEventListener).toHaveBeenCalled();
+      // Wait for the effect to run after isInitialized becomes true
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      });
+
+      expect(addEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
 
       unmount();
-      expect(mediaQuery.removeEventListener).toHaveBeenCalled();
+      expect(removeEventListenerMock).toHaveBeenCalled();
     });
   });
 });

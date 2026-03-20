@@ -17,8 +17,6 @@ import {
   EnhancedExportResult,
 } from './types';
 import { PerformanceScorecard } from './types';
-import * as fs from 'fs';
-import * as path from 'path';
 
 /**
  * ReportGenerator

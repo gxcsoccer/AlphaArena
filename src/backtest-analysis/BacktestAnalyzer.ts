@@ -161,9 +161,9 @@ export class BacktestAnalyzer {
   private calculateMFE(
     entryPrice: number,
     exitPrice: number,
-    snapshots: PortfolioSnapshot[],
-    entryTime: number,
-    exitTime: number
+    _snapshots: PortfolioSnapshot[],
+    _entryTime: number,
+    _exitTime: number
   ): number {
     // Simplified - would need price data to calculate accurately
     const favorable = exitPrice > entryPrice;
@@ -179,9 +179,9 @@ export class BacktestAnalyzer {
   private calculateMAE(
     entryPrice: number,
     exitPrice: number,
-    snapshots: PortfolioSnapshot[],
-    entryTime: number,
-    exitTime: number
+    _snapshots: PortfolioSnapshot[],
+    _entryTime: number,
+    _exitTime: number
   ): number {
     // Simplified - would need price data to calculate accurately
     const adverse = exitPrice < entryPrice;

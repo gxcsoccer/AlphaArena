@@ -1,8 +1,8 @@
-// Mock for import.meta.env - Vite specific syntax not supported in Jest
+// Mock import.meta.env for Vite compatibility in Jest
 // This must be set up before any code that uses import.meta.env
 
-// @ts-ignore - Jest globals
-globalThis.importMetaMock = {
+// Create the mock import.meta object
+const importMetaMock = {
   env: {
     VITE_API_URL: 'http://localhost:3001',
     VITE_WS_URL: 'ws://localhost:3001',
@@ -16,9 +16,18 @@ globalThis.importMetaMock = {
   },
   url: 'http://localhost:3001',
   hot: undefined,
+  glob: () => [],
 };
 
-// @ts-ignore - set up import.meta on global
+// Set up on globalThis for maximum compatibility
 if (typeof (globalThis as any).importMeta === 'undefined') {
-  (globalThis as any).importMeta = (globalThis as any).importMetaMock;
+  (globalThis as any).importMeta = importMetaMock;
+  (globalThis as any).importMetaMock = importMetaMock;
 }
+
+// Also set up on the global object for modules that access it differently
+if (typeof (global as any).importMeta === 'undefined') {
+  (global as any).importMeta = importMetaMock;
+}
+
+console.log('[Setup] import.meta.env mock applied');

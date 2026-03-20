@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip, Modal, Select, Divider, Tag } from '@arco-design/web-react';
-import { IconSend, IconDelete, IconRefresh, IconBulb, IconLine, IconTrophy, IconExclamationCircle } from '@arco-design/web-react/icon';
+import { Input, Button, Space, Typography, Spin, Message, Empty, Avatar, Tooltip, Modal, Select, Divider, Tag } from '@arco-design/web-react';
+import { IconSend, IconDelete, IconBulb, IconTrophy } from '@arco-design/web-react/icon';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import './AIAssistantPanel.css';
@@ -19,12 +19,6 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-}
-
-interface Conversation {
-  id: string;
-  title: string;
-  created_at: string;
 }
 
 interface AIAssistantPanelProps {
@@ -84,7 +78,7 @@ const storage = {
   },
 };
 
-const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ userId, context }) => {
+const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ userId: _userId, context }) => {
   // Initialize from localStorage
   const [messages, setMessages] = useState<ChatMessage[]>(() => storage.getMessages());
   const [inputValue, setInputValue] = useState('');

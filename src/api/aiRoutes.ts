@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import {  strategyAssistant } from '../ai/StrategyAssistant.js';
+import { strategyAssistant } from '../ai/StrategyAssistant.js';
 import getSupabaseClient from '../database/client.js';
 
 const router = Router();
