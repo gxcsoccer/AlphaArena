@@ -126,16 +126,16 @@ describe('WebSocket Client', () => {
   });
 
   it('should support event listeners pattern', () => {
-    const listeners = new Map<string, Set<Function>>();
-    
-    const on = (event: string, callback: Function) => {
+    const listeners = new Map<string, Set<(...args: any[]) => any>>();
+
+    const on = (event: string, callback: (...args: any[]) => any) => {
       if (!listeners.has(event)) {
         listeners.set(event, new Set());
       }
       listeners.get(event)!.add(callback);
     };
 
-    const off = (event: string, callback: Function) => {
+    const off = (event: string, callback: (...args: any[]) => any) => {
       listeners.get(event)?.delete(callback);
     };
 

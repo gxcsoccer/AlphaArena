@@ -276,11 +276,12 @@ export class AttributionDAO {
       const date = new Date(trade.executed_at);
       let key: string;
       switch (period) {
-        case 'weekly':
+        case 'weekly': {
           const weekStart = new Date(date);
           weekStart.setDate(date.getDate() - date.getDay());
           key = weekStart.toISOString().split('T')[0];
           break;
+        }
         case 'monthly':
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
@@ -380,7 +381,7 @@ export class AttributionDAO {
     return { waterfallData, pieData, heatmapData: [] };
   }
 
-  private async fetchPriceHistory(filters: AttributionFilters): Promise<Map<string, number[]>> {
+  private async fetchPriceHistory(_filters: AttributionFilters): Promise<Map<string, number[]>> {
     const supabase = getSupabaseClient();
     const priceHistory = new Map<string, number[]>();
     const { data: btcPrices } = await supabase.from('price_history').select('close').eq('symbol', 'BTCUSDT').order('timestamp', { ascending: true }).limit(365);

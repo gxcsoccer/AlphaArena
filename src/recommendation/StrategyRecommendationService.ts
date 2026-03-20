@@ -325,7 +325,7 @@ class ContentBasedFilteringEngine {
     const _interactionTypes = new Set<string>();
     const _interactionSymbols = new Set<string>();
 
-    for (const interaction of interactions) {
+    for (const _interaction of interactions) {
       // We need to fetch strategy details for each interaction
       // For now, we'll use the profile preferences
     }
@@ -603,7 +603,7 @@ export class StrategyRecommendationService extends EventEmitter {
     collaborative: StrategyScore[],
     contentBased: StrategyScore[],
     trending: StrategyScore[],
-    allStrategies: MarketplaceStrategy[]
+    _allStrategies: MarketplaceStrategy[]
   ): Array<StrategyScore & { algorithm: 'collaborative' | 'content_based' | 'hybrid' | 'trending' }> {
     const combined = new Map<string, {
       score: number;

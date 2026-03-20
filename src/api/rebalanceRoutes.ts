@@ -3,7 +3,7 @@
  * RESTful endpoints for portfolio rebalancing automation
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { rebalanceDAO } from '../database/rebalance.dao';
 import { RebalanceEngine } from '../portfolio/rebalance/RebalanceEngine';
 import {
@@ -31,7 +31,7 @@ function getParam(value: string | string[] | undefined): string | undefined {
 /**
  * Authentication middleware
  */
-async function authenticateUser(req: Request, res: Response, next: Function) {
+async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -925,26 +925,28 @@ function calculateNextRunTime(schedule: { frequency: string; time: string; dayOf
       }
       break;
 
-    case 'weekly':
+    case 'weekly': {
       const targetDay = schedule.dayOfWeek ?? 1;
       const currentDay = now.getDay();
       let daysUntilTarget = targetDay - currentDay;
-      
+
       if (daysUntilTarget < 0 || (daysUntilTarget === 0 && nextRun <= now)) {
         daysUntilTarget += 7;
       }
-      
+
       nextRun.setDate(nextRun.getDate() + daysUntilTarget);
       break;
+    }
 
-    case 'monthly':
+    case 'monthly': {
       const targetDate = schedule.dayOfMonth ?? 1;
       nextRun.setDate(targetDate);
-      
+
       if (nextRun <= now) {
         nextRun.setMonth(nextRun.getMonth() + 1);
       }
       break;
+    }
   }
 
   return nextRun;

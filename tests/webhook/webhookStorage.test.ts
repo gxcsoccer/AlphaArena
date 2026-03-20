@@ -22,7 +22,7 @@ function createChainableMock(finalResult: any) {
     order: jest.fn(() => chainable),
     limit: jest.fn(() => chainable),
     single: jest.fn(() => Promise.resolve(finalResult)),
-    then: (resolve: Function) => Promise.resolve(finalResult).then(resolve),
+    then: (resolve: (value: any) => any) => Promise.resolve(finalResult).then(resolve),
   };
   return chainable;
 }
@@ -157,7 +157,7 @@ describe('WebhookStorage', () => {
       const chainable = {
         select: jest.fn(() => chainable),
         eq: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [
             {
               id: 'webhook-1',
@@ -205,7 +205,7 @@ describe('WebhookStorage', () => {
       const chainable = {
         select: jest.fn(() => chainable),
         eq: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [
             {
               id: 'webhook-1',
@@ -286,7 +286,7 @@ describe('WebhookStorage', () => {
         select: jest.fn(() => chainable),
         eq: jest.fn(() => chainable),
         contains: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [
             {
               id: 'webhook-1',
@@ -369,7 +369,7 @@ describe('WebhookStorage', () => {
         lte: jest.fn(() => chainable),
         order: jest.fn(() => chainable),
         limit: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [],
           error: null,
         }),
@@ -386,7 +386,7 @@ describe('WebhookStorage', () => {
         delete: jest.fn(() => chainable),
         lt: jest.fn(() => chainable),
         select: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [{ id: 'del-1' }, { id: 'del-2' }],
           error: null,
         }),
@@ -404,7 +404,7 @@ describe('WebhookStorage', () => {
       const chainable = {
         select: jest.fn(() => chainable),
         eq: jest.fn(() => chainable),
-        then: (resolve: Function) => resolve({
+        then: (resolve: (value: any) => any) => resolve({
           data: [],
           error: null,
         }),

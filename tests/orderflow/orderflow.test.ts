@@ -1,6 +1,6 @@
 import { OrderFlowAnalyzer } from '../../src/orderflow/OrderFlowAnalyzer';
 import type { OrderBookSnapshot } from '../../src/orderbook/types';
-import type { Trade, OrderFlowAnalysisConfig, OrderFlowAlert, DepthChartPoint } from '../../src/orderflow/types';
+import type { Trade, OrderFlowAlert } from '../../src/orderflow/types';
 
 describe('OrderFlowAnalyzer', () => {
   let analyzer: OrderFlowAnalyzer;

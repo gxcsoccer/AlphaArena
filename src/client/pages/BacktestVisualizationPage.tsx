@@ -511,7 +511,7 @@ const BacktestVisualizationPage: React.FC = () => {
           <div style={{ marginTop: 16 }}>
             <Title heading={5}>开始回测</Title>
             <Text type="secondary">
-              配置回测参数并点击"运行回测"开始分析
+              配置回测参数并点击&ldquo;运行回测&rdquo;开始分析
             </Text>
           </div>
         </Card>

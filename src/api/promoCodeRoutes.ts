@@ -3,7 +3,7 @@
  * Handles promo code management, validation, and usage
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getPromoCodeDAO } from '../database/promo-code.dao';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
@@ -21,7 +21,7 @@ const log = createLogger('PromoCodeRoutes');
 const router = Router();
 
 // Admin middleware - check if user is admin
-const adminMiddleware = async (req: Request, res: Response, next: Function) => {
+const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const userRole = (req.user as any)?.role;
   const userEmail = req.user?.email;
   

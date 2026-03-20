@@ -463,7 +463,7 @@ export class UserDashboardDAO {
     };
   }
 
-  private static generateEquityCurve(trades: any[]): Array<{ date: string; value: number }> {
+  private static generateEquityCurve(_trades: any[]): Array<{ date: string; value: number }> {
     const curve: Array<{ date: string; value: number }> = [];
     const now = Date.now();
     let value = 100000;

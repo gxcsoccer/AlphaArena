@@ -317,7 +317,7 @@ export const TargetAllocationEditor: React.FC<TargetAllocationEditorProps> = ({
             color: 'var(--color-text-3)',
           }}
         >
-          No allocations configured. Click "Add Asset" to start.
+          No allocations configured. Click &ldquo;Add Asset&rdquo; to start.
         </div>
       )}
 

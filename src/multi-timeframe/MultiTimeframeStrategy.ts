@@ -139,15 +139,13 @@ export abstract class MultiTimeframeStrategy extends Strategy {
    * Create multi-timeframe context
    */
   protected createMultiTimeframeContext(symbol: string): MultiTimeframeContext {
-    const self = this;
-
     return {
       symbol,
-      getKLineData: (timeframe: Timeframe) => self.getKLineData(timeframe),
+      getKLineData: (timeframe: Timeframe) => this.getKLineData(timeframe),
       getCurrentPrice: () => {
         // Get price from primary timeframe (first in list) or any available
-        const primaryTf = self.mtfConfig.timeframes[0];
-        return self.getCurrentPrice(primaryTf);
+        const primaryTf = this.mtfConfig.timeframes[0];
+        return this.getCurrentPrice(primaryTf);
       },
       getSignal: (timeframe: Timeframe) => self.signals.get(timeframe) ?? null,
       getAllSignals: () => Array.from(self.signals.values()),
@@ -193,7 +191,7 @@ export abstract class MultiTimeframeStrategy extends Strategy {
   /**
    * Main tick handler - analyzes all timeframes and generates signals
    */
-  onTick(context: StrategyContext): OrderSignal | null {
+  onTick(_context: StrategyContext): OrderSignal | null {
     // Analyze all timeframes
     this.analyzeAllTimeframes();
 

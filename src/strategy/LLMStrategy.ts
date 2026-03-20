@@ -336,7 +336,7 @@ Output a JSON object:
   /**
    * Format market data for LLM consumption
    */
-  private formatMarketData(marketData: MarketData, context: StrategyContext): MarketDataForLLM {
+  private formatMarketData(marketData: MarketData, _context: StrategyContext): MarketDataForLLM {
     const orderBook = marketData.orderBook;
     
     // Get best bid/ask

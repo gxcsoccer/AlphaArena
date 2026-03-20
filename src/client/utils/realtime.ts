@@ -76,7 +76,7 @@ const MAX_MESSAGE_RETRIES = 3; // Maximum retries before dropping message
 export class RealtimeClient {
   private supabase: SupabaseClient;
   private channels: Map<string, RealtimeChannel> = new Map();
-  private listeners: Map<string, Array<{ callback: Function; handler: Function }>> = new Map();
+  private listeners: Map<string, Array<{ callback: (...args: any[]) => void; handler: (...args: any[]) => void }>> = new Map();
   
   // Connection state
   private connectionStatus: ConnectionStatus = 'disconnected';

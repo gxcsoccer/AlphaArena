@@ -138,11 +138,10 @@ export class SchedulerService {
 
     try {
       if (schedule.scheduleType === 'cron' || schedule.scheduleType === 'condition') {
-        const self = this;
         const job = new CronJob(
           schedule.cronExpression,
-          function() {
-            self.executeSchedule(schedule.id).catch(err => {
+          () => {
+            this.executeSchedule(schedule.id).catch(err => {
               log.error('Error executing schedule ' + schedule.id + ':', err);
             });
           },
@@ -513,7 +512,7 @@ export class SchedulerService {
   /**
    * Broadcast status to all active users
    */
-  private async broadcastStatusToAllUsers(status: 'running' | 'stopped'): Promise<void> {
+  private async broadcastStatusToAllUsers(_status: 'running' | 'stopped'): Promise<void> {
     const broadcastPromises: Promise<void>[] = [];
     
     for (const userId of this.activeUserSchedules.keys()) {

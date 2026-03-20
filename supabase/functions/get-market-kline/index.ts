@@ -77,7 +77,7 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-    const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
+    const _supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
     // Parse URL to extract symbol, timeframe, and limit
     const url = new URL(req.url);
@@ -113,7 +113,7 @@ serve(async (req) => {
         JSON.stringify({ success: true, data: klineData }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
       );
-    } catch (fallbackError) {
+    } catch (_fallbackError) {
       return new Response(
         JSON.stringify({ success: false, error: error.message }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

@@ -3,7 +3,6 @@
  */
 
 import {
-  WebSocketConnectionPool,
   MessageBatcher,
   BackpressureHandler,
   LRUCache,

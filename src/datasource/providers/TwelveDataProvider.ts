@@ -1285,12 +1285,13 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
           value.macd_signal = (Math.random() - 0.5) * 10;
           value.macd_histogram = (Math.random() - 0.5) * 5;
           break;
-        case 'bbands':
+        case 'bbands': {
           const base = this.getBasePrice(params.symbol);
           value.upper_band = base * 1.02;
           value.middle_band = base;
           value.lower_band = base * 0.98;
           break;
+        }
         default:
           value.value = Math.random() * 100;
       }

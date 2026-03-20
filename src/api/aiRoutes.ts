@@ -3,7 +3,7 @@
  * RESTful endpoints for AI-powered trading assistance
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { strategyAssistant } from '../ai/StrategyAssistant.js';
 import getSupabaseClient from '../database/client.js';
 
@@ -13,7 +13,7 @@ const router = Router();
  * Authentication middleware
  * Extracts user ID from Supabase auth token
  */
-async function authenticateUser(req: Request, res: Response, next: Function) {
+async function authenticateUser(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -44,7 +44,7 @@ async function authenticateUser(req: Request, res: Response, next: Function) {
  * Pro user check middleware
  * Verifies user has Pro subscription for AI features
  */
-async function requireProUser(req: Request, res: Response, next: Function) {
+async function requireProUser(req: Request, res: Response, next: NextFunction) {
   const userId = (req as any).userId;
   
   try {

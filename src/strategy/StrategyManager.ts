@@ -733,7 +733,7 @@ export class StrategyManager extends EventEmitter {
   /**
    * Update order book from trade - 从交易更新订单簿
    */
-  private updateOrderBookFromTrade(trade: Trade): void {
+  private updateOrderBookFromTrade(_trade: Trade): void {
     // This would normally update the order book based on the trade
     // For now, we just sync with the global order book if available
     if (this.globalOrderBook) {

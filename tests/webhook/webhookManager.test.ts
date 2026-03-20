@@ -3,7 +3,7 @@
  */
 
 import { WebhookManager } from '../../src/webhook/WebhookManager';
-import { WebhookConfig, WebhookEventType } from '../../src/webhook/types';
+import { WebhookEventType } from '../../src/webhook/types';
 import EventEmitter from 'events';
 
 // Mock WebhookStorage

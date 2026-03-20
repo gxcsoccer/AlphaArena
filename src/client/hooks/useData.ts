@@ -35,7 +35,7 @@ export const useWebSocket = () => {
     await realtimeClientRef.current?.unsubscribe(topic);
   }, []);
 
-  const on = useCallback((event: string, callback: Function) => {
+  const on = useCallback((event: string, callback: (...args: any[]) => void) => {
     const client = realtimeClientRef.current;
     if (!client) return () => {};
 

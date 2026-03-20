@@ -9,7 +9,7 @@
 
 // Mock the Supabase client
 const _mockSupabase = {
-  from: (table: string) => ({
+  from: (_table: string) => ({
     select: () => ({
       eq: () => ({
         order: () => ({

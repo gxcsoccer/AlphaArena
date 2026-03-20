@@ -23,7 +23,7 @@ class MockStrategy extends Strategy {
     this.throwError = throwError;
   }
 
-  onTick(context: StrategyContext): OrderSignal | null {
+  onTick(_context: StrategyContext): OrderSignal | null {
     this.tickCount++;
     
     if (this.throwError) {

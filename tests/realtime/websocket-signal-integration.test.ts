@@ -487,7 +487,7 @@ describe('WebSocket Signal Integration Tests', () => {
 
         await pool.shutdown();
         
-        // @ts-ignore
+        // @ts-expect-error - testing edge case
         delete global.BroadcastChannel;
       });
     });
