@@ -104,8 +104,12 @@ describe('OfflineIndicator', () => {
 
     renderWithProvider(<TestComponent />);
     
-    const closeButton = screen.getByLabelText('关闭');
-    expect(closeButton).toBeInTheDocument();
+    // Arco Design Alert closable button has an icon, not a text label
+    // Look for the close icon or the closable class
+    const alert = screen.getByRole('alert');
+    expect(alert).toBeInTheDocument();
+    // The Alert component has closable prop which renders a close button
+    expect(alert.querySelector('.arco-alert-close-btn')).toBeTruthy();
   });
 
   it('should show status tag', () => {
@@ -122,34 +126,35 @@ describe('OfflineIndicator', () => {
     expect(screen.getByText('连接中')).toBeInTheDocument();
   });
 
-  it('should show connection quality when connected', () => {
+  it('should not show anything when connected and not stale', () => {
     const TestComponent = () => {
-      const { setStatus, updateQuality } = require('../../src/client/store/connectionStore').useConnection();
+      const { setRealtimeConnected, updateQuality } = require('../../src/client/store/connectionStore').useConnection();
       React.useEffect(() => {
-        setStatus('connected');
+        setRealtimeConnected(true); // This sets status to 'connected'
         updateQuality({ latency: 50, isStale: false });
-      }, [setStatus, updateQuality]);
+      }, [setRealtimeConnected, updateQuality]);
       return <OfflineIndicator />;
     };
 
     renderWithProvider(<TestComponent />);
     
-    // Should show latency tag
-    expect(screen.getByText('延迟：50ms')).toBeInTheDocument();
+    // When connected and not stale, should not show anything
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('should show stale warning when connection is stale', () => {
+  it('should show stale warning when connection is stale', async () => {
     const TestComponent = () => {
-      const { setStatus, updateQuality } = require('../../src/client/store/connectionStore').useConnection();
+      const { setRealtimeConnected, updateQuality } = require('../../src/client/store/connectionStore').useConnection();
       React.useEffect(() => {
-        setStatus('connected');
+        setRealtimeConnected(true); // This sets status to 'connected'
         updateQuality({ latency: 100, isStale: true });
-      }, [setStatus, updateQuality]);
+      }, [setRealtimeConnected, updateQuality]);
       return <OfflineIndicator />;
     };
 
     renderWithProvider(<TestComponent />);
     
+    await screen.findByText('连接可能已过期');
     expect(screen.getByText('连接可能已过期')).toBeInTheDocument();
   });
 

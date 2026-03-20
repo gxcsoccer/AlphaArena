@@ -40,9 +40,9 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   let operation: 'select' | 'insert' | 'update' | 'delete' | null = null;
   let insertPayload: any[] = [];
   let updatePayload: any = null;
-  const _selectColumns = '*';
+  let selectColumns = '*';
   let isSingle = false;
-  const _wantSelectAfterMutation = false; // For insert().select() or update().select()
+  let wantSelectAfterMutation = false; // For insert().select() or update().select()
   
   // Track filters applied
   const filters: Array<{ type: string; column: string; value: any }> = [];

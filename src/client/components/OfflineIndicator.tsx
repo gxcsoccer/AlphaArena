@@ -20,8 +20,8 @@ const RefreshIcon = IconRefresh;
 const OfflineIndicator: React.FC = () => {
   const { status, isOnline, quality, lastDisconnectedAt: _lastDisconnectedAt, isRestApiAvailable, checkRestApiHealth } = useConnection();
 
-  // Don't show if connected and online
-  if (status === 'connected' && isOnline) {
+  // Don't show if connected and online and not stale
+  if (status === 'connected' && isOnline && !quality.isStale) {
     return null;
   }
 

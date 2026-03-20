@@ -257,15 +257,17 @@ export class FeatureExtractor {
       case 'volume':
         return { volume: volumes[volumes.length - 1] || 0 };
       
-      case 'returns':
+      case 'returns': {
         if (closes.length < 2) return { returns: 0 };
         const returns = (closes[closes.length - 1] - closes[closes.length - 2]) / closes[closes.length - 2];
         return { returns };
+      }
       
-      case 'log-returns':
+      case 'log-returns': {
         if (closes.length < 2) return { 'log-returns': 0 };
         const logReturns = Math.log(closes[closes.length - 1] / closes[closes.length - 2]);
         return { 'log-returns': logReturns };
+      }
       
       case 'sma-5':
         return { 'sma-5': this.calculateSMA(closes, 5) };
@@ -303,9 +305,10 @@ export class FeatureExtractor {
       case 'bollinger-lower':
         return { 'bollinger-lower': this.calculateBollingerBands(closes, 20).lower };
       
-      case 'bollinger-width':
+      case 'bollinger-width': {
         const bb = this.calculateBollingerBands(closes, 20);
         return { 'bollinger-width': bb.upper - bb.lower };
+      }
       
       case 'atr-14':
         return { 'atr-14': this.calculateATR(highs, lows, closes, 14) };
