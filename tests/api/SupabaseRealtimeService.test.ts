@@ -31,6 +31,18 @@ const mockChannel = {
 
 const mockRemoveChannel = jest.fn();
 
+// Mock the shared realtime utilities
+jest.mock('../../src/shared/realtime', () => ({
+  createBroadcastUnsubscribe: jest.fn((channel, filter) => () => {
+    channel._off('broadcast', filter);
+  }),
+  createPresenceUnsubscribe: jest.fn((channel) => () => {
+    channel._off('presence', { event: 'sync' });
+    channel._off('presence', { event: 'join' });
+    channel._off('presence', { event: 'leave' });
+  }),
+}));
+
 jest.mock('@supabase/supabase-js', () => ({
   createClient: jest.fn(() => ({
     channel: jest.fn(() => mockChannel),

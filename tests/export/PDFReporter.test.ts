@@ -6,17 +6,18 @@ import { TradeExportData, PortfolioExportData, PerformanceMetrics } from '../../
 
 // Mock pdfmake before importing PDFReporter
 jest.mock('pdfmake', () => {
-  return jest.fn().mockImplementation(() => ({
-    createPdfKitDocument: jest.fn().mockReturnValue({
-      on: jest.fn((event: string, callback: any) => {
-        if (event === 'end') {
-          // Simulate PDF generation
-          setTimeout(() => callback(), 10);
-        }
-      }),
-      end: jest.fn(),
+  const mockPdfDoc = {
+    getBuffer: jest.fn((callback: (buffer: Buffer) => void) => {
+      const buffer = Buffer.from('mock-pdf-content');
+      callback(buffer);
     }),
-  }));
+    download: jest.fn(),
+    print: jest.fn(),
+  };
+  
+  return {
+    createPdf: jest.fn(() => mockPdfDoc),
+  };
 });
 
 import { PDFReporter } from '../../src/export/PDFReporter';
