@@ -4,6 +4,8 @@
  */
 
 import { createLogger } from '../utils/logger.js';
+import { initializeApp, cert, App, getApps } from 'firebase-admin/app';
+import { getMessaging, Messaging } from 'firebase-admin/messaging';
 
 const log = createLogger('PushProviders');
 
@@ -223,60 +225,292 @@ export interface FCMConfig {
   serviceAccount?: object;
 
   /**
-   * Project ID (optional, extracted from service account)
+   * Project ID (can be set via environment variable)
    */
   projectId?: string;
+
+  /**
+   * Client email from service account (for environment variable config)
+   */
+  clientEmail?: string;
+
+  /**
+   * Private key from service account (for environment variable config)
+   */
+  privateKey?: string;
 }
 
 /**
  * Firebase Cloud Messaging (FCM) Provider
- * Note: Actual implementation requires firebase-admin package
+ * Requires firebase-admin package
  */
 export class FCMProvider implements IPushProvider {
   readonly name = 'fcm';
   private config: FCMConfig;
+  private app: App | null = null;
+  private messaging: Messaging | null = null;
+  private initialized = false;
 
   constructor(config?: FCMConfig) {
     this.config = {
       serviceAccountPath: config?.serviceAccountPath ?? process.env.FCM_SERVICE_ACCOUNT_PATH,
       serviceAccount: config?.serviceAccount,
-      projectId: config?.projectId ?? process.env.FCM_PROJECT_ID,
+      projectId: config?.projectId ?? process.env.FIREBASE_PROJECT_ID ?? process.env.FCM_PROJECT_ID,
+      clientEmail: config?.clientEmail ?? process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: config?.privateKey ?? process.env.FIREBASE_PRIVATE_KEY,
     };
+
+    this.initialize();
+  }
+
+  /**
+   * Initialize Firebase Admin SDK
+   */
+  private initialize(): void {
+    if (this.initialized) {
+      return;
+    }
+
+    try {
+      // Check if already initialized
+      const apps = getApps();
+      if (apps.length > 0) {
+        this.app = apps[0];
+        this.messaging = getMessaging(this.app);
+        this.initialized = true;
+        log.info('FCM: Using existing Firebase app instance');
+        return;
+      }
+
+      // Initialize from service account path
+      if (this.config.serviceAccountPath) {
+        const serviceAccount = require(this.config.serviceAccountPath);
+        this.app = initializeApp({
+          credential: cert(serviceAccount),
+        });
+        this.messaging = getMessaging(this.app);
+        this.initialized = true;
+        log.info('FCM: Initialized from service account file', {
+          projectId: serviceAccount.project_id,
+        });
+        return;
+      }
+
+      // Initialize from service account object
+      if (this.config.serviceAccount) {
+        this.app = initializeApp({
+          credential: cert(this.config.serviceAccount as any),
+        });
+        this.messaging = getMessaging(this.app);
+        this.initialized = true;
+        log.info('FCM: Initialized from service account object');
+        return;
+      }
+
+      // Initialize from environment variables
+      if (this.config.projectId && this.config.clientEmail && this.config.privateKey) {
+        // Handle escaped newlines in private key
+        const privateKey = this.config.privateKey.replace(/\\n/g, '\n');
+
+        this.app = initializeApp({
+          credential: cert({
+            projectId: this.config.projectId,
+            clientEmail: this.config.clientEmail,
+            privateKey: privateKey,
+          }),
+        });
+        this.messaging = getMessaging(this.app);
+        this.initialized = true;
+        log.info('FCM: Initialized from environment variables', {
+          projectId: this.config.projectId,
+        });
+        return;
+      }
+
+      log.warn('FCM: Not configured - missing credentials. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY environment variables.');
+    } catch (error) {
+      log.error('FCM: Failed to initialize', error);
+      this.initialized = false;
+    }
   }
 
   get isConfigured(): boolean {
-    return !!(this.config.serviceAccountPath || this.config.serviceAccount);
+    return this.initialized && this.messaging !== null;
   }
 
   async send(message: PushMessage): Promise<PushSendResult> {
-    if (!this.isConfigured) {
+    if (!this.isConfigured || !this.messaging) {
       return {
         success: false,
         provider: 'fcm',
-        error: 'Firebase credentials not configured. Set FCM_SERVICE_ACCOUNT_PATH or provide serviceAccount.',
+        error: 'Firebase not configured. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY environment variables.',
         totalSent: 0,
         totalFailed: message.tokens.length,
       };
     }
 
-    // Placeholder for actual FCM implementation
-    // To implement: install firebase-admin and use it here
-    log.warn('FCM provider not fully implemented - falling back to mock');
+    try {
+      log.debug('FCM: Sending push notification', {
+        tokenCount: message.tokens.length,
+        title: message.title,
+      });
 
-    const results: PushTokenResult[] = message.tokens.map(token => ({
-      token: token.token,
-      success: false,
-      error: 'FCM integration not implemented. Install firebase-admin and implement the send method.',
-    }));
+      // Build FCM message for each token
+      const results: PushTokenResult[] = [];
+      let successCount = 0;
+      let failureCount = 0;
 
-    return {
-      success: false,
-      provider: 'fcm',
-      error: 'FCM integration not implemented. Install firebase-admin and implement the send method.',
-      results,
-      totalSent: 0,
-      totalFailed: message.tokens.length,
-    };
+      // FCM supports multicast (up to 500 tokens per request)
+      const tokens = message.tokens.map(t => t.token);
+
+      // Build the notification payload
+      const notification = {
+        title: message.title,
+        body: message.body,
+      };
+
+      // Build the Android-specific options
+      const android: any = {};
+      if (message.options) {
+        android.notification = {};
+        
+        if (message.options.icon) {
+          android.notification.icon = message.options.icon;
+        }
+        if (message.options.sound) {
+          android.notification.sound = message.options.sound;
+        }
+        if (message.options.channelId) {
+          android.notification.channel_id = message.options.channelId;
+        }
+        if (message.options.priority === 'high') {
+          android.priority = 'high';
+        }
+        if (message.options.ttl) {
+          android.ttl = message.options.ttl;
+        }
+        if (message.options.collapseKey) {
+          android.collapseKey = message.options.collapseKey;
+        }
+      }
+
+      // Build the APNS (iOS) specific options
+      const apns: any = {
+        payload: {
+          aps: {},
+        },
+      };
+      if (message.options) {
+        if (message.options.badge !== undefined) {
+          apns.payload.aps.badge = message.options.badge;
+        }
+        if (message.options.sound) {
+          apns.payload.aps.sound = message.options.sound;
+        }
+        if (message.options.priority === 'high') {
+          apns.headers = {
+            'apns-priority': '10',
+          };
+        }
+      }
+
+      // Build the data payload
+      const data: Record<string, string> = {};
+      if (message.options?.data) {
+        for (const [key, value] of Object.entries(message.options.data)) {
+          // FCM data values must be strings
+          data[key] = typeof value === 'string' ? value : JSON.stringify(value);
+        }
+      }
+
+      // Send multicast message
+      const multicastMessage: any = {
+        tokens: tokens,
+        notification: notification,
+        data: Object.keys(data).length > 0 ? data : undefined,
+        android: Object.keys(android).length > 0 ? android : undefined,
+        apns: apns,
+      };
+
+      // Remove undefined values
+      Object.keys(multicastMessage).forEach(key => {
+        if (multicastMessage[key] === undefined) {
+          delete multicastMessage[key];
+        }
+      });
+
+      log.debug('FCM: Sending multicast', {
+        tokenCount: tokens.length,
+        notification: notification,
+      });
+
+      const response = await this.messaging.sendEachForMulticast(multicastMessage);
+
+      log.info('FCM: Send completed', {
+        successCount: response.successCount,
+        failureCount: response.failureCount,
+      });
+
+      // Process responses
+      response.responses.forEach((resp, index) => {
+        const token = tokens[index];
+        if (resp.success) {
+          successCount++;
+          results.push({
+            token: token,
+            success: true,
+            messageId: resp.messageId,
+          });
+        } else {
+          failureCount++;
+          const errorInfo = resp.error;
+          const errorMessage = errorInfo 
+            ? `${errorInfo.code}: ${errorInfo.message}`
+            : 'Unknown FCM error';
+          
+          results.push({
+            token: token,
+            success: false,
+            error: errorMessage,
+          });
+
+          // Log specific errors for debugging
+          if (errorInfo) {
+            if (errorInfo.code === 'messaging/invalid-registration-token' ||
+                errorInfo.code === 'messaging/registration-token-not-registered') {
+              log.warn('FCM: Invalid or unregistered token', { token: token.substring(0, 20) + '...' });
+            } else {
+              log.error('FCM: Failed to send to token', errorInfo);
+            }
+          }
+        }
+      });
+
+      return {
+        success: failureCount === 0,
+        provider: 'fcm',
+        messageId: response.successCount > 0 
+          ? `fcm_batch_${Date.now()}` 
+          : undefined,
+        results,
+        totalSent: successCount,
+        totalFailed: failureCount,
+        error: failureCount > 0 
+          ? `${failureCount} of ${tokens.length} messages failed` 
+          : undefined,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      log.error('FCM: Exception while sending push notification', error);
+
+      return {
+        success: false,
+        provider: 'fcm',
+        error: `FCM error: ${errorMessage}`,
+        totalSent: 0,
+        totalFailed: message.tokens.length,
+      };
+    }
   }
 }
 
