@@ -10,4 +10,19 @@ if (typeof (global as any).__DTL_CONFIG__ === 'undefined') {
   };
 }
 
+// Mock scrollIntoView for jsdom (not supported by default)
+if (typeof Element !== 'undefined' && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = jest.fn();
+}
+
+// Mock scrollTo for jsdom
+if (typeof window !== 'undefined' && !window.scrollTo) {
+  window.scrollTo = jest.fn();
+}
+
+// Mock scroll for jsdom
+if (typeof window !== 'undefined' && !window.scroll) {
+  window.scroll = jest.fn();
+}
+
 console.log('[Setup] Testing library patches applied');

@@ -69,10 +69,10 @@ module.exports = {
     '^uuid$': '<rootDir>/tests/__mocks__/uuid.ts',
     // Handle .js extensions in imports
     '^(\\.{1,2}/.*)\\.js$': '$1',
-    // Mock config for import.meta.env - use specific paths to avoid matching @testing-library/dom
+    // Mock config for import.meta.env - use a more generic pattern to match all relative imports
+    // But be careful not to match @testing-library/dom's config
+    '^(\\.\\./)+client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
-    '^../utils/config$': '<rootDir>/tests/__mocks__/config.ts',
-    '^../../client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     // Mock Supabase client for database tests
     '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Handle marked ESM module - use UMD build

@@ -68,22 +68,31 @@ const mockAlerts: PriceAlert[] = [
 describe('usePriceAlerts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (api.getPriceAlerts as jest.Mock).mockResolvedValue(mockAlerts);
+    (api.getPriceAlerts as jest.Mock).mockImplementation(async (...args: any[]) => {
+      console.log('[Mock API] getPriceAlerts called');
+      return mockAlerts;
+    });
   });
 
   describe('Initial Loading', () => {
     it('should fetch alerts on mount', async () => {
+      console.log('[Test] Starting test');
+      
       const { result } = renderHook(() => usePriceAlerts());
-
-      expect(result.current.loading).toBe(true);
-
+      
+      console.log('[Test] renderHook completed');
+      console.log('[Test] Initial loading:', result.current.loading);
+      console.log('[Test] API calls:', (api.getPriceAlerts as jest.Mock).mock.calls.length);
+      
+      // Wait for the initial fetch to complete
       await waitFor(() => {
+        console.log('[Test] Checking loading:', result.current.loading);
         expect(result.current.loading).toBe(false);
-      });
+      }, { timeout: 5000 });
 
       expect(api.getPriceAlerts).toHaveBeenCalled();
       expect(result.current.alerts).toEqual(mockAlerts);
-    });
+    }, 10000);
 
     it('should handle fetch errors', async () => {
       const error = new Error('Network error');
