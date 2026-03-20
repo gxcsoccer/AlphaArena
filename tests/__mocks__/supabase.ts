@@ -40,9 +40,9 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
   let operation: 'select' | 'insert' | 'update' | 'delete' | null = null;
   let insertPayload: any[] = [];
   let updatePayload: any = null;
-  let selectColumns = '*';
+  const _selectColumns = '*';
   let isSingle = false;
-  let wantSelectAfterMutation = false; // For insert().select() or update().select()
+  const _wantSelectAfterMutation = false; // For insert().select() or update().select()
   
   // Track filters applied
   const filters: Array<{ type: string; column: string; value: any }> = [];
@@ -250,7 +250,7 @@ function createMockQueryBuilder(tableName?: string): MockQueryBuilder {
     return executeOperation();
   });
 
-  builder.rpc = jest.fn().mockImplementation((fn: string, params?: any) => {
+  builder.rpc = jest.fn().mockImplementation((_fn: string, _params?: any) => {
     return Promise.resolve({ data: null, error: null });
   });
 

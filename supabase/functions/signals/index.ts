@@ -132,7 +132,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /signals/publisher/:publisherId
-    const publisherMatch = path.match(/^\/(api\/)?signals\/publisher\/([^\/]+)$/);
+    const publisherMatch = path.match(/^\/(api\/)?signals\/publisher\/([^/]+)$/);
     if (method === 'GET' && publisherMatch) {
       const publisherId = publisherMatch[2];
       const status = url.searchParams.get('status');
@@ -145,7 +145,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // GET /signals/publisher/:publisherId/stats
-    const publisherStatsMatch = path.match(/^\/(api\/)?signals\/publisher\/([^\/]+)\/stats$/);
+    const publisherStatsMatch = path.match(/^\/(api\/)?signals\/publisher\/([^/]+)\/stats$/);
     if (method === 'GET' && publisherStatsMatch) {
       const publisherId = publisherStatsMatch[2];
       const { data: stats, error } = await supabase.from('signal_publisher_stats').select('*').eq('publisher_id', publisherId).eq('period_type', 'all_time').single();

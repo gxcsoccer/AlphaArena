@@ -1002,6 +1002,7 @@ export class TwelveDataProvider extends EventEmitter implements IStockDataProvid
     return new Promise((resolve, reject) => {
       const urlObj = new URL(url);
       const isHttps = urlObj.protocol === 'https:';
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const protocol = isHttps ? require('https') : require('http');
 
       const options = {

@@ -266,7 +266,7 @@ describe('useKLineData', () => {
         dataMap[s] = createMockKLineData(s);
       });
 
-      let currentSymbol = 'BTC/USD';
+      const _currentSymbol = 'BTC/USD';
       (api.getKLineData as jest.Mock).mockImplementation(async (symbol: string) => {
         // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -281,7 +281,6 @@ describe('useKLineData', () => {
       // Rapidly switch symbols
       for (const symbol of symbols.slice(1)) {
         rerender({ symbol });
-        currentSymbol = symbol;
         await act(async () => {
           jest.advanceTimersByTime(10); // Small delay between switches
         });

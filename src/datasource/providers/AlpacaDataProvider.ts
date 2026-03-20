@@ -624,7 +624,7 @@ export class AlpacaDataProvider extends EventEmitter implements IStockDataProvid
 
   private normalizeSymbol(symbol: string): string {
     // Convert symbols like AAPL/USD or AAPL-USD to AAPL (Alpaca format)
-    return symbol.toUpperCase().split(/[\/\-]/)[0];
+    return symbol.toUpperCase().split(/[-/]/)[0];
   }
 
   private isDemoCredentials(apiKey: string, apiSecret: string): boolean {
@@ -938,6 +938,7 @@ export class AlpacaDataProvider extends EventEmitter implements IStockDataProvid
         },
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const protocol = urlObj.protocol === 'https:' ? require('https') : require('http');
       
       const req = protocol.request(options, (res: any) => {
