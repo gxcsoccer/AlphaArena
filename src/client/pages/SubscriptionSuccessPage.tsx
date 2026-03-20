@@ -12,11 +12,9 @@ import {
   Space,
   Result,
   Spin,
-  Message,
 } from '@arco-design/web-react';
 import {
   IconCheckCircleFill,
-  IconGift,
 } from '@arco-design/web-react/icon';
 
 const { Title, Text, Paragraph } = Typography;

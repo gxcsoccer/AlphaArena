@@ -14,7 +14,6 @@ import {
 } from '@arco-design/web-react';
 import {
   IconCloseCircleFill,
-  IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 
 const { Title, Paragraph } = Typography;

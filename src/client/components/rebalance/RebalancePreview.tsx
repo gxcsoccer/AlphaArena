@@ -84,7 +84,7 @@ export const RebalancePreviewComponent: React.FC<RebalancePreviewProps> = ({
       title: 'Deviation',
       dataIndex: 'deviationPercent',
       key: 'deviationPercent',
-      render: (deviation: number, record: PositionState) => {
+      render: (deviation: number, _record: PositionState) => {
         const color = deviation > 10 ? 'red' : deviation > 5 ? 'orange' : 'green';
         return (
           <Tag color={color}>

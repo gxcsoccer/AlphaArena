@@ -1,10 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { Layout, Card, Grid, Spin, Typography, Tabs, Drawer, Space } from '@arco-design/web-react';
-import { 
-  IconSwap, 
-  IconOrderedList, 
+import { Layout, Card, Grid, Spin, Typography, Tabs, Space } from '@arco-design/web-react';
+import {
+  IconSwap,
+  IconOrderedList,
   IconTrophy,
-  IconMenu,
 } from '@arco-design/web-react/icon';
 import TradingPairList from '../components/TradingPairList';
 import KLineChart from '../components/KLineChart';
@@ -68,7 +67,7 @@ const HomePage: React.FC = () => {
     console.log('Order placed:', orderId);
   };
 
-  const handlePriceClick = (price: number, type: 'bid' | 'ask') => {
+  const handlePriceClick = (price: number, _type: 'bid' | 'ask') => {
     // Dispatch custom event to TradingOrder component
     window.dispatchEvent(
       new CustomEvent('trading-order:set-price', {

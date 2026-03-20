@@ -18,7 +18,6 @@ import {
   Tag,
   Grid,
   Progress,
-  Tooltip,
   Spin,
   Empty,
   Message,
@@ -33,14 +32,9 @@ import {
   PieChart,
   Pie,
   Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
   Tooltip as RechartsTooltip,
   Legend,
   ResponsiveContainer,
-  BarChart,
-  Bar,
 } from 'recharts';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 

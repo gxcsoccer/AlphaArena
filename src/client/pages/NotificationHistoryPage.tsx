@@ -26,7 +26,6 @@ import {
   Modal,
   Grid,
   Select,
-  Tabs,
   Badge,
   Dropdown,
   Menu,
@@ -36,7 +35,6 @@ import {
 import {
   IconNotification,
   IconCheck,
-  IconClose,
   IconDelete,
   IconRefresh,
   IconMore,
@@ -45,7 +43,6 @@ import {
   IconDashboard,
   IconSettings,
   IconClockCircle,
-  IconFilter,
 } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { ErrorBoundary } from '../components/ErrorBoundary';
@@ -99,7 +96,7 @@ const priorityConfig: Record<NotificationPriority, { label: string; color: strin
 };
 
 const NotificationHistoryPage: React.FC = () => {
-  const { user, accessToken } = useAuth();
+  const { user: _user, accessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [total, setTotal] = useState(0);

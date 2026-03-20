@@ -11,15 +11,12 @@ import {
   Typography,
   Space,
   Button,
-  Tabs,
   Statistic,
   Progress,
   Table,
   Tag,
-  Message,
   Spin,
   Empty,
-  Divider,
   Modal,
   Alert,
 } from '@arco-design/web-react';
@@ -45,7 +42,6 @@ import {
   usePortfolioPerformance,
   usePortfolioRisk,
   usePortfolioRebalance,
-  StrategyPortfolio,
 } from '../hooks/useStrategyPortfolio';
 import { createLogger } from '../../utils/logger';
 

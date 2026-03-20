@@ -4,7 +4,7 @@ import { IconDownload, IconRefresh } from '@arco-design/web-react/icon';
 const { Row, Col } = Grid;
 const { Title, Text } = Typography;
 
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
+import { Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer, ComposedChart } from 'recharts';
 
 import { ErrorBoundary } from '../components/ErrorBoundary';
 

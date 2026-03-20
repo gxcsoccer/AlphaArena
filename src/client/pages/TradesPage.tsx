@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 import {
-  LineChart,
-  Line,
   AreaChart,
   Area,
   XAxis,

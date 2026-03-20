@@ -4,8 +4,6 @@ const { Row, Col } = Grid;
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -20,7 +18,6 @@ import {
   AreaChart,
   Area,
 } from 'recharts';
-import { useStrategies } from '../hooks/useData';
 import { api, LeaderboardEntry } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import type {  TableColumnProps } from '@arco-design/web-react';

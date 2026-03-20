@@ -13,7 +13,6 @@ import {
   RebalanceExecution,
   RebalanceTrigger,
   RebalanceExecutionStatus,
-  AssetAllocation,
 } from '../../portfolio/rebalance/types';
 import { Position } from '../../portfolio/types';
 

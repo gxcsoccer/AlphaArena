@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback, memo, lazy, Suspense } from 'react';
-import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Skeleton, Spin } from '@arco-design/web-react';
+import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Spin } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { TabPane } = Tabs;
 const CollapseItem = Collapse.Item;
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   PieChart,

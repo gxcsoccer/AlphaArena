@@ -11,7 +11,6 @@ import {
   Bar,
   Trade,
   OrderBook,
-  Ticker,
   BarInterval,
   DataSourceStatus,
   DataSourceConfig,
@@ -283,7 +282,7 @@ export abstract class BaseStockDataProvider implements IStockDataProvider {
   /**
    * Emit an event (to be overridden by EventEmitter-based implementations)
    */
-  protected emit(event: string, data: unknown): void {
+  protected emit(_event: string, _data: unknown): void {
     // Default: no-op. Override in subclasses that need event emission.
   }
 
