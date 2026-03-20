@@ -159,6 +159,8 @@ export const FPSCounter: React.FC = memo(() => {
   );
 });
 
+FPSCounter.displayName = 'FPSCounter';
+
 /**
  * Performance comparison chart data
  */
@@ -190,5 +192,9 @@ export const PerformanceChart: React.FC<{
     </Card>
   );
 });
+
+PerformanceChart.displayName = 'PerformanceChart';
+
+PerformanceWidget.displayName = 'PerformanceWidget';
 
 export default PerformanceWidget;

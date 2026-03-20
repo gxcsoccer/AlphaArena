@@ -29,7 +29,7 @@ export function generateSignalTemplate(
   let message = `${strategyName} has generated a ${side} signal for ${symbol}.`;
   
   if (price) {
-    message += ` Target price: $${price.toFixed(2)}.`;
+    message += ` Target price: $${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}.`;
   }
   
   if (confidence) {
@@ -57,10 +57,12 @@ export function generateRiskTemplate(
   let message: string;
   let priority: NotificationPriority = 'HIGH';
   
+  const formatNumber = (num: number) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
   switch (risk_type) {
     case 'position_limit':
       title = `⚠️ Position Limit Exceeded${symbol ? ` for ${symbol}` : ''}`;
-      message = `Your position has exceeded the defined limit. Current: ${current_value.toFixed(2)}, Threshold: ${threshold_value.toFixed(2)}.`;
+      message = `Your position has exceeded the defined limit. Current: ${formatNumber(current_value)}, Threshold: ${formatNumber(threshold_value)}.`;
       break;
       
     case 'loss_threshold':
@@ -107,19 +109,22 @@ export function generatePerformanceTemplate(
   
   const periodLabel = period.charAt(0).toUpperCase() + period.slice(1);
   const pnlEmoji = total_pnl >= 0 ? '📈' : '📉';
-  const _pnlColor = total_pnl >= 0 ? '' : '';
   
   const title = `📊 ${periodLabel} Performance Report`;
   
-  let message = `Your ${period} performance: ${pnlEmoji} ${total_pnl >= 0 ? '+' : ''}$${total_pnl.toFixed(2)} (${total_pnl_percent >= 0 ? '+' : ''}${total_pnl_percent.toFixed(2)}%). `;
+  // Format PnL with proper sign and currency formatting
+  const absPnl = Math.abs(total_pnl);
+  const pnlSign = total_pnl >= 0 ? '+' : '-';
+  
+  let message = `Your ${period} performance: ${pnlEmoji} ${pnlSign}$${absPnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${total_pnl_percent >= 0 ? '+' : ''}${total_pnl_percent.toFixed(2)}%). `;
   message += `Win rate: ${(win_rate * 100).toFixed(1)}% across ${trade_count} trades.`;
   
   if (best_trade) {
-    message += ` Best: ${best_trade.symbol} (+$${best_trade.pnl.toFixed(2)}).`;
+    message += ` Best: ${best_trade.symbol} (+$${best_trade.pnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}).`;
   }
   
   if (worst_trade) {
-    message += ` Worst: ${worst_trade.symbol} (-$${Math.abs(worst_trade.pnl).toFixed(2)}).`;
+    message += ` Worst: ${worst_trade.symbol} (-$${Math.abs(worst_trade.pnl).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}).`;
   }
   
   return {

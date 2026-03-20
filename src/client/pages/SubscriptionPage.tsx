@@ -434,7 +434,7 @@ const SubscriptionPage: React.FC = () => {
               <div>
                 <Text strong>如何取消订阅？</Text>
                 <Paragraph type="secondary" style={{ margin: '8px 0' }}>
-                  您可以随时在"管理订阅"中取消，取消后您仍可使用当前付费期间的功能。
+                  您可以随时在&quot;管理订阅&quot;中取消，取消后您仍可使用当前付费期间的功能。
                 </Paragraph>
               </div>
               <div>

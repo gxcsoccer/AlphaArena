@@ -237,4 +237,6 @@ const TradeHistoryPanel: React.FC<TradeHistoryPanelProps> = memo(({
   );
 });
 
+TradeHistoryPanel.displayName = 'TradeHistoryPanel';
+
 export default TradeHistoryPanel;

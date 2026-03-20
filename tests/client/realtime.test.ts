@@ -15,6 +15,7 @@ jest.mock('@supabase/supabase-js', () => {
     }),
     on: jest.fn(() => mockChannel),
     off: jest.fn(() => mockChannel),
+    _off: jest.fn(() => mockChannel), // Add internal _off method for removeChannelListener
     track: jest.fn(async () => 'ok'),
     presenceState: jest.fn(() => ({})),
     send: jest.fn(async () => 'ok'),

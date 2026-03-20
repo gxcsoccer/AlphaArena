@@ -40,6 +40,7 @@ const LoadingFallback: React.FC<{ height?: number }> = memo(({ height = 200 }) =
     <Spin />
   </div>
 ));
+LoadingFallback.displayName = 'LoadingFallback';
 
 // Memoized mobile detection hook
 const useMobileDetection = () => {
