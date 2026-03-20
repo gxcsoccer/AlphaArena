@@ -71,7 +71,7 @@ describe('PushProviders', () => {
       const result = await provider.send(message);
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Firebase credentials not configured');
+      expect(result.error).toContain('Firebase not configured');
       expect(result.totalFailed).toBe(1);
     });
   });
