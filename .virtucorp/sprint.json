@@ -1,0 +1,65 @@
+{
+  "sprint": {
+    "number": 43,
+    "title": "Sprint 43: 技术债务收尾与准备",
+    "milestone": 44,
+    "status": "completed",
+    "period": {
+      "start": "2026-03-20",
+      "end": "2026-03-20"
+    },
+    "goals": "清理剩余技术债务，提升代码质量",
+    "issues": {
+      "completed": [
+        {
+          "number": 473,
+          "title": "Sprint 43 准备工作",
+          "priority": "P2",
+          "type": "chore",
+          "status": "closed"
+        },
+        {
+          "number": 474,
+          "title": "修复剩余测试失败 (~16个套件)",
+          "priority": "P1",
+          "type": "bug",
+          "status": "closed",
+          "pr": 479
+        },
+        {
+          "number": 475,
+          "title": "清理 ESLint 错误 (~116个)",
+          "priority": "P2",
+          "type": "chore",
+          "status": "closed",
+          "pr": 480
+        }
+      ],
+      "total": 3,
+      "completed": 3
+    },
+    "metrics": {
+      "pr_merged": 2,
+      "issues_closed": 3,
+      "eslint_reduction": "74% (116 → 30)",
+      "test_suites_fixed": 16
+    },
+    "retrospective": {
+      "what_went_well": [
+        "测试失败修复：成功修复了 16 个测试套件的失败问题",
+        "ESlint 清理：错误数量从 116 个减少到 30 个，减少 74%",
+        "PR 快速合并：Issue #474 和 #475 都在同一天完成并合并"
+      ],
+      "what_could_improve": [
+        "仍有 30 个 ESLint 错误待清理",
+        "部分测试失败根因是 mock 问题，需要更好的测试基础设施"
+      ],
+      "action_items": [
+        "继续清理剩余 ESLint 错误",
+        "改进测试 mock 层以减少类似的测试失败"
+      ]
+    },
+    "completed_at": "2026-03-20T19:51:41Z"
+  },
+  "next_sprint": null
+}

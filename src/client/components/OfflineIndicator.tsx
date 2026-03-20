@@ -5,12 +5,14 @@
  * Shows reconnection progress and auto-hides when reconnected
  * 
  * Updated for Issue #178: Handle "degraded" state when Realtime fails but REST API works
+ * Updated for Issue #484: Detect and report Realtime service outages
  */
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Tag, Progress, Button } from '@arco-design/web-react';
 import { IconSync, IconCheckCircle, IconExclamationCircle, IconRefresh } from '@arco-design/web-react/icon';
 import { useConnection } from '../store/connectionStore';
+import { getRealtimeClient, ServiceHealth } from '../utils/realtime';
 
 const _ReconnectingIcon = IconSync;
 const _ConnectedIcon = IconCheckCircle;
@@ -19,6 +21,19 @@ const RefreshIcon = IconRefresh;
 
 const OfflineIndicator: React.FC = () => {
   const { status, isOnline, quality, lastDisconnectedAt: _lastDisconnectedAt, isRestApiAvailable, checkRestApiHealth } = useConnection();
+  const [serviceHealth, setServiceHealth] = useState<ServiceHealth | null>(null);
+
+  // Subscribe to Realtime service health changes
+  useEffect(() => {
+    const client = getRealtimeClient();
+    const unsubscribe = client.onHealthChange((health) => {
+      setServiceHealth(health);
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   // Don't show if connected and online and not stale
   if (status === 'connected' && isOnline && !quality.isStale) {
@@ -29,19 +44,29 @@ const OfflineIndicator: React.FC = () => {
   // This is intentional - we want to show the app is functional, just without real-time updates
   // The user can still see data updates via REST API polling every 3 seconds
   if (status === 'degraded' && isRestApiAvailable) {
+    // Check if the service is detected as down
+    const isServiceDown = serviceHealth?.status === 'down';
+    const errorMessage = serviceHealth?.errorMessage;
+    
     return (
       <Alert
         type="warning"
         content={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ flex: 1 }}>
-              ⚠️ 实时推送暂时不可用，数据每 3 秒自动更新
+              {isServiceDown 
+                ? `⚠️ 实时推送服务暂时不可用（${errorMessage || '服务异常'}），数据每 3 秒自动更新`
+                : '⚠️ 实时推送暂时不可用，数据每 3 秒自动更新'
+              }
             </span>
             <Tag color="orange">降级模式</Tag>
             <Button 
               size="small" 
               icon={<RefreshIcon />}
-              onClick={() => checkRestApiHealth()}
+              onClick={() => {
+                checkRestApiHealth();
+                getRealtimeClient().checkServiceHealth();
+              }}
             >
               刷新数据
             </Button>
