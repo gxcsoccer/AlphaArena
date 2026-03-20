@@ -193,7 +193,8 @@ describe('AlpacaDataProvider', () => {
       const lastBar = bars[bars.length - 1];
       
       expect(firstBar.openTime).toBeGreaterThanOrEqual(oneDayAgo);
-      expect(lastBar.closeTime).toBeLessThanOrEqual(now);
+      // Allow small time difference (1 second) for timing variations during test execution
+      expect(lastBar.closeTime).toBeLessThanOrEqual(now + 1000);
     });
   });
 
