@@ -22,6 +22,7 @@ import {
   IconGift,
   IconStorage,
   IconCompass,
+  IconNotification,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -76,6 +77,7 @@ const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfo
 const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailPage'));
 const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
 const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
+const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -278,6 +280,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
               订阅
             </MenuItem>
+            <MenuItem key="/notification-preferences" icon={<IconNotification aria-hidden="true" />} role="menuitem">
+              通知设置
+            </MenuItem>
             <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
               数据源
             </MenuItem>
@@ -432,6 +437,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
             订阅
           </MenuItem>
+          <MenuItem key="/notification-preferences" icon={<IconNotification aria-hidden="true" />} role="menuitem">
+            通知设置
+          </MenuItem>
           <MenuItem key="/data-source" icon={<IconStorage aria-hidden="true" />} role="menuitem">
             数据源
           </MenuItem>
@@ -490,6 +498,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/exchange-accounts" element={<ExchangeAccountsPage />} />
         <Route path="/strategy-portfolio" element={<StrategyPortfolioPage />} />
         <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
+        <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
       </Routes>
     </Suspense>
   );
