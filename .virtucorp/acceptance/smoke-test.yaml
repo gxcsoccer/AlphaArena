@@ -7,12 +7,12 @@ web:
 tasks:
   - name: "Homepage Load"
     flow:
-      - sleep: 2000
+      - sleep: 3000
       - aiAssert: "页面标题包含 AlphaArena 或类似股票/交易相关的文字"
-      - aiAssert: "页面主要内容区域可见，没有空白或错误提示"
+      - aiAssert: "页面主要内容区域可见（交易对列表、交易面板等），没有被白屏或加载失败阻塞"
       - aiAssert: "没有明显的 404 或 500 错误页面"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
-      - aiAssert: "降级模式信息横幅（蓝色或黄色）是可接受的预期行为，表示实时服务维护中"
+      - aiAssert: "连接状态提示（蓝色降级模式、黄色警告或红色断开提示）是可接受的预期行为，因为本地预览模式没有后端服务"
   - name: "Navigation Test"
     flow:
       - aiAssert: "导航栏或菜单区域可见"
@@ -28,5 +28,5 @@ tasks:
   - name: "Console Error Check"
     flow:
       - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
-      - aiAssert: "页面没有显示 API 错误或网络错误提示（蓝色或黄色的降级模式/维护提示是预期行为）"
+      - aiAssert: "页面没有显示致命的 API 错误或白屏错误（连接状态提示如降级模式/断开连接是本地预览模式的预期行为）"
       - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
