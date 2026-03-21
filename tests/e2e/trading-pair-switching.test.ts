@@ -162,10 +162,16 @@ async function runTests(): Promise<number> {
       !err.includes('Unhandled Promise Rejection')
     );
 
+    // Output actual errors for debugging if any
+    if (criticalErrors.length > 0) {
+      console.log('    🔍 Console errors found:');
+      criticalErrors.forEach((err, i) => console.log(`      ${i + 1}. ${err}`));
+    }
+
     results.push({
       name: 'No Console Errors',
       passed: criticalErrors.length === 0,
-      details: criticalErrors.length === 0 ? 'No critical console errors' : 'Found ' + criticalErrors.length + ' errors',
+      details: criticalErrors.length === 0 ? 'No critical console errors' : 'Found ' + criticalErrors.length + ' errors: ' + criticalErrors.slice(0, 3).join('; '),
     });
     console.log(criticalErrors.length === 0 ? '    ✅ No critical console errors\n' : '    ❌ Found console errors\n');
 

@@ -103,6 +103,12 @@ async function runTests(): Promise<number> {
 
         // Check for critical JS errors (not network errors)
         const criticalErrors = getCriticalErrors(consoleErrors);
+        
+        // Output actual errors for debugging if any
+        if (criticalErrors.length > 0) {
+          console.log('    🔍 Console errors found:');
+          criticalErrors.forEach((err, i) => console.log(`      ${i + 1}. ${err}`));
+        }
 
         // For API-dependent pages, we're more lenient - just need page to load without JS errors
         // The page may show empty/loading state if API is unavailable
