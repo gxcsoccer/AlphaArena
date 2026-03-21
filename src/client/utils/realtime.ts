@@ -23,10 +23,10 @@ const STALE_CONNECTION_THRESHOLD = 60000; // 60 seconds without ping = stale
 const PING_INTERVAL = 15000; // 15 seconds ping interval
 
 // Service health settings
-const MAX_CONSECUTIVE_FAILURES = 3; // After this many failures, consider service down
-const SERVICE_DOWN_COOLDOWN = 30000; // 30 seconds cooldown before trying again after service is marked down (reduced from 60s)
-const HEALTH_CHECK_INTERVAL = 20000; // Check service health every 20 seconds when in degraded mode (reduced from 30s)
-const INITIAL_HEALTH_CHECK_DELAY = 5000; // Wait 5 seconds before first health check in degraded mode
+const MAX_CONSECUTIVE_FAILURES = 2; // After this many failures, consider service down (reduced from 3 for faster degraded mode)
+const SERVICE_DOWN_COOLDOWN = 20000; // 20 seconds cooldown before trying again after service is marked down
+const HEALTH_CHECK_INTERVAL = 15000; // Check service health every 15 seconds when in degraded mode
+const INITIAL_HEALTH_CHECK_DELAY = 3000; // Wait 3 seconds before first health check in degraded mode
 
 // Connection states
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
@@ -165,6 +165,30 @@ export class RealtimeClient {
 
     // Start connection quality monitoring
     this.startQualityMonitoring();
+
+    // Proactively check service health on initialization
+    // This allows us to detect infrastructure issues before subscription attempts
+    this.performInitialHealthCheck();
+  }
+
+  /**
+   * Perform initial health check to detect infrastructure issues early
+   */
+  private async performInitialHealthCheck(): Promise<void> {
+    try {
+      const result = await this.checkServiceHealth();
+      if (!result.healthy) {
+        console.warn('[RealtimeClient] ⚠️ Initial health check failed:', result.message);
+        // Mark service as degraded immediately if health check fails
+        if (this.serviceHealth.status !== 'down') {
+          this.serviceHealth.status = 'degraded';
+          this.serviceHealth.errorMessage = '实时推送服务暂时维护中';
+          this.notifyHealthListeners();
+        }
+      }
+    } catch (error) {
+      console.warn('[RealtimeClient] Health check error:', error);
+    }
   }
 
   /**
@@ -328,9 +352,20 @@ export class RealtimeClient {
       '521 Web server is down',
       '523 Origin is unreachable',
       '524 A timeout occurred',
+      // WebSocket subscription errors that indicate service unavailability
+      'CHANNEL_ERROR',
+      'TIMED_OUT',
+      'CLOSED',
+      '订阅失败',
+      '订阅超时',
+      'connection failed',
+      'websocket error',
+      'socket closed',
+      'realtime unavailable',
     ];
+    const errorLower = error.toLowerCase();
     return infrastructureErrorPatterns.some(pattern => 
-      error.toLowerCase().includes(pattern.toLowerCase())
+      errorLower.includes(pattern.toLowerCase())
     );
   }
 
