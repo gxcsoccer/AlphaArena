@@ -102,6 +102,15 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [mobileMenuVisible, setMobileMenuVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   
+  // Debug: Log route changes
+  useEffect(() => {
+    console.log('[Route] Location changed:', {
+      pathname: location.pathname,
+      search: location.search,
+      hash: location.hash,
+    });
+  }, [location]);
+  
   // Initialize performance monitoring for all pages
   usePerformanceMonitoring({
     autoReport: true,
@@ -127,7 +136,11 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, []);
 
   const handleMenuClick = ({ key }: { key: string }) => {
+    console.log('[Navigation] Menu clicked:', key);
+    console.log('[Navigation] Current location:', location.pathname);
+    console.log('[Navigation] Navigating to:', key);
     navigate(key);
+    console.log('[Navigation] Navigate called');
     if (isMobile) {
       setMobileMenuVisible(false);
     }
