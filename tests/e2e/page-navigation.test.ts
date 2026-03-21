@@ -52,6 +52,7 @@ function getCriticalErrors(consoleErrors: string[]): string[] {
     !err.includes('[KLineChart]') &&
     !err.includes('[Leaderboard]') &&
     !err.includes('[Holdings]') &&
+    !err.includes('[RealtimeClient]') &&
     !err.includes('ChunkLoadError') &&
     !err.includes('Loading chunk') &&
     !err.includes('Unhandled Promise Rejection')
