@@ -373,18 +373,18 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             行情
           </MenuItem>
           <MenuItem key="/dashboard" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
-              Dashboard
-            </MenuItem>
-            <MenuItem key="/user-dashboard" icon={<IconUser aria-hidden="true" />} role="menuitem">
-              我的仪表板
-            </MenuItem>
+            Dashboard
+          </MenuItem>
+          <MenuItem key="/user-dashboard" icon={<IconUser aria-hidden="true" />} role="menuitem">
+            我的仪表板
+          </MenuItem>
           <MenuItem key="/performance" icon={<IconPerformance aria-hidden="true" />} role="menuitem">
             绩效
           </MenuItem>
-          <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
           <MenuItem key="/attribution" icon={<IconList aria-hidden="true" />} role="menuitem">
             绩效归因
           </MenuItem>
+          <MenuItem key="/risk" icon={<IconExclamationCircle aria-hidden="true" />} role="menuitem">
             风险
           </MenuItem>
           <MenuItem key="/sentiment" icon={<IconHeart aria-hidden="true" />} role="menuitem">
@@ -397,9 +397,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             Trades
           </MenuItem>
           <MenuItem key="/rebalance" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
-              再平衡
-            </MenuItem>
-            <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
+            再平衡
+          </MenuItem>
+          <MenuItem key="/holdings" icon={<IconSafe aria-hidden="true" />} role="menuitem">
             Holdings
           </MenuItem>
           <MenuItem key="/virtual-account" icon={<IconSafe aria-hidden="true" />} role="menuitem">
@@ -408,31 +408,31 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/exchange-accounts" icon={<IconStorage aria-hidden="true" />} role="menuitem">
             Exchange Accounts
           </MenuItem>
+          <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
+            Copy Trading
+          </MenuItem>
           <MenuItem key="/scheduler" icon={<IconClockCircle aria-hidden="true" />} role="menuitem">
             Scheduler
           </MenuItem>
-          <MenuItem key="/copy-trading" icon={<IconUserAdd aria-hidden="true" />} role="menuitem">
-              Copy Trading
-            </MenuItem>
-            <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
-              交易日志
-            </MenuItem>
-            <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
-              回测
-            </MenuItem>
-            <MenuItem key="/advanced-orders" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
-              高级订单
-            </MenuItem>
-            <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
-              策略比较
-            </MenuItem>
-            <MenuItem key="/strategy-portfolio" icon={<IconApps aria-hidden="true" />} role="menuitem">
-              策略组合
-            </MenuItem>
-            <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
-              API 文档
-            </MenuItem>
-            <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/journal" icon={<IconBook aria-hidden="true" />} role="menuitem">
+            交易日志
+          </MenuItem>
+          <MenuItem key="/backtest" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+            回测
+          </MenuItem>
+          <MenuItem key="/advanced-orders" icon={<IconExperiment aria-hidden="true" />} role="menuitem">
+            高级订单
+          </MenuItem>
+          <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
+            策略比较
+          </MenuItem>
+          <MenuItem key="/strategy-portfolio" icon={<IconApps aria-hidden="true" />} role="menuitem">
+            策略组合
+          </MenuItem>
+          <MenuItem key="/docs/api" icon={<IconBook aria-hidden="true" />} role="menuitem">
+            API 文档
+          </MenuItem>
+          <MenuItem key="/leaderboard" icon={<IconTrophy aria-hidden="true" />} role="menuitem">
             Leaderboard
           </MenuItem>
           <MenuItem key="/subscription" icon={<IconGift aria-hidden="true" />} role="menuitem">
