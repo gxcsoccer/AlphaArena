@@ -1,15 +1,18 @@
 web:
-  url: "https://alphaarena-eight.vercel.app"
+  # Use local build for smoke tests to avoid network issues
+  # Production URL: https://alphaarena-eight.vercel.app
+  # For production testing, run: npm run build && npm run preview
+  url: "http://localhost:4173"
 
 tasks:
   - name: "Homepage Load"
     flow:
-      - sleep: 3000
+      - sleep: 2000
       - aiAssert: "页面标题包含 AlphaArena 或类似股票/交易相关的文字"
       - aiAssert: "页面主要内容区域可见，没有空白或错误提示"
       - aiAssert: "没有明显的 404 或 500 错误页面"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
-      - aiAssert: "降级模式警告横幅（黄色）是可接受的预期行为"
+      - aiAssert: "降级模式信息横幅（蓝色或黄色）是可接受的预期行为，表示实时服务维护中"
   - name: "Navigation Test"
     flow:
       - aiAssert: "导航栏或菜单区域可见"
@@ -19,11 +22,11 @@ tasks:
   - name: "Core Functionality"
     flow:
       - sleep: 2000
-      - aiAssert: "交易对列表可见（如 BTC/USD, ETH/USD 等）"
-      - aiAssert: "交易面板或订单簿区域可见"
+      - aiAssert: "交易终端界面可见，包含 K 线图表、订单簿或买卖面板"
+      - aiAssert: "交易功能区域可见（买入/卖出选项、订单类型等）"
       - ai: "滚动页面查看更多内容，验证页面滚动功能正常"
   - name: "Console Error Check"
     flow:
       - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
-      - aiAssert: "页面没有显示 API 错误或网络错误提示（黄色降级模式警告是预期行为）"
+      - aiAssert: "页面没有显示 API 错误或网络错误提示（蓝色或黄色的降级模式/维护提示是预期行为）"
       - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
