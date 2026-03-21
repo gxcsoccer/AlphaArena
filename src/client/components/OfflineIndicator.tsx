@@ -51,20 +51,20 @@ const OfflineIndicator: React.FC = () => {
     // Check if this is an infrastructure error (less alarming message)
     const isInfraError = errorMessage?.includes('维护中') || errorMessage?.includes('infrastructure');
     
+    // Use 'info' type for all degraded mode alerts - the app is functional
     return (
       <Alert
-        type={isInfraError ? 'info' : 'warning'}
+        type="info"
         content={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ flex: 1 }}>
               {isServiceDown 
                 ? (isInfraError 
-                    ? `ℹ️ ${errorMessage || '实时推送服务维护中'}，数据每 3 秒自动更新`
-                    : `⚠️ 实时推送暂时不可用（${errorMessage || '服务异常'}），数据每 3 秒自动更新`)
-                : '⚠️ 实时推送暂时不可用，数据每 3 秒自动更新'
+                    ? `实时推送服务维护中，数据每 3 秒自动更新`
+                    : `实时推送暂时不可用，数据每 3 秒自动更新`)
+                : '实时推送暂时不可用，数据每 3 秒自动更新'
               }
             </span>
-            <Tag color={isInfraError ? 'arcoblue' : 'orange'}>{isInfraError ? '维护中' : '降级模式'}</Tag>
             <Button 
               size="small" 
               icon={<RefreshIcon />}
@@ -86,6 +86,8 @@ const OfflineIndicator: React.FC = () => {
           zIndex: 9999,
           borderRadius: 0,
           margin: 0,
+          background: 'var(--color-primary-light-1)',
+          borderLeft: '4px solid var(--color-primary-6)',
         }}
       />
     );
