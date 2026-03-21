@@ -15,6 +15,9 @@ tasks:
       - aiAssert: "连接状态提示（蓝色降级模式、黄色警告或红色断开提示）是可接受的预期行为，因为本地预览模式没有后端服务"
   - name: "Navigation Test"
     flow:
+      # Handle welcome popup for first-time visitors
+      - ai: "如果页面出现欢迎弹窗（包含'欢迎使用 AlphaArena'或'欢迎来到 AlphaArena'文字），点击关闭按钮或'开始使用'按钮将其关闭；如果没有弹窗则继续"
+      - sleep: 1000
       - aiAssert: "左侧导航栏可见，包含多个导航菜单项（如行情、Dashboard、Strategies、Trades等）"
       - ai: "点击左侧导航栏中的 Dashboard 菜单项"
       - sleep: 2000
