@@ -17,7 +17,8 @@ tasks:
     flow:
       - aiAssert: "导航栏或菜单区域可见"
       - ai: "尝试找到并点击主要的导航链接或按钮（如首页、股票列表等）"
-      - aiWaitFor: "页面响应导航操作，URL 或内容发生变化"
+      - sleep: 2000
+      - aiAssert: "页面已导航到新内容，URL 或页面标题发生变化"
       - aiAssert: "导航后页面内容正确显示，没有错误"
   - name: "Core Functionality"
     flow:
