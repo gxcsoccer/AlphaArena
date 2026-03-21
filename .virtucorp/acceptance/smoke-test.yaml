@@ -22,8 +22,10 @@ tasks:
   - name: "Core Functionality"
     flow:
       - sleep: 2000
-      - aiAssert: "交易终端界面可见，包含 K 线图表、订单簿或买卖面板"
-      - aiAssert: "交易功能区域可见（买入/卖出选项、订单类型等）"
+      - aiAssert: "仪表盘显示策略管理相关内容（统计卡片、图表等）"
+      - ai: "点击导航中的 Trades 或交易链接"
+      - aiWaitFor: "页面显示交易相关内容"
+      - aiAssert: "交易界面可见，包含交易记录或交易面板"
       - ai: "滚动页面查看更多内容，验证页面滚动功能正常"
   - name: "Console Error Check"
     flow:
