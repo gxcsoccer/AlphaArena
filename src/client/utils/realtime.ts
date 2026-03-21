@@ -24,8 +24,9 @@ const PING_INTERVAL = 15000; // 15 seconds ping interval
 
 // Service health settings
 const MAX_CONSECUTIVE_FAILURES = 3; // After this many failures, consider service down
-const SERVICE_DOWN_COOLDOWN = 60000; // 1 minute cooldown before trying again after service is marked down
-const HEALTH_CHECK_INTERVAL = 30000; // Check service health every 30 seconds when in degraded mode
+const SERVICE_DOWN_COOLDOWN = 30000; // 30 seconds cooldown before trying again after service is marked down (reduced from 60s)
+const HEALTH_CHECK_INTERVAL = 20000; // Check service health every 20 seconds when in degraded mode (reduced from 30s)
+const INITIAL_HEALTH_CHECK_DELAY = 5000; // Wait 5 seconds before first health check in degraded mode
 
 // Connection states
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';
@@ -238,15 +239,25 @@ export class RealtimeClient {
     this.serviceHealth.lastHealthCheckAt = Date.now();
     this.serviceHealth.errorMessage = error;
 
+    // Detect infrastructure errors (Cloudflare, etc.)
+    const isInfraError = this.isInfrastructureError(error);
+    if (isInfraError) {
+      this.serviceHealth.errorMessage = '实时推送服务暂时维护中';
+    }
+
     if (this.serviceHealth.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
       const previousStatus = this.serviceHealth.status;
       this.serviceHealth.status = 'down';
       
       if (previousStatus !== 'down') {
-        console.error('[RealtimeClient] 🚨 Realtime service appears to be DOWN');
-        console.error('[RealtimeClient] Error:', error);
-        console.error('[RealtimeClient] Switching to degraded mode - will use HTTP polling fallback');
-        console.error('[RealtimeClient] Will attempt to reconnect in', SERVICE_DOWN_COOLDOWN / 1000, 'seconds');
+        if (isInfraError) {
+          console.warn('[RealtimeClient] ⚠️ Realtime service is temporarily unavailable (infrastructure issue)');
+          console.warn('[RealtimeClient] Falling back to HTTP polling - app will continue to work');
+        } else {
+          console.error('[RealtimeClient] 🚨 Realtime service appears to be DOWN');
+          console.error('[RealtimeClient] Error:', error);
+        }
+        console.log('[RealtimeClient] Will attempt to reconnect in', SERVICE_DOWN_COOLDOWN / 1000, 'seconds');
         
         // Start health check timer for periodic reconnection attempts
         this.startHealthCheckTimer();
@@ -301,6 +312,26 @@ export class RealtimeClient {
     } else if (!isStale) {
       this.connectionQuality.isStale = false;
     }
+  }
+
+  /**
+   * Detect if an error is a Cloudflare/infrastructure error
+   */
+  private isInfrastructureError(error: string): boolean {
+    const infrastructureErrorPatterns = [
+      'Worker threw exception',
+      'Cloudflare',
+      'Error 1101',
+      'Error 522',
+      'Error 524',
+      '520 Web server is returning an unknown error',
+      '521 Web server is down',
+      '523 Origin is unreachable',
+      '524 A timeout occurred',
+    ];
+    return infrastructureErrorPatterns.some(pattern => 
+      error.toLowerCase().includes(pattern.toLowerCase())
+    );
   }
 
   /**
@@ -921,9 +952,17 @@ export class RealtimeClient {
           message: 'Realtime service is healthy',
         };
       } else {
-        const message = response.status === 500 
-          ? 'Realtime service is experiencing issues (500 error)'
-          : `Realtime service returned status ${response.status}`;
+        // Check if it's a Cloudflare/infrastructure error
+        const responseText = await response.text().catch(() => '');
+        const isInfraError = responseText.includes('Cloudflare') || 
+                            responseText.includes('Worker threw exception') ||
+                            response.status >= 520;
+        
+        const message = isInfraError
+          ? '实时推送服务暂时维护中'
+          : (response.status === 500 
+            ? 'Realtime service is experiencing issues (500 error)'
+            : `Realtime service returned status ${response.status}`);
         
         this.serviceHealth.status = 'down';
         this.serviceHealth.errorMessage = message;
@@ -936,7 +975,14 @@ export class RealtimeClient {
         };
       }
     } catch (error) {
-      const message = `Failed to check Realtime health: ${error instanceof Error ? error.message : 'Unknown error'}`;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const isNetworkError = errorMessage.includes('Failed to fetch') || 
+                            errorMessage.includes('NetworkError') ||
+                            errorMessage.includes('network');
+      
+      const message = isNetworkError 
+        ? '实时推送服务暂时维护中'
+        : `Failed to check Realtime health: ${errorMessage}`;
       
       this.serviceHealth.status = 'down';
       this.serviceHealth.errorMessage = message;

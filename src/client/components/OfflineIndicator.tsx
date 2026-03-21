@@ -48,18 +48,23 @@ const OfflineIndicator: React.FC = () => {
     const isServiceDown = serviceHealth?.status === 'down';
     const errorMessage = serviceHealth?.errorMessage;
     
+    // Check if this is an infrastructure error (less alarming message)
+    const isInfraError = errorMessage?.includes('维护中') || errorMessage?.includes('infrastructure');
+    
     return (
       <Alert
-        type="warning"
+        type={isInfraError ? 'info' : 'warning'}
         content={
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ flex: 1 }}>
               {isServiceDown 
-                ? `⚠️ 实时推送服务暂时不可用（${errorMessage || '服务异常'}），数据每 3 秒自动更新`
+                ? (isInfraError 
+                    ? `ℹ️ ${errorMessage || '实时推送服务维护中'}，数据每 3 秒自动更新`
+                    : `⚠️ 实时推送暂时不可用（${errorMessage || '服务异常'}），数据每 3 秒自动更新`)
                 : '⚠️ 实时推送暂时不可用，数据每 3 秒自动更新'
               }
             </span>
-            <Tag color="orange">降级模式</Tag>
+            <Tag color={isInfraError ? 'arcoblue' : 'orange'}>{isInfraError ? '维护中' : '降级模式'}</Tag>
             <Button 
               size="small" 
               icon={<RefreshIcon />}
