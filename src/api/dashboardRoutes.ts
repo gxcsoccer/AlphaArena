@@ -1,8 +1,9 @@
 /**
- * Dashboard Routes - Placeholder
+ * Dashboard Routes
  * 
  * API endpoints for analytics dashboard.
- * Full implementation coming in next commit.
+ * All endpoints require authentication.
+ * Admin-only endpoints are marked with requireAdmin.
  */
 
 import { Router, Request, Response } from 'express';
@@ -10,9 +11,13 @@ import { dashboardService } from '../analytics/DashboardService';
 import { metricsService } from '../analytics/MetricsService';
 import { reportGenerator } from '../analytics/ReportGenerator';
 import { createLogger } from '../utils/logger';
+import { authMiddleware, requireAdmin } from './authMiddleware';
 
 const log = createLogger('DashboardRoutes');
 const router = Router();
+
+// All dashboard routes require authentication
+router.use(authMiddleware);
 
 /**
  * GET /api/dashboard/overview
@@ -31,9 +36,9 @@ router.get('/overview', async (req: Request, res: Response) => {
 
 /**
  * GET /api/dashboard/metrics/north-star
- * Get North Star metric
+ * Get North Star metric (admin only)
  */
-router.get('/metrics/north-star', async (req: Request, res: Response) => {
+router.get('/metrics/north-star', requireAdmin, async (req: Request, res: Response) => {
   try {
     const metric = await metricsService.calculateNorthStarMetric();
     res.json({ success: true, metric });
@@ -78,7 +83,11 @@ router.get('/funnels', async (req: Request, res: Response) => {
  */
 router.get('/features', async (req: Request, res: Response) => {
   try {
-    const featureUsage = await dashboardService.getFeatureUsage();
+    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const featureUsage = await dashboardService.getFeatureUsage(startDate, endDate);
     res.json({ success: true, featureUsage });
   } catch (error: any) {
     log.error('Failed to get feature usage:', error);
@@ -92,7 +101,11 @@ router.get('/features', async (req: Request, res: Response) => {
  */
 router.get('/heatmap', async (req: Request, res: Response) => {
   try {
-    const heatmap = await dashboardService.getActivityHeatmap();
+    const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
+    const heatmap = await dashboardService.getActivityHeatmap(startDate, endDate);
     res.json({ success: true, heatmap });
   } catch (error: any) {
     log.error('Failed to get activity heatmap:', error);
