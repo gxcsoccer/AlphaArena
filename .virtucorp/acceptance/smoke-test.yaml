@@ -2,7 +2,7 @@ web:
   # Production URL for automated smoke tests
   # For local testing, run: npm run build && npm run preview
   # Then override with: url: "http://localhost:4173"
-  url: "https://alpha-arena-two.vercel.app"
+  url: "https://alphaarena-eight.vercel.app"
 
 tasks:
   - name: "Landing Page - Unauthenticated User"
@@ -16,7 +16,7 @@ tasks:
       - aiAssert: "页面显示统计数据：包含活跃用户、模拟交易量等统计信息"
       - ai: "滚动到核心功能区域"
       - sleep: 1000
-      - aiAssert: "页面显示核心功能介绍区域，包含专业级算法交易、系统可用性等功能特性"
+      - aiAssert: "页面显示核心功能介绍区域，包含以下全部4个功能：AI 驱动策略、模拟交易、竞技排名、极速执行"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
       - aiAssert: "没有明显的 404 或 500 错误页面"
 
