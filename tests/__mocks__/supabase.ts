@@ -24,6 +24,7 @@ interface MockQueryBuilder {
   lt: jest.MockedFunction<(column: string, value: any) => MockQueryBuilder>;
   lte: jest.MockedFunction<(column: string, value: any) => MockQueryBuilder>;
   in: jest.MockedFunction<(column: string, values: any[]) => MockQueryBuilder>;
+  not: jest.MockedFunction<(column: string, operator: string, value: any) => MockQueryBuilder>;
   order: jest.MockedFunction<(column: string, options?: any) => MockQueryBuilder>;
   limit: jest.MockedFunction<(count: number) => MockQueryBuilder>;
   offset: jest.MockedFunction<(count: number) => MockQueryBuilder>;
@@ -80,6 +81,9 @@ let _selectColumns = '*';
           break;
         case 'in':
           data = data.filter(item => filter.value.includes(item[filter.column]));
+          break;
+        case 'not_null':
+          data = data.filter(item => item[filter.column] !== null && item[filter.column] !== undefined);
           break;
       }
     }
@@ -215,6 +219,16 @@ let _selectColumns = '*';
 
   builder.in = jest.fn().mockImplementation((column: string, values: any[]) => {
     filters.push({ type: 'in', column, value: values });
+    return builder;
+  });
+
+  // not filter - for .not('column', 'is', null) patterns
+  builder.not = jest.fn().mockImplementation((column: string, operator: string, value: any) => {
+    if (operator === 'is' && value === null) {
+      filters.push({ type: 'not_null', column, value: null });
+    } else {
+      filters.push({ type: `not_${operator}`, column, value });
+    }
     return builder;
   });
 
