@@ -3,6 +3,8 @@
  *
  * Strategy performance analytics and reporting
  * User behavior tracking and analytics
+ * Metrics collection and dashboard
+ * Report generation
  *
  * @module analytics
  */
@@ -14,3 +16,35 @@ export { PerformanceAnalyticsService, performanceAnalyticsService } from './Perf
 // User tracking analytics
 export * from './userTracking.types';
 export { UserTrackingService, userTrackingService } from './UserTrackingService';
+
+// Metrics collection
+export { MetricsService, metricsService } from './MetricsService';
+export type {
+  NorthStarMetric,
+  SecondaryMetrics,
+  MetricCalculationOptions,
+  MetricSnapshot,
+} from './MetricsService';
+
+// Dashboard
+export { DashboardService, dashboardService } from './DashboardService';
+export type {
+  DashboardOverview,
+  DashboardFunnel,
+  DashboardFunnelStep,
+  FeatureUsagePoint,
+  ActivityHeatmap,
+  HeatmapCell,
+  MetricTrend,
+  TrendPoint,
+  RealTimeStats,
+} from './DashboardService';
+
+// Report generation
+export { ReportGenerator, reportGenerator } from './ReportGenerator';
+export type {
+  DailyReport,
+  WeeklyReport,
+  ReportAlert,
+  AnomalyDetection,
+} from './ReportGenerator';
