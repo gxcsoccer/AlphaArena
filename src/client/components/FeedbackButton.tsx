@@ -103,6 +103,7 @@ const FeedbackButton: React.FC<FeedbackButtonProps> = ({
         closable={true}
         autoFocus={false}
         focusLock={true}
+        unmountOnExit={true}
       >
         <FeedbackPanel
           onSuccess={handleFeedbackSuccess}
