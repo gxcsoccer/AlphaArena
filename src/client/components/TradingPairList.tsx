@@ -71,8 +71,8 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       width: 120,
       fixed: 'left',
       render: (symbol: string, record: TradingPair) => (
-        <div 
-          style={{ cursor: 'pointer', fontWeight: 500 }} 
+        <div
+          style={{ cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
           onClick={() => onPairSelect?.(symbol)}
           tabIndex={0}
           onKeyDown={(e) => {

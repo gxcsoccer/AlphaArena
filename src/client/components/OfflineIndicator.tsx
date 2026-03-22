@@ -147,6 +147,12 @@ const OfflineIndicator: React.FC = () => {
 
   // Get status tag
   const getStatusTag = () => {
+    // Don't show tag for disconnected status - the message already says "连接已断开"
+    // This avoids redundant display like "连接已断开" + "已断开" tag
+    if (status === 'disconnected') {
+      return null;
+    }
+
     const statusConfig = {
       connected: { color: 'green', text: '已连接' },
       connecting: { color: 'blue', text: '连接中' },
