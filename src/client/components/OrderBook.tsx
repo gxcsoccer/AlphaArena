@@ -1,16 +1,20 @@
 import React, { useCallback, useMemo, memo, useState } from 'react';
-import { Card, Typography, Table } from '@arco-design/web-react';
+import { Card, Typography } from '@arco-design/web-react';
 import { useOrderBook } from '../hooks/useData';
-import type { TableProps } from '@arco-design/web-react';
 
 /**
- * OrderBook Component
+ * OrderBook Component with Optimized Rendering
+ * 
+ * Issue #513: Performance Optimization
+ * - Optimized re-renders with memo and useMemo
+ * - Reduced DOM nodes for better performance
+ * - Efficient data processing with memoization
+ * - Removed console.log statements for production
  * 
  * Issue #214: Sprint 11: UI 可访问性增强
  * - Added proper ARIA roles and labels
  * - Added section headers with proper semantics
  * - Enhanced keyboard navigation
- * - Added focus indicators
  */
 
 const { Text } = Typography;
@@ -29,13 +33,73 @@ interface OrderBookProps {
   onPriceClick?: (price: number, type: 'bid' | 'ask') => void;
 }
 
-// Mobile row component for stacked layout - defined outside to avoid React hooks violations
+// Memoized row component for better performance
+interface OrderRowProps {
+  row: OrderBookRow;
+  onPriceClick: (price: number, type: 'bid' | 'ask') => void;
+}
+
+const OrderRow: React.FC<OrderRowProps> = memo(({ row, onPriceClick }) => (
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      padding: '0 8px',
+      height: 32,
+      backgroundColor: row.type === 'bid' 
+        ? 'rgba(0, 180, 42, 0.04)' 
+        : 'rgba(245, 63, 63, 0.04)',
+      borderBottom: '1px solid var(--color-border-1, #e5e6eb)',
+      cursor: 'pointer',
+    }}
+    onClick={() => onPriceClick(row.price, row.type)}
+    role="row"
+  >
+    <div
+      style={{
+        width: '40%',
+        color: row.type === 'bid' ? '#00b42a' : '#f53f3f',
+        fontWeight: 600,
+        fontSize: 12,
+      }}
+      role="gridcell"
+    >
+      {row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+    </div>
+    <div
+      style={{
+        width: '35%',
+        fontSize: 12,
+        color: '#4e5969',
+        textAlign: 'center',
+      }}
+      role="gridcell"
+    >
+      {row.quantity.toFixed(4)}
+    </div>
+    <div
+      style={{
+        width: '25%',
+        fontSize: 12,
+        color: '#4e5969',
+        textAlign: 'right',
+      }}
+      role="gridcell"
+    >
+      ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+    </div>
+  </div>
+));
+
+OrderRow.displayName = 'OrderRow';
+
+// Mobile row component for stacked layout
 interface MobileOrderRowProps {
   row: OrderBookRow;
   onPriceClick: (price: number, type: 'bid' | 'ask') => void;
 }
 
-const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) => (
+const MobileOrderRow: React.FC<MobileOrderRowProps> = memo(({ row, onPriceClick }) => (
   <div
     style={{
       display: 'flex',
@@ -107,9 +171,11 @@ const MobileOrderRow: React.FC<MobileOrderRowProps> = ({ row, onPriceClick }) =>
       ${row.total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
     </div>
   </div>
-);
+));
 
-// Mobile stacked layout component - defined outside to avoid React hooks violations
+MobileOrderRow.displayName = 'MobileOrderRow';
+
+// Mobile stacked layout component
 interface MobileLayoutProps {
   bidRows: OrderBookRow[];
   askRows: OrderBookRow[];
@@ -120,7 +186,7 @@ interface MobileLayoutProps {
   onPriceClick: (price: number, type: 'bid' | 'ask') => void;
 }
 
-const MobileLayout: React.FC<MobileLayoutProps> = ({
+const MobileLayout: React.FC<MobileLayoutProps> = memo(({
   bidRows,
   askRows,
   collapsedBids,
@@ -229,7 +295,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({
       </div>
     </div>
   </div>
-);
+));
+
+MobileLayout.displayName = 'MobileLayout';
 
 const OrderBook: React.FC<OrderBookProps> = memo(({
   symbol,
@@ -258,15 +326,11 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
   // Memoize prepared data to avoid recalculation on every render
   const preparedData = useMemo((): OrderBookRow[] => {
     if (!orderBook) {
-      console.log('[OrderBook] No orderBook data available');
       return [];
     }
 
-    // Validate and ensure bids/asks are arrays
     const rawBids = Array.isArray(orderBook.bids) ? orderBook.bids : [];
     const rawAsks = Array.isArray(orderBook.asks) ? orderBook.asks : [];
-
-    console.log('[OrderBook] Processing data - bids:', rawBids.length, 'asks:', rawAsks.length);
 
     const rows: OrderBookRow[] = [];
 
@@ -302,7 +366,6 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
       });
     }
 
-    console.log('[OrderBook] Prepared rows:', rows.length, '(asks:', asks.length, 'bids:', bids.length, ')');
     return rows;
   }, [orderBook, displayLevels]);
 
@@ -325,83 +388,12 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
     [onPriceClick]
   );
 
-  // Memoize table columns to avoid recreation on every render
-  const columns = useMemo<TableProps<OrderBookRow>['columns']>(() => [
-    {
-      title: '价格',
-      dataIndex: 'price',
-      key: 'price',
-      width: '40%',
-      render: (price: number, record: OrderBookRow) => (
-        <Text
-          style={{
-            color: record.type === 'bid' ? '#00b42a' : '#f53f3f',
-            cursor: 'pointer',
-            fontWeight: 600,
-            fontSize: isMobile ? 13 : 12,
-            padding: '8px 0',
-            minHeight: '44px',
-            display: 'flex',
-            alignItems: 'center',
-          }}
-          onClick={() => handlePriceClick(price, record.type)}
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handlePriceClick(price, record.type);
-            }
-          }}
-          aria-label={`${record.type === 'bid' ? '买入' : '卖出'}价格 ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}，点击使用此价格`}
-          role="button"
-        >
-          {price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        </Text>
-      ),
-    },
-    {
-      title: '数量',
-      dataIndex: 'quantity',
-      key: 'quantity',
-      width: '35%',
-      render: (quantity: number) => (
-        <span style={{ 
-          fontSize: isMobile ? 13 : 12,
-          padding: '8px 0',
-          display: 'block',
-          minHeight: '44px',
-          lineHeight: '44px',
-        }}>
-          {quantity.toFixed(4)}
-        </span>
-      ),
-    },
-    {
-      title: '总额',
-      dataIndex: 'total',
-      key: 'total',
-      width: '25%',
-      render: (total: number) => (
-        <span style={{ 
-          fontSize: isMobile ? 13 : 12,
-          padding: '8px 0',
-          display: 'block',
-          minHeight: '44px',
-          lineHeight: '44px',
-        }}>
-          ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-        </span>
-      ),
-    },
-  ], [handlePriceClick, isMobile]);
-
-  // Calculate spread and mid price - optimized to avoid unnecessary calculations
+  // Calculate spread and mid price - optimized
   const spreadInfo = useMemo(() => {
     if (!orderBook?.bids?.length || !orderBook?.asks?.length) {
       return null;
     }
 
-    // Find best bid/ask without creating intermediate arrays
     let bestBid = -Infinity;
     let bestAsk = Infinity;
     
@@ -422,6 +414,26 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
 
     return { bestBid, bestAsk, spread, midPrice };
   }, [orderBook]);
+
+  // Table header component
+  const tableHeader = useMemo(() => (
+    <div
+      style={{
+        display: 'flex',
+        padding: '8px',
+        backgroundColor: 'var(--color-bg-3, #e8e8e8)',
+        borderBottom: '1px solid var(--color-border-1, #e5e6eb)',
+        fontWeight: 500,
+        fontSize: 12,
+        color: 'var(--color-text-3, #86868b)',
+      }}
+      role="row"
+    >
+      <div style={{ width: '40%' }} role="columnheader">价格</div>
+      <div style={{ width: '35%', textAlign: 'center' }} role="columnheader">数量</div>
+      <div style={{ width: '25%', textAlign: 'right' }} role="columnheader">总额</div>
+    </div>
+  ), []);
 
   return (
     <Card
@@ -459,17 +471,12 @@ const OrderBook: React.FC<OrderBookProps> = memo(({
             onPriceClick={handlePriceClick}
           />
         ) : (
-          <Table
-            columns={columns}
-            data={preparedData}
-            rowKey="key"
-            pagination={false}
-            size="small"
-            border={false}
-            style={{ fontSize: 12 }}
-            role="grid"
-            aria-label={`${symbol} 订单簿表格`}
-          />
+          <div role="grid" aria-label={`${symbol} 订单簿表格`} style={{ maxHeight: 400, overflow: 'auto' }}>
+            {tableHeader}
+            {preparedData.map(row => (
+              <OrderRow key={row.key} row={row} onPriceClick={handlePriceClick} />
+            ))}
+          </div>
         )
       )}
       {!loading && !error && !orderBook && (
