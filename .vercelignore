@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+*.log
+.DS_Store
+tests
+coverage
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+__tests__
+__mocks__
+midscene_run
