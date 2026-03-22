@@ -107,6 +107,7 @@ export function useSchedulerRealtime(options: UseSchedulerRealtimeOptions): Sche
   const supabaseRef = useRef<ReturnType<typeof getSchedulerSupabaseClient> | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttemptsRef = useRef(0);
+  const connectRef = useRef<() => Promise<void>>();
 
   const addExecutionEvent = useCallback((event: ExecutionEvent) => {
     setState(prev => {
@@ -211,7 +212,8 @@ export function useSchedulerRealtime(options: UseSchedulerRealtimeOptions): Sche
           setState(prev => ({ ...prev, isReconnecting: true }));
           
           reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
+            // Use ref to avoid self-reference issue
+            connectRef.current?.();
           }, delay);
         } else if (status === 'CHANNEL_ERROR') {
           setState(prev => ({
@@ -232,6 +234,11 @@ export function useSchedulerRealtime(options: UseSchedulerRealtimeOptions): Sche
       }));
     }
   }, [userId, setupChannel]);
+
+  // Keep connectRef in sync with connect (in useEffect to avoid render-phase ref update)
+  useEffect(() => {
+    connectRef.current = connect;
+  }, [connect]);
 
   const disconnect = useCallback(async () => {
     if (reconnectTimeoutRef.current) {

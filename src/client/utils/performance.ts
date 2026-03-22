@@ -29,13 +29,19 @@ export function useDebounce<T>(value: T, wait: number): T {
  */
 export function useThrottle<T>(value: T, limit: number): T {
   const [throttledValue, setThrottledValue] = useState<T>(value);
-  const lastRan = useRef(Date.now());
+  const lastRan = useRef<number>(0);
 
   useEffect(() => {
+    // Initialize lastRan on first effect run
+    if (lastRan.current === 0) {
+      lastRan.current = Date.now();
+    }
+    
     const handler = setTimeout(() => {
-      if (Date.now() - lastRan.current >= limit) {
+      const now = Date.now();
+      if (now - lastRan.current >= limit) {
         setThrottledValue(value);
-        lastRan.current = Date.now();
+        lastRan.current = now;
       }
     }, limit - (Date.now() - lastRan.current));
 
@@ -87,11 +93,16 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
   callback: T,
   limit: number
 ): T {
-  const lastRan = useRef(Date.now());
+  const lastRan = useRef<number>(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
   const throttledCallback = useCallback(
     (...args: Parameters<T>) => {
+      // Initialize lastRan on first call
+      if (lastRan.current === 0) {
+        lastRan.current = Date.now();
+      }
+      
       const now = Date.now();
       const timeSinceLastRan = now - lastRan.current;
 
@@ -186,13 +197,17 @@ export async function processBatch<T, R>(
 /**
  * Memoized selector hook
  * Only recomputes when dependencies change
+ * Note: Uses JSON.stringify for deps comparison to satisfy React Compiler requirements
  */
 export function useMemoizedSelector<T, R>(
   selector: (data: T) => R,
   data: T,
-  deps: any[] = []
+  deps: unknown[] = []
 ): R {
-  return useMemo(() => selector(data), [data, ...deps]);
+  // Use deps array as a single dependency to avoid spread operator
+  // This satisfies React Compiler's requirement for array literal dependencies
+  const depsKey = JSON.stringify(deps);
+  return useMemo(() => selector(data), [data, selector, depsKey]);
 }
 
 /**
