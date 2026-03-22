@@ -129,8 +129,29 @@ export function createFeedbackRouter(): Router {
   });
 
   /**
-   * GET /api/feedback/stats
+   * GET /api/feedback/stats/summary
    * Get feedback statistics (admin only)
+   */
+  router.get('/stats/summary', async (req: Request, res: Response) => {
+    try {
+      const stats = await feedbackDAO.getFeedbackStats();
+
+      res.json({
+        success: true,
+        data: stats,
+      });
+    } catch (error: any) {
+      log.error('Failed to get feedback stats:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get feedback statistics',
+      });
+    }
+  });
+
+  /**
+   * GET /api/feedback/stats
+   * Get feedback statistics (admin only) - alias for /stats/summary
    */
   router.get('/stats', async (req: Request, res: Response) => {
     try {

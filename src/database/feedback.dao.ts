@@ -265,6 +265,9 @@ class FeedbackDAO {
    * Map database record to Feedback object
    */
   private mapFeedbackFromDb(data: any): Feedback {
+    if (!data) {
+      throw new Error('Cannot map null or undefined data to Feedback');
+    }
     return {
       id: data.id,
       userId: data.user_id || undefined,
