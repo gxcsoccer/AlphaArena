@@ -1,65 +1,69 @@
 {
   "sprint": {
-    "number": 43,
-    "title": "Sprint 43: 技术债务收尾与准备",
-    "milestone": 44,
-    "status": "completed",
+    "number": 44,
+    "title": "Sprint 44: 继续优化（性能、UX、错误处理）",
+    "milestone": 45,
+    "status": "executing",
     "period": {
-      "start": "2026-03-20",
-      "end": "2026-03-20"
+      "start": "2026-03-22",
+      "end": null
     },
-    "goals": "清理剩余技术债务，提升代码质量",
+    "goals": "性能优化、UX 改进、错误处理增强",
     "issues": {
-      "completed": [
+      "planned": [
         {
-          "number": 473,
-          "title": "Sprint 43 准备工作",
+          "number": 510,
+          "title": "继续清理 ESLint 错误 (47个) 和警告 (1292个)",
           "priority": "P2",
           "type": "chore",
-          "status": "closed"
+          "status": "ready-for-dev"
         },
         {
-          "number": 474,
-          "title": "修复剩余测试失败 (~16个套件)",
+          "number": 513,
+          "title": "性能优化：页面加载速度优化",
+          "priority": "P1",
+          "type": "feature",
+          "status": "ready-for-dev"
+        },
+        {
+          "number": 514,
+          "title": "UX 改进：交易界面交互优化",
+          "priority": "P1",
+          "type": "feature",
+          "status": "ready-for-dev"
+        },
+        {
+          "number": 515,
+          "title": "错误处理：边界情况处理与错误提示优化",
+          "priority": "P2",
+          "type": "feature",
+          "status": "ready-for-dev"
+        }
+      ],
+      "completed": [
+        {
+          "number": 509,
+          "title": "修复 rebalanceRoutes 测试失败",
           "priority": "P1",
           "type": "bug",
           "status": "closed",
-          "pr": 479
+          "resolution": "测试验证通过，问题已在之前的 PR 中修复"
         },
         {
-          "number": 475,
-          "title": "清理 ESLint 错误 (~116个)",
-          "priority": "P2",
-          "type": "chore",
+          "number": 511,
+          "title": "Sprint 44 规划：确定新功能方向",
+          "priority": "P3",
+          "type": "planning",
           "status": "closed",
-          "pr": 480
+          "resolution": "投资人已选择方向 A：继续优化（性能、UX、错误处理）"
         }
       ],
-      "total": 3,
-      "completed": 3
+      "total": 6,
+      "completed": 2
     },
-    "metrics": {
-      "pr_merged": 2,
-      "issues_closed": 3,
-      "eslint_reduction": "74% (116 → 30)",
-      "test_suites_fixed": 16
-    },
-    "retrospective": {
-      "what_went_well": [
-        "测试失败修复：成功修复了 16 个测试套件的失败问题",
-        "ESlint 清理：错误数量从 116 个减少到 30 个，减少 74%",
-        "PR 快速合并：Issue #474 和 #475 都在同一天完成并合并"
-      ],
-      "what_could_improve": [
-        "仍有 30 个 ESLint 错误待清理",
-        "部分测试失败根因是 mock 问题，需要更好的测试基础设施"
-      ],
-      "action_items": [
-        "继续清理剩余 ESLint 错误",
-        "改进测试 mock 层以减少类似的测试失败"
-      ]
-    },
-    "completed_at": "2026-03-20T19:51:41Z"
-  },
-  "next_sprint": null
+    "previous_sprint": {
+      "number": 43,
+      "summary": "修复了 16 个测试套件失败，ESLint 错误减少 74%（116 → 30），合并 2 个 PR，关闭 3 个 issue"
+    }
+  }
 }

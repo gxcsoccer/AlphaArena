@@ -1,0 +1,561 @@
+/**
+ * UX Improvements Styles
+ * 
+ * Issue #514: UX 改进 - 交易界面交互优化
+ * 
+ * 这个文件包含所有 UX 改进相关的样式：
+ * - 动画效果
+ * - 过渡效果
+ * - 响应式布局
+ * - 交互反馈
+ */
+
+/* ==================== 动画定义 ==================== */
+
+/* 淡入动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 滑入动画（从上到下） */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 滑入动画（从下到上） */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 滑入动画（从左到右） */
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 滑入动画（从右到左） */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 缩放动画 */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 脉冲动画 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* 成功脉冲动画 */
+@keyframes successPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 180, 42, 0.4);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 10px rgba(0, 180, 42, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 180, 42, 0);
+  }
+}
+
+/* 错误抖动动画 */
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+/* 闪烁动画（用于骨架屏） */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 价格变化闪烁 */
+@keyframes priceFlash {
+  0%, 100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: rgba(22, 93, 255, 0.15);
+  }
+}
+
+/* 旋转动画 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==================== 通用样式类 ==================== */
+
+/* 淡入效果 */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 滑入效果 */
+.slide-in-down {
+  animation: slideInDown 0.3s ease-out;
+}
+
+.slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* 缩放效果 */
+.scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* 脉冲效果 */
+.pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* 成功脉冲 */
+.success-pulse {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+/* 错误抖动 */
+.shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* 骨架屏闪烁 */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 25%,
+    #e0e0e0 50%,
+    #f0f0f0 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* 价格变化闪烁 */
+.price-flash {
+  animation: priceFlash 0.5s ease-in-out;
+}
+
+/* 旋转加载 */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+/* ==================== 交互反馈样式 ==================== */
+
+/* 按钮点击效果 */
+.trading-button {
+  transition: all 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.trading-button:active {
+  transform: scale(0.98);
+}
+
+.trading-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.trading-button:active::after {
+  width: 200%;
+  height: 200%;
+}
+
+/* 卡片悬停效果 */
+.trading-card {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.trading-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* 输入框聚焦效果 */
+.trading-input {
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.trading-input:focus {
+  border-color: rgb(var(--primary-6));
+  box-shadow: 0 0 0 2px rgba(var(--primary-6), 0.1);
+}
+
+/* ==================== 订单簿样式 ==================== */
+
+/* 订单簿行悬停效果 */
+.orderbook-row {
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.orderbook-row:hover {
+  background-color: rgba(22, 93, 255, 0.05);
+}
+
+.orderbook-row:active {
+  background-color: rgba(22, 93, 255, 0.1);
+}
+
+/* 订单簿深度条 */
+.orderbook-depth-bar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transition: width 0.3s ease;
+  pointer-events: none;
+}
+
+.orderbook-depth-bar.bid {
+  background: linear-gradient(to left, rgba(0, 180, 42, 0.15), transparent);
+}
+
+.orderbook-depth-bar.ask {
+  background: linear-gradient(to left, rgba(245, 63, 63, 0.15), transparent);
+}
+
+/* ==================== 交易下单样式 ==================== */
+
+/* 下单成功状态 */
+.order-success {
+  animation: successPulse 0.6s ease-in-out;
+}
+
+/* 下单失败状态 */
+.order-error {
+  animation: shake 0.5s ease-in-out;
+  border-color: #f53f3f;
+}
+
+/* 表单验证错误 */
+.form-validation-error {
+  color: #f53f3f;
+  font-size: 12px;
+  margin-top: 4px;
+  animation: slideInDown 0.3s ease-out;
+}
+
+/* 表单验证警告 */
+.form-validation-warning {
+  color: #faad14;
+  font-size: 12px;
+  margin-top: 4px;
+  animation: slideInDown 0.3s ease-out;
+}
+
+/* ==================== Toast 通知样式 ==================== */
+
+/* Toast 容器 */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 90vw;
+  width: 400px;
+}
+
+/* Toast 项 */
+.toast-item {
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideInDown 0.3s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Toast 进度条 */
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: #165dff;
+  transition: width 0.05s linear;
+}
+
+/* ==================== 移动端优化样式 ==================== */
+
+/* 移动端触摸优化 */
+@media (max-width: 768px) {
+  /* 增大触摸目标 */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px;
+  }
+  
+  /* 防止双击缩放 */
+  .no-tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* 平滑滚动 */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+  
+  /* 移动端按钮增大 */
+  .mobile-button {
+    min-height: 48px;
+    font-size: 16px;
+  }
+  
+  /* 移动端输入框增大 */
+  .mobile-input {
+    min-height: 44px;
+    font-size: 16px;
+  }
+  
+  /* 移动端订单簿优化 */
+  .mobile-orderbook-row {
+    padding: 12px 16px;
+    min-height: 60px;
+  }
+  
+  /* 移动端交易下单优化 */
+  .mobile-trading-form {
+    padding: 16px;
+  }
+  
+  /* 移动端标签页优化 */
+  .mobile-tabs {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--color-bg-2);
+  }
+}
+
+/* ==================== 响应式布局样式 ==================== */
+
+/* 桌面端网格布局 */
+@media (min-width: 1024px) {
+  .trading-grid-desktop {
+    display: grid;
+    grid-template-columns: 280px 1fr 320px;
+    gap: 16px;
+    height: calc(100vh - 120px);
+  }
+  
+  .trading-grid-compact {
+    grid-template-columns: 220px 1fr 280px;
+  }
+}
+
+/* 平板端布局 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .trading-grid-tablet {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 16px;
+  }
+}
+
+/* ==================== 图表交互样式 ==================== */
+
+/* 图表工具提示 */
+.chart-tooltip {
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+/* 图表十字线 */
+.chart-crosshair {
+  stroke: rgba(22, 93, 255, 0.5);
+  stroke-width: 1;
+  stroke-dasharray: 4;
+}
+
+/* ==================== 加载状态样式 ==================== */
+
+/* 全屏加载遮罩 */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  z-index: 9999;
+}
+
+/* 内联加载指示器 */
+.inline-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #86909c;
+}
+
+/* ==================== 深色模式支持 ==================== */
+
+/* 深色模式变量覆盖 */
+body[arco-theme='dark'] {
+  --trading-success-bg: rgba(0, 180, 42, 0.15);
+  --trading-error-bg: rgba(245, 63, 63, 0.15);
+  --trading-warning-bg: rgba(250, 173, 20, 0.15);
+}
+
+/* 深色模式下的 Toast */
+body[arco-theme='dark'] .toast-item {
+  background: var(--color-bg-2);
+  border: 1px solid var(--color-border-1);
+}
+
+/* 深色模式下的骨架屏 */
+body[arco-theme='dark'] .skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 25%,
+    #3a3a3a 50%,
+    #2a2a2a 75%
+  );
+}
+
+/* ==================== 可访问性增强 ==================== */
+
+/* 焦点可见性 */
+.trading-focus-visible:focus-visible {
+  outline: 2px solid rgb(var(--primary-6));
+  outline-offset: 2px;
+}
+
+/* 屏幕阅读器专用文本 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+  .orderbook-row {
+    border: 2px solid currentColor;
+  }
+  
+  .trading-button {
+    border-width: 2px;
+  }
+}
+
+/* 减少动画偏好 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

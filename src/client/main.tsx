@@ -6,7 +6,9 @@ import zhCN from '@arco-design/web-react/es/locale/zh-CN';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { validateConfig, logConfigStatus } from './utils/config';
+import ToastContainer from './components/Toast';
 import './index.css';
+import './styles/ux-improvements.css'; // Issue #514: UX 改进样式
 
 // Validate configuration before rendering
 const config = validateConfig();
@@ -23,6 +25,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ConfigProvider locale={zhCN}>
       <ErrorBoundary>
         <App />
+        <ToastContainer />
       </ErrorBoundary>
     </ConfigProvider>
   </React.StrictMode>
