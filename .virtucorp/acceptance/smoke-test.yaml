@@ -5,37 +5,40 @@ web:
   url: "https://alphaarena-eight.vercel.app"
 
 tasks:
-  - name: "Homepage Load"
+  - name: "Landing Page - Unauthenticated User"
     flow:
       - sleep: 3000
-      - aiAssert: "页面标题包含 AlphaArena 或类似股票/交易相关的文字"
-      - aiAssert: "页面主要内容区域可见（交易对列表、交易面板等），没有被白屏或加载失败阻塞"
-      - aiAssert: "没有明显的 404 或 500 错误页面"
+      - aiAssert: "页面标题包含 AlphaArena 或专业级算法交易相关文字"
+      - aiAssert: "页面显示 Landing Page 内容：标题包含'专业级算法交易'"
+      - aiAssert: "页面显示'AI 驱动 · 无风险'或类似的副标题"
+      - aiAssert: "页面有'免费注册'按钮，按钮可点击"
+      - aiAssert: "页面有'分享给朋友'或'登录'相关按钮/链接"
+      - aiAssert: "页面显示统计数据：包含活跃用户、模拟交易量等统计信息"
+      - aiAssert: "页面显示核心功能介绍：AI 驱动策略、模拟交易、竞技排名、极速执行"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
-      - aiAssert: "页面功能正常，没有阻塞性问题（连接状态提示如果存在是可接受的，不存在也说明后端正常）"
-  - name: "Navigation Test"
+      - aiAssert: "没有明显的 404 或 500 错误页面"
+
+  - name: "Landing Page - Navigation Links"
     flow:
-      # Handle welcome popup for first-time visitors
-      - ai: "如果页面出现欢迎弹窗（包含'欢迎使用 AlphaArena'或'欢迎来到 AlphaArena'文字），点击关闭按钮或'开始使用'按钮将其关闭；如果没有弹窗则继续"
-      - sleep: 1000
-      - aiAssert: "左侧导航栏可见，包含多个导航菜单项（如行情、Dashboard、Strategies、Trades等）"
-      - ai: "点击左侧导航栏中的 Dashboard 菜单项"
-      - sleep: 2000
-      - aiAssert: "页面显示了仪表板相关内容（如统计卡片、图表、策略概览等）"
-      - ai: "点击左侧导航栏中的 Trades 菜单项"
-      - sleep: 2000
-      - aiAssert: "页面显示了交易相关内容（如交易记录列表、订单历史等）"
-      - aiAssert: "导航切换流畅，页面内容正确显示，没有错误或白屏"
-  - name: "Core Functionality"
+      - aiAssert: "页面底部 Footer 区域可见"
+      - aiAssert: "Footer 包含'产品'区域，有'注册'和'登录'链接"
+      - aiAssert: "Footer 包含'资源'区域，有'排行榜'和'订阅方案'链接"
+
+  - name: "Landing Page - Interactive Elements"
     flow:
+      - ai: "点击'免费注册'按钮"
       - sleep: 2000
-      - aiAssert: "页面显示交易相关内容（K线图表、订单簿、交易面板，或策略统计卡片、图表等）"
-      - ai: "如果当前在策略仪表盘页面，点击导航中的 Trades 或交易链接；否则继续验证当前页面"
-      - sleep: 1000
-      - aiAssert: "交易界面可见，包含交易记录、订单簿、交易面板，或交易分析图表（如交易分布图、成交量图等）"
-      - ai: "滚动页面查看更多内容，验证页面滚动功能正常"
+      - aiAssert: "页面跳转到注册页面，URL 包含 /register"
+      - ai: "点击浏览器返回按钮，回到 Landing Page"
+      - sleep: 2000
+      - aiAssert: "回到 Landing Page，页面正常显示"
+
   - name: "Console Error Check"
     flow:
       - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
       - aiAssert: "页面没有显示致命的 API 错误或白屏错误"
       - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
+
+  # Note: Authenticated user flow test would require a test account
+  # This can be added in a separate test file or with environment variables
+  # for credentials when the team decides to implement it.
