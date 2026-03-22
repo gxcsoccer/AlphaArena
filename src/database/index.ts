@@ -311,3 +311,6 @@ export { PerformanceDAO, performanceDAO } from './performance.dao';
 
 // Backtest-Live Integration DAO
 export { BacktestLiveDAO, backtestLiveDAO } from './backtest-live.dao';
+
+// User Tracking DAO
+export { userTrackingDAO } from './user-tracking.dao';
