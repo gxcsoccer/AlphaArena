@@ -1,15 +1,23 @@
 /**
  * MetricsService Tests
  *
- * Unit tests for metrics calculation logic
- *
  * @module analytics/__tests__/MetricsService.test
  */
 
-import { userTrackingDAO } from '../../database/user-tracking.dao';
-
 // Mock dependencies
-jest.mock('../../database/client');
+jest.mock('../../utils/logger', () => ({
+  createLogger: () => ({
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+  }),
+}));
+
+// Explicitly mock database client - this is needed because relative paths 
+// don't match the moduleNameMapper pattern in jest.config.js
+jest.mock('../../database/client', () => require('../../../tests/__mocks__/supabase'));
+
 jest.mock('../../database/user-tracking.dao', () => ({
   userTrackingDAO: {
     getUserEngagementMetrics: jest.fn().mockResolvedValue({
@@ -30,90 +38,88 @@ jest.mock('../../database/user-tracking.dao', () => ({
     }),
   },
 }));
-jest.mock('../../database/user-tracking.dao');
+
+// Import after mocks are set up
+import { metricsService } from '../MetricsService';
+import { seedMockData, clearMockData } from '../../../tests/__mocks__/supabase';
 
 describe('MetricsService', () => {
-  describe('North Star Metric Calculation', () => {
-    it('should define correct metric name for North Star', () => {
-      const northStarName = 'weekly_active_trading_users';
-      expect(northStarName).toBe('weekly_active_trading_users');
+  beforeEach(() => {
+    clearMockData();
+  });
+
+  describe('calculateNorthStarMetric', () => {
+    it('should return North Star metric', async () => {
+      // Seed some trading events
+      seedMockData('user_tracking_events', [
+        { id: '1', user_id: 'user1', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
+        { id: '2', user_id: 'user2', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
+      ]);
+
+      const result = await metricsService.calculateNorthStarMetric();
+
+      expect(result).toBeDefined();
+      expect(result.name).toBe('weekly_active_trading_users');
+      expect(result.value).toBeDefined();
+      expect(result.trend).toBeDefined();
     });
   });
 
-  describe('Secondary Metrics', () => {
-    it('should calculate retention rate from engagement metrics', async () => {
-      (userTrackingDAO.getUserEngagementMetrics as jest.Mock).mockResolvedValue({
-        dau: 100,
-        wau: 300,
-        mau: 500,
-        stickiness: 20,
-        retention: { day1: 40, day7: 25, day30: 10 },
-        avgSessionDuration: 300,
-        avgSessionsPerUser: 2.5,
-      });
+  describe('calculateSecondaryMetrics', () => {
+    it('should return secondary metrics', async () => {
+      const result = await metricsService.calculateSecondaryMetrics();
 
-      const engagement = await userTrackingDAO.getUserEngagementMetrics(30);
-      
-      expect(engagement.retention.day1).toBe(40);
-      expect(engagement.retention.day7).toBe(25);
-      expect(engagement.retention.day30).toBe(10);
+      expect(result).toBeDefined();
+      expect(result.engagement).toBeDefined();
+      expect(result.retentionRate).toBeDefined();
+      expect(result.tradingFrequency).toBeDefined();
+      expect(result.conversionRate).toBeDefined();
     });
   });
 
-  describe('Metric Snapshots', () => {
-    it('should define metric snapshot interface', () => {
-      const snapshot = {
-        metricType: 'north_star' as const,
+  describe('getKeyMetrics', () => {
+    it('should return all key metrics', async () => {
+      seedMockData('user_tracking_events', [
+        { id: '1', user_id: 'user1', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
+      ]);
+
+      const result = await metricsService.getKeyMetrics();
+
+      expect(result).toBeDefined();
+      expect(result.northStar).toBeDefined();
+      expect(result.secondary).toBeDefined();
+      expect(result.calculatedAt).toBeInstanceOf(Date);
+    });
+  });
+
+  describe('getMetricHistory', () => {
+    it('should return metric history', async () => {
+      seedMockData('metric_snapshots', [
+        { id: '1', metric_name: 'dau', value: 100, calculated_at: new Date().toISOString() },
+      ]);
+
+      const result = await metricsService.getMetricHistory('dau');
+
+      expect(result).toBeDefined();
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('storeMetricSnapshot', () => {
+    it('should store metric snapshot', async () => {
+      const result = await metricsService.storeMetricSnapshot({
+        metricType: 'north_star',
         metricName: 'weekly_active_trading_users',
         value: 100,
         previousValue: 90,
         changePercent: 11.11,
         calculatedAt: new Date(),
-        periodStart: new Date(),
+        periodStart: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
         periodEnd: new Date(),
-      };
+      });
 
-      expect(snapshot.metricType).toBe('north_star');
-      expect(snapshot.metricName).toBe('weekly_active_trading_users');
-      expect(snapshot.value).toBe(100);
-    });
-  });
-
-  describe('Trend Detection', () => {
-    it('should detect up trend when change > 2%', () => {
-      const changePercent = 5;
-      const trend = changePercent > 2 ? 'up' : changePercent < -2 ? 'down' : 'flat';
-      expect(trend).toBe('up');
-    });
-
-    it('should detect down trend when change < -2%', () => {
-      const changePercent = -5;
-      const trend = changePercent > 2 ? 'up' : changePercent < -2 ? 'down' : 'flat';
-      expect(trend).toBe('down');
-    });
-
-    it('should detect flat trend when change is between -2% and 2%', () => {
-      const changePercent = 1;
-      const trend = changePercent > 2 ? 'up' : changePercent < -2 ? 'down' : 'flat';
-      expect(trend).toBe('flat');
-    });
-  });
-
-  describe('DAU/MAU Stickiness', () => {
-    it('should calculate stickiness as DAU/MAU ratio', () => {
-      const dau = 100;
-      const mau = 500;
-      const stickiness = (dau / mau) * 100;
-      
-      expect(stickiness).toBe(20);
-    });
-
-    it('should handle zero MAU', () => {
-      const dau = 100;
-      const mau = 0;
-      const stickiness = mau > 0 ? (dau / mau) * 100 : 0;
-      
-      expect(stickiness).toBe(0);
+      expect(result).toBeDefined();
+      expect(result.id).toBeDefined();
     });
   });
 });
