@@ -45,7 +45,9 @@ import { lazyWithRetry, getPendingRoute } from './utils/lazyWithRetry';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 
 // Lazy load pages for code splitting with retry logic for chunk loading failures
+const IndexPage = lazyWithRetry(() => import('./pages/IndexPage'));
 const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
+const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
 const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
 const StrategiesPage = lazyWithRetry(() => import('./pages/StrategiesPage'));
 const TradesPage = lazyWithRetry(() => import('./pages/TradesPage'));
@@ -485,7 +487,8 @@ const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<IndexPage />} />
+        <Route path="/landing" element={<LandingPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/performance" element={<PerformancePage />} />
         <Route path="/risk" element={<RiskPage />} />
@@ -552,6 +555,25 @@ function RouteRestorer() {
   return null;
 }
 
+// Routes that don't need MainLayout (public pages)
+const PUBLIC_ROUTES = ['/', '/landing', '/login', '/register'];
+
+// Conditional layout wrapper
+function AppLayout({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isPublicRoute = PUBLIC_ROUTES.some(route => 
+    route === '/' ? location.pathname === '/' : location.pathname.startsWith(route)
+  );
+
+  if (isPublicRoute) {
+    // Public routes render without sidebar layout
+    return <>{children}</>;
+  }
+
+  // Protected routes render with MainLayout
+  return <MainLayout>{children}</MainLayout>;
+}
+
 function App() {
   // Enable error reporting with localStorage fallback
   const { errors, clearErrors, hasErrors } = useErrorReporter({
@@ -569,9 +591,9 @@ function App() {
         <BrowserRouter>
           <RouteRestorer />
           <OfflineIndicator />
-          <MainLayout>
+          <AppLayout>
             <AppRoutes />
-          </MainLayout>
+          </AppLayout>
           {/* Error reporter panel - shown when errors are captured */}
           {hasErrors && (
             <ErrorReporterPanel
