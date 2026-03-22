@@ -1,0 +1,37 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://alphaarena.app/sitemap.xml
+
+# Disallow private pages
+Disallow: /dashboard
+Disallow: /strategies
+Disallow: /trades
+Disallow: /holdings
+Disallow: /performance
+Disallow: /risk
+Disallow: /settings
+Disallow: /user-dashboard
+Disallow: /admin/
+Disallow: /subscription/success
+Disallow: /subscription/cancel
+Disallow: /notification-preferences
+Disallow: /notifications
+Disallow: /data-source
+Disallow: /virtual-account
+Disallow: /exchange-accounts
+Disallow: /strategy-portfolio
+Disallow: /backtest
+Disallow: /journal
+
+# Allow public pages
+Allow: /
+Allow: /landing
+Allow: /register
+Allow: /login
+Allow: /leaderboard
+Allow: /docs/api
+Allow: /marketplace
+Allow: /subscription
