@@ -222,8 +222,9 @@ let _selectColumns = '*';
     return builder;
   });
 
-  // not filter - for .not('column', 'is', null) patterns
+  // not filter - negates the next filter
   builder.not = jest.fn().mockImplementation((column: string, operator: string, value: any) => {
+    // Handle 'is' null check
     if (operator === 'is' && value === null) {
       filters.push({ type: 'not_null', column, value: null });
     } else {

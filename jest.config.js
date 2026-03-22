@@ -109,6 +109,8 @@ module.exports = {
     '^src/client/utils/config$': '<rootDir>/tests/__mocks__/config.ts',
     // Mock Supabase client for database tests
     '^src/database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
+    // Also mock relative imports from any directory (e.g., '../../database/client')
+    '^(\\.\\./)+database/client$': '<rootDir>/tests/__mocks__/supabase.ts',
     // Also mock relative imports from DAO files (e.g., './client' in database directory)
     '^\\./client$': '<rootDir>/tests/__mocks__/supabase.ts',
     '^\\./client\\.js$': '<rootDir>/tests/__mocks__/supabase.ts',

@@ -45,9 +45,9 @@ router.get('/metrics/north-star', async (req: Request, res: Response) => {
 
 /**
  * GET /api/dashboard/metrics/secondary
- * Get secondary metrics
+ * Get secondary metrics (admin only)
  */
-router.get('/metrics/secondary', async (req: Request, res: Response) => {
+router.get('/metrics/secondary', requireAdmin, async (req: Request, res: Response) => {
   try {
     const metrics = await metricsService.calculateSecondaryMetrics();
     res.json({ success: true, metrics });
@@ -131,9 +131,9 @@ router.get('/', async (req: Request, res: Response) => {
 
 /**
  * GET /api/dashboard/reports/daily
- * Get daily report
+ * Get daily report (admin only)
  */
-router.get('/reports/daily', async (req: Request, res: Response) => {
+router.get('/reports/daily', requireAdmin, async (req: Request, res: Response) => {
   try {
     const date = req.query.date ? new Date(req.query.date as string) : undefined;
     const report = await reportGenerator.generateDailyReport(date);
@@ -146,9 +146,9 @@ router.get('/reports/daily', async (req: Request, res: Response) => {
 
 /**
  * GET /api/dashboard/reports/weekly
- * Get weekly report
+ * Get weekly report (admin only)
  */
-router.get('/reports/weekly', async (req: Request, res: Response) => {
+router.get('/reports/weekly', requireAdmin, async (req: Request, res: Response) => {
   try {
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
     const report = await reportGenerator.generateWeeklyReport(endDate);

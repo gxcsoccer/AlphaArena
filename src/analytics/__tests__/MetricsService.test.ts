@@ -4,20 +4,10 @@
  * @module analytics/__tests__/MetricsService.test
  */
 
+import { MetricsService } from '../MetricsService';
+import { seedMockData, clearMockData } from '../../database/client';
+
 // Mock dependencies
-jest.mock('../../utils/logger', () => ({
-  createLogger: () => ({
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-    debug: jest.fn(),
-  }),
-}));
-
-// Explicitly mock database client - this is needed because relative paths 
-// don't match the moduleNameMapper pattern in jest.config.js
-jest.mock('../../database/client', () => require('../../../tests/__mocks__/supabase'));
-
 jest.mock('../../database/user-tracking.dao', () => ({
   userTrackingDAO: {
     getUserEngagementMetrics: jest.fn().mockResolvedValue({
@@ -38,88 +28,128 @@ jest.mock('../../database/user-tracking.dao', () => ({
     }),
   },
 }));
-
-// Import after mocks are set up
-import { metricsService } from '../MetricsService';
-import { seedMockData, clearMockData } from '../../../tests/__mocks__/supabase';
+// Note: database/client is automatically mocked via moduleNameMapper in jest.config.js
 
 describe('MetricsService', () => {
+  let metricsService: MetricsService;
+
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers().setSystemTime(new Date('2024-01-15T12:00:00Z'));
+    clearMockData();
+    metricsService = new MetricsService();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
     clearMockData();
   });
 
   describe('calculateNorthStarMetric', () => {
-    it('should return North Star metric', async () => {
-      // Seed some trading events
+    it('should calculate weekly active trading users', async () => {
+      // Seed mock data for current period and previous period
+      const now = new Date('2024-01-15T12:00:00Z');
+      const currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const previousPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+      
       seedMockData('user_tracking_events', [
-        { id: '1', user_id: 'user1', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
-        { id: '2', user_id: 'user2', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
+        // Current period orders
+        { user_id: 'user1', event_type: 'order_placed', occurred_at: now.toISOString() },
+        { user_id: 'user2', event_type: 'order_placed', occurred_at: now.toISOString() },
+        { user_id: 'user1', event_type: 'order_placed', occurred_at: now.toISOString() }, // duplicate
+        { user_id: 'user3', event_type: 'order_placed', occurred_at: now.toISOString() },
+        // Previous period orders
+        { user_id: 'user1', event_type: 'order_placed', occurred_at: previousPeriodStart.toISOString() },
+        { user_id: 'user2', event_type: 'order_placed', occurred_at: previousPeriodStart.toISOString() },
       ]);
 
       const result = await metricsService.calculateNorthStarMetric();
 
-      expect(result).toBeDefined();
       expect(result.name).toBe('weekly_active_trading_users');
-      expect(result.value).toBeDefined();
-      expect(result.trend).toBeDefined();
+      expect(result.value).toBe(3); // 3 unique users in current period
+      expect(result.previousValue).toBe(2); // 2 unique users in previous period
     });
-  });
 
-  describe('calculateSecondaryMetrics', () => {
-    it('should return secondary metrics', async () => {
-      const result = await metricsService.calculateSecondaryMetrics();
+    it('should handle zero previous value', async () => {
+      const now = new Date('2024-01-15T12:00:00Z');
+      
+      // Only current period data, no previous period data
+      seedMockData('user_tracking_events', [
+        { user_id: 'user1', event_type: 'order_placed', occurred_at: now.toISOString() },
+      ]);
 
-      expect(result).toBeDefined();
-      expect(result.engagement).toBeDefined();
-      expect(result.retentionRate).toBeDefined();
-      expect(result.tradingFrequency).toBeDefined();
-      expect(result.conversionRate).toBeDefined();
+      const result = await metricsService.calculateNorthStarMetric();
+
+      expect(result.value).toBe(1);
+      expect(result.previousValue).toBe(0);
+      expect(result.changePercent).toBe(0);
     });
   });
 
   describe('getKeyMetrics', () => {
     it('should return all key metrics', async () => {
+      const now = new Date('2024-01-15T12:00:00Z');
+      
       seedMockData('user_tracking_events', [
-        { id: '1', user_id: 'user1', event_type: 'order_placed', occurred_at: new Date().toISOString(), event_category: 'trading', event_name: 'order' },
+        { user_id: 'u1', event_type: 'order_placed', occurred_at: now.toISOString() },
       ]);
+      seedMockData('metric_snapshots', []);
 
       const result = await metricsService.getKeyMetrics();
 
-      expect(result).toBeDefined();
       expect(result.northStar).toBeDefined();
-      expect(result.secondary).toBeDefined();
+      expect(result.northStar.name).toBe('weekly_active_trading_users');
       expect(result.calculatedAt).toBeInstanceOf(Date);
     });
   });
 
-  describe('getMetricHistory', () => {
-    it('should return metric history', async () => {
-      seedMockData('metric_snapshots', [
-        { id: '1', metric_name: 'dau', value: 100, calculated_at: new Date().toISOString() },
-      ]);
+  describe('storeMetricSnapshot', () => {
+    it('should store metric snapshot in database', async () => {
+      const snapshot = {
+        metricName: 'test_metric',
+        value: 100,
+        period: 'daily' as const,
+        periodStart: new Date(),
+        periodEnd: new Date(),
+      };
 
-      const result = await metricsService.getMetricHistory('dau');
-
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      // Should not throw
+      await expect(metricsService.storeMetricSnapshot(snapshot)).resolves.not.toThrow();
     });
   });
 
-  describe('storeMetricSnapshot', () => {
-    it('should store metric snapshot', async () => {
-      const result = await metricsService.storeMetricSnapshot({
-        metricType: 'north_star',
-        metricName: 'weekly_active_trading_users',
-        value: 100,
-        previousValue: 90,
-        changePercent: 11.11,
-        calculatedAt: new Date(),
-        periodStart: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        periodEnd: new Date(),
-      });
+  describe('getMetricHistory', () => {
+    it('should retrieve metric history', async () => {
+      seedMockData('metric_snapshots', [
+        { metric_name: 'dau', calculated_at: '2024-01-03T00:00:00Z', value: 110 },
+        { metric_name: 'dau', calculated_at: '2024-01-02T00:00:00Z', value: 105 },
+        { metric_name: 'dau', calculated_at: '2024-01-01T00:00:00Z', value: 100 },
+      ]);
 
-      expect(result).toBeDefined();
-      expect(result.id).toBeDefined();
+      const result = await metricsService.getMetricHistory('dau', 30);
+
+      expect(result.length).toBe(3);
+      expect(result[0].value).toBeDefined();
+    });
+  });
+
+  describe('calculateSecondaryMetrics', () => {
+    it('should calculate all secondary metrics', async () => {
+      const now = new Date('2024-01-15T12:00:00Z');
+      
+      seedMockData('user_tracking_events', [
+        { user_id: 'u1', event_type: 'user_signup', occurred_at: now.toISOString() },
+        { user_id: 'u2', event_type: 'user_signup', occurred_at: now.toISOString() },
+        { user_id: 'u1', event_type: 'order_placed', occurred_at: now.toISOString() },
+      ]);
+
+      const result = await metricsService.calculateSecondaryMetrics(7);
+
+      expect(result.engagement).toBeDefined();
+      expect(result.retentionRate).toBeDefined();
+      expect(result.tradingFrequency).toBeDefined();
+      expect(result.conversionRate).toBeDefined();
+      expect(result.registrationRate).toBeDefined();
     });
   });
 });

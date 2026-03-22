@@ -2,9 +2,15 @@
  * Landing Page
  * Marketing landing page for non-authenticated users
  * Features: Hero section, value proposition, features, social proof, CTA
+ * 
+ * Issue #523: Landing Page Optimization
+ * - SEO meta tags (via index.html)
+ * - Social sharing with UTM parameters
+ * - Share to social platforms
+ * - New user onboarding flow
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Typography, 
   Button, 
@@ -13,6 +19,8 @@ import {
   Grid,
   Divider,
   Tag,
+  Message,
+  Tooltip,
 } from '@arco-design/web-react';
 import {
   IconTrophy,
@@ -24,8 +32,9 @@ import {
   IconStar,
   IconArrowRight,
   IconShareAlt,
+  IconLink,
 } from '@arco-design/web-react/icon';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const { Title, Text, Paragraph } = Typography;
@@ -89,10 +98,53 @@ const stats = [
   { value: '24/7', label: '实时监控' },
 ];
 
+// Social platforms for sharing
+const socialPlatforms = [
+  {
+    name: '微信',
+    icon: '💬',
+    color: '#07C160',
+    generateUrl: (url: string, text: string) => {
+      // WeChat requires QR code or mobile app, just copy link
+      return null;
+    },
+  },
+  {
+    name: 'Twitter',
+    icon: '🐦',
+    color: '#1DA1F2',
+    generateUrl: (url: string, text: string) => {
+      return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=AlphaArena,量化交易,AI交易`;
+    },
+  },
+  {
+    name: 'Facebook',
+    icon: '📘',
+    color: '#4267B2',
+    generateUrl: (url: string, text: string) => {
+      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(text)}`;
+    },
+  },
+];
+
+// Generate UTM parameters for tracking
+function generateUTMParams(medium: string = 'social', source: string = 'share'): string {
+  const utmParams = new URLSearchParams({
+    utm_source: source,
+    utm_medium: medium,
+    utm_campaign: 'landing_page_share',
+    utm_content: 'share_button',
+    utm_term: 'organic',
+  });
+  return utmParams.toString();
+}
+
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
 
   // Detect mobile
   useEffect(() => {
@@ -109,26 +161,85 @@ const LandingPage: React.FC = () => {
     }
   }, [isAuthenticated, isLoading, navigate]);
 
-  // Handle share
-  const handleShare = async () => {
+  // Generate share URL with UTM parameters
+  const getShareUrl = useCallback((source: string = 'direct') => {
+    const baseUrl = window.location.origin;
+    const utmParams = generateUTMParams('social', source);
+    return `${baseUrl}?${utmParams}`;
+  }, []);
+
+  // Copy link to clipboard
+  const copyLinkToClipboard = useCallback(async () => {
+    const url = getShareUrl('copy_link');
+    try {
+      await navigator.clipboard.writeText(url);
+      Message.success('链接已复制到剪贴板');
+    } catch (err) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      Message.success('链接已复制到剪贴板');
+    }
+  }, [getShareUrl]);
+
+  // Share to social platform
+  const shareToPlatform = useCallback((platform: typeof socialPlatforms[0]) => {
+    const url = getShareUrl(platform.name.toLowerCase());
+    const text = 'AlphaArena - 专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境。免费注册，即刻开始您的量化交易之旅！';
+    
+    const shareUrl = platform.generateUrl(url, text);
+    
+    if (shareUrl) {
+      // Open in new window
+      window.open(shareUrl, '_blank', 'width=600,height=400');
+    } else {
+      // WeChat: copy link
+      copyLinkToClipboard();
+    }
+    
+    // Track share event (could be sent to analytics)
+    console.log('[Share] Platform:', platform.name, 'URL:', url);
+  }, [getShareUrl, copyLinkToClipboard]);
+
+  // Handle native share (Web Share API)
+  const handleNativeShare = useCallback(async () => {
+    const url = getShareUrl('native_share');
     const shareData = {
       title: 'AlphaArena - 算法交易平台',
-      text: '免费体验专业级算法交易，AI 驱动的智能策略，无风险的模拟交易环境。',
-      url: window.location.origin,
+      text: '专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境。免费注册，即刻开始！',
+      url,
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        console.log('[Share] Native share successful');
       } catch (err) {
-        // User cancelled or error - fallback to clipboard
-        navigator.clipboard.writeText(window.location.origin);
+        // User cancelled or error
+        if ((err as Error).name !== 'AbortError') {
+          console.error('[Share] Native share error:', err);
+        }
       }
     } else {
-      // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.origin);
+      // Fallback: show share menu
+      setShowShareMenu(!showShareMenu);
     }
-  };
+  }, [getShareUrl, showShareMenu]);
+
+  // Register with referral tracking
+  const handleRegister = useCallback(() => {
+    // Get referral code from URL if exists
+    const ref = searchParams.get('ref');
+    if (ref) {
+      navigate(`/register?ref=${ref}`);
+    } else {
+      navigate('/register');
+    }
+  }, [navigate, searchParams]);
 
   if (isLoading) {
     return null;
@@ -167,7 +278,7 @@ const LandingPage: React.FC = () => {
                 type="primary"
                 size="large"
                 icon={<IconUser />}
-                onClick={() => navigate('/register')}
+                onClick={handleRegister}
                 style={{ minWidth: 140 }}
               >
                 免费注册
@@ -175,12 +286,57 @@ const LandingPage: React.FC = () => {
               <Button
                 size="large"
                 icon={<IconShareAlt />}
-                onClick={handleShare}
+                onClick={handleNativeShare}
                 style={{ minWidth: 140 }}
               >
                 分享给朋友
               </Button>
             </Space>
+
+            {/* Social share buttons */}
+            {showShareMenu && (
+              <Card 
+                style={{ 
+                  marginTop: 16, 
+                  padding: '16px 24px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                }}
+              >
+                <Space size="medium">
+                  {socialPlatforms.map((platform) => (
+                    <Tooltip key={platform.name} content={platform.name}>
+                      <Button
+                        shape="circle"
+                        size="large"
+                        onClick={() => shareToPlatform(platform)}
+                        style={{ 
+                          background: platform.color,
+                          color: 'white',
+                          border: 'none',
+                          fontSize: 20,
+                        }}
+                      >
+                        {platform.icon}
+                      </Button>
+                    </Tooltip>
+                  ))}
+                  <Tooltip content="复制链接">
+                    <Button
+                      shape="circle"
+                      size="large"
+                      onClick={copyLinkToClipboard}
+                      icon={<IconLink />}
+                      style={{ fontSize: 20 }}
+                    />
+                  </Tooltip>
+                </Space>
+                <div style={{ marginTop: 12, textAlign: 'center' }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    分享给朋友，一起开始量化交易之旅！
+                  </Text>
+                </div>
+              </Card>
+            )}
           </Space>
 
           {/* Stats */}
@@ -322,7 +478,7 @@ const LandingPage: React.FC = () => {
             type="primary"
             size="large"
             icon={<IconArrowRight />}
-            onClick={() => navigate('/register')}
+            onClick={handleRegister}
             style={{ 
               background: 'white', 
               color: '#165dff',
@@ -331,6 +487,9 @@ const LandingPage: React.FC = () => {
           >
             立即开始
           </Button>
+          <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>
+            无需信用卡 · 免费使用核心功能 · 随时升级
+          </Text>
         </Space>
       </section>
 
