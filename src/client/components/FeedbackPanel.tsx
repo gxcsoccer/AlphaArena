@@ -9,11 +9,10 @@
  * - Optional contact info
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Form,
   Input,
-  Select,
   Radio,
   Button,
   Upload,
@@ -21,13 +20,11 @@ import {
   Space,
   Typography,
   Divider,
-  Spin,
 } from '@arco-design/web-react';
 import {
   IconBug,
   IconBulb,
   IconMessage,
-  IconPlus,
   IconDelete,
   IconCamera,
 } from '@arco-design/web-react/icon';

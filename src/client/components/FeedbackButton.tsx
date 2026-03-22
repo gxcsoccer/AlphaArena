@@ -1,101 +1,112 @@
 /**
- * FeedbackButton - Floating User Feedback Entry Button
+ * FeedbackButton - Floating feedback button component
  * 
- * A floating button fixed at the bottom-right corner that opens
- * the feedback panel for users to submit bug reports, suggestions, etc.
+ * A floating button fixed at the bottom-right corner that opens the feedback panel
  */
 
 import React, { useState, useCallback } from 'react';
-import { Drawer, Button, Badge, Tooltip } from '@arco-design/web-react';
-import { IconMessage, IconCheck } from '@arco-design/web-react/icon';
+import { Button, Drawer, Badge } from '@arco-design/web-react';
+import { IconMessage, IconClose } from '@arco-design/web-react/icon';
 import FeedbackPanel from './FeedbackPanel';
 
 interface FeedbackButtonProps {
-  /** Position from bottom in pixels */
+  /** Initial visibility of the button */
+  defaultVisible?: boolean;
+  /** Custom position offset from bottom */
   bottom?: number;
-  /** Position from right in pixels */
+  /** Custom position offset from right */
   right?: number;
+  /** Badge count for unread feedbacks (optional) */
+  badgeCount?: number;
 }
 
 const FeedbackButton: React.FC<FeedbackButtonProps> = ({
-  bottom = 80, // Position above AIAssistantButton
+  defaultVisible = true,
+  bottom = 24,
   right = 24,
+  badgeCount = 0,
 }) => {
-  const [visible, setVisible] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [drawerVisible, setDrawerVisible] = useState(false);
+  const [buttonVisible, setButtonVisible] = useState(defaultVisible);
 
-  const handleOpen = useCallback(() => {
-    setVisible(true);
+  // Open feedback drawer
+  const handleOpenDrawer = useCallback(() => {
+    setDrawerVisible(true);
   }, []);
 
-  const handleClose = useCallback(() => {
-    setVisible(false);
-    setShowSuccess(false);
+  // Close feedback drawer
+  const handleCloseDrawer = useCallback(() => {
+    setDrawerVisible(false);
   }, []);
 
-  const handleSuccess = useCallback(() => {
-    setShowSuccess(true);
-    // Auto close after showing success
+  // Handle successful feedback submission
+  const handleFeedbackSuccess = useCallback(() => {
+    // Close drawer after successful submission
     setTimeout(() => {
-      setVisible(false);
-      setShowSuccess(false);
-    }, 2000);
+      setDrawerVisible(false);
+    }, 1500);
   }, []);
+
+  // Floating button styles
+  const buttonStyle: React.CSSProperties = {
+    position: 'fixed',
+    bottom: bottom,
+    right: right,
+    zIndex: 1000,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    borderRadius: '50%',
+    width: 56,
+    height: 56,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  };
+
+  if (!buttonVisible) {
+    return null;
+  }
 
   return (
     <>
       {/* Floating Button */}
-      <Tooltip
-        content="用户反馈"
-        position="left"
-      >
-        <div
-          style={{
-            position: 'fixed',
-            right,
-            bottom,
-            zIndex: 999, // Below AIAssistantButton (zIndex: 1000)
-          }}
-        >
+      <div style={buttonStyle}>
+        <Badge count={badgeCount} dot={badgeCount > 0}>
           <Button
             type="primary"
             shape="circle"
             size="large"
-            icon={showSuccess ? <IconCheck /> : <IconMessage />}
-            onClick={handleOpen}
+            icon={<IconMessage style={{ fontSize: 24 }} />}
+            onClick={handleOpenDrawer}
             style={{
-              width: 48,
-              height: 48,
-              boxShadow: showSuccess 
-                ? '0 4px 12px rgba(0, 200, 100, 0.4)' 
-                : '0 4px 12px rgba(114, 46, 209, 0.4)',
-              background: showSuccess 
-                ? 'linear-gradient(135deg, #00c864 0%, #00a64d 100%)' 
-                : 'linear-gradient(135deg, #722ed1 0%, #531dab 100%)',
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
             }}
-            aria-label="打开用户反馈"
+            aria-label="打开反馈面板"
           />
-        </div>
-      </Tooltip>
+        </Badge>
+      </div>
 
       {/* Feedback Drawer */}
       <Drawer
         title={
-          <span>
-            <IconMessage style={{ marginRight: 8, color: '#722ed1' }} />
-            用户反馈
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <IconMessage />
+            <span>用户反馈</span>
+          </div>
         }
+        visible={drawerVisible}
         placement="right"
-        width={450}
-        visible={visible}
-        onCancel={handleClose}
+        width={420}
+        onClose={handleCloseDrawer}
         footer={null}
-        unmountOnExit={true}
+        closable={true}
+        autoFocus={false}
+        focusLock={true}
       >
-        <FeedbackPanel 
-          onSuccess={handleSuccess}
-          onCancel={handleClose}
+        <FeedbackPanel
+          onSuccess={handleFeedbackSuccess}
+          onCancel={handleCloseDrawer}
         />
       </Drawer>
     </>
