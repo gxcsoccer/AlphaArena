@@ -67,6 +67,11 @@ import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
 import { createLogger } from '../utils/logger';
+import { 
+  errorMiddleware, 
+  notFoundMiddleware, 
+  requestIdMiddleware 
+} from './errorMiddleware';
 
 // Create logger for this module
 const log = createLogger('APIServer');
@@ -211,6 +216,9 @@ export class APIServer extends EventEmitter {
 
     // JSON parsing
     this.app.use(express.json());
+
+    // Request ID middleware - adds unique ID to each request for tracing
+    this.app.use(requestIdMiddleware);
 
     // Monitoring middleware - track request timing and errors
     this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -994,10 +1002,11 @@ export class APIServer extends EventEmitter {
     // Performance Monitoring routes
     this.app.use('/api/performance', performanceRoutes);
 
-    // 404 handler
-    this.app.use((req: Request, res: Response) => {
-      res.status(404).json({ error: 'Not found' });
-    });
+    // 404 handler - catches requests to undefined routes
+    this.app.use(notFoundMiddleware);
+
+    // Global error handling middleware - must be last
+    this.app.use(errorMiddleware);
   }
 
   /**
