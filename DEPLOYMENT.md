@@ -1,5 +1,11 @@
 # 生产环境部署指南
 
+## 快速导航
+
+- [部署检查清单](./docs/deployment/DEPLOYMENT_CHECKLIST.md) - 部署前后必检项目
+- [回滚流程](./docs/deployment/ROLLBACK_PROCEDURE.md) - 出现问题时的快速恢复方案
+- [生产监控配置](./docs/deployment/PRODUCTION_MONITORING.md) - 监控告警配置指南
+
 ## 架构概述
 
 AlphaArena 采用混合部署架构：

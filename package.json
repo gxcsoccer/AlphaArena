@@ -38,7 +38,8 @@
     "benchmark:backtest": "ts-node --transpile-only scripts/benchmark/run.ts --backtest",
     "benchmark:api": "ts-node --transpile-only scripts/benchmark/run.ts --api",
     "benchmark:realtime": "ts-node --transpile-only scripts/benchmark/run.ts --realtime",
-    "benchmark:update": "ts-node --transpile-only scripts/benchmark/run.ts --update-baselines"
+    "benchmark:update": "ts-node --transpile-only scripts/benchmark/run.ts --update-baselines",
+    "health-check": "E2E_BASE_URL=${E2E_BASE_URL:-http://localhost:3000} ts-node --transpile-only scripts/health-check.ts"
   },
   "repository": {
     "type": "git",
