@@ -1,8 +1,8 @@
 web:
-  # Use local build for smoke tests to avoid network issues
-  # Production URL: https://alphaarena-eight.vercel.app
-  # For production testing, run: npm run build && npm run preview
-  url: "http://localhost:4173"
+  # Production URL for automated smoke tests
+  # For local testing, run: npm run build && npm run preview
+  # Then override with: url: "http://localhost:4173"
+  url: "https://alphaarena-eight.vercel.app"
 
 tasks:
   - name: "Homepage Load"
@@ -12,7 +12,7 @@ tasks:
       - aiAssert: "页面主要内容区域可见（交易对列表、交易面板等），没有被白屏或加载失败阻塞"
       - aiAssert: "没有明显的 404 或 500 错误页面"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
-      - aiAssert: "连接状态提示（蓝色降级模式、黄色警告或红色断开提示）是可接受的预期行为，因为本地预览模式没有后端服务"
+      - aiAssert: "页面功能正常，没有阻塞性问题（连接状态提示如果存在是可接受的，不存在也说明后端正常）"
   - name: "Navigation Test"
     flow:
       # Handle welcome popup for first-time visitors
@@ -37,5 +37,5 @@ tasks:
   - name: "Console Error Check"
     flow:
       - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
-      - aiAssert: "页面没有显示致命的 API 错误或白屏错误（连接状态提示如降级模式/断开连接是本地预览模式的预期行为）"
+      - aiAssert: "页面没有显示致命的 API 错误或白屏错误"
       - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
