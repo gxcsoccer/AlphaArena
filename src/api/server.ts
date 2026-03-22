@@ -66,6 +66,8 @@ import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
 import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
+import userTrackingRoutes from './userTrackingRoutes';
+import { createFeedbackRouter } from './feedbackRoutes';
 import { createLogger } from '../utils/logger';
 import { 
   errorMiddleware, 
@@ -1001,6 +1003,12 @@ export class APIServer extends EventEmitter {
 
     // Performance Monitoring routes
     this.app.use('/api/performance', performanceRoutes);
+
+    // User Tracking routes
+    this.app.use('/api/tracking', userTrackingRoutes);
+
+    // User Feedback routes
+    this.app.use('/api/feedback', createFeedbackRouter());
 
     // 404 handler - catches requests to undefined routes
     this.app.use(notFoundMiddleware);
