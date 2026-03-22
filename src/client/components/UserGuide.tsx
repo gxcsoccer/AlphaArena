@@ -158,20 +158,6 @@ const UserGuide: React.FC<UserGuideProps> = ({
     }
   }, [autoShow]);
 
-  const handleNext = useCallback(() => {
-    if (currentStep < guideSteps.length - 1) {
-      setCurrentStep(prev => prev + 1);
-    } else {
-      handleComplete();
-    }
-  }, [currentStep]);
-
-  const handlePrev = useCallback(() => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
-    }
-  }, [currentStep]);
-
   const handleComplete = useCallback(() => {
     setCompleted(true);
     if (dontShowAgain) {
@@ -180,6 +166,20 @@ const UserGuide: React.FC<UserGuideProps> = ({
     setVisible(false);
     onComplete?.();
   }, [dontShowAgain, onComplete]);
+
+  const handleNext = useCallback(() => {
+    if (currentStep < guideSteps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+    } else {
+      handleComplete();
+    }
+  }, [currentStep, handleComplete]);
+
+  const handlePrev = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  }, [currentStep]);
 
   const handleSkip = useCallback(() => {
     if (dontShowAgain) {

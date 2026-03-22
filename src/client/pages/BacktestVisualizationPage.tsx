@@ -166,7 +166,8 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, confi
 const BacktestVisualizationPage: React.FC = () => {
   const { loading, error, result, runBacktest, _clearResult, exportToCSV, exportToJSON } = useBacktest();
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [config, setConfig] = useState({
+  // Initialize config with lazy initial state to avoid impure function calls during render
+  const [config, setConfig] = useState(() => ({
     capital: 10000,
     symbol: 'BTC/USDT',
     strategy: 'sma',
@@ -175,7 +176,7 @@ const BacktestVisualizationPage: React.FC = () => {
       Date.now(),
     ] as [number, number],
     strategyParams: {},
-  });
+  }));
   
   // Transform backtest result data for charts
   const equityData = useMemo((): EquityDataPoint[] => {
@@ -259,7 +260,7 @@ const BacktestVisualizationPage: React.FC = () => {
   const holdingTimeData = useMemo((): HoldingPeriod[] => {
     if (!result || !result.trades.length) return [];
     
-    // Group trades by holding period
+    // Group trades by holding period - using deterministic mock data
     const categories = [
       { label: '< 1小时', min: 0, max: 1 },
       { label: '1-4小时', min: 1, max: 4 },
@@ -269,12 +270,14 @@ const BacktestVisualizationPage: React.FC = () => {
       { label: '> 7天', min: 168, max: Infinity },
     ];
     
-    return categories.map((cat) => ({
+    // Use result-based deterministic values instead of random
+    const baseCount = result.trades.length;
+    return categories.map((cat, index) => ({
       duration: (cat.min + cat.max) / 2,
       category: cat.label,
-      count: Math.floor(Math.random() * 50) + 10, // Mock data
-      avgPnL: (Math.random() - 0.3) * 200,
-      winRate: 40 + Math.random() * 30,
+      count: Math.floor(baseCount * (0.3 - index * 0.03)) + 10, // Deterministic mock data
+      avgPnL: ((baseCount % 100) / 100 - 0.3) * 200 * (index + 1) / 6,
+      winRate: 40 + ((baseCount * (index + 1)) % 30),
     }));
   }, [result]);
   
@@ -293,21 +296,24 @@ const BacktestVisualizationPage: React.FC = () => {
       }
     }
     
-    // Generate mock monthly returns
+    // Generate mock monthly returns using deterministic values
     const data: MonthlyReturn[] = [];
-    const startDate = new Date(result.snapshots[0]?.timestamp || Date.now());
-    const endDate = new Date(result.snapshots[result.snapshots.length - 1]?.timestamp || Date.now());
+    const startDate = new Date(result.snapshots[0]?.timestamp || 0);
+    const endDate = new Date(result.snapshots[result.snapshots.length - 1]?.timestamp || 0);
+    const baseValue = result.trades.length;
     
     for (let y = startDate.getFullYear(); y <= endDate.getFullYear(); y++) {
       for (let m = 1; m <= 12; m++) {
         if (y === startDate.getFullYear() && m < startDate.getMonth() + 1) continue;
         if (y === endDate.getFullYear() && m > endDate.getMonth() + 1) continue;
         
+        // Deterministic mock data based on year and month
+        const monthIndex = (y - startDate.getFullYear()) * 12 + m;
         data.push({
           year: y,
           month: m,
-          return: (Math.random() - 0.45) * 20,
-          trades: Math.floor(Math.random() * 30) + 5,
+          return: (((baseValue + monthIndex) % 20) - 10) * 0.5, // Deterministic mock return
+          trades: Math.floor((baseValue * (m + 1)) % 30) + 5, // Deterministic mock trades
         });
       }
     }

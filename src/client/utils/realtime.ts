@@ -26,7 +26,7 @@ const PING_INTERVAL = 15000; // 15 seconds ping interval
 const MAX_CONSECUTIVE_FAILURES = 2; // After this many failures, consider service down (reduced from 3 for faster degraded mode)
 const SERVICE_DOWN_COOLDOWN = 20000; // 20 seconds cooldown before trying again after service is marked down
 const HEALTH_CHECK_INTERVAL = 15000; // Check service health every 15 seconds when in degraded mode
-const INITIAL_HEALTH_CHECK_DELAY = 3000; // Wait 3 seconds before first health check in degraded mode
+const _INITIAL_HEALTH_CHECK_DELAY = 3000; // Wait 3 seconds before first health check in degraded mode (reserved for future use)
 
 // Connection states
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting';

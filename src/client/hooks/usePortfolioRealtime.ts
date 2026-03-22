@@ -68,31 +68,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
   const lastPnLValuesRef = useRef<Map<string, number>>(new Map());
   const isMountedRef = useRef<boolean>(false);
 
-  // Fetch initial portfolio data
-  const fetchPortfolio = useCallback(async () => {
-    try {
-      const data = await api.getPortfolio(strategyId, symbol);
-      if (isMountedRef.current) {
-        if (data) {
-          // Initialize price cache with current data
-          const enrichedPortfolio = enrichPortfolioWithPrices(data, priceCacheRef.current);
-          setPortfolio(enrichedPortfolio);
-          setError(null);
-        } else {
-          setPortfolio(null);
-          setError(null);
-        }
-        setLoading(false);
-      }
-    } catch (err: any) {
-      if (isMountedRef.current) {
-        setError(err.message);
-        setLoading(false);
-      }
-    }
-  }, [strategyId, symbol]);
-
-  // Calculate P/L for a position
+  // Calculate P/L for a position (defined first, used by enrichPortfolioWithPrices)
   const calculatePositionPnL = useCallback((
     quantity: number,
     averageCost: number,
@@ -118,7 +94,7 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
     };
   }, []);
 
-  // Enrich portfolio with current prices and P/L calculations
+  // Enrich portfolio with current prices and P/L calculations (defined before fetchPortfolio)
   const enrichPortfolioWithPrices = useCallback((
     portfolioData: Portfolio,
     prices: Map<string, number>
@@ -167,6 +143,30 @@ export const usePortfolioRealtime = (options: UsePortfolioRealtimeOptions = {}) 
       totalPnLPercent,
     };
   }, [calculatePositionPnL]);
+
+  // Fetch initial portfolio data (defined after enrichPortfolioWithPrices)
+  const fetchPortfolio = useCallback(async () => {
+    try {
+      const data = await api.getPortfolio(strategyId, symbol);
+      if (isMountedRef.current) {
+        if (data) {
+          // Initialize price cache with current data
+          const enrichedPortfolio = enrichPortfolioWithPrices(data, priceCacheRef.current);
+          setPortfolio(enrichedPortfolio);
+          setError(null);
+        } else {
+          setPortfolio(null);
+          setError(null);
+        }
+        setLoading(false);
+      }
+    } catch (err: any) {
+      if (isMountedRef.current) {
+        setError(err.message);
+        setLoading(false);
+      }
+    }
+  }, [strategyId, symbol, enrichPortfolioWithPrices]);
 
   // Debounced P/L recalculation
   const _recalculatePnL = useCallback((updatedPrices: Map<string, number>) => {
