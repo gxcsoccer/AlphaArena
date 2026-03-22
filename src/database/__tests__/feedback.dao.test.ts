@@ -1,105 +1,20 @@
 /**
  * Tests for Feedback DAO
  * 
- * Note: These tests focus on validating the DAO interface, type safety, and basic functionality.
- * Complex database operations with Supabase chain calls are tested via integration tests.
+ * Uses the global Supabase mock from tests/__mocks__/supabase.ts
  */
 
-import { FeedbackType, FeedbackStatus, CreateFeedbackInput } from '../feedback.dao';
-
-// Mock the client module
-jest.mock('../client', () => {
-  const store = {
-    currentData: null as any,
-    statsData: [] as any[],
-    shouldFail: false,
-  };
-
-  const mockSingle = jest.fn(() => {
-    if (store.shouldFail) {
-      return Promise.resolve({ data: null, error: { code: 'PGRST116' } });
-    }
-    return Promise.resolve({ data: store.currentData, error: null });
-  });
-
-  const mockSelect = jest.fn((fields?: string) => {
-    if (fields === 'type, status') {
-      return Promise.resolve({ data: store.statsData, error: null });
-    }
-    return {
-      eq: jest.fn(() => ({
-        single: mockSingle,
-      })),
-      order: jest.fn(() => ({
-        range: jest.fn(() => Promise.resolve({ data: [], error: null })),
-      })),
-      single: mockSingle,
-    };
-  });
-
-  const mockInsert = jest.fn(() => ({
-    select: jest.fn(() => ({
-      single: mockSingle,
-    })),
-  }));
-
-  const mockUpdate = jest.fn(() => ({
-    eq: jest.fn(() => ({
-      select: jest.fn(() => ({
-        single: mockSingle,
-      })),
-    })),
-  }));
-
-  const mockDelete = jest.fn(() => ({
-    eq: jest.fn(() => Promise.resolve({ error: null })),
-  }));
-
-  const mockFrom = jest.fn(() => ({
-    select: mockSelect,
-    insert: mockInsert,
-    update: mockUpdate,
-    delete: mockDelete,
-  }));
-
-  return {
-    getSupabaseAdminClient: jest.fn(() => ({ from: mockFrom })),
-    __store: store,
-  };
-});
-
-import { feedbackDAO } from '../feedback.dao';
-import mockedClient from '../client';
-
-const getStore = () => (mockedClient as any).__store;
-
-const mockFeedbackData = {
-  id: 'fb_test_123',
-  user_id: 'user_123',
-  type: 'bug',
-  description: 'Test bug description',
-  status: 'new',
-  environment: {},
-  tags: [],
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-};
+import { feedbackDAO, FeedbackType, FeedbackStatus } from '../feedback.dao';
+import { seedMockData, clearMockData } from '../../../tests/__mocks__/supabase';
 
 describe('FeedbackDAO', () => {
-  let store: any;
-  
   beforeEach(() => {
-    store = getStore();
-    store.currentData = null;
-    store.statsData = [];
-    store.shouldFail = false;
+    clearMockData();
   });
 
   describe('createFeedback', () => {
-    it('should create a feedback with correct type mapping', async () => {
-      store.currentData = mockFeedbackData;
-
-      const input: CreateFeedbackInput = {
+    it('should create a feedback successfully', async () => {
+      const input = {
         type: FeedbackType.BUG,
         description: 'Test bug description',
         environment: {
@@ -120,58 +35,228 @@ describe('FeedbackDAO', () => {
       expect(feedback.status).toBe(FeedbackStatus.NEW);
     });
 
-    it('should handle all feedback types', async () => {
-      const types = [FeedbackType.BUG, FeedbackType.SUGGESTION, FeedbackType.OTHER];
-      
-      for (const type of types) {
-        store.currentData = { ...mockFeedbackData, type };
+    it('should create feedback with optional fields', async () => {
+      const input = {
+        userId: 'user_123',
+        type: FeedbackType.SUGGESTION,
+        description: 'Feature suggestion',
+        screenshot: 'data:image/png;base64,test',
+        screenshotName: 'screenshot.png',
+        contactInfo: 'user@example.com',
+        environment: {
+          url: 'https://example.com',
+          userAgent: 'Mozilla/5.0',
+          screenSize: '1920x1080',
+          timestamp: new Date().toISOString(),
+          locale: 'en-US',
+          referrer: '',
+        },
+      };
 
-        const input: CreateFeedbackInput = {
-          type,
-          description: `Test ${type} feedback`,
-          environment: {
-            url: '',
-            userAgent: '',
-            screenSize: '',
-            timestamp: new Date().toISOString(),
-            locale: '',
-            referrer: '',
-          },
-        };
+      const feedback = await feedbackDAO.createFeedback(input);
 
-        const feedback = await feedbackDAO.createFeedback(input);
-        expect(feedback.type).toBe(type);
-      }
+      expect(feedback).toBeDefined();
+      expect(feedback.userId).toBe('user_123');
+      expect(feedback.type).toBe(FeedbackType.SUGGESTION);
+    });
+  });
+
+  describe('getFeedbackById', () => {
+    it('should return feedback when found', async () => {
+      // Seed the mock database
+      seedMockData('feedbacks', [
+        {
+          id: 'fb_test_123',
+          user_id: null,
+          type: 'bug',
+          description: 'Test feedback',
+          screenshot: null,
+          screenshot_name: null,
+          contact_info: null,
+          environment: {},
+          status: 'new',
+          tags: [],
+          admin_notes: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      const feedback = await feedbackDAO.getFeedbackById('fb_test_123');
+
+      expect(feedback).toBeDefined();
+      expect(feedback?.id).toBe('fb_test_123');
+      expect(feedback?.type).toBe(FeedbackType.BUG);
+    });
+
+    it('should return null for non-existent feedback', async () => {
+      const feedback = await feedbackDAO.getFeedbackById('non_existent');
+
+      expect(feedback).toBeNull();
     });
   });
 
   describe('getFeedbacks', () => {
-    it('should return an array of feedbacks', async () => {
-      const feedbacks = await feedbackDAO.getFeedbacks();
+    it('should get feedbacks with filters', async () => {
+      // Seed the mock database
+      seedMockData('feedbacks', [
+        {
+          id: 'fb_1',
+          user_id: null,
+          type: 'bug',
+          description: 'Bug 1',
+          screenshot: null,
+          screenshot_name: null,
+          contact_info: null,
+          environment: {},
+          status: 'new',
+          tags: [],
+          admin_notes: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'fb_2',
+          user_id: null,
+          type: 'bug',
+          description: 'Bug 2',
+          screenshot: null,
+          screenshot_name: null,
+          contact_info: null,
+          environment: {},
+          status: 'in_progress',
+          tags: [],
+          admin_notes: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      const feedbacks = await feedbackDAO.getFeedbacks({
+        status: FeedbackStatus.NEW,
+        type: FeedbackType.BUG,
+        limit: 10,
+        offset: 0,
+      });
+
       expect(Array.isArray(feedbacks)).toBe(true);
+      // The mock should return 1 feedback with status 'new' and type 'bug'
+      expect(feedbacks.length).toBe(1);
+      expect(feedbacks[0].id).toBe('fb_1');
+    });
+
+    it('should return empty array when no feedbacks', async () => {
+      const feedbacks = await feedbackDAO.getFeedbacks();
+
+      expect(Array.isArray(feedbacks)).toBe(true);
+      expect(feedbacks.length).toBe(0);
+    });
+  });
+
+  describe('updateFeedback', () => {
+    it('should update feedback and return updated object', async () => {
+      // Seed the mock database
+      seedMockData('feedbacks', [
+        {
+          id: 'fb_test_123',
+          user_id: null,
+          type: 'bug',
+          description: 'Test bug',
+          screenshot: null,
+          screenshot_name: null,
+          contact_info: null,
+          environment: {},
+          status: 'new',
+          tags: [],
+          admin_notes: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
+      const feedback = await feedbackDAO.updateFeedback('fb_test_123', {
+        status: FeedbackStatus.RESOLVED,
+        adminNotes: 'Fixed in v1.0.0',
+      });
+
+      expect(feedback).toBeDefined();
+      expect(feedback.status).toBe(FeedbackStatus.RESOLVED);
+      expect(feedback.adminNotes).toBe('Fixed in v1.0.0');
     });
   });
 
   describe('deleteFeedback', () => {
-    it('should resolve without error', async () => {
+    it('should delete feedback successfully', async () => {
+      // Seed the mock database
+      seedMockData('feedbacks', [
+        {
+          id: 'fb_test_123',
+          user_id: null,
+          type: 'bug',
+          description: 'Test bug',
+          screenshot: null,
+          screenshot_name: null,
+          contact_info: null,
+          environment: {},
+          status: 'new',
+          tags: [],
+          admin_notes: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
+
       await expect(feedbackDAO.deleteFeedback('fb_test_123')).resolves.not.toThrow();
     });
   });
 
-  describe('FeedbackType enum', () => {
-    it('should have correct values', () => {
-      expect(FeedbackType.BUG).toBe('bug');
-      expect(FeedbackType.SUGGESTION).toBe('suggestion');
-      expect(FeedbackType.OTHER).toBe('other');
-    });
-  });
+  describe('getFeedbackStats', () => {
+    it('should calculate correct statistics', async () => {
+      // Seed the mock database
+      seedMockData('feedbacks', [
+        {
+          id: 'fb_1',
+          type: 'bug',
+          status: 'new',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'fb_2',
+          type: 'suggestion',
+          status: 'resolved',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'fb_3',
+          type: 'bug',
+          status: 'in_progress',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ]);
 
-  describe('FeedbackStatus enum', () => {
-    it('should have correct values', () => {
-      expect(FeedbackStatus.NEW).toBe('new');
-      expect(FeedbackStatus.IN_PROGRESS).toBe('in_progress');
-      expect(FeedbackStatus.RESOLVED).toBe('resolved');
-      expect(FeedbackStatus.CLOSED).toBe('closed');
+      const stats = await feedbackDAO.getFeedbackStats();
+
+      expect(stats).toBeDefined();
+      expect(stats.total).toBe(3);
+      expect(stats.byType[FeedbackType.BUG]).toBe(2);
+      expect(stats.byType[FeedbackType.SUGGESTION]).toBe(1);
+      expect(stats.byType[FeedbackType.OTHER]).toBe(0);
+      expect(stats.byStatus[FeedbackStatus.NEW]).toBe(1);
+      expect(stats.byStatus[FeedbackStatus.IN_PROGRESS]).toBe(1);
+      expect(stats.byStatus[FeedbackStatus.RESOLVED]).toBe(1);
+      expect(stats.byStatus[FeedbackStatus.CLOSED]).toBe(0);
+    });
+
+    it('should return zero stats when no feedbacks', async () => {
+      const stats = await feedbackDAO.getFeedbackStats();
+
+      expect(stats.total).toBe(0);
+      expect(stats.byType[FeedbackType.BUG]).toBe(0);
+      expect(stats.byType[FeedbackType.SUGGESTION]).toBe(0);
+      expect(stats.byType[FeedbackType.OTHER]).toBe(0);
     });
   });
 });
