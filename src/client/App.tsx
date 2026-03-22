@@ -31,6 +31,7 @@ import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import MobileBottomNav from './components/MobileBottomNav';
 import AIAssistantButton from './components/AIAssistantButton';
+import FeedbackButton from './components/FeedbackButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import UserGuide from './components/UserGuide';
 import { SettingsProvider } from './store/settingsStore';
@@ -467,6 +468,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
       <AIAssistantButton />
+      {/* User Feedback Floating Button */}
+      <FeedbackButton />
       {/* User Guide for new users */}
       <UserGuide autoShow={true} />
       {/* Mobile Bottom Navigation */}

@@ -210,7 +210,7 @@ router.get('/events', async (req: Request, res: Response) => {
  */
 router.get('/sessions/:sessionId', async (req: Request, res: Response) => {
   try {
-    const { sessionId } = req.params;
+    const sessionId = req.params.sessionId as string;
 
     const session = await userTrackingDAO.getSession(sessionId);
 
@@ -237,7 +237,7 @@ router.get('/sessions/:sessionId', async (req: Request, res: Response) => {
  */
 router.get('/users/:userId/sessions', async (req: Request, res: Response) => {
   try {
-    const { userId } = req.params;
+    const userId = req.params.userId as string;
     const { limit } = req.query;
 
     const sessions = await userTrackingDAO.getUserSessions(
@@ -262,7 +262,7 @@ router.get('/users/:userId/sessions', async (req: Request, res: Response) => {
  */
 router.post('/sessions/:sessionId/end', async (req: Request, res: Response) => {
   try {
-    const { sessionId } = req.params;
+    const sessionId = req.params.sessionId as string;
 
     await userTrackingDAO.endSession(sessionId);
 
@@ -365,7 +365,7 @@ router.get('/analytics/pages', async (req: Request, res: Response) => {
  */
 router.get('/analytics/funnel/:name', async (req: Request, res: Response) => {
   try {
-    const { name } = req.params;
+    const name = req.params.name as string;
     const { startDate, endDate } = req.query;
 
     if (!startDate || !endDate) {

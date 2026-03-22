@@ -12,7 +12,7 @@ import {
   TrackingEvent,
   UserSession,
   DailyAnalyticsSummary,
-  AnalyticsQueryOptions,
+  UserAnalyticsQueryOptions,
   UserEngagementMetrics,
   FunnelAnalysis,
   TrackEventInput,
@@ -280,7 +280,7 @@ class UserTrackingService {
   /**
    * Get analytics data
    */
-  async getAnalytics(options: AnalyticsQueryOptions): Promise<{
+  async getAnalytics(options: UserAnalyticsQueryOptions): Promise<{
     events: TrackingEvent[];
     summary?: DailyAnalyticsSummary[];
     counts?: Array<{ eventType: string; eventCategory: string; count: number }>;
@@ -416,5 +416,6 @@ class UserTrackingService {
 }
 
 // Singleton instance
+export { UserTrackingService };
 export const userTrackingService = new UserTrackingService();
 export default userTrackingService;

@@ -291,9 +291,9 @@ export interface DailyAnalyticsSummary {
 }
 
 /**
- * Analytics query options
+ * User analytics query options
  */
-export interface AnalyticsQueryOptions {
+export interface UserAnalyticsQueryOptions {
   /** Start date */
   startDate: Date;
   

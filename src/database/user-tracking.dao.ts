@@ -12,7 +12,7 @@ import {
   TrackingEvent,
   UserSession,
   DailyAnalyticsSummary,
-  AnalyticsQueryOptions,
+  UserAnalyticsQueryOptions,
   EventCountResult,
   UserEngagementMetrics,
   FunnelStep,
@@ -113,7 +113,7 @@ class UserTrackingDAO {
   /**
    * Get events with filters
    */
-  async getEvents(options: AnalyticsQueryOptions): Promise<TrackingEvent[]> {
+  async getEvents(options: UserAnalyticsQueryOptions): Promise<TrackingEvent[]> {
     const supabase = getSupabaseAdminClient();
     
     let query = supabase
@@ -156,7 +156,7 @@ class UserTrackingDAO {
   /**
    * Get event counts by type/category
    */
-  async getEventCounts(options: AnalyticsQueryOptions): Promise<EventCountResult[]> {
+  async getEventCounts(options: UserAnalyticsQueryOptions): Promise<EventCountResult[]> {
     const supabase = getSupabaseAdminClient();
     
     const { data, error } = await supabase
@@ -179,7 +179,7 @@ class UserTrackingDAO {
   /**
    * Fallback event count query if RPC is not available
    */
-  private async getEventCountsFallback(options: AnalyticsQueryOptions): Promise<EventCountResult[]> {
+  private async getEventCountsFallback(options: UserAnalyticsQueryOptions): Promise<EventCountResult[]> {
     const events = await this.getEvents({ ...options, limit: 10000 });
     
     const counts = new Map<string, { eventType: string; eventCategory: string; count: number }>();
