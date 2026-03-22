@@ -267,7 +267,7 @@ export function createFeedbackRouter(): Router {
    */
   router.get('/:id', async (req: Request, res: Response) => {
     try {
-      const id = req.params.id as string;
+      const id = String(req.params.id);
 
       // Try Supabase first
       if (supabase) {
@@ -313,7 +313,7 @@ export function createFeedbackRouter(): Router {
    */
   router.patch('/:id/status', async (req: Request, res: Response) => {
     try {
-      const id = req.params.id as string;
+      const id = String(req.params.id);
       const { status, adminNotes, tags } = req.body;
 
       // Validation

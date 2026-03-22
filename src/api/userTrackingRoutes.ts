@@ -17,6 +17,7 @@ import {
   TrackingEventType,
   EventCategory,
 } from '../analytics/userTracking.types';
+import { authMiddleware, requireAdmin } from './authMiddleware';
 
 const log = createLogger('UserTrackingRoutes');
 
@@ -469,7 +470,7 @@ router.get('/analytics/dashboard', async (req: Request, res: Response) => {
  * POST /api/tracking/analytics/aggregate
  * Run daily aggregation (admin only)
  */
-router.post('/analytics/aggregate', async (req: Request, res: Response) => {
+router.post('/analytics/aggregate', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { date } = req.body;
 
@@ -492,7 +493,7 @@ router.post('/analytics/aggregate', async (req: Request, res: Response) => {
  * POST /api/tracking/analytics/cleanup
  * Clean up old events (admin only)
  */
-router.post('/analytics/cleanup', async (req: Request, res: Response) => {
+router.post('/analytics/cleanup', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { olderThanDays = 365 } = req.body;
 

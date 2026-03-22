@@ -185,8 +185,14 @@ CREATE POLICY "Service role full access on funnels" ON user_event_funnels
   FOR ALL TO service_role USING (TRUE) WITH CHECK (TRUE);
 
 -- Anonymous users can insert their own events (for client-side tracking)
-CREATE POLICY "Anyone can insert tracking events" ON user_tracking_events
-  FOR INSERT WITH CHECK (TRUE);
+-- Policy ensures users can only insert events for themselves
+CREATE POLICY "Users can insert own tracking events" ON user_tracking_events
+  FOR INSERT WITH CHECK (
+    -- Authenticated users can only insert events with their own user_id
+    (auth.uid()::text = user_id) OR
+    -- Anonymous users (no auth) can only insert events with user_id IS NULL
+    (auth.uid() IS NULL AND user_id IS NULL)
+  );
 
 -- Function to update session on new event
 CREATE OR REPLACE FUNCTION update_session_on_event()
