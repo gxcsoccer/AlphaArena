@@ -1,47 +1,47 @@
 {
   "sprint": {
-    "number": 46,
-    "title": "Sprint 46: 数据驱动验证",
-    "milestone": 47,
+    "number": 47,
+    "title": "Sprint 47: 用户增长与社区建设",
+    "milestone": 48,
     "status": "planning",
     "period": {
-      "start": "2026-03-24",
-      "end": "2026-03-30"
+      "start": "2026-03-31",
+      "end": "2026-04-06"
     },
-    "goals": "构建数据分析仪表板、反馈管理系统，实现数据驱动的产品迭代闭环",
+    "goals": "基于数据分析闭环，构建用户获取和社区互动能力，实现自然增长",
     "issues": {
       "planned": [
         {
-          "number": 538,
-          "title": "用户行为分析仪表板",
+          "number": 548,
+          "title": "用户推荐奖励系统",
           "priority": "P1",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 539,
-          "title": "用户反馈管理系统",
+          "number": 549,
+          "title": "社交分享功能",
           "priority": "P1",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 540,
-          "title": "用户行为洞察报告",
+          "number": 550,
+          "title": "用户关注与互动系统",
+          "priority": "P1",
+          "type": "feature",
+          "status": "open"
+        },
+        {
+          "number": 551,
+          "title": "信号评论与讨论功能",
           "priority": "P2",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 541,
-          "title": "Landing Page A/B 测试框架",
-          "priority": "P2",
-          "type": "feature",
-          "status": "open"
-        },
-        {
-          "number": 542,
-          "title": "用户引导流程优化",
+          "number": 552,
+          "title": "SEO 优化与站点地图",
           "priority": "P2",
           "type": "feature",
           "status": "open"
@@ -54,13 +54,14 @@
       "total": 0,
       "merged": []
     },
-    "direction": "数据驱动验证",
-    "rationale": "Sprint 45 完成了生产环境部署和用户反馈基础设施建设，Sprint 46 聚焦于数据分析和反馈处理的闭环，为后续产品迭代提供数据支撑。",
+    "direction": "用户增长与社区建设",
+    "rationale": "Sprint 46 完成了数据分析闭环建设（用户行为分析、反馈管理、洞察报告、A/B 测试框架、用户引导优化）。Sprint 47 在此基础上，聚焦用户增长和社区建设，通过推荐奖励和社交分享实现自然增长，通过关注和评论功能构建社区互动能力。",
     "previous_sprint": {
-      "number": 45,
-      "summary": "完成 5 个 issues，实现生产环境部署、用户行为埋点、用户反馈入口、Landing Page 优化、数据分析基础建设",
-      "test_status": "全部测试通过"
-    }
+      "number": 46,
+      "summary": "完成 5 个 issues，实现用户行为分析仪表板、用户反馈管理系统、用户行为洞察报告、Landing Page A/B 测试框架、用户引导流程优化",
+      "test_status": "全部验收通过"
+    },
+    "created_at": "2026-03-23"
   },
   "next_sprint": null
 }
