@@ -35,6 +35,7 @@ import AIAssistantButton from './components/AIAssistantButton';
 import FeedbackButton from './components/FeedbackButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import UserGuide from './components/UserGuide';
+import SmartOnboarding from './components/SmartOnboarding';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
 import { SubscriptionProvider } from './hooks/useSubscription';
@@ -252,7 +253,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/sentiment" icon={<IconHeart aria-hidden="true" />} role="menuitem">
               情绪
             </MenuItem>
-            <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
+            <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem" data-onboarding="strategies-nav">
               Strategies
             </MenuItem>
             <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
@@ -346,7 +347,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="toolbar" aria-label="工具栏">
             <ThemeToggle compact={isMobile} />
-            <NotificationCenter compact={isMobile} />
+            <span data-onboarding="notification-bell"><NotificationCenter compact={isMobile} /></span>
             <SettingsPanel compact={isMobile} />
             <BalanceDisplay compact={isMobile} />
           </div>
@@ -412,7 +413,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/sentiment" icon={<IconHeart aria-hidden="true" />} role="menuitem">
             情绪
           </MenuItem>
-          <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem">
+          <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem" data-onboarding="strategies-nav">
             Strategies
           </MenuItem>
           <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
@@ -478,11 +479,13 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         </Menu>
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
-      <AIAssistantButton />
+      <div data-onboarding="ai-assistant">
+        <AIAssistantButton />
+      </div>
       {/* User Feedback Floating Button */}
       <FeedbackButton />
-      {/* User Guide for new users */}
-      <UserGuide autoShow={true} />
+      {/* Smart Onboarding for new users */}
+      <SmartOnboarding autoShow={true} />
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav visible={isMobile && !['/login', '/register'].includes(location.pathname)} />
       {/* Spacer for bottom nav */}

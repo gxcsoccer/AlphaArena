@@ -1,0 +1,296 @@
+/**
+ * SmartOnboarding Styles
+ *
+ * Styles for the enhanced onboarding component
+ */
+
+/* Driver.js custom theme overrides */
+.smart-onboarding-popover.light .driver-popover {
+  background: var(--color-bg-2, #ffffff);
+  color: var(--color-text-1, #1d2129);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--color-border, #e5e6eb);
+}
+
+.smart-onboarding-popover.dark .driver-popover {
+  background: var(--color-bg-2, #1a1a1a);
+  color: var(--color-text-1, #ffffff);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--color-border, #333333);
+}
+
+.smart-onboarding-popover .driver-popover-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.smart-onboarding-popover .driver-popover-description {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.smart-onboarding-popover .driver-popover-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border, #e5e6eb);
+}
+
+.smart-onboarding-popover .driver-popover-progress-text {
+  font-size: 12px;
+  color: var(--color-text-3, #86909c);
+}
+
+.smart-onboarding-popover .driver-popover-navigation-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.smart-onboarding-popover .driver-popover-prev-btn,
+.smart-onboarding-popover .driver-popover-next-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.smart-onboarding-popover .driver-popover-prev-btn {
+  background: var(--color-fill-2, #f2f3f5);
+  color: var(--color-text-2, #4e5969);
+  border: 1px solid var(--color-border, #e5e6eb);
+}
+
+.smart-onboarding-popover .driver-popover-next-btn {
+  background: rgb(var(--primary-6, 22, 93, 255));
+  color: #ffffff;
+  border: none;
+}
+
+.smart-onboarding-popover .driver-popover-prev-btn:hover {
+  background: var(--color-fill-3, #e5e6eb);
+}
+
+.smart-onboarding-popover .driver-popover-next-btn:hover {
+  background: rgb(var(--primary-5, 56, 129, 255));
+}
+
+/* Welcome Modal */
+.smart-onboarding-welcome .arco-modal-body {
+  padding: 24px;
+}
+
+.onboarding-welcome-content {
+  text-align: center;
+}
+
+.onboarding-progress-container {
+  margin-bottom: 24px;
+}
+
+.onboarding-progress {
+  margin-bottom: 8px;
+}
+
+.onboarding-step-counter {
+  font-size: 12px;
+}
+
+.onboarding-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgb(var(--primary-1, 232, 243, 255));
+  margin-bottom: 20px;
+}
+
+.onboarding-icon-wrapper.success {
+  background: rgb(var(--green-1, 232, 255, 234));
+}
+
+.onboarding-icon {
+  font-size: 40px;
+  color: rgb(var(--primary-6, 22, 93, 255));
+}
+
+.onboarding-icon-wrapper.success .onboarding-icon {
+  color: rgb(var(--green-6, 0, 180, 42));
+}
+
+.onboarding-title {
+  margin-bottom: 8px !important;
+}
+
+.onboarding-description {
+  font-size: 14px;
+  color: var(--color-text-3, #86909c);
+  margin-bottom: 20px;
+}
+
+.onboarding-features {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.onboarding-feature-tag {
+  background: var(--color-fill-2, #f2f3f5);
+  border: none;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.onboarding-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border, #e5e6eb);
+}
+
+.onboarding-checkbox {
+  font-size: 12px;
+}
+
+/* Completion Modal */
+.smart-onboarding-complete .arco-modal-body {
+  padding: 24px;
+}
+
+.onboarding-complete-content {
+  text-align: center;
+}
+
+.onboarding-stats {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  margin: 24px 0;
+  padding: 16px;
+  background: var(--color-fill-1, #f7f8fa);
+  border-radius: 8px;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Help Button */
+.onboarding-help-button {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .onboarding-help-button {
+    bottom: 100px;
+    right: 16px;
+  }
+
+  .smart-onboarding-popover .driver-popover {
+    max-width: calc(100vw - 32px);
+  }
+
+  .onboarding-features {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .onboarding-actions {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .onboarding-checkbox {
+    order: 1;
+  }
+
+  .onboarding-stats {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* Spotlight animation */
+@keyframes onboarding-spotlight-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(22, 93, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 93, 255, 0);
+  }
+}
+
+.driver-active-element {
+  animation: onboarding-spotlight-pulse 2s infinite;
+}
+
+/* Progress bar animation */
+.driver-popover-progress-bar {
+  background: var(--color-fill-3, #e5e6eb);
+  border-radius: 4px;
+  height: 4px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+
+.driver-popover-progress-bar-track {
+  background: rgb(var(--primary-6, 22, 93, 255));
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Skip button styling */
+.driver-popover-close-btn {
+  color: var(--color-text-3, #86909c);
+  font-size: 20px;
+  cursor: pointer;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  transition: color 0.2s;
+}
+
+.driver-popover-close-btn:hover {
+  color: var(--color-text-1, #1d2129);
+}
+
+/* Arrow styling for tooltips */
+.driver-popover-arrow {
+  border: 1px solid var(--color-border, #e5e6eb);
+}
+
+/* Animation for popover */
+@keyframes driver-popover-animate {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.driver-popover {
+  animation: driver-popover-animate 0.2s ease-out;
+}

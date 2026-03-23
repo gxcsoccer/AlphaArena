@@ -78,3 +78,7 @@ export type {
   FeatureInsight,
   ReportSchedule,
 } from './InsightReportService';
+
+// Onboarding service
+export * from './onboarding.types';
+export { onboardingService } from './OnboardingService';
