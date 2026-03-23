@@ -435,6 +435,33 @@
   color: var(--color-text-1);
 }
 
+/* Fix: Ensure form label is always visible on both themes */
+/* This prevents dark theme text color being applied on light backgrounds */
+.arco-form-item .arco-form-label-item > label {
+  color: var(--color-text-1) !important;
+}
+
+/* Ensure label color remains correct when input is focused */
+.arco-form-item:focus-within .arco-form-label-item > label,
+.arco-form-item-has-focus .arco-form-label-item > label,
+.arco-input-focused ~ .arco-form-label-item > label,
+.arco-input-inner-wrapper-focus ~ .arco-form-label-item > label {
+  color: var(--color-text-1) !important;
+}
+
+/* Light theme explicit label color */
+:root .arco-form-label-item > label,
+:root.light .arco-form-label-item > label,
+:root[data-theme='light'] .arco-form-label-item > label {
+  color: var(--color-text-1) !important;
+}
+
+/* Dark theme explicit label color */
+:root.dark .arco-form-label-item > label,
+:root[data-theme='dark'] .arco-form-label-item > label {
+  color: var(--color-text-1) !important;
+}
+
 /* Spin Enhancements */
 .arco-spin-dot-item {
   background-color: var(--color-primary);
