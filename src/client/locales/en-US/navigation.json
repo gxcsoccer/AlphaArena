@@ -1,0 +1,82 @@
+{
+  "menu": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "trading": "Trading",
+    "strategies": "Strategies",
+    "portfolio": "Portfolio",
+    "holdings": "Holdings",
+    "trades": "Trades",
+    "leaderboard": "Leaderboard",
+    "performance": "Performance",
+    "risk": "Risk",
+    "sentiment": "Sentiment",
+    "copyTrading": "Copy Trading",
+    "backtest": "Backtest",
+    "journal": "Trading Journal",
+    "comparison": "Strategy Comparison",
+    "attribution": "Attribution",
+    "marketplace": "Marketplace",
+    "advancedOrders": "Advanced Orders",
+    "scheduler": "Scheduler",
+    "rebalance": "Rebalance",
+    "subscription": "Subscription",
+    "admin": "Admin",
+    "settings": "Settings",
+    "profile": "Profile",
+    "apiDocs": "API Docs",
+    "notifications": "Notifications",
+    "feedback": "Feedback"
+  },
+  "page": {
+    "home": {
+      "title": "AlphaArena - Algorithmic Trading Platform",
+      "subtitle": "Quantitative Trading, Winning the Future"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Account overview and real-time data"
+    },
+    "trading": {
+      "title": "Trading",
+      "subtitle": "Real-time trading and order management"
+    },
+    "strategies": {
+      "title": "Strategies",
+      "subtitle": "Create and manage your trading strategies"
+    },
+    "portfolio": {
+      "title": "Portfolio",
+      "subtitle": "Asset allocation and portfolio analysis"
+    },
+    "holdings": {
+      "title": "Holdings",
+      "subtitle": "Current holdings details"
+    },
+    "trades": {
+      "title": "Trades",
+      "subtitle": "Trade history details"
+    },
+    "leaderboard": {
+      "title": "Leaderboard",
+      "subtitle": "Strategy performance ranking"
+    },
+    "performance": {
+      "title": "Performance",
+      "subtitle": "Detailed performance metrics and charts"
+    },
+    "risk": {
+      "title": "Risk Management",
+      "subtitle": "Risk metrics and monitoring"
+    },
+    "backtest": {
+      "title": "Backtest",
+      "subtitle": "Strategy backtesting and optimization"
+    }
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "settings": "Settings",
+    "profile": "Profile"
+  }
+}

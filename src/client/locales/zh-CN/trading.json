@@ -1,0 +1,98 @@
+{
+  "order": {
+    "title": "订单",
+    "create": "创建订单",
+    "buy": "买入",
+    "sell": "卖出",
+    "market": "市价单",
+    "limit": "限价单",
+    "stop": "止损单",
+    "stopLimit": "止损限价单",
+    "trailingStop": "追踪止损单",
+    "iceberg": "冰山订单",
+    "fillOrKill": "全部成交或取消",
+    "immediateOrCancel": "立即成交或取消",
+    "price": "价格",
+    "amount": "数量",
+    "total": "总额",
+    "fee": "手续费",
+    "status": {
+      "pending": "待处理",
+      "open": "未成交",
+      "partial": "部分成交",
+      "filled": "已成交",
+      "cancelled": "已取消",
+      "rejected": "已拒绝",
+      "expired": "已过期"
+    },
+    "confirm": "确认下单",
+    "success": "下单成功",
+    "error": "下单失败",
+    "cancel": "撤单",
+    "cancelAll": "全部撤单",
+    "cancelSuccess": "撤单成功",
+    "modify": "修改订单",
+    "modifySuccess": "订单修改成功"
+  },
+  "trade": {
+    "title": "成交记录",
+    "pair": "交易对",
+    "side": "方向",
+    "type": "类型",
+    "price": "成交价",
+    "amount": "成交量",
+    "total": "成交额",
+    "fee": "手续费",
+    "time": "成交时间",
+    "buy": "买入",
+    "sell": "卖出"
+  },
+  "orderbook": {
+    "title": "订单簿",
+    "asks": "卖单",
+    "bids": "买单",
+    "price": "价格",
+    "amount": "数量",
+    "total": "累计"
+  },
+  "pair": {
+    "title": "交易对",
+    "select": "选择交易对",
+    "search": "搜索交易对",
+    "favorite": "收藏",
+    "volume": "24h成交量",
+    "change": "24h涨跌幅"
+  },
+  "position": {
+    "title": "持仓",
+    "open": "持仓中",
+    "closed": "已平仓",
+    "entryPrice": "开仓价",
+    "exitPrice": "平仓价",
+    "amount": "持仓量",
+    "pnl": "盈亏",
+    "pnlPercent": "盈亏比",
+    "margin": "保证金",
+    "leverage": "杠杆",
+    "liquidationPrice": "强平价"
+  },
+  "conditional": {
+    "title": "条件单",
+    "triggerPrice": "触发价格",
+    "triggerType": {
+      "above": "高于",
+      "below": "低于"
+    },
+    "action": {
+      "buy": "买入",
+      "sell": "卖出",
+      "alert": "提醒"
+    },
+    "status": {
+      "active": "监控中",
+      "triggered": "已触发",
+      "cancelled": "已取消",
+      "expired": "已过期"
+    }
+  }
+}

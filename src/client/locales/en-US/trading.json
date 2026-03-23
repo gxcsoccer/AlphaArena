@@ -1,0 +1,98 @@
+{
+  "order": {
+    "title": "Order",
+    "create": "Create Order",
+    "buy": "Buy",
+    "sell": "Sell",
+    "market": "Market Order",
+    "limit": "Limit Order",
+    "stop": "Stop Order",
+    "stopLimit": "Stop-Limit Order",
+    "trailingStop": "Trailing Stop Order",
+    "iceberg": "Iceberg Order",
+    "fillOrKill": "Fill or Kill",
+    "immediateOrCancel": "Immediate or Cancel",
+    "price": "Price",
+    "amount": "Amount",
+    "total": "Total",
+    "fee": "Fee",
+    "status": {
+      "pending": "Pending",
+      "open": "Open",
+      "partial": "Partial Fill",
+      "filled": "Filled",
+      "cancelled": "Cancelled",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
+    "confirm": "Confirm Order",
+    "success": "Order placed successfully",
+    "error": "Failed to place order",
+    "cancel": "Cancel Order",
+    "cancelAll": "Cancel All",
+    "cancelSuccess": "Order cancelled successfully",
+    "modify": "Modify Order",
+    "modifySuccess": "Order modified successfully"
+  },
+  "trade": {
+    "title": "Trade History",
+    "pair": "Pair",
+    "side": "Side",
+    "type": "Type",
+    "price": "Price",
+    "amount": "Amount",
+    "total": "Total",
+    "fee": "Fee",
+    "time": "Time",
+    "buy": "Buy",
+    "sell": "Sell"
+  },
+  "orderbook": {
+    "title": "Order Book",
+    "asks": "Asks",
+    "bids": "Bids",
+    "price": "Price",
+    "amount": "Amount",
+    "total": "Total"
+  },
+  "pair": {
+    "title": "Trading Pair",
+    "select": "Select Pair",
+    "search": "Search pair",
+    "favorite": "Favorite",
+    "volume": "24h Volume",
+    "change": "24h Change"
+  },
+  "position": {
+    "title": "Position",
+    "open": "Open",
+    "closed": "Closed",
+    "entryPrice": "Entry Price",
+    "exitPrice": "Exit Price",
+    "amount": "Amount",
+    "pnl": "PnL",
+    "pnlPercent": "PnL %",
+    "margin": "Margin",
+    "leverage": "Leverage",
+    "liquidationPrice": "Liquidation Price"
+  },
+  "conditional": {
+    "title": "Conditional Order",
+    "triggerPrice": "Trigger Price",
+    "triggerType": {
+      "above": "Above",
+      "below": "Below"
+    },
+    "action": {
+      "buy": "Buy",
+      "sell": "Sell",
+      "alert": "Alert"
+    },
+    "status": {
+      "active": "Monitoring",
+      "triggered": "Triggered",
+      "cancelled": "Cancelled",
+      "expired": "Expired"
+    }
+  }
+}

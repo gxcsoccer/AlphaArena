@@ -1,0 +1,54 @@
+{
+  "title": "设置",
+  "general": {
+    "title": "通用设置",
+    "language": "语言",
+    "theme": "主题",
+    "timezone": "时区",
+    "currency": "货币单位",
+    "dateFormat": "日期格式"
+  },
+  "notification": {
+    "title": "通知设置",
+    "email": "邮件通知",
+    "push": "推送通知",
+    "sms": "短信通知",
+    "trade": "交易通知",
+    "alert": "预警通知",
+    "report": "报告通知",
+    "marketing": "营销通知"
+  },
+  "security": {
+    "title": "安全设置",
+    "twoFA": "两步验证",
+    "changePassword": "修改密码",
+    "sessionManagement": "会话管理",
+    "loginHistory": "登录历史",
+    "apiKeys": "API 密钥"
+  },
+  "trading": {
+    "title": "交易设置",
+    "defaultPair": "默认交易对",
+    "orderConfirm": "下单确认",
+    "autoCancel": "自动撤单",
+    "riskLimit": "风险限制",
+    "leverageLimit": "杠杆限制"
+  },
+  "display": {
+    "title": "显示设置",
+    "compactMode": "紧凑模式",
+    "showBalances": "显示余额",
+    "showPnL": "显示盈亏",
+    "chartStyle": "图表样式",
+    "tableRows": "表格行数"
+  },
+  "api": {
+    "title": "API 设置",
+    "createKey": "创建密钥",
+    "keyName": "密钥名称",
+    "permissions": "权限",
+    "expiresAt": "过期时间",
+    "lastUsed": "最后使用",
+    "revoke": "撤销"
+  }
+}

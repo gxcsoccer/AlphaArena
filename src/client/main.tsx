@@ -9,6 +9,9 @@ import ToastContainer from './components/Toast';
 import { initCriticalPreloading } from './utils/resourcePreload';
 import { registerServiceWorker } from './utils/serviceWorker';
 
+// i18n - Initialize internationalization (Issue #584)
+import './i18n';
+
 // Design System - Import design tokens BEFORE Arco CSS
 import './styles/design-tokens.css';
 // Arco Design CSS

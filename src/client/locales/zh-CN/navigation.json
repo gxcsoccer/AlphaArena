@@ -1,0 +1,82 @@
+{
+  "menu": {
+    "home": "首页",
+    "dashboard": "仪表盘",
+    "trading": "交易",
+    "strategies": "策略",
+    "portfolio": "投资组合",
+    "holdings": "持仓",
+    "trades": "交易记录",
+    "leaderboard": "排行榜",
+    "performance": "绩效分析",
+    "risk": "风险管理",
+    "sentiment": "情绪分析",
+    "copyTrading": "跟单交易",
+    "backtest": "回测",
+    "journal": "交易日志",
+    "comparison": "策略对比",
+    "attribution": "归因分析",
+    "marketplace": "策略市场",
+    "advancedOrders": "高级订单",
+    "scheduler": "定时任务",
+    "rebalance": "再平衡",
+    "subscription": "订阅",
+    "admin": "管理后台",
+    "settings": "设置",
+    "profile": "个人中心",
+    "apiDocs": "API 文档",
+    "notifications": "通知",
+    "feedback": "反馈"
+  },
+  "page": {
+    "home": {
+      "title": "AlphaArena - 算法交易平台",
+      "subtitle": "量化交易，智胜未来"
+    },
+    "dashboard": {
+      "title": "仪表盘",
+      "subtitle": "账户概览和实时数据"
+    },
+    "trading": {
+      "title": "交易",
+      "subtitle": "实时交易和订单管理"
+    },
+    "strategies": {
+      "title": "策略管理",
+      "subtitle": "创建和管理您的交易策略"
+    },
+    "portfolio": {
+      "title": "投资组合",
+      "subtitle": "资产配置和组合分析"
+    },
+    "holdings": {
+      "title": "持仓",
+      "subtitle": "当前持仓详情"
+    },
+    "trades": {
+      "title": "交易记录",
+      "subtitle": "历史交易明细"
+    },
+    "leaderboard": {
+      "title": "排行榜",
+      "subtitle": "策略表现排名"
+    },
+    "performance": {
+      "title": "绩效分析",
+      "subtitle": "详细的绩效指标和图表"
+    },
+    "risk": {
+      "title": "风险管理",
+      "subtitle": "风险指标和监控"
+    },
+    "backtest": {
+      "title": "回测",
+      "subtitle": "策略回测和优化"
+    }
+  },
+  "breadcrumb": {
+    "home": "首页",
+    "settings": "设置",
+    "profile": "个人中心"
+  }
+}
