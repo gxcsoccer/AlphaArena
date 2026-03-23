@@ -1,10 +1,10 @@
 {
   "lastDispatch": {
-    "digestHash": "spawn_qa|prs:1|ready:1|no-sprint",
-    "timestamp": 1774205655299,
-    "consecutiveCount": 1
+    "digestHash": "spawn_qa_smoke|prs:0|ready:0|no-sprint",
+    "timestamp": 1774233855507,
+    "consecutiveCount": 10
   },
   "highWaterMark": 43,
-  "paused": false,
-  "pauseReason": ""
+  "paused": true,
+  "pauseReason": "circuit breaker: 10 consecutive failures on spawn_qa_smoke"
 }

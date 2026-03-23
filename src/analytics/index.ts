@@ -48,3 +48,18 @@ export type {
   ReportAlert,
   AnomalyDetection,
 } from './ReportGenerator';
+
+// Error log service
+export { ErrorLogService, errorLogService } from './ErrorLogService';
+export type {
+  ErrorLogEntry,
+  ErrorSummary,
+  ErrorTrend,
+} from './ErrorLogService';
+
+// Analytics export service
+export { AnalyticsExportService, analyticsExportService } from './AnalyticsExportService';
+export type {
+  ExportOptions,
+  ExportResult,
+} from './AnalyticsExportService';
