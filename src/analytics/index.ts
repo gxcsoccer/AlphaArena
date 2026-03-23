@@ -63,3 +63,18 @@ export type {
   ExportOptions,
   ExportResult,
 } from './AnalyticsExportService';
+
+// Insight report service
+export { InsightReportService, insightReportService } from './InsightReportService';
+export type {
+  InsightReport,
+  InsightReportOptions,
+  UserSegment,
+  BehaviorPattern,
+  MetricsTrend,
+  OptimizationSuggestion,
+  AnomalyInsight,
+  JourneyInsight,
+  FeatureInsight,
+  ReportSchedule,
+} from './InsightReportService';
