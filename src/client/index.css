@@ -27,6 +27,11 @@
   --chart-axis-color: #86868b;
   --orderbook-ask-bg: rgba(245, 63, 63, 0.1);
   --orderbook-bid-bg: rgba(0, 180, 33, 0.1);
+  --orderbook-ask-text: #f53f3f;
+  --orderbook-bid-text: #00b42a;
+  --color-success-bg: rgba(0, 180, 33, 0.1);
+  --color-danger-bg: rgba(245, 63, 63, 0.1);
+  --color-primary-bg: rgba(22, 93, 255, 0.1);
 }
 
 /* Dark Theme */
@@ -53,6 +58,11 @@
   --chart-axis-color: #7d7d85;
   --orderbook-ask-bg: rgba(245, 63, 63, 0.2);
   --orderbook-bid-bg: rgba(0, 200, 83, 0.2);
+  --orderbook-ask-text: #ff5252;
+  --orderbook-bid-text: #00c853;
+  --color-success-bg: rgba(0, 200, 83, 0.15);
+  --color-danger-bg: rgba(255, 82, 82, 0.15);
+  --color-primary-bg: rgba(60, 130, 255, 0.15);
 }
 
 /* Smooth theme transitions */

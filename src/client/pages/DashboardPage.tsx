@@ -16,16 +16,31 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import {
+  IconArrowRise,
+  IconArrowFall,
+  IconApps,
+  IconSwap,
+  IconTrophy,
+} from '@arco-design/web-react/icon';
 import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import MobileTableCard from '../components/MobileTableCard';
 import { LazyLoadWrapper } from '../components/LazyLoadWrapper';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
+import '../styles/visual-optimization.css';
 
 const { Title, _Text } = Typography;
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+// 使用设计系统的颜色 tokens
+const CHART_COLORS = [
+  'var(--color-primary-500)',
+  'var(--color-success-500)',
+  'var(--color-warning-500)',
+  'var(--color-error-500)',
+  'var(--color-secondary-500)',
+];
 
 // Lazy load heavy components for better initial load time
 const TradeHistoryPanel = lazy(() => import('../components/TradeHistoryPanel'));
@@ -58,21 +73,43 @@ const useMobileDetection = () => {
   return isMobile;
 };
 
-// Memoized Stats Card component
-const StatsCard: React.FC<{
+// Enhanced Stats Card component with trend indicator
+interface StatsCardProps {
   title: string;
   value: number | string;
   suffixText?: string;
   prefixText?: string;
   loading: boolean;
-}> = memo(({ title, value, suffixText, prefixText, loading }) => (
-  <Card loading={loading} className="stats-card">
-    <Statistic
-      title={title}
-      value={value}
-      suffixText={suffixText}
-      prefixText={prefixText}
-    />
+  trend?: 'up' | 'down' | 'neutral';
+  trendValue?: string;
+  accent?: 'primary' | 'success' | 'warning' | 'danger';
+}
+
+const StatsCard: React.FC<StatsCardProps> = memo(({
+  title,
+  value,
+  suffixText,
+  prefixText,
+  loading,
+  trend,
+  trendValue,
+  accent,
+}) => (
+  <Card 
+    loading={loading} 
+    className={`stats-card ${accent ? `stats-card--${accent}` : ''}`}
+  >
+    <div className="stats-card__title">{title}</div>
+    <div className="stats-card__value">
+      {prefixText}{typeof value === 'number' ? value.toLocaleString() : value}{suffixText}
+    </div>
+    {trend && trendValue && (
+      <div className={`stats-card__trend stats-card__trend--${trend}`}>
+        {trend === 'up' && <IconArrowRise />}
+        {trend === 'down' && <IconArrowFall />}
+        {trendValue}
+      </div>
+    )}
   </Card>
 ));
 
@@ -87,46 +124,46 @@ const StatsGrid: React.FC<{
     totalVolume?: number;
     buyTrades?: number;
     sellTrades?: number;
+    volumeTrend?: 'up' | 'down' | 'neutral';
+    volumeTrendValue?: string;
   } | null;
   loading: boolean;
   isMobile: boolean;
 }> = memo(({ stats, loading, isMobile }) => (
-  <Row gutter={isMobile ? 8 : 16}>
-    <Col xs={12} sm={12} md={6}>
-      <StatsCard
-        title="Total Strategies"
-        value={stats?.totalStrategies || 0}
-        suffixText={'(' + (stats?.activeStrategies || 0) + ' active)'}
-        loading={loading}
-      />
-    </Col>
-    <Col xs={12} sm={12} md={6}>
-      <StatsCard
-        title="Total Trades"
-        value={stats?.totalTrades || 0}
-        loading={loading}
-      />
-    </Col>
-    <Col xs={12} sm={12} md={6}>
-      <StatsCard
-        title="Total Volume"
-        value={stats?.totalVolume ? (stats.totalVolume / 1000).toFixed(1) + 'K' : '0'}
-        prefixText="$"
-        loading={loading}
-      />
-    </Col>
-    <Col xs={12} sm={12} md={6}>
-      <StatsCard
-        title="Buy/Sell Ratio"
-        value={
-          stats?.buyTrades && stats.sellTrades
-            ? (stats.buyTrades / stats.sellTrades).toFixed(2)
-            : '0'
-        }
-        loading={loading}
-      />
-    </Col>
-  </Row>
+  <div className="stats-card-container">
+    <StatsCard
+      title="策略总数"
+      value={stats?.totalStrategies || 0}
+      suffixText={stats?.activeStrategies ? ` (${stats.activeStrategies} 个运行中)` : ''}
+      loading={loading}
+      accent="primary"
+    />
+    <StatsCard
+      title="总交易次数"
+      value={stats?.totalTrades || 0}
+      loading={loading}
+      accent="success"
+    />
+    <StatsCard
+      title="总交易额"
+      value={stats?.totalVolume ? (stats.totalVolume / 1000).toFixed(1) + 'K' : '0'}
+      prefixText="$"
+      loading={loading}
+      trend={stats?.volumeTrend}
+      trendValue={stats?.volumeTrendValue}
+      accent="warning"
+    />
+    <StatsCard
+      title="买卖比"
+      value={
+        stats?.buyTrades && stats.sellTrades
+          ? (stats.buyTrades / stats.sellTrades).toFixed(2)
+          : '0'
+      }
+      loading={loading}
+      accent="danger"
+    />
+  </div>
 ));
 
 StatsGrid.displayName = 'StatsGrid';
@@ -137,7 +174,7 @@ const StrategyPieChart: React.FC<{
   loading: boolean;
   isMobile: boolean;
 }> = memo(({ data, loading, isMobile }) => (
-  <Card title="Strategy Status Distribution" loading={loading} className="chart-card">
+  <Card title="策略状态分布" loading={loading} className="chart-card">
     <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
       <PieChart>
         <Pie
@@ -147,17 +184,25 @@ const StrategyPieChart: React.FC<{
           labelLine
           label={({ name, percent }) => name + ': ' + ((percent || 0) * 100).toFixed(0) + '%'}
           outerRadius={isMobile ? 60 : 80}
-          fill="#8884d8"
+          fill="var(--color-primary-500)"
           dataKey="value"
         >
           {data.map((_, index) => (
-            <Cell key={'cell-' + index} fill={COLORS[index % COLORS.length]} />
+            <Cell key={'cell-' + index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
           ))}
         </Pie>
         <Tooltip />
         <Legend />
       </PieChart>
     </ResponsiveContainer>
+    <div className="chart-legend">
+      {data.map((item, index) => (
+        <div key={item.name} className="chart-legend__item">
+          <div className={`chart-legend__dot chart-color-${index + 1}`} />
+          <span>{item.name}</span>
+        </div>
+      ))}
+    </div>
   </Card>
 ));
 
@@ -169,15 +214,21 @@ const TradeVolumeChart: React.FC<{
   loading: boolean;
   isMobile: boolean;
 }> = memo(({ data, loading, isMobile }) => (
-  <Card title="Trading Volume by Strategy" loading={loading} className="chart-card">
+  <Card title="策略交易量" loading={loading} className="chart-card">
     <ResponsiveContainer width="100%" height={isMobile ? 220 : 300}>
       <BarChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12 }} />
-        <YAxis />
-        <Tooltip />
+        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-1)" />
+        <XAxis dataKey="name" tick={{ fontSize: isMobile ? 10 : 12, fill: 'var(--color-text-2)' }} />
+        <YAxis tick={{ fill: 'var(--color-text-2)' }} />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'var(--color-bg-1)', 
+            border: '1px solid var(--color-border-1)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        />
         <Legend />
-        <Bar dataKey="volume" fill="#8884d8" />
+        <Bar dataKey="volume" fill="var(--color-primary-500)" radius={[4, 4, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   </Card>
@@ -252,26 +303,26 @@ const MobileTabContent: React.FC<{
     return (
       <div style={{ padding: '0 4px' }}>
         <Collapse accordion defaultActiveKey={['history']}>
-          <CollapseItem header="Real-time Trade History" name="history">
+          <CollapseItem header="实时交易历史" name="history">
             <div style={{ height: 300 }}>
               <Suspense fallback={<LoadingFallback height={300} />}>
                 <TradeHistoryPanel limit={50} autoScroll={true} />
               </Suspense>
             </div>
           </CollapseItem>
-          <CollapseItem header="Orders" name="orders">
+          <CollapseItem header="订单管理" name="orders">
             <Suspense fallback={<LoadingFallback height={200} />}>
               <OrdersPanel limit={20} />
             </Suspense>
           </CollapseItem>
-          <CollapseItem header="Conditional Orders" name="conditional">
+          <CollapseItem header="条件订单" name="conditional">
             <Suspense fallback={<LoadingFallback height={200} />}>
               <ConditionalOrdersPanel limit={20} />
             </Suspense>
           </CollapseItem>
         </Collapse>
 
-        <Card title="Recent Trades" style={{ marginTop: 12 }} loading={tradesLoading}>
+        <Card title="最近交易" style={{ marginTop: 12 }} loading={tradesLoading} className="chart-card">
           {trades.slice(0, 5).map((trade) => (
             <MobileTableCard
               key={trade.id}
@@ -288,7 +339,7 @@ const MobileTabContent: React.FC<{
   if (activeTab === 'strategies') {
     return (
       <div style={{ padding: '0 4px' }}>
-        <Card title="Active Strategies" loading={strategiesLoading}>
+        <Card title="运行中的策略" loading={strategiesLoading} className="chart-card">
           {strategies.slice(0, 5).map((strategy) => (
             <MobileTableCard
               key={strategy.id}
@@ -297,8 +348,8 @@ const MobileTabContent: React.FC<{
               titleField="name"
               actions={
                 <Space>
-                  <Button size="mini" disabled={strategy.status === 'active'}>Start</Button>
-                  <Button size="mini" disabled={strategy.status !== 'active'}>Stop</Button>
+                  <Button size="mini" disabled={strategy.status === 'active'}>启动</Button>
+                  <Button size="mini" disabled={strategy.status !== 'active'}>停止</Button>
                 </Space>
               }
             />
@@ -354,14 +405,14 @@ const DashboardPage: React.FC = () => {
   // Memoize table columns
   const tradeColumns: TableProps<Trade>['columns'] = useMemo(() => [
     {
-      title: 'Time',
+      title: '时间',
       dataIndex: 'executedAt',
       key: 'executedAt',
       render: (text: string) => new Date(text).toLocaleTimeString(),
       width: 100,
     },
     {
-      title: 'Strategy',
+      title: '策略',
       dataIndex: 'strategyId',
       key: 'strategyId',
       render: (id: string) => {
@@ -371,37 +422,37 @@ const DashboardPage: React.FC = () => {
       width: 150,
     },
     {
-      title: 'Symbol',
+      title: '交易对',
       dataIndex: 'symbol',
       key: 'symbol',
       width: 100,
     },
     {
-      title: 'Side',
+      title: '方向',
       dataIndex: 'side',
       key: 'side',
       render: (side: 'buy' | 'sell') => (
-        <Tag color={side === 'buy' ? 'green' : 'red'}>
-          {side}
+        <Tag color={side === 'buy' ? 'green' : 'red'} className={side === 'buy' ? 'text-success' : 'text-danger'}>
+          {side === 'buy' ? '买入' : '卖出'}
         </Tag>
       ),
       width: 80,
     },
     {
-      title: 'Price',
+      title: '价格',
       dataIndex: 'price',
       key: 'price',
       render: (price: number) => '$' + price.toLocaleString(),
       width: 100,
     },
     {
-      title: 'Quantity',
+      title: '数量',
       dataIndex: 'quantity',
       key: 'quantity',
       width: 100,
     },
     {
-      title: 'Total',
+      title: '总额',
       dataIndex: 'total',
       key: 'total',
       render: (total: number) => '$' + total.toLocaleString(),
@@ -411,19 +462,19 @@ const DashboardPage: React.FC = () => {
 
   const strategyColumns: TableProps<Strategy>['columns'] = useMemo(() => [
     {
-      title: 'Name',
+      title: '名称',
       dataIndex: 'name',
       key: 'name',
       width: 200,
     },
     {
-      title: 'Symbol',
+      title: '交易对',
       dataIndex: 'symbol',
       key: 'symbol',
       width: 100,
     },
     {
-      title: 'Status',
+      title: '状态',
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
@@ -432,27 +483,37 @@ const DashboardPage: React.FC = () => {
           paused: 'orange',
           stopped: 'red',
         };
-        return <Tag color={colorMap[status] || 'gray'}>{status}</Tag>;
+        const textMap: Record<string, string> = {
+          active: '运行中',
+          paused: '已暂停',
+          stopped: '已停止',
+        };
+        return (
+          <span className={`strategy-status strategy-status--${status}`}>
+            <span className="strategy-status__dot" />
+            {textMap[status] || status}
+          </span>
+        );
       },
       width: 100,
     },
     {
-      title: 'Description',
+      title: '描述',
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
     },
     {
-      title: 'Actions',
+      title: '操作',
       key: 'actions',
       width: 150,
       render: (_: any, record: Strategy) => (
         <Space>
           <Button size="small" disabled={record.status === 'active'}>
-            Start
+            启动
           </Button>
           <Button size="small" disabled={record.status !== 'active'}>
-            Stop
+            停止
           </Button>
         </Space>
       ),
@@ -490,7 +551,7 @@ const DashboardPage: React.FC = () => {
       <ErrorBoundary>
         <div className="dashboard-mobile">
           <Title heading={4} style={{ marginBottom: 12, padding: '0 4px' }}>
-            Dashboard
+            仪表板
           </Title>
 
           <Tabs
@@ -500,10 +561,10 @@ const DashboardPage: React.FC = () => {
             size="small"
             style={{ marginBottom: 12 }}
           >
-            <TabPane key="overview" title="Overview" />
-            <TabPane key="trades" title="Trades" />
-            <TabPane key="strategies" title="Strategies" />
-            <TabPane key="alerts" title="Alerts" />
+            <TabPane key="overview" title="概览" />
+            <TabPane key="trades" title="交易" />
+            <TabPane key="strategies" title="策略" />
+            <TabPane key="alerts" title="提醒" />
           </Tabs>
 
           <MobileTabContent
@@ -531,7 +592,7 @@ const DashboardPage: React.FC = () => {
       <div>
         {/* Page Title */}
         <Title heading={3} style={{ marginBottom: 24 }}>
-          Dashboard
+          仪表板
         </Title>
 
         {/* Stats Overview */}
@@ -609,7 +670,7 @@ const DashboardPage: React.FC = () => {
         {/* Recent Trades */}
         <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
-            <Card title="Recent Trades" loading={tradesLoading}>
+            <Card title="最近交易" loading={tradesLoading} className="chart-card">
               <Table
                 columns={tradeColumns}
                 dataSource={trades}
@@ -624,7 +685,7 @@ const DashboardPage: React.FC = () => {
         {/* Active Strategies */}
         <Row gutter={16}>
           <Col span={24}>
-            <Card title="Active Strategies" loading={strategiesLoading}>
+            <Card title="策略管理" loading={strategiesLoading} className="chart-card">
               <Table
                 columns={strategyColumns}
                 dataSource={strategies}
