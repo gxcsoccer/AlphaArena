@@ -1,0 +1,48 @@
+{
+  "title": "Backtest",
+  "subtitle": "Strategy backtesting and optimization",
+  "form": {
+    "title": "Backtest Settings",
+    "strategy": "Strategy",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "initialCapital": "Initial Capital",
+    "commission": "Commission Rate",
+    "slippage": "Slippage",
+    "leverage": "Leverage"
+  },
+  "result": {
+    "title": "Backtest Results",
+    "totalReturn": "Total Return",
+    "annualReturn": "Annual Return",
+    "maxDrawdown": "Max Drawdown",
+    "sharpeRatio": "Sharpe Ratio",
+    "sortinoRatio": "Sortino Ratio",
+    "calmarRatio": "Calmar Ratio",
+    "winRate": "Win Rate",
+    "profitFactor": "Profit Factor",
+    "totalTrades": "Total Trades",
+    "avgProfit": "Avg Profit",
+    "avgLoss": "Avg Loss",
+    "maxConsecWins": "Max Consecutive Wins",
+    "maxConsecLosses": "Max Consecutive Losses"
+  },
+  "chart": {
+    "equityCurve": "Equity Curve",
+    "drawdown": "Drawdown Curve",
+    "monthlyReturns": "Monthly Returns",
+    "tradeDistribution": "Trade Distribution"
+  },
+  "actions": {
+    "run": "Run Backtest",
+    "export": "Export Report",
+    "compare": "Compare Results",
+    "optimize": "Optimize Parameters"
+  },
+  "status": {
+    "pending": "Pending",
+    "running": "Running",
+    "completed": "Completed",
+    "failed": "Failed"
+  }
+}

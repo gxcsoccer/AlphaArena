@@ -1,0 +1,64 @@
+{
+  "title": "Strategies",
+  "subtitle": "Create and manage your trading strategies",
+  "list": {
+    "title": "Strategy List",
+    "create": "Create Strategy",
+    "search": "Search strategies",
+    "filter": "Filter",
+    "noResults": "No strategies found"
+  },
+  "detail": {
+    "title": "Strategy Detail",
+    "edit": "Edit Strategy",
+    "delete": "Delete Strategy",
+    "clone": "Clone Strategy",
+    "backtest": "Run Backtest",
+    "start": "Start Strategy",
+    "stop": "Stop Strategy"
+  },
+  "form": {
+    "name": "Strategy Name",
+    "description": "Description",
+    "type": "Strategy Type",
+    "status": "Status",
+    "symbol": "Trading Pair",
+    "timeframe": "Timeframe",
+    "indicators": "Indicators",
+    "conditions": "Conditions",
+    "actions": "Actions",
+    "risk": "Risk Control",
+    "stopLoss": "Stop Loss",
+    "takeProfit": "Take Profit",
+    "positionSize": "Position Size",
+    "maxPositions": "Max Positions"
+  },
+  "type": {
+    "trend": "Trend Following",
+    "meanReversion": "Mean Reversion",
+    "momentum": "Momentum",
+    "breakout": "Breakout",
+    "arbitrage": "Arbitrage",
+    "marketMaking": "Market Making",
+    "custom": "Custom"
+  },
+  "status": {
+    "active": "Active",
+    "paused": "Paused",
+    "stopped": "Stopped",
+    "error": "Error",
+    "backtesting": "Backtesting"
+  },
+  "performance": {
+    "title": "Strategy Performance",
+    "totalReturn": "Total Return",
+    "annualReturn": "Annual Return",
+    "maxDrawdown": "Max Drawdown",
+    "sharpeRatio": "Sharpe Ratio",
+    "winRate": "Win Rate",
+    "profitFactor": "Profit Factor",
+    "trades": "Total Trades",
+    "avgProfit": "Avg Profit",
+    "avgLoss": "Avg Loss"
+  }
+}

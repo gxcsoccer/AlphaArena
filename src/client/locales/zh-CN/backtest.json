@@ -1,0 +1,48 @@
+{
+  "title": "回测",
+  "subtitle": "策略回测和优化",
+  "form": {
+    "title": "回测设置",
+    "strategy": "策略",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "initialCapital": "初始资金",
+    "commission": "手续费率",
+    "slippage": "滑点",
+    "leverage": "杠杆"
+  },
+  "result": {
+    "title": "回测结果",
+    "totalReturn": "总收益",
+    "annualReturn": "年化收益",
+    "maxDrawdown": "最大回撤",
+    "sharpeRatio": "夏普比率",
+    "sortinoRatio": "索提诺比率",
+    "calmarRatio": "卡玛比率",
+    "winRate": "胜率",
+    "profitFactor": "盈利因子",
+    "totalTrades": "总交易数",
+    "avgProfit": "平均盈利",
+    "avgLoss": "平均亏损",
+    "maxConsecWins": "最大连续盈利",
+    "maxConsecLosses": "最大连续亏损"
+  },
+  "chart": {
+    "equityCurve": "权益曲线",
+    "drawdown": "回撤曲线",
+    "monthlyReturns": "月度收益",
+    "tradeDistribution": "交易分布"
+  },
+  "actions": {
+    "run": "运行回测",
+    "export": "导出报告",
+    "compare": "对比结果",
+    "optimize": "参数优化"
+  },
+  "status": {
+    "pending": "等待中",
+    "running": "运行中",
+    "completed": "已完成",
+    "failed": "失败"
+  }
+}
