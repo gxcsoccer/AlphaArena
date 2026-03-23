@@ -6,7 +6,7 @@
 
 import { useTranslation } from 'react-i18next';
 import { useCallback, useMemo } from 'react';
-import { i18n, SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '../i18n';
+import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './index';
 
 // Re-export useTranslation from react-i18next for convenience
 export { useTranslation } from 'react-i18next';
