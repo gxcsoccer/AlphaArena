@@ -407,14 +407,14 @@ const DashboardPage: React.FC = () => {
   // Memoize table columns
   const tradeColumns: TableProps<Trade>['columns'] = useMemo(() => [
     {
-      title: t('recentActivity.trades'),
+      title: t('columns.time'),
       dataIndex: 'executedAt',
       key: 'executedAt',
       render: (text: string) => new Date(text).toLocaleTimeString(),
       width: 100,
     },
     {
-      title: t('overview.activeStrategies'),
+      title: t('columns.strategy'),
       dataIndex: 'strategyId',
       key: 'strategyId',
       render: (id: string) => {
@@ -424,13 +424,13 @@ const DashboardPage: React.FC = () => {
       width: 150,
     },
     {
-      title: t('chart.trades'),
+      title: t('columns.symbol'),
       dataIndex: 'symbol',
       key: 'symbol',
       width: 100,
     },
     {
-      title: t('quickStats.winRate'),
+      title: t('columns.side'),
       dataIndex: 'side',
       key: 'side',
       render: (side: 'buy' | 'sell') => (

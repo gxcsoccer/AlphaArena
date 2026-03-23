@@ -1,6 +1,12 @@
 {
   "title": "仪表盘",
   "subtitle": "账户概览和实时数据",
+  "columns": {
+    "time": "时间",
+    "strategy": "策略",
+    "symbol": "交易对",
+    "side": "方向"
+  },
   "overview": {
     "title": "账户概览",
     "balance": "账户余额",
