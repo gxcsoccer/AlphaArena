@@ -8,6 +8,7 @@ import { Form, Input, Button, Message, Typography, Space, Link, Grid } from '@ar
 import { IconUser, IconLock } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Title, Text } = Typography;
 const FormItem = Form.Item;
@@ -25,6 +26,9 @@ const LoginPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // SEO: Update meta tags for login page
+  useSEO(PAGE_SEO_CONFIGS.login);
 
   // Detect mobile on mount and resize
   useEffect(() => {

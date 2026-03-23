@@ -8,6 +8,7 @@ import { Form, Input, Button, Message, Typography, Space, Link, Grid } from '@ar
 import { IconUser, IconLock, IconEmail } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Title, Text } = Typography;
 const FormItem = Form.Item;
@@ -27,6 +28,9 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+
+  // SEO: Update meta tags for register page
+  useSEO(PAGE_SEO_CONFIGS.register);
 
   // Detect mobile on mount and resize
   useEffect(() => {

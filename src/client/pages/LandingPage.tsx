@@ -36,6 +36,7 @@ import {
 } from '@arco-design/web-react/icon';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -145,6 +146,9 @@ const LandingPage: React.FC = () => {
   const { isAuthenticated, isLoading } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
+
+  // SEO: Update meta tags for landing page
+  useSEO(PAGE_SEO_CONFIGS.landing);
 
   // Detect mobile
   useEffect(() => {

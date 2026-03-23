@@ -25,6 +25,15 @@ Disallow: /exchange-accounts
 Disallow: /strategy-portfolio
 Disallow: /backtest
 Disallow: /journal
+Disallow: /sentiment
+Disallow: /attribution
+Disallow: /rebalance
+Disallow: /scheduler
+Disallow: /advanced-orders
+Disallow: /strategy-comparison
+Disallow: /copy-trading
+Disallow: /user-analytics
+Disallow: /user/
 
 # Allow public pages
 Allow: /

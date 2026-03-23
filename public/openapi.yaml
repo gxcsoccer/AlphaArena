@@ -2531,6 +2531,319 @@ paths:
       responses:
         '200':
           description: 'Number of expired recommendations cleared'
+  '/api/signals/{signalId}/comments':
+    get:
+      summary: 'Get comments for a trading signal'
+      tags:
+        - 'Signal Comments'
+      parameters:
+        -
+          in: path
+          name: signalId
+          required: true
+          schema:
+            type: string
+        -
+          in: query
+          name: sort
+          schema:
+            type: string
+            enum:
+              - newest
+              - oldest
+              - likes
+          description: 'Sort order for comments'
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'List of comments'
+    post:
+      summary: 'Create a new comment on a trading signal'
+      tags:
+        - 'Signal Comments'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: signalId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  maxLength: 5000
+                parentId:
+                  type: string
+                  description: 'Parent comment ID for replies'
+      responses:
+        '201':
+          description: 'Comment created successfully'
+  '/api/signal-comments/{commentId}':
+    get:
+      summary: 'Get a specific comment'
+      tags:
+        - 'Signal Comments'
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Comment details'
+    put:
+      summary: 'Update a comment'
+      tags:
+        - 'Signal Comments'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - content
+              properties:
+                content:
+                  type: string
+                  maxLength: 5000
+      responses:
+        '200':
+          description: 'Comment updated successfully'
+    delete:
+      summary: 'Delete a comment (soft delete)'
+      tags:
+        - 'Signal Comments'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Comment deleted successfully'
+  '/api/signal-comments/{commentId}/replies':
+    get:
+      summary: 'Get replies for a comment'
+      tags:
+        - 'Signal Comments'
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'List of replies'
+  '/api/signal-comments/{commentId}/toggle-like':
+    post:
+      summary: 'Toggle like on a comment'
+      tags:
+        - 'Signal Comments'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Like toggled successfully'
+  '/api/signal-comments/{commentId}/likes':
+    get:
+      summary: 'Get users who liked a comment'
+      tags:
+        - 'Signal Comments'
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'List of users who liked the comment'
+  '/api/signal-comments/{commentId}/report':
+    post:
+      summary: 'Report a comment'
+      tags:
+        - 'Signal Comments'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  enum: [spam, abuse, inappropriate, other]
+                description:
+                  type: string
+      responses:
+        '201':
+          description: 'Report created successfully'
+  /api/admin/signal-comments/reports:
+    get:
+      summary: 'Get reported comments (admin only)'
+      tags:
+        - 'Signal Comments Admin'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - pending
+              - reviewed
+              - resolved
+              - dismissed
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'List of reports'
+  '/api/admin/signal-comments/{commentId}/moderate':
+    post:
+      summary: 'Moderate a comment (admin only)'
+      tags:
+        - 'Signal Comments Admin'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: commentId
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - action
+              properties:
+                action:
+                  type: string
+                  enum: [hide, show, pin, unpin]
+      responses:
+        '200':
+          description: 'Comment moderated successfully'
+  '/api/signals/{signalId}/comments/count':
+    get:
+      summary: 'Get comment count for a signal'
+      tags:
+        - 'Signal Comments'
+      parameters:
+        -
+          in: path
+          name: signalId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Comment count'
   /marketplace/strategies:
     get:
       summary: 'List strategies in the marketplace'

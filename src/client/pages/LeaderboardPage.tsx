@@ -21,6 +21,7 @@ import {
 } from 'recharts';
 import { api, LeaderboardEntry } from '../utils/api';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 import type {  TableColumnProps } from '@arco-design/web-react';
 import { IconRefresh, IconTrophy, IconArrowRise, IconArrowFall } from '@arco-design/web-react/icon';
 
@@ -32,6 +33,9 @@ const LeaderboardPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>('roi');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // SEO: Update meta tags for leaderboard page
+  useSEO(PAGE_SEO_CONFIGS.leaderboard);
 
   // Detect mobile on mount and resize
   React.useEffect(() => {

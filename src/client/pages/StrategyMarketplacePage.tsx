@@ -39,6 +39,7 @@ import {
   IconNotification,
 } from '@arco-design/web-react/icon';
 import './StrategyMarketplacePage.css';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Search } = Input;
 const { Option } = Select;
@@ -791,6 +792,9 @@ const MySubscriptionsTab: React.FC<{
  * Main Strategy Marketplace Page
  */
 const StrategyMarketplacePage: React.FC = () => {
+  // SEO: Update meta tags for marketplace page
+  useSEO(PAGE_SEO_CONFIGS.marketplace);
+  
   const [strategies, setStrategies] = useState<MarketplaceStrategy[]>([]);
   const [subscriptions, setSubscriptions] = useState<StrategySubscription[]>([]);
   const [categories, setCategories] = useState<string[]>([]);

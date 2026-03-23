@@ -26,6 +26,7 @@ import {
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import HelpButton, { HelpButtons } from '../components/HelpButton';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -52,6 +53,9 @@ interface UserSubscription {
 }
 
 const SubscriptionPage: React.FC = () => {
+  // SEO: Update meta tags for subscription page
+  useSEO(PAGE_SEO_CONFIGS.subscription);
+  
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
