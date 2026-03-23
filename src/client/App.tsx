@@ -75,6 +75,7 @@ const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'))
 const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/SubscriptionSuccessPage'));
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
+const FeedbackManagementPage = lazyWithRetry(() => import('./pages/FeedbackManagementPage'));
 const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSettingsPage'));
 const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPage'));
 const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfolioPage'));
@@ -524,6 +525,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/admin/performance" element={<PerformanceMonitoringPage />} />
+        <Route path="/admin/feedback" element={<FeedbackManagementPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
         <Route path="/virtual-account" element={<VirtualAccountPage />} />
         <Route path="/exchange-accounts" element={<ExchangeAccountsPage />} />
