@@ -230,7 +230,8 @@ describe('Performance Utilities', () => {
 
       // Rerender with same data
       rerender();
-      expect(selector).toHaveBeenCalledTimes(2); // Called again due to deps change
+      // Selector should NOT be called again due to memoization
+      expect(selector).toHaveBeenCalledTimes(1);
     });
   });
 
