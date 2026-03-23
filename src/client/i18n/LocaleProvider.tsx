@@ -22,9 +22,9 @@ import { ConfigProvider } from '@arco-design/web-react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
 import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './index';
 
-// Import Arco Design locales
-import zhCN from '@arco-design/web-react/es/locale/zh-CN';
-import enUS from '@arco-design/web-react/es/locale/en-US';
+// Import Arco Design locales (use lib for CommonJS compatibility in Jest)
+import zhCN from '@arco-design/web-react/lib/locale/zh-CN';
+import enUS from '@arco-design/web-react/lib/locale/en-US';
 
 // Arco locale map
 const ARCO_LOCALES: Record<string, typeof zhCN> = {

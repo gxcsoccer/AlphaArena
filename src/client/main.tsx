@@ -1,7 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { ConfigProvider } from '@arco-design/web-react';
-import zhCN from '@arco-design/web-react/es/locale/zh-CN';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { validateConfig, logConfigStatus } from './utils/config';
@@ -10,7 +8,7 @@ import { initCriticalPreloading } from './utils/resourcePreload';
 import { registerServiceWorker } from './utils/serviceWorker';
 
 // i18n - Initialize internationalization (Issue #584)
-import './i18n';
+import { LocaleProvider } from './i18n/LocaleProvider';
 
 // Design System - Import design tokens BEFORE Arco CSS
 import './styles/design-tokens.css';
@@ -45,11 +43,11 @@ if (!config.isConfigured) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ConfigProvider locale={zhCN}>
+    <LocaleProvider>
       <ErrorBoundary>
         <App />
         <ToastContainer />
       </ErrorBoundary>
-    </ConfigProvider>
+    </LocaleProvider>
   </React.StrictMode>
 );
