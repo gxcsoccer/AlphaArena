@@ -32,6 +32,7 @@ describe('BalanceDisplay', () => {
 
       // Check for the spin icon class
       expect(container.querySelector('.arco-spin-icon')).toBeInTheDocument();
+      // i18n: t('button.loading') → "加载中..."
       expect(screen.getByText(/加载中/i)).toBeInTheDocument();
     });
 
@@ -63,7 +64,8 @@ describe('BalanceDisplay', () => {
 
       render(<BalanceDisplay />);
 
-      expect(screen.getByText(/余额获取失败/i)).toBeInTheDocument();
+      // i18n: t('message.error') → "操作失败"
+      expect(screen.getByText(/操作失败|error/i)).toBeInTheDocument();
     });
   });
 
@@ -80,8 +82,10 @@ describe('BalanceDisplay', () => {
 
       expect(screen.getByText('¥12,345.67')).toBeInTheDocument();
       expect(screen.getByText('¥8,000.00')).toBeInTheDocument();
-      expect(screen.getByText('总资产')).toBeInTheDocument();
-      expect(screen.getByText('可用余额')).toBeInTheDocument();
+      // i18n: t('label.total') → "总计"
+      expect(screen.getByText(/总计|Total/i)).toBeInTheDocument();
+      // i18n: t('label.balance') → "余额"
+      expect(screen.getByText(/余额|Balance/i)).toBeInTheDocument();
     });
 
     it('should format CNY currency correctly', () => {
@@ -142,8 +146,8 @@ describe('BalanceDisplay', () => {
 
       expect(screen.getByText('¥12,345.67')).toBeInTheDocument();
       // Should not show labels in compact mode
-      expect(screen.queryByText('总资产')).not.toBeInTheDocument();
-      expect(screen.queryByText('可用余额')).not.toBeInTheDocument();
+      expect(screen.queryByText(/总计|Total/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/余额|Balance/i)).not.toBeInTheDocument();
     });
 
     it('should have smaller font size in compact mode', () => {

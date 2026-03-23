@@ -117,5 +117,13 @@
     "zh": "简体中文",
     "en": "English",
     "switchTo": "Switch Language"
+  },
+  "chart": {
+    "equity": "Equity",
+    "drawdown": "Drawdown",
+    "highWaterMark": "High Water Mark",
+    "return": "Return",
+    "maxDrawdown": "Max Drawdown",
+    "noData": "No data available"
   }
 }

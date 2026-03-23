@@ -17,6 +17,7 @@ import {
 } from 'recharts';
 import { Card, Spin, Empty, Typography, Space, Button } from '@arco-design/web-react';
 import { IconDownload } from '@arco-design/web-react/icon';
+import { useTranslation, useNumberFormatter } from '../i18n/mod';
 
 const { Text, _Title } = Typography;
 
@@ -36,25 +37,16 @@ interface EquityCurveChartProps {
   height?: number;
 }
 
-const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(value);
-};
-
-const formatDate = (timestamp: number): string => {
-  const date = new Date(timestamp);
-  return `${date.getMonth() + 1}/${date.getDate()}`;
-};
-
+/**
+ * Custom Tooltip Component with i18n support
+ */
 const CustomTooltip: React.FC<{
   active?: boolean;
   payload?: any[];
   label?: string;
-}> = ({ active, payload, label: _label }) => {
+  t: (key: string) => string;
+  formatCurrency: (value: number) => string;
+}> = ({ active, payload, label: _label, t, formatCurrency }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -70,12 +62,12 @@ const CustomTooltip: React.FC<{
           {data.date}
         </Text>
         <Space direction="vertical" size={4}>
-          <Text>资产: {formatCurrency(data.equity)}</Text>
+          <Text>{t('chart.equity')}: {formatCurrency(data.equity)}</Text>
           <Text type={data.drawdown < 0 ? 'error' : 'success'}>
-            回撤: {data.drawdown.toFixed(2)}%
+            {t('chart.drawdown')}: {data.drawdown.toFixed(2)}%
           </Text>
           <Text type="secondary">
-            最高值: {formatCurrency(data.highWaterMark)}
+            {t('chart.highWaterMark')}: {formatCurrency(data.highWaterMark)}
           </Text>
         </Space>
       </div>
@@ -87,10 +79,22 @@ const CustomTooltip: React.FC<{
 export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
   data,
   loading = false,
-  title = '资金曲线',
+  title,
   onExport,
   height = 300,
 }) => {
+  const { t } = useTranslation('common');
+  const { formatCurrency } = useNumberFormatter();
+  
+  // Use translated title if not provided
+  const chartTitle = title || t('chart.equity') + ' ' + t('chart.drawdown').toLowerCase();
+  
+  // Format date helper using current locale
+  const formatDate = (timestamp: number): string => {
+    const date = new Date(timestamp);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+  
   const chartData = useMemo(() => {
     if (!data || data.length === 0) return [];
     
@@ -144,7 +148,7 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
   if (!data || data.length === 0) {
     return (
       <Card>
-        <Empty description="暂无数据" />
+        <Empty description={t('chart.noData')} />
       </Card>
     );
   }
@@ -153,14 +157,14 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
     <Card
       title={
         <Space>
-          <span>{title}</span>
+          <span>{chartTitle}</span>
           {stats && (
             <Space size="large" style={{ marginLeft: 16 }}>
               <Text type="success">
-                收益: {stats.totalReturn.toFixed(2)}%
+                {t('chart.return')}: {stats.totalReturn.toFixed(2)}%
               </Text>
               <Text type="error">
-                最大回撤: {stats.maxDrawdown.toFixed(2)}%
+                {t('chart.maxDrawdown')}: {stats.maxDrawdown.toFixed(2)}%
               </Text>
             </Space>
           )}
@@ -173,7 +177,7 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
             size="small"
             onClick={onExport}
           >
-            导出
+            {t('button.export')}
           </Button>
         )
       }
@@ -197,7 +201,7 @@ export const EquityCurveChart: React.FC<EquityCurveChartProps> = ({
             stroke="var(--color-text-3)"
             tickFormatter={(value) => formatCurrency(value)}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip t={t} formatCurrency={formatCurrency} />} />
           <ReferenceLine
             y={stats?.startEquity}
             stroke="var(--color-text-3)"

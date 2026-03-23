@@ -1,25 +1,13 @@
 import React from 'react';
 import { Typography, Spin, Tag } from '@arco-design/web-react';
 import { useBalance } from '../hooks/useBalance';
+import { useTranslation, useNumberFormatter } from '../i18n/mod';
 
 const { Text } = Typography;
 
 interface BalanceDisplayProps {
   compact?: boolean; // For mobile view
 }
-
-/**
- * Formats a number as CNY currency
- * Example: 1234.56 → ¥1,234.56
- */
-const formatCNY = (value: number): string => {
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'CNY',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-};
 
 /**
  * BalanceDisplay Component
@@ -30,13 +18,15 @@ const formatCNY = (value: number): string => {
  */
 export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false }) => {
   const { totalBalance, availableBalance, loading, error } = useBalance();
+  const { t } = useTranslation('common');
+  const { formatCurrency } = useNumberFormatter();
 
   // Loading state
   if (loading) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <Spin size={16} />
-        {!compact && <Text type="secondary" style={{ fontSize: 13 }}>加载中...</Text>}
+        {!compact && <Text type="secondary" style={{ fontSize: 13 }}>{t('button.loading')}</Text>}
       </div>
     );
   }
@@ -45,7 +35,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
   if (error) {
     return (
       <Tag color="red" size="small">
-        余额获取失败
+        {t('message.error')}
       </Tag>
     );
   }
@@ -61,7 +51,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
             color: 'var(--color-text-1)',
           }}
         >
-          {formatCNY(totalBalance)}
+          {formatCurrency(totalBalance, 'CNY')}
         </Text>
       </div>
     );
@@ -84,7 +74,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
           type="secondary" 
           style={{ fontSize: 11, lineHeight: 1.4 }}
         >
-          总资产
+          {t('label.total')}
         </Text>
         <Text 
           style={{ 
@@ -93,7 +83,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
             color: totalBalance >= 0 ? 'rgb(0, 180, 42)' : 'rgb(249, 79, 79)',
           }}
         >
-          {formatCNY(totalBalance)}
+          {formatCurrency(totalBalance, 'CNY')}
         </Text>
       </div>
       
@@ -111,7 +101,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
           type="secondary" 
           style={{ fontSize: 11, lineHeight: 1.4 }}
         >
-          可用余额
+          {t('label.balance')}
         </Text>
         <Text 
           style={{ 
@@ -120,7 +110,7 @@ export const BalanceDisplay: React.FC<BalanceDisplayProps> = ({ compact = false 
             color: 'var(--color-text-1)',
           }}
         >
-          {formatCNY(availableBalance)}
+          {formatCurrency(availableBalance, 'CNY')}
         </Text>
       </div>
     </div>
