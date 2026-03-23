@@ -1,334 +1,382 @@
 /**
- * Resource Preloading Hook
- * 
- * Issue #513: Performance Optimization
- * Provides utilities for preloading critical resources to improve page load performance.
+ * useResourcePreload Hook
+ * React hook for preloading resources with automatic cleanup
  */
 
-import { useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import {
+  preloadImage,
+  preloadScript,
+  preloadCSS,
+  prefetchPage,
+  lazyLoadScript,
+  lazyLoadCSS,
+  preconnect,
+} from '../utils/resourcePreload';
 
-interface PreloadOptions {
-  /** Priority hint for the browser */
-  fetchPriority?: 'high' | 'low' | 'auto';
-  /** Resource type hint */
-  as?: 'script' | 'style' | 'image' | 'font' | 'fetch';
-  /** CORS setting */
-  crossOrigin?: 'anonymous' | 'use-credentials';
-  /** Resource type for content-type hint */
-  type?: string;
-}
-
-interface PreloadResult {
-  success: boolean;
-  error?: Error;
-  duration?: number;
+export interface PreloadOptions {
+  /** Preload when component mounts */
+  preloadOnMount?: boolean;
+  /** Preload when hovering */
+  preloadOnHover?: boolean;
+  /** Preload when visible in viewport */
+  preloadOnVisible?: boolean;
+  /** Delay before preloading (ms) */
+  delay?: number;
+  /** Priority hint */
+  priority?: 'high' | 'low' | 'auto';
 }
 
 /**
- * Preload a single resource
+ * Hook for preloading a single image
  */
-export function preloadResource(
-  url: string,
+export function usePreloadImage(
+  src: string | null,
   options: PreloadOptions = {}
-): Promise<PreloadResult> {
-  const startTime = performance.now();
-  
-  return new Promise((resolve) => {
-    // Check if already preloaded
-    const existing = document.querySelector(
-      `link[rel="preload"][href="${url}"], link[rel="prefetch"][href="${url}"]`
-    );
-    
-    if (existing) {
-      resolve({ success: true, duration: 0 });
-      return;
-    }
-    
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = url;
-    
-    if (options.as) link.setAttribute('as', options.as);
-    if (options.crossOrigin) link.crossOrigin = options.crossOrigin;
-    if (options.type) link.type = options.type;
-    if (options.fetchPriority) link.setAttribute('fetchpriority', options.fetchPriority);
-    
-    link.onload = () => {
-      const duration = performance.now() - startTime;
-      resolve({ success: true, duration });
-    };
-    
-    link.onerror = () => {
-      const duration = performance.now() - startTime;
-      resolve({ success: false, error: new Error(`Failed to preload: ${url}`), duration });
-    };
-    
-    document.head.appendChild(link);
-  });
-}
+): {
+  isLoaded: boolean;
+  error: Error | null;
+  preload: () => void;
+} {
+  const { preloadOnMount = true, delay = 0 } = options;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
-/**
- * Prefetch a resource (lower priority than preload)
- */
-export function prefetchResource(
-  url: string,
-  options: PreloadOptions = {}
-): Promise<PreloadResult> {
-  const startTime = performance.now();
-  
-  return new Promise((resolve) => {
-    const existing = document.querySelector(`link[rel="prefetch"][href="${url}"]`);
-    
-    if (existing) {
-      resolve({ success: true, duration: 0 });
-      return;
-    }
-    
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = url;
-    
-    if (options.crossOrigin) link.crossOrigin = options.crossOrigin;
-    
-    link.onload = () => {
-      const duration = performance.now() - startTime;
-      resolve({ success: true, duration });
-    };
-    
-    link.onerror = () => {
-      const duration = performance.now() - startTime;
-      resolve({ success: false, error: new Error(`Failed to prefetch: ${url}`), duration });
-    };
-    
-    document.head.appendChild(link);
-  });
-}
+  const preload = useCallback(() => {
+    if (!src) return;
 
-/**
- * Preconnect to a domain
- */
-export function preconnect(url: string): void {
-  const existing = document.querySelector(`link[rel="preconnect"][href="${url}"]`);
-  if (existing) return;
-  
-  const link = document.createElement('link');
-  link.rel = 'preconnect';
-  link.href = url;
-  document.head.appendChild(link);
-}
-
-/**
- * Hook to preload critical resources on mount
- */
-export function useResourcePreload(
-  resources: Array<{ url: string; options?: PreloadOptions }>,
-  options: {
-    /** Delay before starting preload (ms) */
-    delay?: number;
-    /** Enable debug logging */
-    debug?: boolean;
-    /** Only preload on idle callback */
-    onIdle?: boolean;
-  } = {}
-) {
-  const { delay = 0, debug = false, onIdle = true } = options;
-  const preloadedRef = useRef(false);
-  
-  const preload = useCallback(async () => {
-    if (preloadedRef.current) return;
-    preloadedRef.current = true;
-    
-    const start = performance.now();
-    let successCount = 0;
-    
-    for (const { url, options: preloadOptions } of resources) {
-      const result = await preloadResource(url, preloadOptions);
-      if (result.success) successCount++;
-      if (debug) {
-        console.log(`[Preload] ${url}: ${result.success ? 'success' : 'failed'} (${result.duration?.toFixed(0)}ms)`);
-      }
-    }
-    
-    if (debug) {
-      console.log(`[Preload] Completed ${successCount}/${resources.length} in ${(performance.now() - start).toFixed(0)}ms`);
-    }
-  }, [resources, debug]);
-  
-  useEffect(() => {
-    const executePreload = () => {
-      if (delay > 0) {
-        setTimeout(preload, delay);
-      } else {
-        preload();
-      }
+    const doPreload = () => {
+      const img = new Image();
+      img.onload = () => {
+        setIsLoaded(true);
+        preloadImage(src);
+      };
+      img.onerror = () => {
+        setError(new Error(`Failed to preload image: ${src}`));
+      };
+      img.src = src;
     };
-    
-    if (onIdle && 'requestIdleCallback' in window) {
-      const idleId = requestIdleCallback(executePreload, { timeout: 2000 });
-      return () => cancelIdleCallback(idleId);
+
+    if (delay > 0) {
+      timeoutRef.current = setTimeout(doPreload, delay);
     } else {
-      executePreload();
+      doPreload();
     }
-  }, [preload, delay, onIdle]);
+  }, [src, delay]);
+
+  useEffect(() => {
+    if (preloadOnMount && src) {
+      preload();
+    }
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [preloadOnMount, preload, src]);
+
+  return { isLoaded, error, preload };
 }
 
 /**
- * Hook to prefetch routes on hover
+ * Hook for preloading multiple images
  */
-export function useRoutePrefetch(
-  routeImport: () => Promise<any>,
-  options: {
-    /** Delay before prefetch (ms) */
-    delay?: number;
-    /** Enable debug logging */
-    debug?: boolean;
-  } = {}
-) {
-  const { delay = 100, debug = false } = options;
+export function usePreloadImages(
+  sources: string[],
+  options: PreloadOptions = {}
+): {
+  loadedCount: number;
+  totalCount: number;
+  progress: number;
+  errors: Error[];
+  preload: () => void;
+} {
+  const { preloadOnMount = true, delay = 0 } = options;
+  const [loadedCount, setLoadedCount] = useState(0);
+  const [errors, setErrors] = useState<Error[]>([]);
+  const totalCount = sources.length;
+  const progress = totalCount > 0 ? loadedCount / totalCount : 0;
+
+  const preload = useCallback(() => {
+    if (sources.length === 0) return;
+
+    const doPreload = () => {
+      sources.forEach((src) => {
+        const img = new Image();
+        img.onload = () => {
+          setLoadedCount((prev) => prev + 1);
+          preloadImage(src);
+        };
+        img.onerror = () => {
+          setErrors((prev) => [...prev, new Error(`Failed to load: ${src}`)]);
+        };
+        img.src = src;
+      });
+    };
+
+    if (delay > 0) {
+      setTimeout(doPreload, delay);
+    } else {
+      doPreload();
+    }
+  }, [sources, delay]);
+
+  useEffect(() => {
+    if (preloadOnMount) {
+      preload();
+    }
+  }, [preloadOnMount, preload]);
+
+  return { loadedCount, totalCount, progress, errors, preload };
+}
+
+/**
+ * Hook for preloading a script
+ */
+export function usePreloadScript(
+  src: string | null,
+  options: PreloadOptions = {}
+): {
+  isLoaded: boolean;
+  error: Error | null;
+  preload: () => Promise<void>;
+} {
+  const { preloadOnMount = false } = options;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const loadedRef = useRef(false);
+
+  const preload = useCallback(async () => {
+    if (!src || loadedRef.current) return;
+
+    try {
+      await lazyLoadScript(src);
+      setIsLoaded(true);
+      loadedRef.current = true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load script'));
+    }
+  }, [src]);
+
+  useEffect(() => {
+    if (preloadOnMount && src) {
+      preload();
+    }
+  }, [preloadOnMount, preload, src]);
+
+  return { isLoaded, error, preload };
+}
+
+/**
+ * Hook for preloading CSS
+ */
+export function usePreloadCSS(
+  href: string | null,
+  options: PreloadOptions = {}
+): {
+  isLoaded: boolean;
+  error: Error | null;
+  preload: () => Promise<void>;
+} {
+  const { preloadOnMount = false } = options;
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const loadedRef = useRef(false);
+
+  const preload = useCallback(async () => {
+    if (!href || loadedRef.current) return;
+
+    try {
+      await lazyLoadCSS(href);
+      setIsLoaded(true);
+      loadedRef.current = true;
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to load CSS'));
+    }
+  }, [href]);
+
+  useEffect(() => {
+    if (preloadOnMount && href) {
+      preload();
+    }
+  }, [preloadOnMount, preload, href]);
+
+  return { isLoaded, error, preload };
+}
+
+/**
+ * Hook for preloading a page on hover
+ */
+export function usePrefetchOnHover(
+  href: string,
+  options: { delay?: number } = {}
+): {
+  onMouseEnter: () => void;
+  onTouchStart: () => void;
+} {
+  const { delay = 100 } = options;
+  const timeoutRef = useRef<NodeJS.Timeout>();
   const prefetchedRef = useRef(false);
-  
+
   const prefetch = useCallback(() => {
     if (prefetchedRef.current) return;
     prefetchedRef.current = true;
-    
-    if (debug) {
-      console.log('[Prefetch] Loading route module');
+    prefetchPage(href);
+  }, [href]);
+
+  const handleMouseEnter = useCallback(() => {
+    if (delay > 0) {
+      timeoutRef.current = setTimeout(prefetch, delay);
+    } else {
+      prefetch();
     }
-    
-    routeImport();
-  }, [routeImport, debug]);
-  
-  const onMouseEnter = useCallback(() => {
-    setTimeout(prefetch, delay);
   }, [prefetch, delay]);
-  
-  const onTouchStart = useCallback(() => {
+
+  const handleTouchStart = useCallback(() => {
     prefetch();
   }, [prefetch]);
-  
-  return { onMouseEnter, onTouchStart };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return {
+    onMouseEnter: handleMouseEnter,
+    onTouchStart: handleTouchStart,
+  };
 }
 
 /**
- * Hook to preload images
+ * Hook for preloading on viewport visibility
  */
-export function useImagePreload(
-  images: string[],
-  options: {
-    /** Delay before starting preload (ms) */
-    delay?: number;
-    /** Enable debug logging */
-    debug?: boolean;
-  } = {}
-) {
-  const { delay = 0, debug = false } = options;
-  const loadedRef = useRef<Set<string>>(new Set());
-  
+export function usePreloadOnVisible<T extends HTMLElement>(
+  options: IntersectionObserverInit = {}
+): {
+  ref: React.RefObject<T>;
+  isVisible: boolean;
+  hasBeenVisible: boolean;
+} {
+  const [isVisible, setIsVisible] = useState(false);
+  const [hasBeenVisible, setHasBeenVisible] = useState(false);
+  const ref = useRef<T>(null);
+
   useEffect(() => {
-    const loadImages = async () => {
-      for (const src of images) {
-        if (loadedRef.current.has(src)) continue;
-        
-        const img = new Image();
-        img.src = src;
-        loadedRef.current.add(src);
-        
-        if (debug) {
-          console.log(`[ImagePreload] Loading: ${src}`);
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+        if (entry.isIntersecting) {
+          setHasBeenVisible(true);
         }
-      }
+      },
+      { threshold: 0.1, ...options }
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.unobserve(element);
     };
-    
-    if (delay > 0) {
-      setTimeout(loadImages, delay);
-    } else {
-      loadImages();
-    }
-  }, [images, delay, debug]);
+  }, [options]);
+
+  return { ref, isVisible, hasBeenVisible };
 }
 
 /**
- * Hook to track and report Web Vitals
+ * Hook for preconnecting to domains
  */
-export function useWebVitalsReporter(
-  options: {
-    /** Report endpoint */
-    endpoint?: string;
-    /** Enable debug logging */
-    debug?: boolean;
-    /** Sample rate (0-1) */
-    sampleRate?: number;
-  } = {}
-) {
-  const { endpoint = '/api/performance/vitals', debug = false, sampleRate = 1 } = options;
-  const reportedRef = useRef(false);
-  
+export function usePreconnect(
+  origins: string[],
+  options: { enabled?: boolean } = {}
+): void {
+  const { enabled = true } = options;
+
   useEffect(() => {
-    if (reportedRef.current) return;
-    if (Math.random() > sampleRate) return;
-    
-    const reportVitals = async () => {
-      try {
-        const { onCLS, onFID, onLCP, onFCP, onTTFB, onINP } = await import('web-vitals');
-        
-        const vitals: Record<string, number> = {};
-        
-        const sendVitals = () => {
-          if (Object.keys(vitals).length === 0) return;
-          
-          const payload = {
-            ...vitals,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            timestamp: Date.now(),
-          };
-          
-          if (debug) {
-            console.log('[WebVitals]', payload);
-          }
-          
-          // Use sendBeacon for reliability
-          navigator.sendBeacon(endpoint, JSON.stringify(payload));
-          reportedRef.current = true;
-        };
-        
-        onCLS((metric) => { vitals.cls = metric.value; });
-        onFID((metric) => { vitals.fid = metric.value; });
-        onLCP((metric) => { vitals.lcp = metric.value; });
-        onFCP((metric) => { vitals.fcp = metric.value; });
-        onTTFB((metric) => { vitals.ttfb = metric.value; });
-        onINP((metric) => { vitals.inp = metric.value; });
-        
-        // Report on page hide
-        const onVisibilityChange = () => {
-          if (document.visibilityState === 'hidden') {
-            sendVitals();
-            document.removeEventListener('visibilitychange', onVisibilityChange);
-          }
-        };
-        
-        document.addEventListener('visibilitychange', onVisibilityChange);
-        
-        return () => {
-          document.removeEventListener('visibilitychange', onVisibilityChange);
-        };
-      } catch (error) {
-        if (debug) {
-          console.error('[WebVitals] Failed to load web-vitals:', error);
-        }
+    if (!enabled) return;
+
+    origins.forEach((origin) => {
+      preconnect(origin);
+    });
+  }, [origins, enabled]);
+}
+
+/**
+ * Hook for resource preload queue
+ * Manages a queue of resources to preload with priority
+ */
+export function usePreloadQueue(): {
+  add: (resources: { type: 'image' | 'script' | 'css'; src: string }[]) => void;
+  flush: () => void;
+  clear: () => void;
+  pending: number;
+} {
+  const queueRef = useRef<Array<{ type: 'image' | 'script' | 'css'; src: string }>>([]);
+  const [pending, setPending] = useState(0);
+
+  const add = useCallback(
+    (resources: { type: 'image' | 'script' | 'css'; src: string }[]) => {
+      queueRef.current.push(...resources);
+      setPending(queueRef.current.length);
+    },
+    []
+  );
+
+  const flush = useCallback(() => {
+    const items = [...queueRef.current];
+    queueRef.current = [];
+    setPending(0);
+
+    // Process items with requestIdleCallback for better performance
+    const processItem = (index: number) => {
+      if (index >= items.length) return;
+
+      const item = items[index];
+      switch (item.type) {
+        case 'image':
+          preloadImage(item.src);
+          break;
+        case 'script':
+          preloadScript(item.src);
+          break;
+        case 'css':
+          preloadCSS(item.src);
+          break;
+      }
+
+      // Use requestIdleCallback if available
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => processItem(index + 1));
+      } else {
+        setTimeout(() => processItem(index + 1), 0);
       }
     };
-    
-    reportVitals();
-  }, [endpoint, debug, sampleRate]);
+
+    processItem(0);
+  }, []);
+
+  const clear = useCallback(() => {
+    queueRef.current = [];
+    setPending(0);
+  }, []);
+
+  return { add, flush, clear, pending };
 }
 
 export default {
-  preloadResource,
-  prefetchResource,
-  preconnect,
-  useResourcePreload,
-  useRoutePrefetch,
-  useImagePreload,
-  useWebVitalsReporter,
+  usePreloadImage,
+  usePreloadImages,
+  usePreloadScript,
+  usePreloadCSS,
+  usePrefetchOnHover,
+  usePreloadOnVisible,
+  usePreconnect,
+  usePreloadQueue,
 };
