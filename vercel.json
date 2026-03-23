@@ -4,6 +4,14 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/auth",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/auth"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/auth/:path*"
+    },
+    {
       "source": "/api/users",
       "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/users"
     },

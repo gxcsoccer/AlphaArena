@@ -485,3 +485,8 @@ entrypoint = "./functions/signals/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/marketplace/index.ts"
+
+[functions.auth]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/auth/index.ts"
