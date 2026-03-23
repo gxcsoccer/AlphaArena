@@ -106,6 +106,7 @@
     "cors": "^2.8.6",
     "cron": "^4.4.0",
     "dompurify": "^3.3.3",
+    "driver.js": "^1.4.0",
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
     "jsdom": "^29.0.0",

@@ -166,28 +166,34 @@ const HomePage: React.FC = () => {
             }}>
               {mobileTab === 'chart' && (
                 <ErrorBoundary>
-                  <KLineChart symbol={selectedSymbol} height={300} />
+                  <div data-onboarding="market-panel">
+                    <KLineChart symbol={selectedSymbol} height={300} />
+                  </div>
                 </ErrorBoundary>
               )}
               
               {mobileTab === 'orderbook' && (
                 <ErrorBoundary>
-                  <OrderBook 
-                    symbol={selectedSymbol} 
-                    levels={10} 
-                    onPriceClick={handlePriceClick} 
-                  />
+                  <div data-onboarding="orderbook">
+                    <OrderBook 
+                      symbol={selectedSymbol} 
+                      levels={10} 
+                      onPriceClick={handlePriceClick} 
+                    />
+                  </div>
                 </ErrorBoundary>
               )}
               
               {mobileTab === 'order' && (
                 <ErrorBoundary>
-                  <TradingOrder 
-                    symbol={selectedSymbol} 
-                    baseCurrency={selectedPair?.baseCurrency} 
-                    quoteCurrency={selectedPair?.quoteCurrency} 
-                    onOrderPlaced={handleOrderPlaced} 
-                  />
+                  <div data-onboarding="trading-panel">
+                    <TradingOrder 
+                      symbol={selectedSymbol} 
+                      baseCurrency={selectedPair?.baseCurrency} 
+                      quoteCurrency={selectedPair?.quoteCurrency} 
+                      onOrderPlaced={handleOrderPlaced} 
+                    />
+                  </div>
                   <div style={{ marginTop: 12 }}>
                     <ErrorBoundary>
                       <ConditionalOrdersPanel symbol={selectedSymbol} limit={5} />
@@ -202,7 +208,7 @@ const HomePage: React.FC = () => {
         // Desktop: Grid layout
         <Row gutter={16} style={{ height: 'calc(100vh - 120px)' }}>
           <Col xs={24} sm={6} md={4}>
-            <Card title="交易对" style={{ height: '100%' }} bodyStyle={{ padding: '12px', height: 'calc(100% - 57px)', overflow: 'hidden' }}>
+            <Card title="交易对" style={{ height: '100%' }} bodyStyle={{ padding: '12px', height: 'calc(100% - 57px)', overflow: 'hidden' }} data-onboarding="market-panel">
               <ErrorBoundary><TradingPairList onPairSelect={handlePairSelect} showSearch compact /></ErrorBoundary>
             </Card>
           </Col>
@@ -210,12 +216,12 @@ const HomePage: React.FC = () => {
             <ErrorBoundary><KLineChart symbol={selectedSymbol} height={500} /></ErrorBoundary>
           </Col>
           <Col xs={24} sm={12} md={5}>
-            <ErrorBoundary><OrderBook symbol={selectedSymbol} levels={20} onPriceClick={handlePriceClick} /></ErrorBoundary>
+            <ErrorBoundary><div data-onboarding="orderbook"><OrderBook symbol={selectedSymbol} levels={20} onPriceClick={handlePriceClick} /></div></ErrorBoundary>
           </Col>
           <Col xs={24} sm={12} md={5}>
             <Row gutter={[0, 16]} style={{ height: '100%', overflow: 'auto' }}>
               <Col span={24}>
-                <ErrorBoundary><TradingOrder symbol={selectedSymbol} baseCurrency={selectedPair?.baseCurrency} quoteCurrency={selectedPair?.quoteCurrency} onOrderPlaced={handleOrderPlaced} /></ErrorBoundary>
+                <ErrorBoundary><div data-onboarding="trading-panel"><TradingOrder symbol={selectedSymbol} baseCurrency={selectedPair?.baseCurrency} quoteCurrency={selectedPair?.quoteCurrency} onOrderPlaced={handleOrderPlaced} /></div></ErrorBoundary>
               </Col>
               <Col span={24}>
                 <ErrorBoundary><ConditionalOrdersPanel symbol={selectedSymbol} limit={10} /></ErrorBoundary>
