@@ -23,6 +23,7 @@ import {
   IconStorage,
   IconCompass,
   IconNotification,
+  IconUserGroup,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
@@ -78,6 +79,7 @@ const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSet
 const VirtualAccountPage = lazyWithRetry(() => import('./pages/VirtualAccountPage'));
 const StrategyPortfolioPage = lazyWithRetry(() => import('./pages/StrategyPortfolioPage'));
 const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailPage'));
+const UserBehaviorAnalyticsPage = lazyWithRetry(() => import('./pages/UserBehaviorAnalyticsPage'));
 const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
 const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
 const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
@@ -306,6 +308,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/marketplace" icon={<IconCompass aria-hidden="true" />} role="menuitem">
               策略市场
             </MenuItem>
+            <MenuItem key="/user-analytics" icon={<IconUserGroup aria-hidden="true" />} role="menuitem">
+              用户分析
+            </MenuItem>
           </Menu>
         </Sider>
       )}
@@ -466,6 +471,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/marketplace" icon={<IconCompass aria-hidden="true" />} role="menuitem">
             策略市场
           </MenuItem>
+          <MenuItem key="/user-analytics" icon={<IconUserGroup aria-hidden="true" />} role="menuitem">
+            用户分析
+          </MenuItem>
         </Menu>
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
@@ -523,6 +531,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
         <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
         <Route path="/notifications" element={<NotificationHistoryPage />} />
+        <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
       </Routes>
     </Suspense>
   );
