@@ -29,6 +29,35 @@ export interface UserFollow {
 }
 
 /**
+ * User Block - 用户屏蔽
+ */
+export interface UserBlock {
+  id: string;
+  blockerId: string;
+  blockedId: string;
+  createdAt: Date;
+}
+
+/**
+ * User Activity - 用户活动
+ */
+export interface UserActivity {
+  id: string;
+  userId: string;
+  activityType: string;
+  entityType?: string;
+  entityId?: string;
+  entityName?: string;
+  entityData: Record<string, any>;
+  isPublic: boolean;
+  createdAt: Date;
+  // Joined fields
+  username?: string;
+  displayName?: string;
+  avatarUrl?: string;
+}
+
+/**
  * Strategy Comment - 策略评论
  */
 export interface StrategyComment {
@@ -273,6 +302,245 @@ export class SocialDAO {
     if (error) throw error;
 
     return data.map((row: any) => this.mapToUser(row.users));
+  }
+
+  // ============ Block Methods ============
+
+  /**
+   * Block a user
+   */
+  async blockUser(blockerId: string, blockedId: string): Promise<UserBlock> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('user_blocks')
+      .insert([{
+        blocker_id: blockerId,
+        blocked_id: blockedId,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Also unfollow if following
+    await this.unfollowUser(blockerId, blockedId);
+    await this.unfollowUser(blockedId, blockerId);
+
+    return this.mapToBlock(data);
+  }
+
+  /**
+   * Unblock a user
+   */
+  async unblockUser(blockerId: string, blockedId: string): Promise<void> {
+    const supabase = getSupabaseClient();
+
+    const { error } = await supabase
+      .from('user_blocks')
+      .delete()
+      .eq('blocker_id', blockerId)
+      .eq('blocked_id', blockedId);
+
+    if (error) throw error;
+  }
+
+  /**
+   * Check if user has blocked another user
+   */
+  async hasBlocked(blockerId: string, blockedId: string): Promise<boolean> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('user_blocks')
+      .select('id')
+      .eq('blocker_id', blockerId)
+      .eq('blocked_id', blockedId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error;
+    return !!data;
+  }
+
+  /**
+   * Get list of blocked users
+   */
+  async getBlockedUsers(userId: string, limit = 50, offset = 0): Promise<User[]> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('user_blocks')
+      .select(`
+        blocked_id,
+        users!user_blocks_blocked_id_fkey (*)
+      `)
+      .eq('blocker_id', userId)
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    return data.map((row: any) => this.mapToUser(row.users));
+  }
+
+  /**
+   * Check if viewer can view target user's profile
+   */
+  async canViewProfile(viewerId: string | null, targetId: string): Promise<boolean> {
+    // Can always view own profile
+    if (viewerId === targetId) {
+      return true;
+    }
+
+    const supabase = getSupabaseClient();
+
+    // Check if blocked by target
+    if (viewerId) {
+      const { data: blockData } = await supabase
+        .from('user_blocks')
+        .select('id')
+        .eq('blocker_id', targetId)
+        .eq('blocked_id', viewerId)
+        .single();
+
+      if (blockData) {
+        return false;
+      }
+    }
+
+    // Check if target profile is public
+    const { data: targetUser } = await supabase
+      .from('users')
+      .select('is_public')
+      .eq('id', targetId)
+      .single();
+
+    if (targetUser?.is_public) {
+      return true;
+    }
+
+    // Check if viewer follows target (followers can see private profiles)
+    if (viewerId) {
+      const { data: followData } = await supabase
+        .from('user_follows')
+        .select('id')
+        .eq('follower_id', viewerId)
+        .eq('following_id', targetId)
+        .single();
+
+      if (followData) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  // ============ Activity Methods ============
+
+  /**
+   * Log user activity
+   */
+  async logActivity(
+    userId: string,
+    activityType: string,
+    entityType?: string,
+    entityId?: string,
+    entityName?: string,
+    entityData?: Record<string, any>,
+    isPublic: boolean = true
+  ): Promise<UserActivity> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('user_activities')
+      .insert([{
+        user_id: userId,
+        activity_type: activityType,
+        entity_type: entityType,
+        entity_id: entityId,
+        entity_name: entityName,
+        entity_data: entityData || {},
+        is_public: isPublic,
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this.mapToActivity(data);
+  }
+
+  /**
+   * Get activity feed for a user (activities from followed users)
+   */
+  async getActivityFeed(
+    userId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<UserActivity[]> {
+    const supabase = getSupabaseClient();
+
+    // Get list of users being followed
+    const { data: followingData } = await supabase
+      .from('user_follows')
+      .select('following_id')
+      .eq('follower_id', userId);
+
+    const followingIds = followingData?.map((row: any) => row.following_id) || [];
+
+    if (followingIds.length === 0) {
+      return [];
+    }
+
+    // Get activities from followed users
+    const { data, error } = await supabase
+      .from('user_activities')
+      .select(`
+        *,
+        users (username, display_name, avatar_url)
+      `)
+      .in('user_id', followingIds)
+      .eq('is_public', true)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    return data.map((row: any) => ({
+      ...this.mapToActivity(row),
+      username: row.users?.username,
+      displayName: row.users?.display_name,
+      avatarUrl: row.users?.avatar_url,
+    }));
+  }
+
+  /**
+   * Get user's own activities
+   */
+  async getUserActivities(
+    userId: string,
+    limit = 50,
+    offset = 0
+  ): Promise<UserActivity[]> {
+    const supabase = getSupabaseClient();
+
+    const { data, error } = await supabase
+      .from('user_activities')
+      .select(`
+        *,
+        users (username, display_name, avatar_url)
+      `)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+
+    return data.map((row: any) => ({
+      ...this.mapToActivity(row),
+      username: row.users?.username,
+      displayName: row.users?.display_name,
+      avatarUrl: row.users?.avatar_url,
+    }));
   }
 
   // ============ Comment Methods ============
@@ -699,6 +967,29 @@ export class SocialDAO {
       id: row.id,
       followerId: row.follower_id,
       followingId: row.following_id,
+      createdAt: new Date(row.created_at),
+    };
+  }
+
+  private mapToBlock(row: any): UserBlock {
+    return {
+      id: row.id,
+      blockerId: row.blocker_id,
+      blockedId: row.blocked_id,
+      createdAt: new Date(row.created_at),
+    };
+  }
+
+  private mapToActivity(row: any): UserActivity {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      activityType: row.activity_type,
+      entityType: row.entity_type,
+      entityId: row.entity_id,
+      entityName: row.entity_name,
+      entityData: row.entity_data || {},
+      isPublic: row.is_public,
       createdAt: new Date(row.created_at),
     };
   }
