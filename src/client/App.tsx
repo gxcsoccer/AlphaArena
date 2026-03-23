@@ -35,7 +35,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { HeaderLogo } from './components/brand/Logo';
 import { NotFoundPage } from './components/brand/ErrorPages';
 import { SettingsProvider } from './store/settingsStore';
-import { AuthProvider } from './hooks/useAuth';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import { SubscriptionProvider } from './hooks/useSubscription';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
