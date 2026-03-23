@@ -1,50 +1,50 @@
 {
   "sprint": {
-    "number": 45,
-    "title": "Sprint 45: 用户反馈优先",
-    "milestone": 46,
+    "number": 46,
+    "title": "Sprint 46: 数据驱动验证",
+    "milestone": 47,
     "status": "planning",
     "period": {
-      "start": "2026-03-23",
-      "end": null
+      "start": "2026-03-24",
+      "end": "2026-03-30"
     },
-    "goals": "部署生产环境、收集用户反馈、准备用户获取策略",
+    "goals": "构建数据分析仪表板、反馈管理系统，实现数据驱动的产品迭代闭环",
     "issues": {
       "planned": [
         {
-          "number": 520,
-          "title": "生产环境部署准备",
+          "number": 538,
+          "title": "用户行为分析仪表板",
           "priority": "P1",
           "type": "feature",
-          "status": "ready-for-dev"
+          "status": "open"
         },
         {
-          "number": 521,
-          "title": "用户行为埋点系统",
+          "number": 539,
+          "title": "用户反馈管理系统",
           "priority": "P1",
           "type": "feature",
-          "status": "ready-for-dev"
+          "status": "open"
         },
         {
-          "number": 522,
-          "title": "用户反馈入口组件",
-          "priority": "P1",
-          "type": "feature",
-          "status": "ready-for-dev"
-        },
-        {
-          "number": 523,
-          "title": "用户获取策略：Landing Page 优化",
+          "number": 540,
+          "title": "用户行为洞察报告",
           "priority": "P2",
           "type": "feature",
-          "status": "ready-for-dev"
+          "status": "open"
         },
         {
-          "number": 524,
-          "title": "数据分析基础建设",
+          "number": 541,
+          "title": "Landing Page A/B 测试框架",
           "priority": "P2",
           "type": "feature",
-          "status": "ready-for-dev"
+          "status": "open"
+        },
+        {
+          "number": 542,
+          "title": "用户引导流程优化",
+          "priority": "P2",
+          "type": "feature",
+          "status": "open"
         }
       ],
       "total": 5,
@@ -54,12 +54,12 @@
       "total": 0,
       "merged": []
     },
-    "direction": "C - 用户反馈优先",
-    "rationale": "Investor 选择了方向 C，认为应该先部署到生产环境，收集真实用户反馈后再针对性优化。特别强调需要考虑用户获取策略。",
+    "direction": "数据驱动验证",
+    "rationale": "Sprint 45 完成了生产环境部署和用户反馈基础设施建设，Sprint 46 聚焦于数据分析和反馈处理的闭环，为后续产品迭代提供数据支撑。",
     "previous_sprint": {
-      "number": 44,
-      "summary": "完成 6 个 issues，合并 4 个 PRs，代码变更 +7582/-223，实现性能优化、UX 改进和错误处理增强",
-      "test_status": "173 套件 / 2984 测试全部通过"
+      "number": 45,
+      "summary": "完成 5 个 issues，实现生产环境部署、用户行为埋点、用户反馈入口、Landing Page 优化、数据分析基础建设",
+      "test_status": "全部测试通过"
     }
   },
   "next_sprint": null

@@ -70,6 +70,7 @@ import userTrackingRoutes from './userTrackingRoutes';
 import userAnalyticsRoutes from './userAnalyticsRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
+import insightRoutes from './insightRoutes';
 import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
@@ -1018,6 +1019,9 @@ export class APIServer extends EventEmitter {
 
     // Analytics Export routes
     this.app.use('/api/analytics-export', analyticsExportRoutes);
+
+    // Insight Report routes
+    this.app.use('/api/insight', insightRoutes);
 
     // Error log endpoint
     this.app.get('/api/error-logs/summary', async (req: Request, res: Response) => {
