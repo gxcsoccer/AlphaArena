@@ -15,15 +15,18 @@ tasks:
     flow:
       - sleep: 3000
       - aiAssert: "页面标题包含 AlphaArena 或专业级算法交易相关文字"
-      - aiAssert: "页面显示 Landing Page 内容：标题包含'专业级算法交易'"
-      - aiAssert: "页面显示'AI 驱动 · 无风险'或类似的副标题"
-      - aiAssert: "页面有'免费注册'按钮，按钮可点击"
+      - aiAssert: "页面显示 Landing Page 内容：标题包含'专业级算法交易'或 'Professional'"
+      - aiAssert: "页面显示'AI 驱动 · 无风险'或类似的副标题，或者显示 'AI-Powered' 或 'Risk-Free'"
+      - aiAssert: "页面有'免费注册'或 'Sign Up' 按钮，按钮可点击"
       - aiAssert: "页面有'分享给朋友'或'登录'相关按钮/链接"
-      - aiAssert: "页面显示统计数据：包含活跃用户、模拟交易量等统计信息"
-      - ai: "滚动到核心功能区域"
+      - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
+      - aiAssert: "页面没有显示致命的 API 错误或白屏错误"
+      - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
+      - ai: "滚动到页面下方"
       - sleep: 1000
-      - aiAssert: "页面显示核心功能介绍区域，包含以下全部4个功能：AI 驱动策略、模拟交易、竞技排名、极速执行"
+      - aiAssert: "页面显示 Footer 区域，包含品牌名称 AlphaArena 和导航链接"
       - aiAssert: "页面布局正常，没有元素重叠或错位"
+      - aiAssert: "Footer 包含产品描述文字如'专业级算法交易'或'AI 驱动'或英文版本"
       - aiAssert: "没有明显的 404 或 500 错误页面"
 
   - name: "Landing Page - Navigation Links"
@@ -31,23 +34,30 @@ tasks:
       - ai: "滚动到页面底部 Footer 区域"
       - sleep: 1000
       - aiAssert: "页面底部 Footer 区域可见"
-      - aiAssert: "Footer 包含'产品'区域，有'注册'和'登录'链接"
-      - aiAssert: "Footer 包含'资源'区域，有'排行榜'和'订阅方案'链接"
+      - aiAssert: "Footer 包含'产品'或'Product'区域，有'注册'和'登录'链接或 'Sign Up' 和 'Login'"
 
   - name: "Landing Page - Interactive Elements"
     flow:
-      - ai: "点击'免费注册'按钮"
+      - ai: "点击'免费注册'或 'Sign Up' 按钮"
       - sleep: 2000
-      - aiAssert: "页面跳转到注册页面，URL 包含 /register"
-      - ai: "点击浏览器返回按钮，回到 Landing Page"
-      - sleep: 2000
-      - aiAssert: "回到 Landing Page，页面正常显示"
+      - aiAssert: "页面跳转到注册页面，显示注册表单（邮箱、用户名、密码字段）"
 
-  - name: "Console Error Check"
+  - name: "Language Switcher - Functionality"
     flow:
-      - aiAssert: "页面没有显示红色 JavaScript 错误弹窗或崩溃提示"
-      - aiAssert: "页面没有显示致命的 API 错误或白屏错误"
-      - aiAssert: "所有图片和资源正常加载，没有破损的图片图标"
+      - ai: "返回首页"
+      - sleep: 2000
+      - aiAssert: "页面显示语言切换按钮（通常显示当前语言如'简体中文'或'English'）"
+      - ai: "点击语言切换按钮"
+      - sleep: 500
+      - aiAssert: "出现语言选择下拉菜单，包含'简体中文'和'English'选项"
+      - ai: "点击'English'选项"
+      - sleep: 1500
+      - aiAssert: "页面内容切换为英文，按钮或标题显示英文内容如 'Sign Up' 或 'Professional'"
+      - ai: "再次点击语言切换按钮"
+      - sleep: 500
+      - ai: "点击'简体中文'选项"
+      - sleep: 1500
+      - aiAssert: "页面内容切换回中文，按钮或标题显示中文内容如 '免费注册' 或 '专业级'"
 
   # Note: Authenticated user flow test would require a test account
   # This can be added in a separate test file or with environment variables

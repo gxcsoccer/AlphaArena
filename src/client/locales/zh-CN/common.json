@@ -117,5 +117,13 @@
     "zh": "简体中文",
     "en": "English",
     "switchTo": "切换语言"
+  },
+  "chart": {
+    "equity": "资产",
+    "drawdown": "回撤",
+    "highWaterMark": "最高值",
+    "return": "收益",
+    "maxDrawdown": "最大回撤",
+    "noData": "暂无数据"
   }
 }

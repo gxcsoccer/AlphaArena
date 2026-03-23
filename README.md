@@ -232,3 +232,25 @@ ISC
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！请参阅 [贡献指南](CONTRIBUTING.md) 了解详情。
+
+## 🌐 多语言支持
+
+AlphaArena 支持中文和英文两种语言。
+
+### 支持的语言
+
+| 语言 | 代码 | 说明 |
+|------|------|------|
+| 简体中文 | `zh-CN` | 默认语言 |
+| English | `en-US` | 英文 |
+
+### 切换语言
+
+- **URL 参数**: 添加 `?lang=en` 切换到英文，`?lang=zh` 切换到中文
+- **界面切换**: 点击页面右上角的语言切换按钮
+
+### 开发指南
+
+如需添加或修改翻译，请参阅：
+- [i18n 开发指南](docs/i18n-development-guide.md) - 开发实践和最佳实践
+- [i18n 命名规范](docs/i18n-naming-convention.md) - 翻译 key 命名规范
