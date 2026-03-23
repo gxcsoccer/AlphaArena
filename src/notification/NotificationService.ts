@@ -57,6 +57,53 @@ export interface SystemNotificationData {
   details?: string;
 }
 
+export interface CommentNotificationData {
+  signal_id: string;
+  signal_title?: string;
+  comment_id: string;
+  comment_preview: string;
+  author_username?: string;
+  parent_id?: string; // For replies
+  is_reply?: boolean;
+  is_like?: boolean;
+}
+
+/**
+ * Create a comment notification (new comment, reply, or like)
+ */
+export async function createCommentNotification(
+  userId: string,
+  title: string,
+  message: string,
+  data: CommentNotificationData,
+  options?: {
+    priority?: NotificationPriority;
+    actionUrl?: string;
+  }
+): Promise<Notification | null> {
+  const shouldReceive = await shouldReceiveNotification(
+    userId,
+    'COMMENT',
+    options?.priority ?? 'MEDIUM'
+  );
+
+  if (!shouldReceive) {
+    return null;
+  }
+
+  return createNotification({
+    user_id: userId,
+    type: 'COMMENT',
+    priority: options?.priority ?? 'MEDIUM',
+    title,
+    message,
+    data: data as unknown as Record<string, unknown>,
+    entity_type: 'signal_comment',
+    entity_id: data.comment_id,
+    action_url: options?.actionUrl,
+  });
+}
+
 /**
  * Create a trading signal notification
  */
@@ -315,6 +362,7 @@ export const NotificationService = {
   createRiskNotification,
   createPerformanceNotification,
   createSystemNotification,
+  createCommentNotification,
   broadcastNotification,
   getUserNotifications,
   getUserUnreadCount,
