@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="logo-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <!-- Main Logo Shape - Stylized "A" with arena/chart theme -->
+  <path d="M24 4L4 40h8l4-8h16l4 8h8L24 4zm0 16l6 12H18l6-12z" fill="url(#logo-gradient)"/>
+  <!-- Inner accent - rising chart line -->
+  <path d="M16 28l4-8 4 4 8-12" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8"/>
+  <!-- Dot accent - peak performance indicator -->
+  <circle cx="32" cy="12" r="2" fill="#A855F7"/>
+</svg>

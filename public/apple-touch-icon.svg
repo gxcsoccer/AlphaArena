@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <defs>
+    <linearGradient id="app-icon-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="180" height="180" rx="40" fill="#0f172a"/>
+  <!-- Main Logo Shape - Stylized "A" with arena/chart theme -->
+  <path d="M90 15L15 150h30l15-30h60l15 30h30L90 15zm0 60l22.5 45h-45L90 75z" fill="url(#app-icon-gradient)" transform="translate(0, 5)"/>
+  <!-- Inner accent - rising chart line -->
+  <path d="M60 105l15-30 15 15 30-45" stroke="#3B82F6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8" transform="translate(0, 5)"/>
+  <!-- Dot accent - peak performance indicator -->
+  <circle cx="120" cy="35" r="6" fill="#A855F7" transform="translate(0, 5)"/>
+</svg>

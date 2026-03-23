@@ -9,6 +9,7 @@ import { IconUser, IconLock } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { Logo } from '../components/brand/Logo';
 
 const { Title, Text } = Typography;
 const FormItem = Form.Item;
@@ -67,10 +68,11 @@ const LoginPage: React.FC = () => {
       <div style={isMobile ? styles.cardMobile : styles.card}>
         <Space direction="vertical" size="large" style={{ width: '100%' }}>
           <div style={styles.header}>
-            <Title heading={isMobile ? 4 : 3} style={{ margin: 0 }}>
+            <Logo size="lg" showWordmark={true} onClick={() => navigate('/')} />
+            <Title heading={isMobile ? 5 : 4} style={{ margin: '16px 0 8px' }}>
               Welcome Back
             </Title>
-            <Text type="secondary">Sign in to your AlphaArena account</Text>
+            <Text type="secondary">登录您的 AlphaArena 账户</Text>
           </div>
 
           {error && (
@@ -148,7 +150,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     minHeight: '100vh',
     padding: '20px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
   },
   containerMobile: {
     display: 'flex',
@@ -156,7 +158,7 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     minHeight: '100vh',
     padding: '16px',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)',
   },
   card: {
     width: '100%',
