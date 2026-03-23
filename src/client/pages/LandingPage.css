@@ -1103,3 +1103,87 @@
     border: 2px solid currentColor;
   }
 }
+
+/* ============================================
+   Landing Header
+   Issue #595: Language Switcher on landing page
+   ============================================ */
+
+.landing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-3) var(--spacing-6);
+  background: var(--color-bg-1);
+  border-bottom: 1px solid var(--color-border-1);
+  backdrop-filter: blur(12px);
+  transition: all var(--duration-200) var(--ease-in-out);
+}
+
+.dark .landing-header {
+  background: rgba(23, 23, 23, 0.9);
+}
+
+.landing-header__logo {
+  display: flex;
+  align-items: center;
+}
+
+.landing-header__brand {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary-500) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  cursor: pointer;
+  transition: opacity var(--duration-150) var(--ease-in-out);
+}
+
+.landing-header__brand:hover {
+  opacity: 0.85;
+}
+
+.landing-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.landing-header__login {
+  color: var(--color-text-2);
+  font-weight: var(--font-weight-medium);
+}
+
+.landing-header__login:hover {
+  color: var(--color-primary);
+}
+
+.landing-header__register {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Adjust hero section to account for fixed header */
+.hero-section {
+  padding-top: calc(var(--spacing-12) + 60px);
+}
+
+/* Mobile styles for landing header */
+@media (max-width: 768px) {
+  .landing-header {
+    padding: var(--spacing-2) var(--spacing-4);
+  }
+
+  .landing-header__brand {
+    font-size: var(--font-size-lg);
+  }
+
+  .hero-section {
+    padding-top: calc(var(--spacing-8) + 56px);
+  }
+}

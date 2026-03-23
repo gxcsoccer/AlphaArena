@@ -48,6 +48,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
+import ThemeToggle from '../components/ThemeToggle';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import './LandingPage.css';
 
 const { Title, Text, Paragraph } = Typography;
@@ -317,6 +319,42 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="landing-page">
+      {/* ============================================ */}
+      {/* Landing Header with Language Switcher and Theme Toggle */}
+      {/* Issue #595: Add Language Switcher to landing page */}
+      {/* ============================================ */}
+      <header className="landing-header">
+        <div className="landing-header__logo">
+          <span className="landing-header__brand" onClick={() => navigate('/')}>
+            AlphaArena
+          </span>
+        </div>
+        <div className="landing-header__actions">
+          <LanguageSwitcher compact={isMobile} />
+          <ThemeToggle compact={isMobile} />
+          {!isMobile && (
+            <>
+              <Button
+                type="text"
+                size="small"
+                onClick={() => navigate('/login')}
+                className="landing-header__login"
+              >
+                {t('common.button.login', { ns: 'common', defaultValue: '登录' })}
+              </Button>
+              <Button
+                type="primary"
+                size="small"
+                onClick={handleRegister}
+                className="landing-header__register"
+              >
+                {t('common.button.register', { ns: 'common', defaultValue: '注册' })}
+              </Button>
+            </>
+          )}
+        </div>
+      </header>
+
       {/* ============================================ */}
       {/* Hero Section */}
       {/* ============================================ */}
