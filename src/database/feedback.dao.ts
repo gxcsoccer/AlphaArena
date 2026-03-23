@@ -21,9 +21,18 @@ export enum FeedbackType {
 // Feedback status
 export enum FeedbackStatus {
   NEW = 'new',
+  CONFIRMED = 'confirmed',
   IN_PROGRESS = 'in_progress',
   RESOLVED = 'resolved',
   CLOSED = 'closed',
+}
+
+// Feedback priority
+export enum FeedbackPriority {
+  P0 = 'p0', // Critical/Urgent
+  P1 = 'p1', // High
+  P2 = 'p2', // Medium
+  P3 = 'p3', // Low
 }
 
 // Feedback interface
@@ -44,6 +53,7 @@ export interface Feedback {
     referrer: string;
   };
   status: FeedbackStatus;
+  priority?: FeedbackPriority;
   tags?: string[];
   adminNotes?: string;
   createdAt: Date;
@@ -64,6 +74,7 @@ export interface CreateFeedbackInput {
 // Update feedback input
 export interface UpdateFeedbackInput {
   status?: FeedbackStatus;
+  priority?: FeedbackPriority;
   tags?: string[];
   adminNotes?: string;
 }
@@ -72,7 +83,11 @@ export interface UpdateFeedbackInput {
 export interface FeedbackQueryOptions {
   status?: FeedbackStatus;
   type?: FeedbackType;
+  priority?: FeedbackPriority;
   userId?: string;
+  search?: string;
+  startDate?: Date;
+  endDate?: Date;
   limit?: number;
   offset?: number;
 }
@@ -143,7 +158,7 @@ class FeedbackDAO {
     
     let query = supabase
       .from('feedbacks')
-      .select('*')
+      .select('*', { count: 'exact' })
       .order('created_at', { ascending: false });
     
     if (options.status) {
@@ -153,9 +168,25 @@ class FeedbackDAO {
     if (options.type) {
       query = query.eq('type', options.type);
     }
+
+    if (options.priority) {
+      query = query.eq('priority', options.priority);
+    }
     
     if (options.userId) {
       query = query.eq('user_id', options.userId);
+    }
+
+    if (options.search) {
+      query = query.or(`description.ilike.%${options.search}%,contact_info.ilike.%${options.search}%`);
+    }
+
+    if (options.startDate) {
+      query = query.gte('created_at', options.startDate.toISOString());
+    }
+
+    if (options.endDate) {
+      query = query.lte('created_at', options.endDate.toISOString());
     }
     
     const limit = options.limit || 50;
@@ -180,6 +211,7 @@ class FeedbackDAO {
     
     const updateData: any = {};
     if (input.status !== undefined) updateData.status = input.status;
+    if (input.priority !== undefined) updateData.priority = input.priority;
     if (input.tags !== undefined) updateData.tags = input.tags;
     if (input.adminNotes !== undefined) updateData.admin_notes = input.adminNotes;
     
@@ -222,12 +254,13 @@ class FeedbackDAO {
     total: number;
     byType: Record<FeedbackType, number>;
     byStatus: Record<FeedbackStatus, number>;
+    byPriority: Record<FeedbackPriority, number>;
   }> {
     const supabase = getSupabaseAdminClient();
     
     const { data, error } = await supabase
       .from('feedbacks')
-      .select('type, status');
+      .select('type, status, priority');
     
     if (error) {
       log.error('Failed to get feedback stats:', error);
@@ -243,9 +276,16 @@ class FeedbackDAO {
       },
       byStatus: {
         [FeedbackStatus.NEW]: 0,
+        [FeedbackStatus.CONFIRMED]: 0,
         [FeedbackStatus.IN_PROGRESS]: 0,
         [FeedbackStatus.RESOLVED]: 0,
         [FeedbackStatus.CLOSED]: 0,
+      },
+      byPriority: {
+        [FeedbackPriority.P0]: 0,
+        [FeedbackPriority.P1]: 0,
+        [FeedbackPriority.P2]: 0,
+        [FeedbackPriority.P3]: 0,
       },
     };
     
@@ -255,6 +295,9 @@ class FeedbackDAO {
       }
       if (item.status && stats.byStatus[item.status as FeedbackStatus] !== undefined) {
         stats.byStatus[item.status as FeedbackStatus]++;
+      }
+      if (item.priority && stats.byPriority[item.priority as FeedbackPriority] !== undefined) {
+        stats.byPriority[item.priority as FeedbackPriority]++;
       }
     });
     
@@ -278,6 +321,7 @@ class FeedbackDAO {
       contactInfo: data.contact_info || undefined,
       environment: data.environment || {},
       status: data.status as FeedbackStatus,
+      priority: data.priority as FeedbackPriority || undefined,
       tags: data.tags || [],
       adminNotes: data.admin_notes || undefined,
       createdAt: new Date(data.created_at),

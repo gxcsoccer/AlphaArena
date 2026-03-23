@@ -320,6 +320,7 @@ export {
   feedbackDAO, 
   FeedbackType, 
   FeedbackStatus,
+  FeedbackPriority,
   type Feedback,
   type CreateFeedbackInput,
   type UpdateFeedbackInput,

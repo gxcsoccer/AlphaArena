@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { feedbackDAO, FeedbackType, FeedbackStatus, CreateFeedbackInput } from '../database';
+import { feedbackDAO, FeedbackType, FeedbackStatus, FeedbackPriority, CreateFeedbackInput } from '../database';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('FeedbackRoutes');
@@ -90,6 +90,10 @@ export function createFeedbackRouter(): Router {
    * 
    * @query status - Filter by status
    * @query type - Filter by type
+   * @query priority - Filter by priority
+   * @query search - Search keyword
+   * @query startDate - Start date filter
+   * @query endDate - End date filter
    * @query limit - Number of results (default: 50)
    * @query offset - Pagination offset (default: 0)
    */
@@ -100,14 +104,22 @@ export function createFeedbackRouter(): Router {
       
       const status = req.query.status as FeedbackStatus | undefined;
       const type = req.query.type as FeedbackType | undefined;
+      const priority = req.query.priority as FeedbackPriority | undefined;
       const userId = req.query.userId as string | undefined;
+      const search = req.query.search as string | undefined;
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
       const feedbacks = await feedbackDAO.getFeedbacks({
         status,
         type,
+        priority,
         userId,
+        search,
+        startDate,
+        endDate,
         limit,
         offset,
       });
@@ -171,6 +183,53 @@ export function createFeedbackRouter(): Router {
   });
 
   /**
+   * GET /api/feedback/export
+   * Export feedbacks as CSV (admin only)
+   */
+  router.get('/export', async (req: Request, res: Response) => {
+    try {
+      const status = req.query.status as FeedbackStatus | undefined;
+      const type = req.query.type as FeedbackType | undefined;
+      const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
+      const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
+
+      const feedbacks = await feedbackDAO.getFeedbacks({
+        status,
+        type,
+        startDate,
+        endDate,
+        limit: 10000, // Export up to 10k records
+        offset: 0,
+      });
+
+      // Generate CSV
+      const headers = ['ID', 'Type', 'Description', 'Status', 'Priority', 'Contact', 'Created At', 'User ID'];
+      const rows = feedbacks.map(f => [
+        f.id,
+        f.type,
+        `"${f.description.replace(/"/g, '""')}"`,
+        f.status,
+        f.priority || '',
+        f.contactInfo || '',
+        f.createdAt.toISOString(),
+        f.userId || '',
+      ]);
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="feedback-export.csv"');
+      res.send(csv);
+    } catch (error: any) {
+      log.error('Failed to export feedbacks:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to export feedbacks',
+      });
+    }
+  });
+
+  /**
    * GET /api/feedback/:id
    * Get a specific feedback (admin only)
    */
@@ -209,10 +268,11 @@ export function createFeedbackRouter(): Router {
       const { status, adminNotes, tags } = req.body;
 
       // Validation
-      if (!status || !Object.values(FeedbackStatus).includes(status)) {
+      const validStatuses = ['new', 'confirmed', 'in_progress', 'resolved', 'closed'];
+      if (!status || !validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          error: 'Invalid status. Must be: new, in_progress, resolved, or closed',
+          error: 'Invalid status. Must be: new, confirmed, in_progress, resolved, or closed',
         });
       }
 
@@ -231,6 +291,41 @@ export function createFeedbackRouter(): Router {
       res.status(500).json({
         success: false,
         error: 'Failed to update feedback status',
+      });
+    }
+  });
+
+  /**
+   * PATCH /api/feedback/:id/priority
+   * Update feedback priority (admin only)
+   */
+  router.patch('/:id/priority', async (req: Request, res: Response) => {
+    try {
+      const id = String(req.params.id);
+      const { priority } = req.body;
+
+      // Validation
+      const validPriorities = ['p0', 'p1', 'p2', 'p3'];
+      if (!priority || !validPriorities.includes(priority)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid priority. Must be: p0, p1, p2, or p3',
+        });
+      }
+
+      const feedback = await feedbackDAO.updateFeedback(id, {
+        priority,
+      });
+
+      res.json({
+        success: true,
+        data: feedback,
+      });
+    } catch (error: any) {
+      log.error('Failed to update feedback priority:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update feedback priority',
       });
     }
   });
@@ -262,6 +357,6 @@ export function createFeedbackRouter(): Router {
 }
 
 // Export enums for external use
-export { FeedbackType, FeedbackStatus };
+export { FeedbackType, FeedbackStatus, FeedbackPriority };
 
 export default createFeedbackRouter;
