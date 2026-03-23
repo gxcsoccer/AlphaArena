@@ -2,12 +2,16 @@
  * Performance Metrics API Routes
  * 
  * Handles collection and retrieval of mobile/web performance metrics.
+ * Also manages performance alert configuration and notifications.
  */
 
 import { Router, Request, Response } from 'express';
 import { getPerformanceMetricsDAO, PerformanceFilters, CreatePerformanceMetricInput } from '../database/performance-metrics.dao';
-import authMiddleware, { optionalAuthMiddleware } from './authMiddleware';
+import { performanceAlertService } from '../monitoring/PerformanceAlertService';
+import authMiddleware, { optionalAuthMiddleware, requireAdmin } from './authMiddleware';
+import { createLogger } from '../utils/logger';
 
+const log = createLogger('PerformanceRoutes');
 const router = Router();
 
 /**
@@ -659,6 +663,318 @@ router.get('/trend', authMiddleware, async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch performance trend',
+    });
+  }
+});
+
+// ==================== Alert Configuration Endpoints ====================
+
+/**
+ * @swagger
+ * /api/performance/alerts/thresholds:
+ *   get:
+ *     summary: Get all performance thresholds
+ *     description: Get configured performance thresholds for alerting
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Performance thresholds
+ */
+router.get('/alerts/thresholds', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const thresholds = await performanceAlertService.getThresholds();
+    res.json({
+      success: true,
+      data: thresholds,
+    });
+  } catch (error) {
+    log.error('Failed to get thresholds:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get performance thresholds',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/performance/alerts/thresholds/{metricType}:
+ *   put:
+ *     summary: Update a performance threshold
+ *     description: Update threshold configuration for a specific metric (admin only)
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: metricType
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [lcp, fcp, fid, cls, ttfb, inp, api_latency, error_rate]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               warning_threshold:
+ *                 type: number
+ *               critical_threshold:
+ *                 type: number
+ *               enabled:
+ *                 type: boolean
+ *               notification_channels:
+ *                 type: object
+ *                 properties:
+ *                   in_app:
+ *                     type: boolean
+ *                   email:
+ *                     type: boolean
+ *                   webhook:
+ *                     type: boolean
+ *               cooldown_minutes:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Threshold updated
+ */
+router.put('/alerts/thresholds/:metricType', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const { metricType } = req.params;
+    const updates = req.body;
+
+    const threshold = await performanceAlertService.updateThreshold(metricType, updates);
+
+    if (!threshold) {
+      return res.status(404).json({
+        success: false,
+        error: 'Threshold not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      data: threshold,
+    });
+  } catch (error) {
+    log.error('Failed to update threshold:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update performance threshold',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/performance/alerts:
+ *   get:
+ *     summary: Get active performance alerts
+ *     description: Get list of active performance alerts
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *     responses:
+ *       200:
+ *         description: Active alerts
+ */
+router.get('/alerts', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string, 10) || 50;
+    const alerts = await performanceAlertService.getActiveAlerts(limit);
+    res.json({
+      success: true,
+      data: alerts,
+    });
+  } catch (error) {
+    log.error('Failed to get active alerts:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get active alerts',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/performance/alerts/history:
+ *   get:
+ *     summary: Get alert history
+ *     description: Get paginated history of performance alerts
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: start_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: end_date
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *       - in: query
+ *         name: metric_type
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: severity
+ *         schema:
+ *           type: string
+ *           enum: [warning, critical]
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [active, acknowledged, resolved]
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 50
+ *       - in: query
+ *         name: offset
+ *         schema:
+ *           type: integer
+ *           default: 0
+ *     responses:
+ *       200:
+ *         description: Alert history
+ */
+router.get('/alerts/history', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { start_date, end_date, metric_type, severity, status, limit, offset } = req.query;
+
+    const result = await performanceAlertService.getAlertHistory({
+      startDate: start_date as string,
+      endDate: end_date as string,
+      metricType: metric_type as string,
+      severity: severity as 'warning' | 'critical',
+      status: status as 'active' | 'acknowledged' | 'resolved',
+      limit: limit ? parseInt(limit as string, 10) : 50,
+      offset: offset ? parseInt(offset as string, 10) : 0,
+    });
+
+    res.json({
+      success: true,
+      data: result.alerts,
+      total: result.total,
+    });
+  } catch (error) {
+    log.error('Failed to get alert history:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get alert history',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/performance/alerts/{alertId}/acknowledge:
+ *   post:
+ *     summary: Acknowledge an alert
+ *     description: Mark an alert as acknowledged
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: alertId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Alert acknowledged
+ */
+router.post('/alerts/:alertId/acknowledge', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { alertId } = req.params;
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+      });
+    }
+
+    const success = await performanceAlertService.acknowledgeAlert(alertId, userId);
+
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Alert not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Alert acknowledged',
+    });
+  } catch (error) {
+    log.error('Failed to acknowledge alert:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to acknowledge alert',
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/performance/alerts/{alertId}/resolve:
+ *   post:
+ *     summary: Resolve an alert
+ *     description: Mark an alert as resolved
+ *     tags: [Performance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: alertId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Alert resolved
+ */
+router.post('/alerts/:alertId/resolve', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const { alertId } = req.params;
+
+    const success = await performanceAlertService.resolveAlert(alertId);
+
+    if (!success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Alert not found',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Alert resolved',
+    });
+  } catch (error) {
+    log.error('Failed to resolve alert:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to resolve alert',
     });
   }
 });
