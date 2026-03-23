@@ -93,10 +93,18 @@ const Trans = ({ i18nKey, ns = 'common', children }: { i18nKey: string; ns?: str
   return React.createElement(React.Fragment, null, children || t(i18nKey));
 };
 
+/**
+ * Mock I18nextProvider component - simple passthrough that renders children
+ */
+const I18nextProvider = ({ children }: { children: React.ReactNode }) => {
+  return React.createElement(React.Fragment, null, children);
+};
+
 // Mock react-i18next module
 jest.mock('react-i18next', () => ({
   useTranslation,
   Trans,
+  I18nextProvider,
   initReactI18next: {
     type: '3rdParty',
     init: jest.fn(),
