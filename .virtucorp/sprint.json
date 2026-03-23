@@ -1,47 +1,47 @@
 {
   "sprint": {
-    "number": 47,
-    "title": "Sprint 47: 用户增长与社区建设",
-    "milestone": 48,
+    "number": 48,
+    "title": "Sprint 48: 性能优化",
+    "milestone": 49,
     "status": "planning",
     "period": {
-      "start": "2026-03-31",
-      "end": "2026-04-06"
+      "start": "2026-04-07",
+      "end": "2026-04-13"
     },
-    "goals": "基于数据分析闭环，构建用户获取和社区互动能力，实现自然增长",
+    "goals": "系统性地优化产品性能，提升页面加载速度和用户体验，为后续国际化和移动端扩展打好基础",
     "issues": {
       "planned": [
         {
-          "number": 548,
-          "title": "用户推荐奖励系统",
+          "number": 558,
+          "title": "前端性能分析与优化方案",
           "priority": "P1",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 549,
-          "title": "社交分享功能",
+          "number": 559,
+          "title": "图片和静态资源优化",
           "priority": "P1",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 550,
-          "title": "用户关注与互动系统",
-          "priority": "P1",
-          "type": "feature",
-          "status": "open"
-        },
-        {
-          "number": 551,
-          "title": "信号评论与讨论功能",
+          "number": 560,
+          "title": "API 响应时间优化",
           "priority": "P2",
           "type": "feature",
           "status": "open"
         },
         {
-          "number": 552,
-          "title": "SEO 优化与站点地图",
+          "number": 561,
+          "title": "前端打包体积优化",
+          "priority": "P2",
+          "type": "feature",
+          "status": "open"
+        },
+        {
+          "number": 562,
+          "title": "性能监控仪表板",
           "priority": "P2",
           "type": "feature",
           "status": "open"
@@ -54,11 +54,11 @@
       "total": 0,
       "merged": []
     },
-    "direction": "用户增长与社区建设",
-    "rationale": "Sprint 46 完成了数据分析闭环建设（用户行为分析、反馈管理、洞察报告、A/B 测试框架、用户引导优化）。Sprint 47 在此基础上，聚焦用户增长和社区建设，通过推荐奖励和社交分享实现自然增长，通过关注和评论功能构建社区互动能力。",
+    "direction": "性能优化",
+    "rationale": "经过 Sprint 45-47 的功能迭代，产品已完成数据分析闭环和用户增长体系建设。下一阶段应聚焦性能优化，提升用户体验，为后续国际化和移动端扩展做准备。性能优化可量化（Lighthouse 分数、Core Web Vitals），且有明确的技术路径。",
     "previous_sprint": {
-      "number": 46,
-      "summary": "完成 5 个 issues，实现用户行为分析仪表板、用户反馈管理系统、用户行为洞察报告、Landing Page A/B 测试框架、用户引导流程优化",
+      "number": 47,
+      "summary": "完成 5 个 issues，实现用户推荐奖励系统、社交分享功能、用户关注与互动系统、信号评论与讨论功能、SEO 优化与站点地图",
       "test_status": "全部验收通过"
     },
     "created_at": "2026-03-23"

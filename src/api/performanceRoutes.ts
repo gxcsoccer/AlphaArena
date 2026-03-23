@@ -744,7 +744,7 @@ router.get('/alerts/thresholds', authMiddleware, async (req: Request, res: Respo
  */
 router.put('/alerts/thresholds/:metricType', requireAdmin, async (req: Request, res: Response) => {
   try {
-    const { metricType } = req.params;
+    const metricType = req.params.metricType as string;
     const updates = req.body;
 
     const threshold = await performanceAlertService.updateThreshold(metricType, updates);
@@ -902,7 +902,7 @@ router.get('/alerts/history', authMiddleware, async (req: Request, res: Response
  */
 router.post('/alerts/:alertId/acknowledge', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { alertId } = req.params;
+    const alertId = req.params.alertId as string;
     const userId = req.user?.id;
 
     if (!userId) {
@@ -955,7 +955,7 @@ router.post('/alerts/:alertId/acknowledge', authMiddleware, async (req: Request,
  */
 router.post('/alerts/:alertId/resolve', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const { alertId } = req.params;
+    const alertId = req.params.alertId as string;
 
     const success = await performanceAlertService.resolveAlert(alertId);
 

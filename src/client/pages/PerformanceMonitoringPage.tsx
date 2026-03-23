@@ -40,7 +40,7 @@ import {
   IconExclamationCircle,
   IconCheckCircle,
   IconSettings,
-  IconBell,
+  IconNotification,
 } from '@arco-design/web-react/icon';
 import {
   Line,
@@ -815,7 +815,7 @@ const PerformanceMonitoringPage: React.FC = () => {
             <Title heading={3} style={{ margin: 0 }}>性能监控面板</Title>
             {activeAlerts.filter(a => a.status === 'active').length > 0 && (
               <Badge count={activeAlerts.filter(a => a.status === 'active').length}>
-                <IconBell style={{ fontSize: 20, color: '#F53F3F' }} />
+                <IconNotification style={{ fontSize: 20, color: '#F53F3F' }} />
               </Badge>
             )}
           </div>
