@@ -26,3 +26,10 @@ export {
 } from './PriceMonitoringService';
 
 export { default as UptimeMonitor } from './UptimeMonitor';
+
+export {
+  PerformanceAlertService,
+  performanceAlertService,
+  PerformanceThreshold,
+  PerformanceAlertRecord,
+} from './PerformanceAlertService';

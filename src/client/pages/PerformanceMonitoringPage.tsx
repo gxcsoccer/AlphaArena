@@ -1,7 +1,8 @@
 /**
- * PerformanceMonitoringPage - Mobile Performance Monitoring Dashboard
+ * PerformanceMonitoringPage - Performance Monitoring Dashboard
  * 
  * Admin-only page for monitoring mobile/web performance metrics
+ * with real-time alerts and threshold configuration.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -21,6 +22,12 @@ import {
   Statistic,
   Tabs,
   Table,
+  Modal,
+  Form,
+  InputNumber,
+  Switch,
+  Badge,
+  Descriptions,
 } from '@arco-design/web-react';
 import {
   IconDashboard,
@@ -30,6 +37,10 @@ import {
   IconWifi,
   IconCloud,
   IconRefresh,
+  IconExclamationCircle,
+  IconCheckCircle,
+  IconSettings,
+  IconNotification,
 } from '@arco-design/web-react/icon';
 import {
   Line,
@@ -49,10 +60,10 @@ import {
 } from 'recharts';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
-const { Title, Text, _Paragraph } = Typography;
+const { Title, Text } = Typography;
 const { Row, Col } = Grid;
 const { RangePicker } = DatePicker;
-const _TabPane = Tabs.TabPane;
+const TabPane = Tabs.TabPane;
 
 // Types
 interface PerformanceSummary {
@@ -118,8 +129,34 @@ interface TrendPoint {
   sample_count: number;
 }
 
+interface PerformanceThreshold {
+  id: string;
+  metric_type: string;
+  warning_threshold: number;
+  critical_threshold: number;
+  enabled: boolean;
+  notification_channels: {
+    in_app: boolean;
+    email: boolean;
+    webhook: boolean;
+  };
+  cooldown_minutes: number;
+}
+
+interface PerformanceAlert {
+  id: string;
+  metric_type: string;
+  severity: 'warning' | 'critical';
+  current_value: number;
+  threshold_value: number;
+  page?: string;
+  device_type?: string;
+  status: 'active' | 'acknowledged' | 'resolved';
+  created_at: string;
+}
+
 // Colors for charts
-const _COLORS = ['#165DFF', '#14C9C9', '#F7BA1E', '#F53F3F', '#722ED1', '#00B42A'];
+const COLORS = ['#165DFF', '#14C9C9', '#F7BA1E', '#F53F3F', '#722ED1', '#00B42A'];
 const PERFORMANCE_COLORS = {
   good: '#00B42A',
   needsImprovement: '#F7BA1E',
@@ -133,6 +170,8 @@ const PerformanceMonitoringPage: React.FC = () => {
   const [connectionDistribution, setConnectionDistribution] = useState<ConnectionDistribution[]>([]);
   const [pagePerformance, setPagePerformance] = useState<PagePerformance[]>([]);
   const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [thresholds, setThresholds] = useState<PerformanceThreshold[]>([]);
+  const [activeAlerts, setActiveAlerts] = useState<PerformanceAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dateRange, setDateRange] = useState<[Date, Date]>([
@@ -141,6 +180,8 @@ const PerformanceMonitoringPage: React.FC = () => {
   ]);
   const [granularity, setGranularity] = useState<'hour' | 'day' | 'week'>('day');
   const [isMobile, setIsMobile] = useState(false);
+  const [thresholdModalVisible, setThresholdModalVisible] = useState(false);
+  const [selectedThreshold, setSelectedThreshold] = useState<PerformanceThreshold | null>(null);
 
   // Check mobile viewport
   useEffect(() => {
@@ -163,12 +204,14 @@ const PerformanceMonitoringPage: React.FC = () => {
       const end = dateRange[1].toISOString();
       
       // Fetch all endpoints in parallel
-      const [summaryRes, deviceRes, connectionRes, pageRes, trendRes] = await Promise.all([
+      const [summaryRes, deviceRes, connectionRes, pageRes, trendRes, thresholdsRes, alertsRes] = await Promise.all([
         fetch(`/api/performance/summary?start_date=${start}&end_date=${end}`, { headers }),
         fetch(`/api/performance/device-distribution?start_date=${start}&end_date=${end}`, { headers }),
         fetch(`/api/performance/connection-distribution?start_date=${start}&end_date=${end}`, { headers }),
         fetch(`/api/performance/page-performance?start_date=${start}&end_date=${end}`, { headers }),
         fetch(`/api/performance/trend?start_date=${start}&end_date=${end}&granularity=${granularity}`, { headers }),
+        fetch('/api/performance/alerts/thresholds', { headers }),
+        fetch('/api/performance/alerts?limit=20', { headers }),
       ]);
 
       if (summaryRes.ok) {
@@ -195,6 +238,16 @@ const PerformanceMonitoringPage: React.FC = () => {
         const data = await trendRes.json();
         setTrendData(data.data || []);
       }
+
+      if (thresholdsRes.ok) {
+        const data = await thresholdsRes.json();
+        setThresholds(data.data || []);
+      }
+
+      if (alertsRes.ok) {
+        const data = await alertsRes.json();
+        setActiveAlerts(data.data || []);
+      }
     } catch (error) {
       console.error('Failed to fetch performance data:', error);
       Message.error('加载性能数据失败');
@@ -208,9 +261,80 @@ const PerformanceMonitoringPage: React.FC = () => {
     fetchAllData();
   }, [fetchAllData]);
 
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchAllData();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [fetchAllData]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     fetchAllData();
+  };
+
+  // Handle threshold update
+  const handleUpdateThreshold = async (values: any) => {
+    if (!selectedThreshold) return;
+
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('supabase_token');
+      const response = await fetch(`/api/performance/alerts/thresholds/${selectedThreshold.metric_type}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      });
+
+      if (response.ok) {
+        Message.success('阈值更新成功');
+        setThresholdModalVisible(false);
+        fetchAllData();
+      } else {
+        Message.error('更新失败');
+      }
+    } catch (error) {
+      Message.error('更新失败');
+    }
+  };
+
+  // Handle alert acknowledge
+  const handleAcknowledgeAlert = async (alertId: string) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('supabase_token');
+      const response = await fetch(`/api/performance/alerts/${alertId}/acknowledge`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        Message.success('告警已确认');
+        fetchAllData();
+      }
+    } catch (error) {
+      Message.error('操作失败');
+    }
+  };
+
+  // Handle alert resolve
+  const handleResolveAlert = async (alertId: string) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('supabase_token');
+      const response = await fetch(`/api/performance/alerts/${alertId}/resolve`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        Message.success('告警已解决');
+        fetchAllData();
+      }
+    } catch (error) {
+      Message.error('操作失败');
+    }
   };
 
   // Format helpers
@@ -421,6 +545,208 @@ const PerformanceMonitoringPage: React.FC = () => {
     );
   };
 
+  // Render alerts section
+  const renderAlertsSection = () => {
+    const alertColumns = [
+      {
+        title: '指标类型',
+        dataIndex: 'metric_type',
+        key: 'metric_type',
+        render: (type: string) => (
+          <Tag color="blue">{type.toUpperCase()}</Tag>
+        ),
+      },
+      {
+        title: '严重程度',
+        dataIndex: 'severity',
+        key: 'severity',
+        render: (severity: string) => (
+          <Tag color={severity === 'critical' ? 'red' : 'orange'}>
+            {severity === 'critical' ? '严重' : '警告'}
+          </Tag>
+        ),
+      },
+      {
+        title: '当前值',
+        dataIndex: 'current_value',
+        key: 'current_value',
+        render: (value: number, record: PerformanceAlert) => (
+          <Text>
+            {value.toFixed(2)} / {record.threshold_value}
+          </Text>
+        ),
+      },
+      {
+        title: '页面',
+        dataIndex: 'page',
+        key: 'page',
+        render: (page: string) => page || '-',
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status: string) => {
+          const statusConfig: Record<string, { color: string; text: string }> = {
+            active: { color: 'red', text: '活跃' },
+            acknowledged: { color: 'orange', text: '已确认' },
+            resolved: { color: 'green', text: '已解决' },
+          };
+          const config = statusConfig[status] || { color: 'gray', text: status };
+          return <Tag color={config.color}>{config.text}</Tag>;
+        },
+      },
+      {
+        title: '时间',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (date: string) => new Date(date).toLocaleString('zh-CN'),
+      },
+      {
+        title: '操作',
+        key: 'actions',
+        render: (_: any, record: PerformanceAlert) => (
+          <Space>
+            {record.status === 'active' && (
+              <Button
+                size="small"
+                onClick={() => handleAcknowledgeAlert(record.id)}
+              >
+                确认
+              </Button>
+            )}
+            {record.status !== 'resolved' && (
+              <Button
+                size="small"
+                type="primary"
+                status="success"
+                onClick={() => handleResolveAlert(record.id)}
+              >
+                解决
+              </Button>
+            )}
+          </Space>
+        ),
+      },
+    ];
+
+    return (
+      <Card 
+        title={
+          <Space>
+            <IconExclamationCircle style={{ color: '#F53F3F' }} />
+            <span>活跃告警</span>
+            {activeAlerts.filter(a => a.status === 'active').length > 0 && (
+              <Badge count={activeAlerts.filter(a => a.status === 'active').length} />
+            )}
+          </Space>
+        }
+        extra={
+          <Button
+            icon={<IconSettings />}
+            onClick={() => setThresholdModalVisible(true)}
+          >
+            告警配置
+          </Button>
+        }
+        style={{ marginTop: 24 }}
+      >
+        <Table
+          data={activeAlerts}
+          columns={alertColumns}
+          rowKey="id"
+          pagination={{ pageSize: 5 }}
+          scroll={{ x: 800 }}
+          noDataElement={
+            <Empty
+              icon={<IconCheckCircle style={{ color: '#00B42A', fontSize: 48 }} />}
+              description="暂无活跃告警"
+            />
+          }
+        />
+      </Card>
+    );
+  };
+
+  // Render thresholds configuration
+  const renderThresholdsSection = () => {
+    const thresholdColumns = [
+      {
+        title: '指标',
+        dataIndex: 'metric_type',
+        key: 'metric_type',
+        render: (type: string) => (
+          <Text style={{ fontWeight: 'bold' }}>{type.toUpperCase()}</Text>
+        ),
+      },
+      {
+        title: '警告阈值',
+        dataIndex: 'warning_threshold',
+        key: 'warning_threshold',
+        render: (value: number, record: PerformanceThreshold) => (
+          <Tag color="orange">{value}{record.metric_type === 'cls' ? '' : 'ms'}</Tag>
+        ),
+      },
+      {
+        title: '严重阈值',
+        dataIndex: 'critical_threshold',
+        key: 'critical_threshold',
+        render: (value: number, record: PerformanceThreshold) => (
+          <Tag color="red">{value}{record.metric_type === 'cls' ? '' : 'ms'}</Tag>
+        ),
+      },
+      {
+        title: '状态',
+        dataIndex: 'enabled',
+        key: 'enabled',
+        render: (enabled: boolean) => (
+          <Tag color={enabled ? 'green' : 'gray'}>
+            {enabled ? '已启用' : '已禁用'}
+          </Tag>
+        ),
+      },
+      {
+        title: '通知渠道',
+        dataIndex: 'notification_channels',
+        key: 'notification_channels',
+        render: (channels: { in_app: boolean; email: boolean; webhook: boolean }) => (
+          <Space>
+            {channels.in_app && <Tag color="blue">站内</Tag>}
+            {channels.email && <Tag color="purple">邮件</Tag>}
+            {channels.webhook && <Tag color="cyan">Webhook</Tag>}
+          </Space>
+        ),
+      },
+      {
+        title: '操作',
+        key: 'actions',
+        render: (_: any, record: PerformanceThreshold) => (
+          <Button
+            size="small"
+            icon={<IconSettings />}
+            onClick={() => {
+              setSelectedThreshold(record);
+              setThresholdModalVisible(true);
+            }}
+          >
+            配置
+          </Button>
+        ),
+      },
+    ];
+
+    return (
+      <Card title="告警阈值配置" style={{ marginTop: 24 }}>
+        <Table
+          data={thresholds}
+          columns={thresholdColumns}
+          rowKey="id"
+          pagination={false}
+        />
+      </Card>
+    );
+  };
+
   // Page performance table columns
   const pageColumns = [
     {
@@ -487,6 +813,11 @@ const PerformanceMonitoringPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IconDashboard style={{ fontSize: 28, color: '#165DFF' }} />
             <Title heading={3} style={{ margin: 0 }}>性能监控面板</Title>
+            {activeAlerts.filter(a => a.status === 'active').length > 0 && (
+              <Badge count={activeAlerts.filter(a => a.status === 'active').length}>
+                <IconNotification style={{ fontSize: 20, color: '#F53F3F' }} />
+              </Badge>
+            )}
           </div>
           <Space>
             <RangePicker
@@ -680,6 +1011,12 @@ const PerformanceMonitoringPage: React.FC = () => {
             />
           </Card>
 
+          {/* Alerts Section */}
+          {renderAlertsSection()}
+
+          {/* Thresholds Configuration */}
+          {renderThresholdsSection()}
+
           {/* Performance Guidelines */}
           <Card title="性能指标参考标准" style={{ marginTop: 16 }}>
             <Row gutter={[24, 16]}>
@@ -738,6 +1075,89 @@ const PerformanceMonitoringPage: React.FC = () => {
             </Row>
           </Card>
         </Spin>
+
+        {/* Threshold Configuration Modal */}
+        <Modal
+          title="告警阈值配置"
+          visible={thresholdModalVisible}
+          onCancel={() => {
+            setThresholdModalVisible(false);
+            setSelectedThreshold(null);
+          }}
+          footer={null}
+          style={{ width: 600 }}
+        >
+          {selectedThreshold && (
+            <Form
+              layout="vertical"
+              initialValues={{
+                warning_threshold: selectedThreshold.warning_threshold,
+                critical_threshold: selectedThreshold.critical_threshold,
+                enabled: selectedThreshold.enabled,
+                cooldown_minutes: selectedThreshold.cooldown_minutes,
+                in_app: selectedThreshold.notification_channels.in_app,
+                email: selectedThreshold.notification_channels.email,
+                webhook: selectedThreshold.notification_channels.webhook,
+              }}
+              onSubmit={handleUpdateThreshold}
+            >
+              <Descriptions column={1} border style={{ marginBottom: 16 }}>
+                <Descriptions.Item label="指标类型">
+                  <Tag color="blue">{selectedThreshold.metric_type.toUpperCase()}</Tag>
+                </Descriptions.Item>
+              </Descriptions>
+              
+              <Form.Item label="警告阈值" field="warning_threshold">
+                <InputNumber 
+                  style={{ width: '100%' }} 
+                  min={0}
+                  suffix={selectedThreshold.metric_type === 'cls' ? '' : 'ms'}
+                />
+              </Form.Item>
+              
+              <Form.Item label="严重阈值" field="critical_threshold">
+                <InputNumber 
+                  style={{ width: '100%' }} 
+                  min={0}
+                  suffix={selectedThreshold.metric_type === 'cls' ? '' : 'ms'}
+                />
+              </Form.Item>
+              
+              <Form.Item label="冷却时间 (分钟)" field="cooldown_minutes">
+                <InputNumber style={{ width: '100%' }} min={1} max={1440} />
+              </Form.Item>
+              
+              <Form.Item label="启用告警" field="enabled" triggerPropName="checked">
+                <Switch />
+              </Form.Item>
+              
+              <Form.Item label="通知渠道">
+                <Space>
+                  <Form.Item field="in_app" triggerPropName="checked" noStyle>
+                    <Switch /> 站内通知
+                  </Form.Item>
+                  <Form.Item field="email" triggerPropName="checked" noStyle>
+                    <Switch /> 邮件
+                  </Form.Item>
+                  <Form.Item field="webhook" triggerPropName="checked" noStyle>
+                    <Switch /> Webhook
+                  </Form.Item>
+                </Space>
+              </Form.Item>
+              
+              <Form.Item>
+                <Space>
+                  <Button type="primary" htmlType="submit">
+                    保存
+                  </Button>
+                  <Button onClick={() => setThresholdModalVisible(false)}>
+                    取消
+                  </Button>
+                </Space>
+              </Form.Item>
+            </Form>
+          )}
+        </Modal>
       </div>
     </ErrorBoundary>
   );

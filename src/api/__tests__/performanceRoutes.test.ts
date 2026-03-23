@@ -73,6 +73,37 @@ jest.mock('../authMiddleware', () => ({
     req.user = { id: 'test-user-id' };
     next();
   }),
+  requireAdmin: jest.fn((req: any, res: any, next: any) => {
+    req.user = { id: 'test-user-id', role: 'admin' };
+    next();
+  }),
+}));
+
+// Mock PerformanceAlertService
+jest.mock('../../monitoring/PerformanceAlertService', () => ({
+  performanceAlertService: {
+    getThresholds: jest.fn().mockResolvedValue([
+      {
+        id: 'threshold-1',
+        metric_type: 'lcp',
+        warning_threshold: 2500,
+        critical_threshold: 4000,
+        enabled: true,
+        notification_channels: { in_app: true, email: true, webhook: false },
+        cooldown_minutes: 30,
+      },
+    ]),
+    updateThreshold: jest.fn().mockResolvedValue({
+      id: 'threshold-1',
+      metric_type: 'lcp',
+      warning_threshold: 2000,
+      critical_threshold: 3500,
+    }),
+    getActiveAlerts: jest.fn().mockResolvedValue([]),
+    getAlertHistory: jest.fn().mockResolvedValue({ alerts: [], total: 0 }),
+    acknowledgeAlert: jest.fn().mockResolvedValue(true),
+    resolveAlert: jest.fn().mockResolvedValue(true),
+  },
 }));
 
 describe('Performance Routes', () => {
