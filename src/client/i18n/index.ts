@@ -170,8 +170,10 @@ i18n
     },
     
     // Language detection configuration
+    // Issue #586: Added querystring support for URL parameter ?lang=en
     detection: {
-      order: ['localStorage', 'navigator', 'htmlTag'],
+      order: ['querystring', 'localStorage', 'navigator', 'htmlTag'],
+      lookupQuerystring: 'lang',
       lookupLocalStorage: 'i18nextLng',
       caches: ['localStorage'],
     },

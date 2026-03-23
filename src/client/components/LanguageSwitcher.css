@@ -1,0 +1,206 @@
+/**
+ * Language Switcher Styles
+ * 
+ * Issue #586: 语言切换功能实现
+ */
+
+/* Main switcher button */
+.language-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--color-text-2);
+  font-size: 14px;
+}
+
+.language-switcher:hover {
+  color: var(--color-text-1);
+  background: var(--color-fill-2);
+}
+
+.language-switcher--changing {
+  opacity: 0.7;
+}
+
+.language-switcher__label {
+  font-weight: 500;
+  max-width: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dropdown container */
+.language-dropdown {
+  min-width: 160px;
+  padding: 8px 0;
+  background: var(--color-bg-2);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: language-dropdown-fade-in 0.2s ease;
+}
+
+@keyframes language-dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.language-dropdown__header {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 4px;
+}
+
+.language-dropdown__options {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Language option item */
+.language-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.language-option:hover {
+  background: var(--color-fill-2);
+}
+
+.language-option--active {
+  background: var(--color-primary-light-1);
+}
+
+.language-option__name {
+  font-weight: 500;
+  color: var(--color-text-1);
+  font-size: 14px;
+}
+
+.language-option__native {
+  font-size: 12px;
+  color: var(--color-text-3);
+  margin-left: auto;
+}
+
+.language-option__check {
+  color: var(--color-primary);
+  font-size: 14px;
+  margin-left: auto;
+}
+
+.language-option--active .language-option__name {
+  color: var(--color-primary);
+}
+
+/* Keyboard focus styles */
+.language-option:focus {
+  outline: none;
+  background: var(--color-fill-2);
+}
+
+.language-option:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+  border-radius: 4px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .language-switcher {
+    padding: 8px !important;
+  }
+  
+  .language-switcher__label {
+    display: none;
+  }
+  
+  .language-dropdown {
+    min-width: 140px;
+  }
+  
+  .language-option {
+    padding: 12px 16px;
+  }
+  
+  .language-option__native {
+    display: none;
+  }
+}
+
+/* Compact mode adjustments */
+.language-switcher.compact {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* Animation for language change */
+.language-switcher--changing .language-switcher__label {
+  animation: language-change-pulse 0.6s ease infinite;
+}
+
+@keyframes language-change-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme='dark'] .language-dropdown {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .language-option:hover {
+  background: var(--color-fill-3);
+}
+
+[data-theme='dark'] .language-option--active {
+  background: rgba(var(--primary-6), 0.15);
+}
+
+/* Transition animation for content changes */
+@keyframes language-content-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apply fade animation to translated content */
+.language-transition-enter {
+  animation: language-content-fade 0.3s ease;
+}
+
+/* Accessibility: Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .language-dropdown,
+  .language-option,
+  .language-switcher--changing .language-switcher__label {
+    animation: none;
+    transition: none;
+  }
+}

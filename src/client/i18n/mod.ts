@@ -10,7 +10,10 @@ export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './index';
 export type { SupportedLanguage } from './index';
 
 // Locale Provider for React apps
-export { LocaleProvider, LanguageSwitcher, useLocaleContext } from './LocaleProvider';
+export { LocaleProvider, useLocaleContext } from './LocaleProvider';
+
+// Language Switcher component (Issue #586)
+export { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 // Hooks for translations and formatting
 export {

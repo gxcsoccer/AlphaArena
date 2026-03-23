@@ -29,6 +29,7 @@ import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';
 import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
+import { LanguageSwitcher } from './components/LanguageSwitcher'; // Issue #586
 import OfflineIndicator from './components/OfflineIndicator';
 import MobileBottomNav from './components/MobileBottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -348,6 +349,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="toolbar" aria-label="工具栏">
+            <LanguageSwitcher compact={isMobile} />
             <ThemeToggle compact={isMobile} />
             <span data-onboarding="notification-bell"><NotificationCenter compact={isMobile} /></span>
             <SettingsPanel compact={isMobile} />
