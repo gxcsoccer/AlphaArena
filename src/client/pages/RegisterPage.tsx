@@ -9,6 +9,7 @@ import { IconUser, IconLock, IconEmail } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/brand/Logo';
 
 const { Title, Text } = Typography;
@@ -25,6 +26,7 @@ interface RegisterFormValues {
 const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -47,7 +49,7 @@ const RegisterPage: React.FC = () => {
   const handleSubmit = async (values: RegisterFormValues) => {
     // Check password confirmation
     if (values.password !== values.confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('register.passwordMismatch'));
       return;
     }
 
@@ -63,7 +65,7 @@ const RegisterPage: React.FC = () => {
       });
       navigate('/dashboard');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Registration failed';
+      const message = err instanceof Error ? err.message : t('register.error');
       setError(message);
       
       if ((err as any).details) {
@@ -81,9 +83,9 @@ const RegisterPage: React.FC = () => {
           <div style={styles.header}>
             <Logo size="lg" showWordmark={true} onClick={() => navigate('/')} />
             <Title heading={isMobile ? 5 : 4} style={{ margin: '16px 0 8px' }}>
-              创建账户
+              {t('register.title')}
             </Title>
-            <Text type="secondary">加入 AlphaArena，开启量化交易之旅</Text>
+            <Text type="secondary">{t('register.subtitle')}</Text>
           </div>
 
           {error && (
@@ -106,7 +108,7 @@ const RegisterPage: React.FC = () => {
             style={{ width: '100%' }}
           >
             <FormItem
-              label="Email"
+              label={t('register.email')}
               field="email"
               rules={[
                 { required: true, message: 'Please enter your email' },
@@ -121,7 +123,7 @@ const RegisterPage: React.FC = () => {
             </FormItem>
 
             <FormItem
-              label="Username (optional)"
+              label={t('register.username') + ' (optional)'}
               field="username"
               rules={[
                 { minLength: 3, message: 'Username must be at least 3 characters' },
@@ -145,7 +147,7 @@ const RegisterPage: React.FC = () => {
             </FormItem>
 
             <FormItem
-              label="Password"
+              label={t('register.password')}
               field="password"
               rules={[
                 { required: true, message: 'Please enter your password' },
@@ -167,7 +169,7 @@ const RegisterPage: React.FC = () => {
             </FormItem>
 
             <FormItem
-              label="Confirm Password"
+              label={t('register.confirmPassword')}
               field="confirmPassword"
               rules={[
                 { required: true, message: 'Please confirm your password' },
@@ -194,16 +196,16 @@ const RegisterPage: React.FC = () => {
                 size="large"
                 loading={loading}
               >
-                Create Account
+                {t('register.submit')}
               </Button>
             </FormItem>
           </Form>
 
           <div style={styles.footer}>
             <Text type="secondary">
-              Already have an account?{' '}
+              {t('register.hasAccount')}{' '}
               <Link>
-                <RouterLink to="/login">Sign in</RouterLink>
+                <RouterLink to="/login">{t('register.login')}</RouterLink>
               </Link>
             </Text>
           </div>

@@ -1,6 +1,12 @@
 {
   "title": "Dashboard",
   "subtitle": "Account overview and real-time data",
+  "columns": {
+    "time": "Time",
+    "strategy": "Strategy",
+    "symbol": "Symbol",
+    "side": "Side"
+  },
   "overview": {
     "title": "Account Overview",
     "balance": "Account Balance",

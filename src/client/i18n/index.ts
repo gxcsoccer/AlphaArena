@@ -93,6 +93,10 @@ import backtestEnUS from '../locales/en-US/backtest.json';
 import notificationZhCN from '../locales/zh-CN/notification.json';
 import notificationEnUS from '../locales/en-US/notification.json';
 
+// Landing namespace
+import landingZhCN from '../locales/zh-CN/landing.json';
+import landingEnUS from '../locales/en-US/landing.json';
+
 // Define supported languages
 export const SUPPORTED_LANGUAGES = {
   'zh-CN': {
@@ -125,6 +129,7 @@ const resources = {
     leaderboard: leaderboardZhCN,
     backtest: backtestZhCN,
     notification: notificationZhCN,
+    landing: landingZhCN,
   },
   'en-US': {
     common: commonEnUS,
@@ -139,6 +144,7 @@ const resources = {
     leaderboard: leaderboardEnUS,
     backtest: backtestEnUS,
     notification: notificationEnUS,
+    landing: landingEnUS,
   },
 };
 

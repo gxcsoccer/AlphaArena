@@ -27,6 +27,7 @@ import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import MobileTableCard from '../components/MobileTableCard';
 import { LazyLoadWrapper } from '../components/LazyLoadWrapper';
+import { useTranslation } from 'react-i18next';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
 import '../styles/visual-optimization.css';
@@ -381,6 +382,7 @@ const DashboardPage: React.FC = () => {
   const { trades, loading: tradesLoading } = useTrades(undefined, 10);
   const isMobile = useMobileDetection();
   const [activeMobileTab, setActiveMobileTab] = useState<string>('overview');
+  const { t } = useTranslation('dashboard');
 
   // Memoize chart data calculations
   const chartData = useMemo(() => {
@@ -405,14 +407,14 @@ const DashboardPage: React.FC = () => {
   // Memoize table columns
   const tradeColumns: TableProps<Trade>['columns'] = useMemo(() => [
     {
-      title: '时间',
+      title: t('columns.time'),
       dataIndex: 'executedAt',
       key: 'executedAt',
       render: (text: string) => new Date(text).toLocaleTimeString(),
       width: 100,
     },
     {
-      title: '策略',
+      title: t('columns.strategy'),
       dataIndex: 'strategyId',
       key: 'strategyId',
       render: (id: string) => {
@@ -422,59 +424,59 @@ const DashboardPage: React.FC = () => {
       width: 150,
     },
     {
-      title: '交易对',
+      title: t('columns.symbol'),
       dataIndex: 'symbol',
       key: 'symbol',
       width: 100,
     },
     {
-      title: '方向',
+      title: t('columns.side'),
       dataIndex: 'side',
       key: 'side',
       render: (side: 'buy' | 'sell') => (
         <Tag color={side === 'buy' ? 'green' : 'red'} className={side === 'buy' ? 'text-success' : 'text-danger'}>
-          {side === 'buy' ? '买入' : '卖出'}
+          {side === 'buy' ? t('trading:order.buy', { ns: 'trading' }) : t('trading:order.sell', { ns: 'trading' })}
         </Tag>
       ),
       width: 80,
     },
     {
-      title: '价格',
+      title: t('common:label.price', { ns: 'common' }),
       dataIndex: 'price',
       key: 'price',
       render: (price: number) => '$' + price.toLocaleString(),
       width: 100,
     },
     {
-      title: '数量',
+      title: t('common:label.amount', { ns: 'common' }),
       dataIndex: 'quantity',
       key: 'quantity',
       width: 100,
     },
     {
-      title: '总额',
+      title: t('common:label.total', { ns: 'common' }),
       dataIndex: 'total',
       key: 'total',
       render: (total: number) => '$' + total.toLocaleString(),
       width: 100,
     },
-  ], [strategies]);
+  ], [strategies, t]);
 
   const strategyColumns: TableProps<Strategy>['columns'] = useMemo(() => [
     {
-      title: '名称',
+      title: t('common:label.name', { ns: 'common' }),
       dataIndex: 'name',
       key: 'name',
       width: 200,
     },
     {
-      title: '交易对',
+      title: t('chart.trades'),
       dataIndex: 'symbol',
       key: 'symbol',
       width: 100,
     },
     {
-      title: '状态',
+      title: t('common:label.status', { ns: 'common' }),
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
@@ -484,9 +486,9 @@ const DashboardPage: React.FC = () => {
           stopped: 'red',
         };
         const textMap: Record<string, string> = {
-          active: '运行中',
-          paused: '已暂停',
-          stopped: '已停止',
+          active: t('common:label.active', { ns: 'common' }),
+          paused: t('strategy:status.paused', { ns: 'strategy' }),
+          stopped: t('strategy:status.stopped', { ns: 'strategy' }),
         };
         return (
           <span className={`strategy-status strategy-status--${status}`}>
@@ -498,27 +500,27 @@ const DashboardPage: React.FC = () => {
       width: 100,
     },
     {
-      title: '描述',
+      title: t('common:label.description', { ns: 'common' }),
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
     },
     {
-      title: '操作',
+      title: t('common:label.action', { ns: 'common' }),
       key: 'actions',
       width: 150,
       render: (_: any, record: Strategy) => (
         <Space>
           <Button size="small" disabled={record.status === 'active'}>
-            启动
+            {t('common:button.start', { ns: 'common' })}
           </Button>
           <Button size="small" disabled={record.status !== 'active'}>
-            停止
+            {t('common:button.stop', { ns: 'common' })}
           </Button>
         </Space>
       ),
     },
-  ], []);
+  ], [t]);
 
   // Memoize mobile card fields
   const tradeCardFields = useMemo(() => [

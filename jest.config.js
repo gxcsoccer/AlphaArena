@@ -93,6 +93,7 @@ module.exports = {
     '<rootDir>/tests/__mocks__/resizeObserver.ts',
     '<rootDir>/tests/__mocks__/apiSetup.ts',
     '<rootDir>/tests/__mocks__/windowApi.ts',
+    '<rootDir>/tests/__mocks__/i18n.ts',
   ],
   moduleNameMapper: {
     // CRITICAL: Mock @testing-library/dom to fix configure/getConfig undefined issue
