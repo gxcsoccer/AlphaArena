@@ -128,8 +128,14 @@ class ErrorLogService {
         {
           sessionId: error.sessionId || '',
           userId: error.userId,
-          pageUrl: error.path,
-          userAgent: environment.userAgent,
+          pageUrl: error.path || '',
+          pageTitle: '',
+          userAgent: environment.userAgent || '',
+          deviceId: '',
+          screenResolution: '',
+          viewportSize: '',
+          language: '',
+          timezone: '',
         }
       );
     } catch (trackError) {
