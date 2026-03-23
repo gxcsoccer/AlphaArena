@@ -7,8 +7,12 @@ import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { validateConfig, logConfigStatus } from './utils/config';
 import ToastContainer from './components/Toast';
+import { initCriticalPreloading } from './utils/resourcePreload';
 import './index.css';
 import './styles/ux-improvements.css'; // Issue #514: UX 改进样式
+
+// Initialize critical resource preloading for better performance
+initCriticalPreloading();
 
 // Validate configuration before rendering
 const config = validateConfig();

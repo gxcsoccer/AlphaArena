@@ -98,13 +98,8 @@ export function useThrottledCallback<T extends (...args: any[]) => any>(
 
   const throttledCallback = useCallback(
     (...args: Parameters<T>) => {
-      // Initialize lastRan on first call
-      if (lastRan.current === 0) {
-        lastRan.current = Date.now();
-      }
-      
       const now = Date.now();
-      const timeSinceLastRan = now - lastRan.current;
+      const timeSinceLastRan = lastRan.current === 0 ? limit : now - lastRan.current;
 
       if (timeSinceLastRan >= limit) {
         callback(...args);
