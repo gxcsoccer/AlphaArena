@@ -32,6 +32,8 @@ import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import MobileBottomNav from './components/MobileBottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { HeaderLogo } from './components/brand/Logo';
+import { NotFoundPage } from './components/brand/ErrorPages';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
 import { SubscriptionProvider } from './hooks/useSubscription';
@@ -207,22 +209,20 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           >
           <div
             style={{
-              height: 32,
+              height: 40,
               margin: 16,
-              background: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: 4,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: 'white',
-              fontSize: collapsed ? 0 : 14,
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              paddingLeft: collapsed ? 0 : 8,
             }}
             role="banner"
             aria-label="AlphaArena"
           >
-            {!collapsed && 'AlphaArena'}
+            <HeaderLogo 
+              collapsed={collapsed} 
+              onClick={() => navigate('/')}
+            />
           </div>
           <Menu
             theme="dark"
@@ -342,7 +342,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               />
             )}
             <h1 style={{ margin: 0, lineHeight: '64px', fontSize: isMobile ? 18 : 20 }}>
-              AlphaArena
+              <HeaderLogo size="sm" onClick={() => navigate('/')} />
             </h1>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} role="toolbar" aria-label="工具栏">
@@ -543,6 +543,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
         <Route path="/notifications" element={<NotificationHistoryPage />} />
         <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );

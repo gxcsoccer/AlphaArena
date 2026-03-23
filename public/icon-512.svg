@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="large-icon-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#0f172a"/>
+  <!-- Main Logo Shape -->
+  <path d="M256 43L43 427h85l43-85h170l43 85h85L256 43zm0 170l64 128H192l64-128z" fill="url(#large-icon-gradient)"/>
+  <!-- Inner accent line -->
+  <path d="M171 299l43-85 43 43 85-128" stroke="#3B82F6" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8"/>
+  <!-- Dot accent -->
+  <circle cx="341" cy="129" r="16" fill="#A855F7"/>
+</svg>

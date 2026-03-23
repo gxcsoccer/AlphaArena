@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="none">
+  <defs>
+    <linearGradient id="pwa-icon-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#A855F7"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="192" height="192" rx="32" fill="#0f172a"/>
+  <!-- Main Logo Shape -->
+  <path d="M96 16L16 160h32l16-32h64l16 32h32L96 16zm0 64l24 48H72l24-48z" fill="url(#pwa-icon-gradient)"/>
+  <!-- Inner accent line -->
+  <path d="M64 112l16-32 16 16 32-48" stroke="#3B82F6" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.8"/>
+  <!-- Dot accent -->
+  <circle cx="128" cy="48" r="6" fill="#A855F7"/>
+</svg>
