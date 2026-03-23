@@ -83,6 +83,17 @@ import {
   notFoundMiddleware, 
   requestIdMiddleware 
 } from './errorMiddleware';
+import { 
+  cacheMiddleware, 
+  cacheStatsHandler, 
+  clearCacheHandler,
+  OptimizedLeaderboardService,
+  responseCompressionMiddleware 
+} from '../utils/cache';
+import { 
+  performanceMonitorMiddleware, 
+  performanceStatsHandler 
+} from '../utils/apiPerformanceMonitor';
 
 // Create logger for this module
 const log = createLogger('APIServer');
@@ -230,6 +241,17 @@ export class APIServer extends EventEmitter {
 
     // Request ID middleware - adds unique ID to each request for tracing
     this.app.use(requestIdMiddleware);
+
+    // Response compression middleware - compress API responses
+    this.app.use(responseCompressionMiddleware());
+    log.info('Response compression middleware enabled');
+
+    // API performance monitoring middleware
+    this.app.use(performanceMonitorMiddleware());
+
+    // Cache middleware - cache API responses
+    this.app.use(cacheMiddleware());
+    log.info('API response caching enabled');
 
     // Monitoring middleware - track request timing and errors
     this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -437,6 +459,15 @@ export class APIServer extends EventEmitter {
         total: this.monitoring.getRecentErrors(1000).length,
       });
     });
+
+    // API Performance metrics
+    this.app.get('/metrics/performance', performanceStatsHandler);
+
+    // Cache statistics
+    this.app.get('/metrics/cache', cacheStatsHandler);
+
+    // Clear cache (admin only)
+    this.app.delete('/metrics/cache', clearCacheHandler);
 
     // API version
     this.app.get('/api', (req: Request, res: Response) => {
