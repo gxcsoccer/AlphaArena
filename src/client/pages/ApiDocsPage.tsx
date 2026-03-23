@@ -4,6 +4,7 @@ import 'swagger-ui-react/swagger-ui.css';
 import { Spin, Message, Typography, Card, Space, Button, Drawer, Input, Grid } from '@arco-design/web-react';
 import { IconDownload, IconCode, IconBook, IconSearch, IconMenu } from '@arco-design/web-react/icon';
 import { useMediaQuery } from '../hooks/useMediaQuery';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 const { Title, Paragraph } = Typography;
 const { _Row, _Col } = Grid;
@@ -20,6 +21,9 @@ const { _Row, _Col } = Grid;
  * - Mobile responsive design with collapsible sections
  */
 const ApiDocsPage: React.FC = () => {
+  // SEO: Update meta tags for API docs page
+  useSEO(PAGE_SEO_CONFIGS.apiDocs);
+  
   const [spec, setSpec] = useState<object | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
