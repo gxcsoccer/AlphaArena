@@ -282,18 +282,18 @@ const FeedbackManagementPage: React.FC = () => {
         },
         byStatus: {
           [FeedbackStatus.NEW]: statsData.byStatus?.new || 0,
-          [FeedbackStatus.CONFIRMED]: 0,
+          [FeedbackStatus.CONFIRMED]: statsData.byStatus?.confirmed || 0,
           [FeedbackStatus.IN_PROGRESS]: statsData.byStatus?.in_progress || 0,
           [FeedbackStatus.RESOLVED]: statsData.byStatus?.resolved || 0,
           [FeedbackStatus.CLOSED]: statsData.byStatus?.closed || 0,
         },
         byPriority: {
-          [FeedbackPriority.P0]: 0,
-          [FeedbackPriority.P1]: 0,
-          [FeedbackPriority.P2]: 0,
-          [FeedbackPriority.P3]: 0,
+          [FeedbackPriority.P0]: statsData.byPriority?.p0 || 0,
+          [FeedbackPriority.P1]: statsData.byPriority?.p1 || 0,
+          [FeedbackPriority.P2]: statsData.byPriority?.p2 || 0,
+          [FeedbackPriority.P3]: statsData.byPriority?.p3 || 0,
         },
-        recentTrend: [],
+        recentTrend: statsData.recentTrend || [],
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
