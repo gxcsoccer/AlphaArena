@@ -234,7 +234,7 @@ const StrategiesPage: React.FC = () => {
                 style={{ width: '100%' }}
                 placeholder={t('list.filter')}
               >
-                <Select.Option value="all">{t('common:all')}</Select.Option>
+                <Select.Option value="all">{t('common:label.all')}</Select.Option>
                 <Select.Option value="active">{t('status.active')}</Select.Option>
                 <Select.Option value="paused">{t('status.paused')}</Select.Option>
                 <Select.Option value="stopped">{t('status.stopped')}</Select.Option>
@@ -257,7 +257,7 @@ const StrategiesPage: React.FC = () => {
           <div className="mobile-card-stack">
             {loading ? (
               <Card style={{ textAlign: 'center', padding: 24 }} className="chart-card">
-                <Text type="secondary">{t('common:loading')}</Text>
+                <Text type="secondary">{t('common:button.loading')}</Text>
               </Card>
             ) : filteredStrategies.length === 0 ? (
               <Card style={{ textAlign: 'center', padding: 24 }} className="chart-card">
@@ -403,14 +403,14 @@ const StrategiesPage: React.FC = () => {
                 <Input.TextArea placeholder={t('form.description')} />
               </Form.Item>
               <Form.Item label={t('form.symbol')} field="symbol" rules={[{ required: true }]}>
-                <Select placeholder={t('common:select')}>
+                <Select placeholder={t('common:label.select')}>
                   <Select.Option value="BTC/USD">BTC/USD</Select.Option>
                   <Select.Option value="ETH/USD">ETH/USD</Select.Option>
                   <Select.Option value="SOL/USD">SOL/USD</Select.Option>
                 </Select>
               </Form.Item>
               <Form.Item label={t('form.status')} field="status" rules={[{ required: true }]}>
-                <Select placeholder={t('common:select')}>
+                <Select placeholder={t('common:label.select')}>
                   <Select.Option value="active">{t('status.active')}</Select.Option>
                   <Select.Option value="paused">{t('status.paused')}</Select.Option>
                   <Select.Option value="stopped">{t('status.stopped')}</Select.Option>
@@ -445,7 +445,7 @@ const StrategiesPage: React.FC = () => {
                   />
                 )}
                 <Button type="primary" onClick={refresh} icon={<IconRefresh />}>
-                  {isTablet ? '' : t('common:refresh')}
+                  {isTablet ? '' : t('common:button.refresh')}
                 </Button>
               </Space>
             </Col>
@@ -469,7 +469,7 @@ const StrategiesPage: React.FC = () => {
                 style={{ width: 150 }}
                 placeholder={t('list.filter')}
               >
-                <Select.Option value="all">{t('common:all')}</Select.Option>
+                <Select.Option value="all">{t('common:label.all')}</Select.Option>
                 <Select.Option value="active">{t('status.active')}</Select.Option>
                 <Select.Option value="paused">{t('status.paused')}</Select.Option>
                 <Select.Option value="stopped">{t('status.stopped')}</Select.Option>
@@ -488,7 +488,7 @@ const StrategiesPage: React.FC = () => {
                 style={{ width: 120 }}
                 size="small"
               >
-                <Select.Option value="all">{t('common:all')}</Select.Option>
+                <Select.Option value="all">{t('common:label.all')}</Select.Option>
                 <Select.Option value="active">{t('status.active')}</Select.Option>
                 <Select.Option value="paused">{t('status.paused')}</Select.Option>
                 <Select.Option value="stopped">{t('status.stopped')}</Select.Option>
@@ -567,14 +567,14 @@ const StrategiesPage: React.FC = () => {
               <Input.TextArea placeholder={t('form.description')} />
             </Form.Item>
             <Form.Item label={t('form.symbol')} field="symbol" rules={[{ required: true }]}>
-              <Select placeholder={t('common:select')}>
+              <Select placeholder={t('common:label.select')}>
                 <Select.Option value="BTC/USD">BTC/USD</Select.Option>
                 <Select.Option value="ETH/USD">ETH/USD</Select.Option>
                 <Select.Option value="SOL/USD">SOL/USD</Select.Option>
               </Select>
             </Form.Item>
             <Form.Item label={t('form.status')} field="status" rules={[{ required: true }]}>
-              <Select placeholder={t('common:select')}>
+              <Select placeholder={t('common:label.select')}>
                 <Select.Option value="active">{t('status.active')}</Select.Option>
                 <Select.Option value="paused">{t('status.paused')}</Select.Option>
                 <Select.Option value="stopped">{t('status.stopped')}</Select.Option>

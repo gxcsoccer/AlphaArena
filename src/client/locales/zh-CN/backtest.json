@@ -27,7 +27,19 @@
     "avgProfit": "平均盈利",
     "avgLoss": "平均亏损",
     "maxConsecWins": "最大连续盈利",
-    "maxConsecLosses": "最大连续亏损"
+    "maxConsecLosses": "最大连续亏损",
+    "finalCapital": "最终资金",
+    "totalPnL": "总盈亏",
+    "winningTrades": "盈利交易",
+    "losingTrades": "亏损交易"
+  },
+  "holdingTime": {
+    "less1h": "< 1小时",
+    "oneTo4h": "1-4小时",
+    "fourTo24h": "4-24小时",
+    "oneTo3d": "1-3天",
+    "threeTo7d": "3-7天",
+    "more7d": "> 7天"
   },
   "chart": {
     "equityCurve": "权益曲线",

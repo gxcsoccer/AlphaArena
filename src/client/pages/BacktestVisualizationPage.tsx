@@ -45,6 +45,11 @@ import { createLogger } from '../../utils/logger';
 
 const _log = createLogger('BacktestVisualizationPage');
 
+// Helper to get locale from i18n language
+const getLocaleFromLanguage = (language: string): string => {
+  return language === 'zh-CN' ? 'zh-CN' : 'en-US';
+};
+
 const { Title, Text } = Typography;
 const { Row, Col } = Grid;
 const { RangePicker } = DatePicker;
@@ -64,8 +69,8 @@ const PerformanceDashboard: React.FC<{ stats: BacktestResult['stats']; t: (key: 
     { label: t('result.avgProfit'), value: `$${stats.avgWin.toFixed(2)}`, color: 'green' },
     { label: t('result.avgLoss'), value: `$${stats.avgLoss.toFixed(2)}`, color: 'red' },
     { label: t('form.initialCapital'), value: `$${stats.initialCapital.toLocaleString()}`, color: 'gray' },
-    { label: 'Final Capital', value: `$${stats.finalCapital.toLocaleString()}`, color: stats.finalCapital >= stats.initialCapital ? 'green' : 'red' },
-    { label: 'Total P&L', value: `$${stats.totalPnL.toFixed(2)}`, color: stats.totalPnL >= 0 ? 'green' : 'red' },
+    { label: t('result.finalCapital'), value: `$${stats.finalCapital.toLocaleString()}`, color: stats.finalCapital >= stats.initialCapital ? 'green' : 'red' },
+    { label: t('result.totalPnL'), value: `$${stats.totalPnL.toFixed(2)}`, color: stats.totalPnL >= 0 ? 'green' : 'red' },
   ];
   
   return (
@@ -180,7 +185,8 @@ const BacktestVisualizationPage: React.FC = () => {
     strategyParams: {},
   }));
   
-  const { t } = useTranslation('backtest');
+  const { t, i18n } = useTranslation('backtest');
+  const locale = getLocaleFromLanguage(i18n.language);
   
   // Transform backtest result data for charts
   const equityData = useMemo((): EquityDataPoint[] => {
@@ -188,12 +194,12 @@ const BacktestVisualizationPage: React.FC = () => {
     
     return result.snapshots.map((snapshot) => ({
       timestamp: snapshot.timestamp,
-      date: new Date(snapshot.timestamp).toLocaleDateString('zh-CN'),
+      date: new Date(snapshot.timestamp).toLocaleDateString(locale),
       equity: snapshot.totalValue,
       drawdown: 0, // Calculated in chart
       highWaterMark: 0,
     }));
-  }, [result]);
+  }, [result, locale]);
   
   const drawdownData = useMemo((): DrawdownDataPoint[] => {
     if (!result) return [];
@@ -204,13 +210,13 @@ const BacktestVisualizationPage: React.FC = () => {
       const drawdown = -((peak - snapshot.totalValue) / peak) * 100;
       return {
         timestamp: snapshot.timestamp,
-        date: new Date(snapshot.timestamp).toLocaleDateString('zh-CN'),
+        date: new Date(snapshot.timestamp).toLocaleDateString(locale),
         drawdown,
         peak,
         trough: snapshot.totalValue,
       };
     });
-  }, [result]);
+  }, [result, locale]);
   
   const returnsDistributionData = useMemo((): ReturnDataPoint[] => {
     if (!result || !result.trades.length) return [];
@@ -252,7 +258,7 @@ const BacktestVisualizationPage: React.FC = () => {
     
     return result.trades.map((trade) => ({
       timestamp: trade.timestamp,
-      date: new Date(trade.timestamp).toLocaleString('zh-CN'),
+      date: new Date(trade.timestamp).toLocaleString(locale),
       price: trade.price,
       side: trade.side,
       quantity: trade.quantity,
@@ -266,12 +272,12 @@ const BacktestVisualizationPage: React.FC = () => {
     
     // Group trades by holding period - using deterministic mock data
     const categories = [
-      { label: '< 1小时', min: 0, max: 1 },
-      { label: '1-4小时', min: 1, max: 4 },
-      { label: '4-24小时', min: 4, max: 24 },
-      { label: '1-3天', min: 24, max: 72 },
-      { label: '3-7天', min: 72, max: 168 },
-      { label: '> 7天', min: 168, max: Infinity },
+      { label: t('holdingTime.less1h'), min: 0, max: 1 },
+      { label: t('holdingTime.oneTo4h'), min: 1, max: 4 },
+      { label: t('holdingTime.fourTo24h'), min: 4, max: 24 },
+      { label: t('holdingTime.oneTo3d'), min: 24, max: 72 },
+      { label: t('holdingTime.threeTo7d'), min: 72, max: 168 },
+      { label: t('holdingTime.more7d'), min: 168, max: Infinity },
     ];
     
     // Use result-based deterministic values instead of random
@@ -414,7 +420,7 @@ const BacktestVisualizationPage: React.FC = () => {
           <Text>{t('form.strategy')}: <Tag color="green">{STRATEGIES.find((s) => s.value === config.strategy)?.label}</Tag></Text>
           <Text>{t('form.initialCapital')}: <Tag color="orange">${config.capital.toLocaleString()}</Tag></Text>
           <Text>{t('form.dateRange')}: <Tag color="purple">
-            {new Date(config.dateRange[0]).toLocaleDateString('zh-CN')} - {new Date(config.dateRange[1]).toLocaleDateString('zh-CN')}
+            {new Date(config.dateRange[0]).toLocaleDateString(locale)} - {new Date(config.dateRange[1]).toLocaleDateString(locale)}
           </Tag></Text>
         </Space>
       </Card>
@@ -476,8 +482,8 @@ const BacktestVisualizationPage: React.FC = () => {
                   <Card title={t('chart.tradeDistribution')}>
                     <Descriptions column={2} bordered>
                       <Descriptions.Item label={t('result.totalTrades')}>{result.stats.totalTrades}</Descriptions.Item>
-                      <Descriptions.Item label="Winning Trades">{result.stats.winningTrades}</Descriptions.Item>
-                      <Descriptions.Item label="Losing Trades">{result.stats.losingTrades}</Descriptions.Item>
+                      <Descriptions.Item label={t('result.winningTrades')}>{result.stats.winningTrades}</Descriptions.Item>
+                      <Descriptions.Item label={t('result.losingTrades')}>{result.stats.losingTrades}</Descriptions.Item>
                       <Descriptions.Item label={t('result.winRate')}>{result.stats.winRate.toFixed(1)}%</Descriptions.Item>
                       <Descriptions.Item label={t('result.avgProfit')}>${result.stats.avgWin.toFixed(2)}</Descriptions.Item>
                       <Descriptions.Item label={t('result.avgLoss')}>${result.stats.avgLoss.toFixed(2)}</Descriptions.Item>
