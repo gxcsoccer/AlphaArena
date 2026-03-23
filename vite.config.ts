@@ -1,10 +1,28 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { imagetools } from 'vite-imagetools';
 import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Image optimization plugin - generates WebP/AVIF formats automatically
+    imagetools({
+      defaultDirectives: (url) => {
+        // Only process images in the assets/images folder
+        if (url.searchParams.has('original')) {
+          return {};
+        }
+        
+        // Generate WebP format by default for better compression
+        return {
+          format: 'webp',
+          quality: '80',
+        };
+      },
+    }),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -44,6 +62,23 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
+        // Asset file naming with hash for cache busting
+        assetFileNames: (assetInfo) => {
+          // Images get special treatment for caching
+          if (/\.(png|jpe?g|gif|svg|webp|avif|ico)$/i.test(assetInfo.name || '')) {
+            return 'assets/images/[name]-[hash][extname]';
+          }
+          // Fonts
+          if (/\.(woff2?|eot|ttf|otf)$/i.test(assetInfo.name || '')) {
+            return 'assets/fonts/[name]-[hash][extname]';
+          }
+          // CSS
+          if (/\.css$/i.test(assetInfo.name || '')) {
+            return 'assets/css/[name]-[hash][extname]';
+          }
+          // Other assets
+          return 'assets/[name]-[hash][extname]';
+        },
         manualChunks: (id) => {
           // Swagger UI - isolate this large dependency (1.2MB)
           if (id.includes('swagger-ui-react') || id.includes('swagger-ui') || id.includes('swagger-client')) {

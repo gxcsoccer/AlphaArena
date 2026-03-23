@@ -8,11 +8,17 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { validateConfig, logConfigStatus } from './utils/config';
 import ToastContainer from './components/Toast';
 import { initCriticalPreloading } from './utils/resourcePreload';
+import { registerServiceWorker } from './utils/serviceWorker';
 import './index.css';
 import './styles/ux-improvements.css'; // Issue #514: UX 改进样式
 
 // Initialize critical resource preloading for better performance
 initCriticalPreloading();
+
+// Register service worker for caching (Issue #559)
+if (import.meta.env.PROD) {
+  registerServiceWorker().catch(console.error);
+}
 
 // Validate configuration before rendering
 const config = validateConfig();
