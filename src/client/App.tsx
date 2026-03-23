@@ -318,6 +318,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       )}
 
       <Layout>
+        {/* Offline indicator - only shown for authenticated users */}
+        <OfflineIndicator />
         <Header
           style={{
             padding: '0 16px',
@@ -550,8 +552,13 @@ const AppRoutes: React.FC = () => {
 };
 
 // Wrapper component to use the hook inside ConnectionProvider
+// Issue #579: Only initialize realtime connection for authenticated users
 function RealtimeConnectionSync() {
-  useRealtimeConnection();
+  const { isAuthenticated } = useAuth();
+  
+  // Only initialize realtime connection when user is authenticated
+  // This prevents unnecessary WebSocket connections on Landing Page
+  useRealtimeConnection(isAuthenticated);
   return null;
 }
 
@@ -611,7 +618,6 @@ function App() {
         <RealtimeConnectionSync />
         <BrowserRouter>
           <RouteRestorer />
-          <OfflineIndicator />
           <AppLayout>
             <AppRoutes />
           </AppLayout>
