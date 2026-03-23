@@ -46,7 +46,8 @@
     "lighthouse:assert": "lhci assert",
     "lighthouse:desktop": "lhci collect --settings.preset=desktop",
     "lighthouse:mobile": "lhci collect --settings.preset=mobile",
-    "perf:analyze": "vite-bundle-visualizer",
+    "perf:analyze": "node scripts/bundle-analysis.mjs",
+    "perf:visualizer": "vite-bundle-visualizer",
     "perf:budget": "node scripts/check-performance-budget.mjs"
   },
   "repository": {
@@ -83,6 +84,7 @@
     "@types/uuid": "^10.0.0",
     "@types/yamljs": "^0.2.34",
     "@vitejs/plugin-react": "^5.1.4",
+    "consola": "^3.4.2",
     "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
@@ -92,6 +94,7 @@
     "jest-environment-jsdom": "^30.3.0",
     "patch-package": "^8.0.1",
     "prettier": "^3.8.1",
+    "rollup-plugin-visualizer": "^7.0.1",
     "supertest": "^7.2.2",
     "terser": "^5.46.0",
     "ts-jest": "^29.4.6",
@@ -100,7 +103,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.0",
     "vite": "^7.3.1",
-    "vite-imagetools": "^10.0.0"
+    "vite-imagetools": "^10.0.0",
+    "vite-plugin-style-import": "^2.0.0"
   },
   "dependencies": {
     "@arco-design/web-react": "^2.66.11",

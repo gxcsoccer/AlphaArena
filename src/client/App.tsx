@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect, lazy } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { Layout, Menu, Spin, Drawer, Button } from '@arco-design/web-react';
 import {
@@ -31,24 +31,24 @@ import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
 import OfflineIndicator from './components/OfflineIndicator';
 import MobileBottomNav from './components/MobileBottomNav';
-import AIAssistantButton from './components/AIAssistantButton';
-import FeedbackButton from './components/FeedbackButton';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import UserGuide from './components/UserGuide';
-import SmartOnboarding from './components/SmartOnboarding';
 import { SettingsProvider } from './store/settingsStore';
 import { AuthProvider } from './hooks/useAuth';
 import { SubscriptionProvider } from './hooks/useSubscription';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
 import useErrorReporter from './hooks/useErrorReporter';
-import ErrorReporterPanel from './components/ErrorReporterPanel';
 import { lazyWithRetry, getPendingRoute } from './utils/lazyWithRetry';
 import { usePerformanceMonitoring } from './hooks/usePerformanceMonitoring';
 
+// Lazy load non-critical UI components for better initial load time
+const AIAssistantButton = lazy(() => import('./components/AIAssistantButton'));
+const FeedbackButton = lazy(() => import('./components/FeedbackButton'));
+const SmartOnboarding = lazy(() => import('./components/SmartOnboarding'));
+const ErrorReporterPanel = lazy(() => import('./components/ErrorReporterPanel'));
+
 // Lazy load pages for code splitting with retry logic for chunk loading failures
 const IndexPage = lazyWithRetry(() => import('./pages/IndexPage'));
-const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
 const LandingPage = lazyWithRetry(() => import('./pages/LandingPage'));
 const DashboardPage = lazyWithRetry(() => import('./pages/DashboardPage'));
 const StrategiesPage = lazyWithRetry(() => import('./pages/StrategiesPage'));
@@ -480,12 +480,18 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
       <div data-onboarding="ai-assistant">
-        <AIAssistantButton />
+        <Suspense fallback={null}>
+          <AIAssistantButton />
+        </Suspense>
       </div>
       {/* User Feedback Floating Button */}
-      <FeedbackButton />
+      <Suspense fallback={null}>
+        <FeedbackButton />
+      </Suspense>
       {/* Smart Onboarding for new users */}
-      <SmartOnboarding autoShow={true} />
+      <Suspense fallback={null}>
+        <SmartOnboarding autoShow={true} />
+      </Suspense>
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav visible={isMobile && !['/login', '/register'].includes(location.pathname)} />
       {/* Spacer for bottom nav */}
@@ -610,11 +616,13 @@ function App() {
           </AppLayout>
           {/* Error reporter panel - shown when errors are captured */}
           {hasErrors && (
-            <ErrorReporterPanel
-              errors={errors}
-              onClear={clearErrors}
-              visible={process.env.NODE_ENV === 'development'}
-            />
+            <Suspense fallback={null}>
+              <ErrorReporterPanel
+                errors={errors}
+                onClear={clearErrors}
+                visible={process.env.NODE_ENV === 'development'}
+              />
+            </Suspense>
           )}
         </BrowserRouter>
       </ConnectionProvider>

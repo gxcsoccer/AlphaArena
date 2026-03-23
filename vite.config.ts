@@ -1,12 +1,29 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { imagetools } from 'vite-imagetools';
+import { createStyleImportPlugin } from 'vite-plugin-style-import';
 import path from 'path';
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    // Style import plugin for Arco Design - enables tree-shaking of component styles
+    createStyleImportPlugin({
+      libs: [
+        {
+          libraryName: '@arco-design/web-react',
+          esModule: true,
+          // Keep PascalCase for Arco Design component directories
+          libraryNameChangeCase: (name) => name,
+          resolveStyle: (name) => {
+            // Arco Design uses PascalCase for component directories
+            // e.g., Button -> Button/style/css.js
+            return `@arco-design/web-react/es/${name}/style/css.js`;
+          },
+        },
+      ],
+    }),
     // Image optimization plugin - generates WebP/AVIF formats automatically
     imagetools({
       defaultDirectives: (url) => {
@@ -84,8 +101,16 @@ export default defineConfig({
           if (id.includes('swagger-ui-react') || id.includes('swagger-ui') || id.includes('swagger-client')) {
             return 'swagger-ui';
           }
-          // Arco Design UI library
+          // Arco Design UI library - split into smaller chunks for better caching
           if (id.includes('@arco-design/web-react')) {
+            // Split icons into separate chunk (they're large but stable)
+            if (id.includes('@arco-design/web-react/icon')) {
+              return 'arco-icons';
+            }
+            // Split locale data
+            if (id.includes('@arco-design/web-react/es/locale')) {
+              return 'arco-locale';
+            }
             return 'arco-design';
           }
           // React core - stable, rarely changes
@@ -118,6 +143,14 @@ export default defineConfig({
           // D3 vendor (recharts dependencies)
           if (id.includes('d3-') || id.includes('d3/') || id.includes('victory-')) {
             return 'd3-vendor';
+          }
+          // Driver.js for onboarding tours
+          if (id.includes('driver.js')) {
+            return 'driver-js';
+          }
+          // Marked for markdown parsing
+          if (id.includes('marked')) {
+            return 'marked';
           }
         },
       },

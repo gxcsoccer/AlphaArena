@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, Suspense, lazy } from 'react';
 import { Layout, Card, Grid, Spin, Typography, Tabs, Space } from '@arco-design/web-react';
 import {
   IconSwap,
@@ -6,13 +6,15 @@ import {
   IconTrophy,
 } from '@arco-design/web-react/icon';
 import TradingPairList from '../components/TradingPairList';
-import KLineChart from '../components/KLineChart';
 import TradingOrder from '../components/TradingOrder';
 import OrderBook from '../components/OrderBook';
 import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useMarketData } from '../hooks/useMarketData';
 import { usePullToRefresh } from '../hooks/useTouchGestures';
+
+// Lazy load KLineChart to reduce initial bundle size (saves ~50KB gzip)
+const KLineChart = lazy(() => import('../components/KLineChart'));
 
 const { Content } = Layout;
 const { Row, Col } = Grid;
@@ -167,7 +169,9 @@ const HomePage: React.FC = () => {
               {mobileTab === 'chart' && (
                 <ErrorBoundary>
                   <div data-onboarding="market-panel">
-                    <KLineChart symbol={selectedSymbol} height={300} />
+                    <Suspense fallback={<Spin style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 300 }} />}>
+                      <KLineChart symbol={selectedSymbol} height={300} />
+                    </Suspense>
                   </div>
                 </ErrorBoundary>
               )}
@@ -213,7 +217,11 @@ const HomePage: React.FC = () => {
             </Card>
           </Col>
           <Col xs={24} sm={12} md={10}>
-            <ErrorBoundary><KLineChart symbol={selectedSymbol} height={500} /></ErrorBoundary>
+            <ErrorBoundary>
+              <Suspense fallback={<Spin style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 500 }} />}>
+                <KLineChart symbol={selectedSymbol} height={500} />
+              </Suspense>
+            </ErrorBoundary>
           </Col>
           <Col xs={24} sm={12} md={5}>
             <ErrorBoundary><div data-onboarding="orderbook"><OrderBook symbol={selectedSymbol} levels={20} onPriceClick={handlePriceClick} /></div></ErrorBoundary>
