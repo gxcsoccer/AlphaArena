@@ -68,6 +68,8 @@ import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
 import userTrackingRoutes from './userTrackingRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
+import analyticsExportRoutes from './analyticsExportRoutes';
+import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
   errorMiddleware, 
@@ -1009,6 +1011,43 @@ export class APIServer extends EventEmitter {
 
     // User Feedback routes
     this.app.use('/api/feedback', createFeedbackRouter());
+
+    // Analytics Export routes
+    this.app.use('/api/analytics-export', analyticsExportRoutes);
+
+    // Error log endpoint
+    this.app.get('/api/error-logs/summary', async (req: Request, res: Response) => {
+      try {
+        const days = req.query.days ? parseInt(req.query.days as string, 10) : 7;
+        const summary = await errorLogService.getErrorSummary(days);
+        res.json({ success: true, data: summary });
+      } catch (error: any) {
+        log.error('Failed to get error summary:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.get('/api/error-logs/trends', async (req: Request, res: Response) => {
+      try {
+        const days = req.query.days ? parseInt(req.query.days as string, 10) : 30;
+        const trends = await errorLogService.getErrorTrends(days);
+        res.json({ success: true, data: trends });
+      } catch (error: any) {
+        log.error('Failed to get error trends:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
+    this.app.get('/api/error-logs/critical', async (req: Request, res: Response) => {
+      try {
+        const hours = req.query.hours ? parseInt(req.query.hours as string, 10) : 24;
+        const errors = await errorLogService.getCriticalErrors(hours);
+        res.json({ success: true, data: errors });
+      } catch (error: any) {
+        log.error('Failed to get critical errors:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
 
     // 404 handler - catches requests to undefined routes
     this.app.use(notFoundMiddleware);
