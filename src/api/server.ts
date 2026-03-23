@@ -72,6 +72,7 @@ import referralRoutes from './referralRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
 import { createExperimentRouter } from './experimentRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
+import shareRoutes from './shareRoutes';
 import insightRoutes from './insightRoutes';
 import onboardingRoutes from './onboarding.routes';
 import { errorLogService } from '../analytics/ErrorLogService';
@@ -1034,6 +1035,9 @@ export class APIServer extends EventEmitter {
 
     // Referral System routes
     this.app.use('/api/referral', referralRoutes);
+
+    // Share Statistics routes
+    this.app.use('/api/share', shareRoutes);
 
     // Error log endpoint
     this.app.get('/api/error-logs/summary', async (req: Request, res: Response) => {
