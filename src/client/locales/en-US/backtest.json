@@ -1,15 +1,17 @@
 {
-  "title": "Backtest",
-  "subtitle": "Strategy backtesting and optimization",
+  "title": "Advanced Backtest Visualization",
+  "subtitle": "Configure backtest parameters and click \"Run Backtest\" to start analysis",
   "form": {
-    "title": "Backtest Settings",
+    "title": "Settings",
     "strategy": "Strategy",
     "startDate": "Start Date",
     "endDate": "End Date",
     "initialCapital": "Initial Capital",
     "commission": "Commission Rate",
     "slippage": "Slippage",
-    "leverage": "Leverage"
+    "leverage": "Leverage",
+    "symbol": "Symbol",
+    "dateRange": "Date Range"
   },
   "result": {
     "title": "Backtest Results",

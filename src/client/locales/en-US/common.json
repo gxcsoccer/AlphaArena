@@ -68,7 +68,9 @@
     "success": "Success",
     "error": "Error",
     "warning": "Warning",
-    "info": "Info"
+    "info": "Info",
+    "all": "All",
+    "select": "Select"
   },
   "message": {
     "success": "Operation successful",

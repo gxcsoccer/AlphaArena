@@ -1,5 +1,5 @@
 /**
- * BacktestVisualizationPage - 高级回测可视化页面
+ * BacktestVisualizationPage - Advanced Backtest Visualization Page
  * 
  * Comprehensive visualization dashboard for backtest results
  * featuring interactive charts, strategy comparison, and detailed analysis
@@ -40,6 +40,7 @@ import { StrategyComparisonChart } from '../components/StrategyComparisonChart';
 import { TradeAnalysisChart, TradePoint } from '../components/TradeAnalysisChart';
 import { HoldingTimeChart, HoldingPeriod } from '../components/HoldingTimeChart';
 import { useBacktest, STRATEGIES, SYMBOLS, BacktestResult } from '../hooks/useBacktest';
+import { useTranslation } from 'react-i18next';
 import { createLogger } from '../../utils/logger';
 
 const _log = createLogger('BacktestVisualizationPage');
@@ -49,26 +50,26 @@ const { Row, Col } = Grid;
 const { RangePicker } = DatePicker;
 
 // Performance metrics dashboard component
-const PerformanceDashboard: React.FC<{ stats: BacktestResult['stats'] }> = ({ stats }) => {
+const PerformanceDashboard: React.FC<{ stats: BacktestResult['stats']; t: (key: string) => string }> = ({ stats, t }) => {
   if (!stats) return null;
   
   const metrics = [
-    { label: '总收益率', value: `${stats.totalReturn.toFixed(2)}%`, color: stats.totalReturn >= 0 ? 'green' : 'red' },
-    { label: '年化收益', value: `${stats.annualizedReturn.toFixed(2)}%`, color: stats.annualizedReturn >= 0 ? 'green' : 'red' },
-    { label: '夏普比率', value: stats.sharpeRatio.toFixed(2), color: stats.sharpeRatio >= 1 ? 'green' : 'orange' },
-    { label: '最大回撤', value: `${stats.maxDrawdown.toFixed(2)}%`, color: 'red' },
-    { label: '胜率', value: `${stats.winRate.toFixed(1)}%`, color: stats.winRate >= 50 ? 'green' : 'orange' },
-    { label: '盈亏比', value: stats.profitFactor.toFixed(2), color: stats.profitFactor >= 1 ? 'green' : 'red' },
-    { label: '总交易数', value: stats.totalTrades.toString(), color: 'arcoblue' },
-    { label: '平均盈利', value: `$${stats.avgWin.toFixed(2)}`, color: 'green' },
-    { label: '平均亏损', value: `$${stats.avgLoss.toFixed(2)}`, color: 'red' },
-    { label: '初始资金', value: `$${stats.initialCapital.toLocaleString()}`, color: 'gray' },
-    { label: '最终资金', value: `$${stats.finalCapital.toLocaleString()}`, color: stats.finalCapital >= stats.initialCapital ? 'green' : 'red' },
-    { label: '总盈亏', value: `$${stats.totalPnL.toFixed(2)}`, color: stats.totalPnL >= 0 ? 'green' : 'red' },
+    { label: t('result.totalReturn'), value: `${stats.totalReturn.toFixed(2)}%`, color: stats.totalReturn >= 0 ? 'green' : 'red' },
+    { label: t('result.annualReturn'), value: `${stats.annualizedReturn.toFixed(2)}%`, color: stats.annualizedReturn >= 0 ? 'green' : 'red' },
+    { label: t('result.sharpeRatio'), value: stats.sharpeRatio.toFixed(2), color: stats.sharpeRatio >= 1 ? 'green' : 'orange' },
+    { label: t('result.maxDrawdown'), value: `${stats.maxDrawdown.toFixed(2)}%`, color: 'red' },
+    { label: t('result.winRate'), value: `${stats.winRate.toFixed(1)}%`, color: stats.winRate >= 50 ? 'green' : 'orange' },
+    { label: t('result.profitFactor'), value: stats.profitFactor.toFixed(2), color: stats.profitFactor >= 1 ? 'green' : 'red' },
+    { label: t('result.totalTrades'), value: stats.totalTrades.toString(), color: 'arcoblue' },
+    { label: t('result.avgProfit'), value: `$${stats.avgWin.toFixed(2)}`, color: 'green' },
+    { label: t('result.avgLoss'), value: `$${stats.avgLoss.toFixed(2)}`, color: 'red' },
+    { label: t('form.initialCapital'), value: `$${stats.initialCapital.toLocaleString()}`, color: 'gray' },
+    { label: 'Final Capital', value: `$${stats.finalCapital.toLocaleString()}`, color: stats.finalCapital >= stats.initialCapital ? 'green' : 'red' },
+    { label: 'Total P&L', value: `$${stats.totalPnL.toFixed(2)}`, color: stats.totalPnL >= 0 ? 'green' : 'red' },
   ];
   
   return (
-    <Card title="绩效指标" extra={<IconExperiment />}>
+    <Card title={t('result.title')} extra={<IconExperiment />}>
       <Row gutter={[16, 16]}>
         {metrics.map((metric) => (
           <Col span={6} key={metric.label}>
@@ -99,9 +100,10 @@ interface SettingsDrawerProps {
     strategyParams: Record<string, any>;
   };
   onSave: (config: any) => void;
+  t: (key: string) => string;
 }
 
-const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, config, onSave }) => {
+const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, config, onSave, t }) => {
   const [form] = Form.useForm();
   
   React.useEffect(() => {
@@ -127,18 +129,18 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, confi
   
   return (
     <Drawer
-      title="回测配置"
+      title={t('form.title')}
       visible={visible}
       onOk={handleSave}
       onCancel={onClose}
       width={480}
     >
       <Form form={form} layout="vertical">
-        <Form.Item label="初始资金" field="capital" rules={[{ required: true }]}>
+        <Form.Item label={t('form.initialCapital')} field="capital" rules={[{ required: true }]}>
           <InputNumber min={1000} max={10000000} step={1000} style={{ width: '100%' }} />
         </Form.Item>
         
-        <Form.Item label="交易对" field="symbol" rules={[{ required: true }]}>
+        <Form.Item label={t('form.symbol')} field="symbol" rules={[{ required: true }]}>
           <Select>
             {SYMBOLS.map((s) => (
               <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
@@ -146,7 +148,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, confi
           </Select>
         </Form.Item>
         
-        <Form.Item label="策略" field="strategy" rules={[{ required: true }]}>
+        <Form.Item label={t('form.strategy')} field="strategy" rules={[{ required: true }]}>
           <Select>
             {STRATEGIES.map((s) => (
               <Select.Option key={s.value} value={s.value}>{s.label}</Select.Option>
@@ -154,7 +156,7 @@ const SettingsDrawer: React.FC<SettingsDrawerProps> = ({ visible, onClose, confi
           </Select>
         </Form.Item>
         
-        <Form.Item label="日期范围" field="dateRange">
+        <Form.Item label={t('form.dateRange')} field="dateRange">
           <RangePicker style={{ width: '100%' }} showTime />
         </Form.Item>
       </Form>
@@ -177,6 +179,8 @@ const BacktestVisualizationPage: React.FC = () => {
     ] as [number, number],
     strategyParams: {},
   }));
+  
+  const { t } = useTranslation('backtest');
   
   // Transform backtest result data for charts
   const equityData = useMemo((): EquityDataPoint[] => {
@@ -330,13 +334,13 @@ const BacktestVisualizationPage: React.FC = () => {
       strategy: config.strategy,
       strategyParams: config.strategyParams,
     });
-    Message.success('回测完成');
-  }, [config, runBacktest]);
+    Message.success(t('status.completed'));
+  }, [config, runBacktest, t]);
   
   const handleExport = useCallback((format: 'csv' | 'json') => {
     const data = format === 'csv' ? exportToCSV() : exportToJSON();
     if (!data) {
-      Message.warning('没有可导出的数据');
+      Message.warning(t('common:message.noData'));
       return;
     }
     
@@ -348,8 +352,8 @@ const BacktestVisualizationPage: React.FC = () => {
     a.click();
     URL.revokeObjectURL(url);
     
-    Message.success(`已导出 ${format.toUpperCase()} 文件`);
-  }, [exportToCSV, exportToJSON]);
+    Message.success(`${t('actions.export')} ${format.toUpperCase()}`);
+  }, [exportToCSV, exportToJSON, t]);
   
   const handleSettingsSave = useCallback((newConfig: typeof config) => {
     setConfig(newConfig);
@@ -363,7 +367,7 @@ const BacktestVisualizationPage: React.FC = () => {
           <Col>
             <Title heading={4} style={{ margin: 0 }}>
               <IconExperiment style={{ marginRight: 8 }} />
-              高级回测可视化
+              {t('title')}
             </Title>
           </Col>
           <Col>
@@ -372,7 +376,7 @@ const BacktestVisualizationPage: React.FC = () => {
                 icon={<IconSettings />}
                 onClick={() => setSettingsVisible(true)}
               >
-                配置
+                {t('form.title')}
               </Button>
               <Button
                 type="primary"
@@ -380,7 +384,7 @@ const BacktestVisualizationPage: React.FC = () => {
                 loading={loading}
                 onClick={handleRunBacktest}
               >
-                运行回测
+                {t('actions.run')}
               </Button>
               {result && (
                 <>
@@ -388,13 +392,13 @@ const BacktestVisualizationPage: React.FC = () => {
                     icon={<IconDownload />}
                     onClick={() => handleExport('csv')}
                   >
-                    导出 CSV
+                    {t('actions.export')} CSV
                   </Button>
                   <Button
                     icon={<IconDownload />}
                     onClick={() => handleExport('json')}
                   >
-                    导出 JSON
+                    {t('actions.export')} JSON
                   </Button>
                 </>
               )}
@@ -406,10 +410,10 @@ const BacktestVisualizationPage: React.FC = () => {
       {/* Current configuration */}
       <Card style={{ marginBottom: 16 }}>
         <Space size="large">
-          <Text>交易对: <Tag color="blue">{config.symbol}</Tag></Text>
-          <Text>策略: <Tag color="green">{STRATEGIES.find((s) => s.value === config.strategy)?.label}</Tag></Text>
-          <Text>初始资金: <Tag color="orange">${config.capital.toLocaleString()}</Tag></Text>
-          <Text>时间范围: <Tag color="purple">
+          <Text>{t('form.symbol')}: <Tag color="blue">{config.symbol}</Tag></Text>
+          <Text>{t('form.strategy')}: <Tag color="green">{STRATEGIES.find((s) => s.value === config.strategy)?.label}</Tag></Text>
+          <Text>{t('form.initialCapital')}: <Tag color="orange">${config.capital.toLocaleString()}</Tag></Text>
+          <Text>{t('form.dateRange')}: <Tag color="purple">
             {new Date(config.dateRange[0]).toLocaleDateString('zh-CN')} - {new Date(config.dateRange[1]).toLocaleDateString('zh-CN')}
           </Tag></Text>
         </Space>
@@ -427,7 +431,7 @@ const BacktestVisualizationPage: React.FC = () => {
         <Card style={{ textAlign: 'center', padding: 48 }}>
           <Spin size={40} />
           <div style={{ marginTop: 16 }}>
-            <Text type="secondary">正在运行回测...</Text>
+            <Text type="secondary">{t('status.running')}</Text>
           </div>
         </Card>
       )}
@@ -437,12 +441,12 @@ const BacktestVisualizationPage: React.FC = () => {
         <>
           {/* Performance Dashboard */}
           <div style={{ marginBottom: 16 }}>
-            <PerformanceDashboard stats={result.stats} />
+            <PerformanceDashboard stats={result.stats} t={t} />
           </div>
           
           {/* Main charts */}
           <Tabs defaultActiveTab="overview">
-            <Tabs.TabPane key="overview" title="概览">
+            <Tabs.TabPane key="overview" title={t('chart.equityCurve')}>
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <EquityCurveChart
@@ -460,7 +464,7 @@ const BacktestVisualizationPage: React.FC = () => {
               </Row>
             </Tabs.TabPane>
             
-            <Tabs.TabPane key="trades" title="交易分析">
+            <Tabs.TabPane key="trades" title={t('chart.tradeDistribution')}>
               <Row gutter={[16, 16]}>
                 <Col span={24}>
                   <TradeAnalysisChart trades={tradeAnalysisData} height={400} />
@@ -469,25 +473,25 @@ const BacktestVisualizationPage: React.FC = () => {
                   <HoldingTimeChart data={holdingTimeData} height={300} />
                 </Col>
                 <Col span={12}>
-                  <Card title="交易统计">
+                  <Card title={t('chart.tradeDistribution')}>
                     <Descriptions column={2} bordered>
-                      <Descriptions.Item label="总交易数">{result.stats.totalTrades}</Descriptions.Item>
-                      <Descriptions.Item label="盈利交易">{result.stats.winningTrades}</Descriptions.Item>
-                      <Descriptions.Item label="亏损交易">{result.stats.losingTrades}</Descriptions.Item>
-                      <Descriptions.Item label="胜率">{result.stats.winRate.toFixed(1)}%</Descriptions.Item>
-                      <Descriptions.Item label="平均盈利">${result.stats.avgWin.toFixed(2)}</Descriptions.Item>
-                      <Descriptions.Item label="平均亏损">${result.stats.avgLoss.toFixed(2)}</Descriptions.Item>
+                      <Descriptions.Item label={t('result.totalTrades')}>{result.stats.totalTrades}</Descriptions.Item>
+                      <Descriptions.Item label="Winning Trades">{result.stats.winningTrades}</Descriptions.Item>
+                      <Descriptions.Item label="Losing Trades">{result.stats.losingTrades}</Descriptions.Item>
+                      <Descriptions.Item label={t('result.winRate')}>{result.stats.winRate.toFixed(1)}%</Descriptions.Item>
+                      <Descriptions.Item label={t('result.avgProfit')}>${result.stats.avgWin.toFixed(2)}</Descriptions.Item>
+                      <Descriptions.Item label={t('result.avgLoss')}>${result.stats.avgLoss.toFixed(2)}</Descriptions.Item>
                     </Descriptions>
                   </Card>
                 </Col>
               </Row>
             </Tabs.TabPane>
             
-            <Tabs.TabPane key="heatmap" title="收益热力图">
+            <Tabs.TabPane key="heatmap" title={t('chart.monthlyReturns')}>
               <ReturnsHeatmapChart data={monthlyReturnsData} />
             </Tabs.TabPane>
             
-            <Tabs.TabPane key="comparison" title="策略对比">
+            <Tabs.TabPane key="comparison" title={t('actions.compare')}>
               <StrategyComparisonChart
                 strategies={[
                   {
@@ -515,9 +519,9 @@ const BacktestVisualizationPage: React.FC = () => {
         <Card style={{ textAlign: 'center', padding: 48 }}>
           <IconExperiment style={{ fontSize: 64, color: 'var(--color-text-3)' }} />
           <div style={{ marginTop: 16 }}>
-            <Title heading={5}>开始回测</Title>
+            <Title heading={5}>{t('actions.run')}</Title>
             <Text type="secondary">
-              配置回测参数并点击&ldquo;运行回测&rdquo;开始分析
+              {t('subtitle')}
             </Text>
           </div>
         </Card>
@@ -529,6 +533,7 @@ const BacktestVisualizationPage: React.FC = () => {
         onClose={() => setSettingsVisible(false)}
         config={config}
         onSave={handleSettingsSave}
+        t={t}
       />
     </div>
   );
