@@ -67,6 +67,7 @@ import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
 import userTrackingRoutes from './userTrackingRoutes';
+import userAnalyticsRoutes from './userAnalyticsRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
 import { errorLogService } from '../analytics/ErrorLogService';
@@ -1008,6 +1009,9 @@ export class APIServer extends EventEmitter {
 
     // User Tracking routes
     this.app.use('/api/tracking', userTrackingRoutes);
+
+    // User Analytics Dashboard routes
+    this.app.use('/api/user-analytics', userAnalyticsRoutes);
 
     // User Feedback routes
     this.app.use('/api/feedback', createFeedbackRouter());
