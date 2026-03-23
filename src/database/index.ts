@@ -359,3 +359,16 @@ export {
   type CreateReferralInviteData,
   type ProcessRegistrationData,
 } from './referral.dao';
+
+// Share Statistics DAO
+export {
+  ShareStatsDAO,
+  getShareStatsDAO,
+  type SharePlatform,
+  type ShareContentType,
+  type ShareEvent,
+  type ShareStats,
+  type UserShareStats,
+  type CreateShareEventInput,
+  type ShareStatsQuery,
+} from './share-stats.dao';
