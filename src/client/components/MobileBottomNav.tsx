@@ -44,18 +44,18 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ visible = true }) => 
   };
 
   return (
-    <nav className="mobile-bottom-nav" role="navigation" aria-label="移动端底部导航">
+    <nav className="mobile-bottom-nav-enhanced" role="navigation" aria-label="移动端底部导航">
       {navItems.map((item) => {
         const isActive = location.pathname === item.key;
         return (
           <button
             key={item.key}
-            className={`mobile-bottom-nav__item ${isActive ? 'mobile-bottom-nav__item--active' : ''}`}
+            className={`mobile-bottom-nav-enhanced__item ${isActive ? 'mobile-bottom-nav-enhanced__item--active' : ''}`}
             onClick={() => handleNavClick(item.key)}
             aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
           >
-            <span className="mobile-bottom-nav__icon">
+            <span className="mobile-bottom-nav-enhanced__icon">
               {item.badge ? (
                 <Badge count={item.badge} dot>
                   {item.icon}
@@ -64,7 +64,7 @@ const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ visible = true }) => 
                 item.icon
               )}
             </span>
-            <span className="mobile-bottom-nav__label">{item.label}</span>
+            <span className="mobile-bottom-nav-enhanced__label">{item.label}</span>
           </button>
         );
       })}

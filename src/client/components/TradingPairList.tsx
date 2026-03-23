@@ -1,10 +1,17 @@
-import React, { useState, useMemo } from 'react';
-import { Table, Input, Typography, Tag, Grid, Spin, Empty } from '@arco-design/web-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Table, Input, Typography, Tag, Grid, Spin, Empty, Button, Tooltip } from '@arco-design/web-react';
+import { IconStar, IconStarFill } from '@arco-design/web-react/icon';
 import type { TableProps } from '@arco-design/web-react';
 import { useMarketData } from '../hooks/useMarketData';
+import '../styles/visual-optimization.css';
 
 /**
  * TradingPairList Component
+ * 
+ * Issue #573: UI 视觉优化
+ * - 添加实时价格变化动效
+ * - 添加收藏/关注功能
+ * - 统一使用设计系统 tokens
  * 
  * Issue #214: Sprint 11: UI 可访问性增强
  * - Added aria-labels to search input
@@ -36,31 +43,84 @@ interface TradingPairListProps {
   onPairSelect?: (symbol: string) => void;
   showSearch?: boolean;
   compact?: boolean;
+  favorites?: string[];
+  onFavoriteChange?: (symbol: string, isFavorite: boolean) => void;
+}
+
+// 价格变化动画状态
+interface PriceChangeState {
+  [key: string]: 'up' | 'down' | null;
 }
 
 const TradingPairList: React.FC<TradingPairListProps> = ({
   onPairSelect,
   showSearch = true,
   compact = false,
+  favorites = [],
+  onFavoriteChange,
 }) => {
   const [searchText, setSearchText] = useState('');
   const { marketData, loading, error } = useMarketData();
+  const [priceChanges, setPriceChanges] = useState<PriceChangeState>({});
+  const [prevPrices, setPrevPrices] = useState<Record<string, number>>({});
 
   // Filter market data based on search
   const filteredPairs = useMemo(() => {
     if (!marketData) return [];
     
+    // 先显示收藏的交易对，然后按搜索过滤
+    let pairs = [...marketData];
+    
+    // 排序：收藏的在前
+    pairs.sort((a, b) => {
+      const aFav = favorites.includes(a.symbol) ? 0 : 1;
+      const bFav = favorites.includes(b.symbol) ? 0 : 1;
+      return aFav - bFav;
+    });
+
     if (!searchText.trim()) {
-      return marketData;
+      return pairs;
     }
 
     const search = searchText.toLowerCase().trim();
-    return marketData.filter(pair =>
+    return pairs.filter(pair =>
       pair.symbol.toLowerCase().includes(search) ||
       pair.baseCurrency.toLowerCase().includes(search) ||
       pair.quoteCurrency.toLowerCase().includes(search)
     );
-  }, [marketData, searchText]);
+  }, [marketData, searchText, favorites]);
+
+  // 检测价格变化并触发动画
+  useEffect(() => {
+    if (!marketData) return;
+
+    const newPrices: Record<string, number> = {};
+    const newChanges: PriceChangeState = {};
+
+    marketData.forEach(pair => {
+      const prevPrice = prevPrices[pair.symbol];
+      if (prevPrice !== undefined && prevPrice !== pair.lastPrice) {
+        newChanges[pair.symbol] = pair.lastPrice > prevPrice ? 'up' : 'down';
+        // 清除动画
+        setTimeout(() => {
+          setPriceChanges(prev => ({ ...prev, [pair.symbol]: null }));
+        }, 500);
+      }
+      newPrices[pair.symbol] = pair.lastPrice;
+    });
+
+    setPrevPrices(newPrices);
+    if (Object.keys(newChanges).length > 0) {
+      setPriceChanges(prev => ({ ...prev, ...newChanges }));
+    }
+  }, [marketData]);
+
+  // 切换收藏状态
+  const toggleFavorite = (symbol: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const isFavorite = favorites.includes(symbol);
+    onFavoriteChange?.(symbol, !isFavorite);
+  };
 
   // Table columns
   const columns: TableProps<TradingPair>['columns'] = [
@@ -68,38 +128,70 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       title: '交易对',
       dataIndex: 'symbol',
       key: 'symbol',
-      width: 120,
+      width: 140,
       fixed: 'left',
-      render: (symbol: string, record: TradingPair) => (
-        <div
-          style={{ cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
-          onClick={() => onPairSelect?.(symbol)}
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onPairSelect?.(symbol);
-            }
-          }}
-          role="button"
-          aria-label={`选择交易对 ${record.baseCurrency}/${record.quoteCurrency}`}
-        >
-          {record.baseCurrency}
-          <Text type="secondary" style={{ margin: '0 4px' }}>/</Text>
-          {record.quoteCurrency}
-        </div>
-      ),
+      render: (symbol: string, record: TradingPair) => {
+        const isFavorite = favorites.includes(symbol);
+        return (
+          <div className="trading-pair__symbol">
+            <Tooltip content={isFavorite ? '取消收藏' : '添加收藏'}>
+              <button
+                className={`trading-pair__favorite ${isFavorite ? 'trading-pair__favorite--active' : ''}`}
+                onClick={(e) => toggleFavorite(symbol, e)}
+                aria-label={isFavorite ? `取消收藏 ${symbol}` : `收藏 ${symbol}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+              >
+                {isFavorite ? (
+                  <IconStarFill style={{ color: 'var(--color-warning)' }} />
+                ) : (
+                  <IconStar style={{ color: 'var(--color-text-3)' }} />
+                )}
+              </button>
+            </Tooltip>
+            <div
+              style={{ cursor: 'pointer', fontWeight: 500, whiteSpace: 'nowrap' }}
+              onClick={() => onPairSelect?.(symbol)}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onPairSelect?.(symbol);
+                }
+              }}
+              role="button"
+              aria-label={`选择交易对 ${record.baseCurrency}/${record.quoteCurrency}`}
+            >
+              <span style={{ color: 'var(--color-text-1)' }}>{record.baseCurrency}</span>
+              <Text type="secondary" style={{ margin: '0 4px' }}>/</Text>
+              <span style={{ color: 'var(--color-text-3)' }}>{record.quoteCurrency}</span>
+            </div>
+          </div>
+        );
+      },
     },
     {
       title: '最新价',
       dataIndex: 'lastPrice',
       key: 'lastPrice',
-      width: 100,
-      render: (price: number) => (
-        <Text bold aria-label={`最新价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}>
-          ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </Text>
-      ),
+      width: 120,
+      render: (price: number, record: TradingPair) => {
+        const change = priceChanges[record.symbol];
+        return (
+          <span 
+            className={`trading-pair__price ${change ? `trading-pair__price--${change}` : ''}`}
+            aria-label={`最新价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          >
+            ${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+        );
+      },
     },
     {
       title: '24h 涨跌',
@@ -109,9 +201,12 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       render: (percent: number, _record: TradingPair) => {
         const isPositive = percent >= 0;
         return (
-          <Tag color={isPositive ? 'red' : 'green'} aria-label={`24小时涨跌 ${isPositive ? '+' : ''}${percent.toFixed(2)}%`}>
+          <span 
+            className={`trading-pair__change ${isPositive ? 'trading-pair__change--positive' : 'trading-pair__change--negative'}`}
+            aria-label={`24小时涨跌 ${isPositive ? '+' : ''}${percent.toFixed(2)}%`}
+          >
             {isPositive ? '+' : ''}{percent.toFixed(2)}%
-          </Tag>
+          </span>
         );
       },
     },
@@ -119,37 +214,37 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       title: '24h 最高',
       dataIndex: 'high24h',
       key: 'high24h',
-      width: 90,
-      render: (price: number) => <span aria-label={`24小时最高价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
+      width: 100,
+      render: (price: number) => <span style={{ color: 'var(--color-text-2)' }} aria-label={`24小时最高价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
     },
     {
       title: '24h 最低',
       dataIndex: 'low24h',
       key: 'low24h',
-      width: 90,
-      render: (price: number) => <span aria-label={`24小时最低价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
+      width: 100,
+      render: (price: number) => <span style={{ color: 'var(--color-text-2)' }} aria-label={`24小时最低价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>,
     },
     {
       title: '24h 成交量',
       dataIndex: 'volume24h',
       key: 'volume24h',
       width: 120,
-      render: (volume: number) => <span aria-label={`24小时成交量 ${volume.toLocaleString(undefined, { maximumFractionDigits: 4 })}`}>{volume.toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>,
+      render: (volume: number) => <span style={{ color: 'var(--color-text-2)' }} aria-label={`24小时成交量 ${volume.toLocaleString(undefined, { maximumFractionDigits: 4 })}`}>{volume.toLocaleString(undefined, { maximumFractionDigits: 4 })}</span>,
     },
     {
       title: '24h 成交额',
       dataIndex: 'quoteVolume24h',
       key: 'quoteVolume24h',
       width: 120,
-      render: (volume: number) => <span aria-label={`24小时成交额 $${volume.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}>${volume.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>,
+      render: (volume: number) => <span style={{ color: 'var(--color-text-2)' }} aria-label={`24小时成交额 $${volume.toLocaleString(undefined, { maximumFractionDigits: 0 })}`}>${volume.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>,
     },
     {
       title: '买一价',
       dataIndex: 'bid',
       key: 'bid',
-      width: 90,
+      width: 100,
       render: (price: number) => (
-        <Text type="success" aria-label={`买一价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
+        <Text style={{ color: 'var(--color-success)' }} aria-label={`买一价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
           ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </Text>
       ),
@@ -158,9 +253,9 @@ const TradingPairList: React.FC<TradingPairListProps> = ({
       title: '卖一价',
       dataIndex: 'ask',
       key: 'ask',
-      width: 90,
+      width: 100,
       render: (price: number) => (
-        <Text type="danger" aria-label={`卖一价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
+        <Text style={{ color: 'var(--color-danger)' }} aria-label={`卖一价 $${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}`}>
           ${price.toLocaleString(undefined, { minimumFractionDigits: 2 })}
         </Text>
       ),

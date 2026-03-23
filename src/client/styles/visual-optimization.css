@@ -1,0 +1,1225 @@
+/**
+ * Visual Optimization Styles
+ * Issue #573: 仪表板与核心页面视觉优化
+ * 
+ * 基于设计系统 tokens 的视觉优化
+ * @see src/client/styles/design-tokens.css
+ */
+
+/* ============================================
+   Dashboard Stats Cards - 统计卡片优化
+   ============================================ */
+
+/* Stats Card Container */
+.stats-card-container {
+  display: grid;
+  gap: var(--spacing-4);
+}
+
+@media (min-width: 769px) {
+  .stats-card-container {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-card-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-3);
+  }
+}
+
+/* Enhanced Stats Card */
+.stats-card {
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-5);
+  transition: all var(--duration-200) var(--ease-in-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary-200);
+}
+
+/* Stats Card with Accent */
+.stats-card--accent {
+  border-left: 4px solid var(--color-primary);
+}
+
+.stats-card--success {
+  border-left: 4px solid var(--color-success);
+}
+
+.stats-card--warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.stats-card--danger {
+  border-left: 4px solid var(--color-danger);
+}
+
+/* Stats Card Title */
+.stats-card__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-3);
+  margin-bottom: var(--spacing-2);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Stats Card Value */
+.stats-card__value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  line-height: var(--line-height-tight);
+}
+
+@media (max-width: 768px) {
+  .stats-card__value {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* Stats Card Trend Indicator */
+.stats-card__trend {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-full);
+  margin-top: var(--spacing-2);
+}
+
+.stats-card__trend--up {
+  color: var(--color-success-600);
+  background: var(--color-success-50);
+}
+
+.stats-card__trend--down {
+  color: var(--color-error-600);
+  background: var(--color-error-50);
+}
+
+.stats-card__trend--neutral {
+  color: var(--color-text-3);
+  background: var(--color-fill-2);
+}
+
+/* Stats Card Subtitle */
+.stats-card__subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+/* Stats Card Icon Background */
+.stats-card__icon-bg {
+  position: absolute;
+  right: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  opacity: 0.15;
+}
+
+.stats-card__icon-bg--primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.stats-card__icon-bg--success {
+  background: var(--color-success);
+  color: white;
+}
+
+.stats-card__icon-bg--warning {
+  background: var(--color-warning);
+  color: white;
+}
+
+.stats-card__icon-bg--danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+/* ============================================
+   Chart Cards - 图表卡片优化
+   ============================================ */
+
+/* Chart Card */
+.chart-card {
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.chart-card__header {
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid var(--color-border-1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chart-card__title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+.chart-card__description {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+.chart-card__body {
+  padding: var(--spacing-4);
+}
+
+/* Chart Legend */
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-3);
+  justify-content: center;
+}
+
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+}
+
+.chart-legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Chart Colors - 统一配色 */
+.chart-color-1 { background: var(--color-primary-500); }
+.chart-color-2 { background: var(--color-success-500); }
+.chart-color-3 { background: var(--color-warning-500); }
+.chart-color-4 { background: var(--color-error-500); }
+.chart-color-5 { background: var(--color-secondary-500); }
+
+/* ============================================
+   Trading Pair List - 交易对列表优化
+   ============================================ */
+
+/* Trading Pair Row */
+.trading-pair-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  transition: all var(--duration-150) var(--ease-in-out);
+  min-height: 56px;
+  align-items: center;
+}
+
+.trading-pair-row:hover {
+  background: var(--color-fill-2);
+}
+
+.trading-pair-row:active {
+  transform: scale(0.99);
+}
+
+.trading-pair-row--selected {
+  background: var(--color-primary-bg);
+  border: 1px solid var(--color-primary-200);
+}
+
+/* Trading Pair Symbol */
+.trading-pair__symbol {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.trading-pair__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-fill-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.trading-pair__name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+.trading-pair__base {
+  font-size: var(--font-size-base);
+}
+
+.trading-pair__quote {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  margin-left: var(--spacing-1);
+}
+
+/* Price Change Animation */
+.trading-pair__price {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+  font-variant-numeric: tabular-nums;
+  transition: color var(--duration-150) var(--ease-in-out);
+}
+
+.trading-pair__price--up {
+  color: var(--color-success);
+  animation: price-flash-up 0.5s ease;
+}
+
+.trading-pair__price--down {
+  color: var(--color-danger);
+  animation: price-flash-down 0.5s ease;
+}
+
+@keyframes price-flash-up {
+  0% { background: rgba(16, 185, 129, 0.3); }
+  100% { background: transparent; }
+}
+
+@keyframes price-flash-down {
+  0% { background: rgba(239, 68, 68, 0.3); }
+  100% { background: transparent; }
+}
+
+/* Price Change Percent */
+.trading-pair__change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 72px;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.trading-pair__change--positive {
+  color: var(--color-success-600);
+  background: var(--color-success-50);
+}
+
+.trading-pair__change--negative {
+  color: var(--color-error-600);
+  background: var(--color-error-50);
+}
+
+/* Favorite Star Button */
+.trading-pair__favorite {
+  opacity: 0;
+  transition: opacity var(--duration-150) var(--ease-in-out);
+  padding: var(--spacing-2);
+  margin-right: var(--spacing-2);
+}
+
+.trading-pair-row:hover .trading-pair__favorite {
+  opacity: 1;
+}
+
+.trading-pair__favorite--active {
+  opacity: 1;
+  color: var(--color-warning);
+}
+
+/* ============================================
+   Order Book - 订单簿优化
+   ============================================ */
+
+/* Order Book Container */
+.order-book {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Order Book Section */
+.order-book__section {
+  margin-bottom: var(--spacing-2);
+}
+
+.order-book__section-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-3);
+  padding: var(--spacing-2) var(--spacing-3);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* Order Book Row - Enhanced */
+.order-book__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--duration-100) var(--ease-in-out);
+  border-radius: var(--radius-sm);
+}
+
+.order-book__row:hover {
+  background: var(--color-fill-2);
+}
+
+/* Depth Bar */
+.order-book__depth-bar {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  transition: width var(--duration-300) var(--ease-out);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.order-book__row--bid .order-book__depth-bar {
+  background: linear-gradient(to left, var(--orderbook-bid-bg), transparent);
+}
+
+.order-book__row--ask .order-book__depth-bar {
+  background: linear-gradient(to left, var(--orderbook-ask-bg), transparent);
+}
+
+/* Price Column */
+.order-book__price {
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  position: relative;
+  z-index: 1;
+}
+
+.order-book__row--bid .order-book__price {
+  color: var(--orderbook-bid-text);
+}
+
+.order-book__row--ask .order-book__price {
+  color: var(--orderbook-ask-text);
+}
+
+/* Quantity & Total */
+.order-book__quantity,
+.order-book__total {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-2);
+  text-align: right;
+  position: relative;
+  z-index: 1;
+}
+
+/* Spread Indicator */
+.order-book__spread {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-fill-1);
+  border-radius: var(--radius-md);
+  margin: var(--spacing-2) 0;
+}
+
+.order-book__spread-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+}
+
+.order-book__spread-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+/* ============================================
+   Trading Order Form - 交易表单优化
+   ============================================ */
+
+/* Trading Order Card */
+.trading-order-card {
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/* Buy/Sell Tabs */
+.trading-order-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--color-border-1);
+}
+
+.trading-order-tab {
+  flex: 1;
+  padding: var(--spacing-3) var(--spacing-4);
+  text-align: center;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--duration-150) var(--ease-in-out);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.trading-order-tab:hover {
+  background: var(--color-fill-1);
+}
+
+.trading-order-tab--buy {
+  color: var(--color-success);
+}
+
+.trading-order-tab--buy.trading-order-tab--active {
+  color: var(--color-success);
+  border-bottom-color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.trading-order-tab--sell {
+  color: var(--color-danger);
+}
+
+.trading-order-tab--sell.trading-order-tab--active {
+  color: var(--color-danger);
+  border-bottom-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+/* Quantity Input with Slider */
+.quantity-input-wrapper {
+  position: relative;
+}
+
+.quantity-slider {
+  margin-top: var(--spacing-3);
+}
+
+/* Quick Percentage Buttons */
+.quick-quantity-buttons {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-2);
+}
+
+.quick-quantity-btn {
+  flex: 1;
+  padding: var(--spacing-2);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-1);
+  background: var(--color-bg-1);
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.quick-quantity-btn:hover {
+  background: var(--color-fill-2);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.quick-quantity-btn--active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* Submit Button - Enhanced */
+.trading-submit-btn {
+  width: 100%;
+  padding: var(--spacing-4);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-200) var(--ease-in-out);
+  min-height: 52px;
+}
+
+.trading-submit-btn--buy {
+  background: linear-gradient(135deg, var(--color-success-500), var(--color-success-600));
+  color: white;
+}
+
+.trading-submit-btn--buy:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transform: translateY(-1px);
+}
+
+.trading-submit-btn--sell {
+  background: linear-gradient(135deg, var(--color-error-500), var(--color-error-600));
+  color: white;
+}
+
+.trading-submit-btn--sell:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  transform: translateY(-1px);
+}
+
+.trading-submit-btn:active {
+  transform: scale(0.98);
+}
+
+.trading-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   Strategy Cards - 策略卡片优化
+   ============================================ */
+
+/* Strategy Card */
+.strategy-card {
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-5);
+  transition: all var(--duration-200) var(--ease-in-out);
+}
+
+.strategy-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Strategy Header */
+.strategy-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-4);
+}
+
+.strategy-card__name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+.strategy-card__symbol {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+/* Strategy Status Indicator */
+.strategy-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.strategy-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+}
+
+.strategy-status--active {
+  background: var(--color-success-50);
+  color: var(--color-success-600);
+}
+
+.strategy-status--active .strategy-status__dot {
+  background: var(--color-success-500);
+  animation: pulse 2s infinite;
+}
+
+.strategy-status--paused {
+  background: var(--color-warning-50);
+  color: var(--color-warning-600);
+}
+
+.strategy-status--paused .strategy-status__dot {
+  background: var(--color-warning-500);
+}
+
+.strategy-status--stopped {
+  background: var(--color-error-50);
+  color: var(--color-error-600);
+}
+
+.strategy-status--stopped .strategy-status__dot {
+  background: var(--color-error-500);
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Strategy Metrics Grid */
+.strategy-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+  margin-top: var(--spacing-4);
+  padding-top: var(--spacing-4);
+  border-top: 1px solid var(--color-border-1);
+}
+
+.strategy-metric {
+  text-align: center;
+}
+
+.strategy-metric__value {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.strategy-metric__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+/* Return Rate - Positive/Negative */
+.strategy-metric__value--positive {
+  color: var(--color-success);
+}
+
+.strategy-metric__value--negative {
+  color: var(--color-danger);
+}
+
+/* Strategy Actions */
+.strategy-card__actions {
+  display: flex;
+  gap: var(--spacing-2);
+  margin-top: var(--spacing-4);
+}
+
+/* ============================================
+   User Profile Card - 用户卡片优化
+   ============================================ */
+
+/* Profile Card */
+.profile-card {
+  background: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-2xl);
+  overflow: hidden;
+}
+
+/* Profile Header with Background */
+.profile-card__header {
+  position: relative;
+  padding: var(--spacing-8);
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-700));
+  text-align: center;
+}
+
+.profile-card__avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-full);
+  border: 4px solid white;
+  background: var(--color-bg-1);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.profile-card__name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: white;
+  margin-top: var(--spacing-3);
+}
+
+.profile-card__username {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  margin-top: var(--spacing-1);
+}
+
+/* Profile Stats */
+.profile-card__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  background: var(--color-bg-2);
+}
+
+.profile-stat {
+  text-align: center;
+}
+
+.profile-stat__value {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.profile-stat__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+/* ============================================
+   Asset Display - 账户资产展示优化
+   ============================================ */
+
+/* Asset Card */
+.asset-card {
+  background: linear-gradient(135deg, var(--color-bg-1), var(--color-bg-2));
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-5);
+}
+
+/* Total Value */
+.asset-total {
+  margin-bottom: var(--spacing-4);
+}
+
+.asset-total__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+}
+
+.asset-total__value {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+  margin-top: var(--spacing-1);
+}
+
+@media (max-width: 768px) {
+  .asset-total__value {
+    font-size: var(--font-size-2xl);
+  }
+}
+
+/* Asset List */
+.asset-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.asset-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-1);
+  transition: background var(--duration-150) var(--ease-in-out);
+}
+
+.asset-item:hover {
+  background: var(--color-fill-2);
+}
+
+.asset-item__left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.asset-item__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-lg);
+  background: var(--color-fill-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+.asset-item__name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+.asset-item__balance {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  margin-top: var(--spacing-1);
+}
+
+.asset-item__value {
+  text-align: right;
+}
+
+.asset-item__amount {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+.asset-item__usd {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+}
+
+/* ============================================
+   Subscription Status - 订阅状态展示
+   ============================================ */
+
+/* Subscription Card */
+.subscription-card {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-secondary-500));
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-6);
+  color: white;
+}
+
+.subscription-card__plan {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.subscription-card__name {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-top: var(--spacing-1);
+}
+
+.subscription-card__expire {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+  margin-top: var(--spacing-2);
+}
+
+/* Usage Progress */
+.usage-progress {
+  margin-top: var(--spacing-4);
+}
+
+.usage-progress__header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-2);
+}
+
+.usage-progress__label {
+  font-size: var(--font-size-sm);
+  opacity: 0.9;
+}
+
+.usage-progress__value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.usage-progress__bar {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.usage-progress__fill {
+  height: 100%;
+  background: white;
+  border-radius: var(--radius-full);
+  transition: width var(--duration-300) var(--ease-out);
+}
+
+/* ============================================
+   Mobile Bottom Navigation - 移动端底部导航优化
+   ============================================ */
+
+/* Enhanced Mobile Bottom Nav */
+.mobile-bottom-nav-enhanced {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--color-border-1);
+  z-index: 1000;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+}
+
+:root.dark .mobile-bottom-nav-enhanced,
+:root[data-theme='dark'] .mobile-bottom-nav-enhanced {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.mobile-bottom-nav-enhanced__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 100%;
+  padding: var(--spacing-2);
+  background: transparent;
+  border: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+  transition: color var(--duration-150) var(--ease-in-out);
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+}
+
+.mobile-bottom-nav-enhanced__item:active {
+  transform: scale(0.95);
+}
+
+.mobile-bottom-nav-enhanced__item--active {
+  color: var(--color-primary);
+}
+
+.mobile-bottom-nav-enhanced__item--active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 2px;
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.mobile-bottom-nav-enhanced__icon {
+  font-size: 22px;
+  margin-bottom: 2px;
+  transition: transform var(--duration-150) var(--ease-in-out);
+}
+
+.mobile-bottom-nav-enhanced__item--active .mobile-bottom-nav-enhanced__icon {
+  transform: scale(1.1);
+}
+
+.mobile-bottom-nav-enhanced__label {
+  font-size: 10px;
+  font-weight: var(--font-weight-medium);
+}
+
+/* ============================================
+   Gesture Feedback - 手势操作反馈
+   ============================================ */
+
+/* Touch Feedback Overlay */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-full);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s, height 0.3s;
+}
+
+.touch-feedback:active::after {
+  width: 200%;
+  height: 200%;
+}
+
+/* Swipe Hint */
+.swipe-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--color-fill-2);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-2);
+  animation: swipe-hint-animation 2s ease-in-out infinite;
+}
+
+@keyframes swipe-hint-animation {
+  0%, 100% { transform: translateX(0); opacity: 0.7; }
+  50% { transform: translateX(-8px); opacity: 1; }
+}
+
+/* ============================================
+   Responsive Utilities
+   ============================================ */
+
+/* Hide on mobile */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 769px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
+
+/* Mobile-only styles */
+@media (max-width: 768px) {
+  .mobile-stack {
+    flex-direction: column !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-text-center {
+    text-align: center !important;
+  }
+  
+  .mobile-no-padding {
+    padding: 0 !important;
+  }
+  
+  .mobile-compact {
+    gap: var(--spacing-2) !important;
+  }
+}
+
+/* ============================================
+   Loading States
+   ============================================ */
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-fill-2) 25%,
+    var(--color-fill-3) 50%,
+    var(--color-fill-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton--text {
+  height: 14px;
+  margin-bottom: var(--spacing-2);
+}
+
+.skeleton--title {
+  height: 24px;
+  width: 60%;
+  margin-bottom: var(--spacing-3);
+}
+
+.skeleton--circle {
+  border-radius: var(--radius-full);
+}
+
+/* ============================================
+   Dark Mode Adjustments
+   ============================================ */
+
+:root.dark .trading-submit-btn--buy,
+:root[data-theme='dark'] .trading-submit-btn--buy {
+  background: linear-gradient(135deg, var(--color-success-400), var(--color-success-500));
+}
+
+:root.dark .trading-submit-btn--sell,
+:root[data-theme='dark'] .trading-submit-btn--sell {
+  background: linear-gradient(135deg, var(--color-error-400), var(--color-error-500));
+}
+
+:root.dark .stats-card:hover,
+:root[data-theme='dark'] .stats-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+:root.dark .strategy-card:hover,
+:root[data-theme='dark'] .strategy-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast */
+@media (prefers-contrast: high) {
+  .stats-card,
+  .chart-card,
+  .strategy-card,
+  .trading-order-card {
+    border-width: 2px;
+  }
+  
+  .trading-submit-btn {
+    border: 2px solid currentColor;
+  }
+}
