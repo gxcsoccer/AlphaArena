@@ -1,6 +1,6 @@
 {
-  "title": "回测",
-  "subtitle": "策略回测和优化",
+  "title": "高级回测可视化",
+  "subtitle": "配置回测参数并点击\"运行回测\"开始分析",
   "form": {
     "title": "回测设置",
     "strategy": "策略",
@@ -9,7 +9,9 @@
     "initialCapital": "初始资金",
     "commission": "手续费率",
     "slippage": "滑点",
-    "leverage": "杠杆"
+    "leverage": "杠杆",
+    "symbol": "交易对",
+    "dateRange": "时间范围"
   },
   "result": {
     "title": "回测结果",
@@ -25,7 +27,19 @@
     "avgProfit": "平均盈利",
     "avgLoss": "平均亏损",
     "maxConsecWins": "最大连续盈利",
-    "maxConsecLosses": "最大连续亏损"
+    "maxConsecLosses": "最大连续亏损",
+    "finalCapital": "最终资金",
+    "totalPnL": "总盈亏",
+    "winningTrades": "盈利交易",
+    "losingTrades": "亏损交易"
+  },
+  "holdingTime": {
+    "less1h": "< 1小时",
+    "oneTo4h": "1-4小时",
+    "fourTo24h": "4-24小时",
+    "oneTo3d": "1-3天",
+    "threeTo7d": "3-7天",
+    "more7d": "> 7天"
   },
   "chart": {
     "equityCurve": "权益曲线",
