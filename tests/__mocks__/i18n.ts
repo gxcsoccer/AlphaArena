@@ -2,10 +2,10 @@
  * i18n Mock for Jest Tests
  * 
  * This mock provides actual translated text for tests instead of translation keys.
- * It imports the zh-CN translation files to match the default language.
+ * It supports dynamic language switching with proper event handling.
  */
 
-// Import actual translation files (use zh-CN as default for tests)
+// Import actual translation files for both languages
 const landingZhCN = require('../../src/client/locales/zh-CN/landing.json');
 const commonZhCN = require('../../src/client/locales/zh-CN/common.json');
 const navigationZhCN = require('../../src/client/locales/zh-CN/navigation.json');
@@ -14,20 +14,48 @@ const tradingZhCN = require('../../src/client/locales/zh-CN/trading.json');
 const dashboardZhCN = require('../../src/client/locales/zh-CN/dashboard.json');
 const leaderboardZhCN = require('../../src/client/locales/zh-CN/leaderboard.json');
 
-// Combined translations
-const translations: Record<string, Record<string, any>> = {
-  landing: landingZhCN,
-  common: commonZhCN,
-  navigation: navigationZhCN,
-  auth: authZhCN,
-  trading: tradingZhCN,
-  dashboard: dashboardZhCN,
-  leaderboard: leaderboardZhCN,
+const landingEnUS = require('../../src/client/locales/en-US/landing.json');
+const commonEnUS = require('../../src/client/locales/en-US/common.json');
+const navigationEnUS = require('../../src/client/locales/en-US/navigation.json');
+const authEnUS = require('../../src/client/locales/en-US/auth.json');
+const tradingEnUS = require('../../src/client/locales/en-US/trading.json');
+const dashboardEnUS = require('../../src/client/locales/en-US/dashboard.json');
+const leaderboardEnUS = require('../../src/client/locales/en-US/leaderboard.json');
+
+// Combined translations for both languages
+const allTranslations: Record<string, Record<string, Record<string, any>>> = {
+  'zh-CN': {
+    landing: landingZhCN,
+    common: commonZhCN,
+    navigation: navigationZhCN,
+    auth: authZhCN,
+    trading: tradingZhCN,
+    dashboard: dashboardZhCN,
+    leaderboard: leaderboardZhCN,
+  },
+  'en-US': {
+    landing: landingEnUS,
+    common: commonEnUS,
+    navigation: navigationEnUS,
+    auth: authEnUS,
+    trading: tradingEnUS,
+    dashboard: dashboardEnUS,
+    leaderboard: leaderboardEnUS,
+  },
 };
 
 /**
+ * Current language state (mutable for testing)
+ */
+let currentLanguage = 'zh-CN';
+
+/**
+ * Event listeners storage
+ */
+const eventListeners: Map<string, Set<Function>> = new Map();
+
+/**
  * Helper function to get nested value from object using dot notation
- * e.g., getNestedValue(obj, 'hero.title') returns obj.hero.title
  */
 function getNestedValue(obj: any, path: string): string {
   const keys = path.split('.');
@@ -45,11 +73,20 @@ function getNestedValue(obj: any, path: string): string {
 }
 
 /**
- * Mock t function that returns actual translations
+ * Get translations for current language
  */
-const createTFunction = (namespace: string) => {
+function getTranslationsForLanguage(lang: string, namespace: string): Record<string, any> {
+  const langTranslations = allTranslations[lang] || allTranslations['zh-CN'];
+  return langTranslations[namespace] || {};
+}
+
+/**
+ * Mock t function that returns actual translations for current language
+ */
+const createTFunction = (namespace: string, lang?: string) => {
+  const language = lang || currentLanguage;
   return (key: string, options?: any): string => {
-    const nsTranslations = translations[namespace] || {};
+    const nsTranslations = getTranslationsForLanguage(language, namespace);
     const value = getNestedValue(nsTranslations, key);
     
     // Handle interpolation if options are provided
@@ -66,7 +103,61 @@ const createTFunction = (namespace: string) => {
 };
 
 /**
- * Mock useTranslation hook
+ * Reset language to default (useful for tests)
+ */
+const resetLanguage = () => {
+  currentLanguage = 'zh-CN';
+  eventListeners.clear();
+};
+
+/**
+ * Mock i18n instance with proper state management
+ */
+const mockI18n = {
+  get language() {
+    return currentLanguage;
+  },
+  changeLanguage: jest.fn((lang: string) => {
+    const previousLanguage = currentLanguage;
+    currentLanguage = lang;
+    // Emit languageChanged event
+    const listeners = eventListeners.get('languageChanged');
+    if (listeners) {
+      listeners.forEach(listener => listener(lang, previousLanguage));
+    }
+    return Promise.resolve();
+  }),
+  t: (key: string, options?: any) => {
+    return createTFunction('common')(key, options);
+  },
+  use: jest.fn(() => mockI18n),
+  init: jest.fn(() => Promise.resolve()),
+  on: jest.fn((event: string, callback: Function) => {
+    if (!eventListeners.has(event)) {
+      eventListeners.set(event, new Set());
+    }
+    eventListeners.get(event)!.add(callback);
+    return mockI18n;
+  }),
+  off: jest.fn((event: string, callback: Function) => {
+    const listeners = eventListeners.get(event);
+    if (listeners) {
+      listeners.delete(callback);
+    }
+    return mockI18n;
+  }),
+  emit: (event: string, ...args: any[]) => {
+    const listeners = eventListeners.get(event);
+    if (listeners) {
+      listeners.forEach(listener => listener(...args));
+    }
+  },
+  // Expose reset for tests
+  _resetLanguage: resetLanguage,
+};
+
+/**
+ * Mock useTranslation hook with dynamic language
  */
 const useTranslation = (namespace?: string | string[]) => {
   // Handle array of namespaces (return first namespace's t function)
@@ -74,11 +165,7 @@ const useTranslation = (namespace?: string | string[]) => {
   
   return {
     t: createTFunction(ns),
-    i18n: {
-      language: 'zh-CN',
-      changeLanguage: jest.fn(),
-      t: createTFunction(ns),
-    },
+    i18n: mockI18n,
     ready: true,
   };
 };
@@ -113,19 +200,6 @@ jest.mock('react-i18next', () => ({
 
 // Mock i18next module
 jest.mock('i18next', () => {
-  const mockI18n = {
-    language: 'zh-CN',
-    changeLanguage: jest.fn((lang: string) => Promise.resolve()),
-    t: (key: string, ns?: string) => {
-      const namespace = ns || 'common';
-      return getNestedValue(translations[namespace] || {}, key);
-    },
-    use: jest.fn(() => mockI18n),
-    init: jest.fn(() => Promise.resolve()),
-    on: jest.fn(),
-    off: jest.fn(),
-  };
-  
   return {
     __esModule: true,
     default: mockI18n,
@@ -133,4 +207,11 @@ jest.mock('i18next', () => {
   };
 });
 
-console.log('[Setup] i18n mock applied with actual translations');
+// Export for direct access in tests if needed
+module.exports = {
+  mockI18n,
+  resetLanguage,
+  getTranslationsForLanguage,
+};
+
+console.log('[Setup] i18n mock applied with actual translations and dynamic language switching');
