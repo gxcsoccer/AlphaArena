@@ -44,25 +44,25 @@ const { Row, Col } = Grid;
 // Features data
 const features = [
   {
-    icon: <IconRobot style={{ fontSize: 32, color: '#165dff' }} />,
+    icon: <IconRobot style={{ fontSize: 32, color: 'var(--color-primary)' }} />,
     title: 'AI 驱动策略',
     description: '利用先进的 AI 算法，自动分析市场趋势，生成交易信号和策略建议。',
     highlights: ['智能市场分析', '策略优化建议', '风险管理指导'],
   },
   {
-    icon: <IconDashboard style={{ fontSize: 32, color: '#00b42a' }} />,
+    icon: <IconDashboard style={{ fontSize: 32, color: 'var(--color-success)' }} />,
     title: '模拟交易',
     description: '在真实市场环境中练习交易，无需承担真实资金风险。实时行情，零风险学习。',
     highlights: ['真实市场数据', '无风险练习', '完整交易体验'],
   },
   {
-    icon: <IconTrophy style={{ fontSize: 32, color: '#ff7d00' }} />,
+    icon: <IconTrophy style={{ fontSize: 32, color: 'var(--color-warning)' }} />,
     title: '竞技排名',
     description: '与其他交易者同台竞技，展示您的交易技巧，攀登排行榜获得荣誉。',
     highlights: ['实时排行榜', '策略竞赛', '社区互动'],
   },
   {
-    icon: <IconThunderbolt style={{ fontSize: 32, color: '#722ed1' }} />,
+    icon: <IconThunderbolt style={{ fontSize: 32, color: 'var(--color-secondary-500)' }} />,
     title: '极速执行',
     description: '毫秒级订单执行，支持多种订单类型，满足专业交易者的高要求。',
     highlights: ['毫秒级执行', '高级订单类型', '实时订单簿'],
@@ -264,7 +264,7 @@ const LandingPage: React.FC = () => {
             >
               专业级算法交易
               <br />
-              <span style={{ color: '#165dff' }}>AI 驱动 · 无风险</span>
+              <span style={{ color: 'var(--color-primary)' }}>AI 驱动 · 无风险</span>
             </Title>
             <Paragraph 
               style={{ 
@@ -351,7 +351,7 @@ const LandingPage: React.FC = () => {
           >
             {stats.map((stat, index) => (
               <Col key={index} style={{ textAlign: 'center' }}>
-                <Title heading={isMobile ? 5 : 4} style={{ marginBottom: 4, color: '#165dff' }}>
+                <Title heading={isMobile ? 5 : 4} style={{ marginBottom: 4, color: 'var(--color-primary)' }}>
                   {stat.value}
                 </Title>
                 <Text type="secondary">{stat.label}</Text>
@@ -418,15 +418,15 @@ const LandingPage: React.FC = () => {
                 style={{ 
                   width: 48, 
                   height: 48, 
-                  borderRadius: '50%', 
-                  background: '#165dff',
+                  borderRadius: 'var(--radius-full)', 
+                  background: 'var(--color-primary)',
                   color: 'white',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  margin: '0 auto 12px',
+                  margin: '0 auto var(--spacing-3)',
                   fontSize: 20,
-                  fontWeight: 'bold',
+                  fontWeight: 'var(--font-weight-bold)',
                 }}
               >
                 {item.step}
@@ -539,8 +539,8 @@ const styles: Record<string, React.CSSProperties> = {
     background: 'var(--color-bg-1)',
   },
   hero: {
-    padding: '80px 24px',
-    background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+    padding: 'var(--spacing-20) var(--spacing-6)',
+    background: 'var(--gradient-hero)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -555,25 +555,25 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'center',
   },
   section: {
-    padding: '64px 24px',
+    padding: 'var(--spacing-16) var(--spacing-6)',
     maxWidth: 1200,
     margin: '0 auto',
   },
   ctaSection: {
-    padding: '80px 24px',
-    background: 'linear-gradient(135deg, #165dff 0%, #722ed1 100%)',
+    padding: 'var(--spacing-20) var(--spacing-6)',
+    background: 'var(--gradient-primary)',
     textAlign: 'center',
   },
   footer: {
-    padding: '48px 24px',
+    padding: 'var(--spacing-12) var(--spacing-6)',
     background: 'var(--color-bg-2)',
     borderTop: '1px solid var(--color-border-1)',
   },
   footerLink: {
     color: 'var(--color-text-2)',
     textDecoration: 'none',
-    fontSize: 12,
-    lineHeight: '24px',
+    fontSize: 'var(--font-size-xs)',
+    lineHeight: 'var(--line-height-normal)',
   },
 };
 
