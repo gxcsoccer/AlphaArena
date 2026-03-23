@@ -50,6 +50,7 @@ import promoCodeRoutes from './promoCodeRoutes';
 import revenueRoutes from './revenueRoutes';
 import socialRoutes from './socialRoutes';
 import commentRoutes from './commentRoutes';
+import signalCommentRoutes from './signalCommentRoutes';
 import multiTimeframeRoutes from '../multi-timeframe/routes';
 import { createSignalRouter } from './signalRoutes';
 import { createRebalanceRouter } from './rebalanceRoutes';
@@ -966,6 +967,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/user/dashboard', userDashboardRoutes);
     this.app.use('/api/users', socialRoutes);
     this.app.use('/api', commentRoutes);
+    this.app.use('/api', signalCommentRoutes);
     this.app.use('/api/multi-timeframe', multiTimeframeRoutes);
     this.app.use('/api/signals', createSignalRouter());
     this.app.use('/api/rebalance', createRebalanceRouter());
