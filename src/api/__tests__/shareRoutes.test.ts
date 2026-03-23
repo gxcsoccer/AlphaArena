@@ -76,6 +76,11 @@ jest.mock('../authMiddleware', () => ({
     req.user = { id: 'user-123', email: 'test@example.com' };
     next();
   },
+  requireAdmin: (req: any, res: any, next: any) => {
+    // For tests, mock as admin
+    req.user = { id: 'admin-123', email: 'admin@example.com', role: 'admin' };
+    next();
+  },
 }));
 
 const app = express();
@@ -195,6 +200,27 @@ describe('Share Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.template).toBeDefined();
+    });
+  });
+
+  describe('GET /api/share/stats', () => {
+    it('should return global share stats for admin', async () => {
+      const response = await request(app)
+        .get('/api/share/stats');
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.totalShares).toBe(100);
+    });
+  });
+
+  describe('GET /api/share/conversion-rate', () => {
+    it('should return conversion rate for admin', async () => {
+      const response = await request(app)
+        .get('/api/share/conversion-rate');
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
     });
   });
 });

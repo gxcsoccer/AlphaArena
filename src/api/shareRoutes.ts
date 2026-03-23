@@ -6,7 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { getShareStatsDAO, SharePlatform, ShareContentType } from '../database/share-stats.dao';
 import { getReferralDAO } from '../database/referral.dao';
-import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
+import { authMiddleware, optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('ShareRoutes');
@@ -136,9 +136,8 @@ router.post('/referral', authMiddleware, async (req: Request, res: Response) => 
  * GET /api/share/stats
  * Get global share statistics (admin only)
  */
-router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
+router.get('/stats', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
-    // TODO: Add admin check
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
 
@@ -218,11 +217,10 @@ router.get('/platform-distribution', authMiddleware, async (req: Request, res: R
 
 /**
  * GET /api/share/conversion-rate
- * Get share-to-signup conversion rate
+ * Get share-to-signup conversion rate (admin only)
  */
-router.get('/conversion-rate', authMiddleware, async (req: Request, res: Response) => {
+router.get('/conversion-rate', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
-    // TODO: Add admin check
     const startDate = req.query.startDate ? new Date(req.query.startDate as string) : undefined;
     const endDate = req.query.endDate ? new Date(req.query.endDate as string) : undefined;
 
