@@ -44,6 +44,7 @@ import exportRoutes from './exportRoutes';
 import { createTemplateRouter } from './templateRoutes';
 import authRoutes from './authRoutes';
 import userDashboardRoutes from './userDashboardRoutes';
+import userPreferencesRoutes from './userPreferencesRoutes'; // Issue #586
 import { createRiskMonitorRouter } from './riskMonitorRoutes';
 import subscriptionRoutes from './subscriptionRoutes';
 import promoCodeRoutes from './promoCodeRoutes';
@@ -996,6 +997,7 @@ export class APIServer extends EventEmitter {
     // Auth routes
     this.app.use('/api/auth', authRoutes);
     this.app.use('/api/user/dashboard', userDashboardRoutes);
+    this.app.use('/api/user/preferences', userPreferencesRoutes); // Issue #586
     this.app.use('/api/users', socialRoutes);
     this.app.use('/api', commentRoutes);
     this.app.use('/api', signalCommentRoutes);
