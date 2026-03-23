@@ -18,11 +18,24 @@ jest.mock('../../database', () => ({
       created_at: new Date().toISOString(),
     }),
     getFeedbacks: jest.fn().mockResolvedValue([]),
-    getFeedbackById: jest.fn().mockResolvedValue(null),
-    updateFeedbackStatus: jest.fn().mockResolvedValue({
+    getFeedbackById: jest.fn().mockImplementation((id: string) => {
+      // Return null for non-existent IDs
+      if (id === 'non-existent-id') {
+        return Promise.resolve(null);
+      }
+      return Promise.resolve({
+        id: id,
+        type: 'bug',
+        description: 'Test bug',
+        status: 'new',
+        created_at: new Date().toISOString(),
+      });
+    }),
+    updateFeedback: jest.fn().mockResolvedValue({
       id: 'fb_test_123',
       status: 'in_progress',
     }),
+    deleteFeedback: jest.fn().mockResolvedValue(undefined),
     getFeedbackStats: jest.fn().mockResolvedValue({
       total: 0,
       byType: { bug: 0, suggestion: 0, other: 0 },
