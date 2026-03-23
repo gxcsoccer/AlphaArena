@@ -4,10 +4,11 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { SocialDAO, User, UserBadge } from '../database/social.dao';
+import { SocialDAO, User, UserBadge, UserActivity } from '../database/social.dao';
 import { StrategyTemplatesDAO, StrategyTemplate } from '../database/strategyTemplates.dao';
 import { authMiddleware, optionalAuthMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
+import { createNotification, shouldReceiveNotification } from '../database/notifications.dao';
 
 const log = createLogger('SocialRoutes');
 
@@ -79,7 +80,6 @@ router.patch('/me/profile', authMiddleware, async (req: Request, res: Response) 
 /**
  * GET /api/users/me/following/feed
  * Get activity feed from followed users
- * TODO: Implement when activity logging is ready
  */
 router.get('/me/following/feed', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -92,17 +92,31 @@ router.get('/me/following/feed', authMiddleware, async (req: Request, res: Respo
       });
     }
 
-    // Get list of users being followed
-    const following = await socialDAO.getFollowing(userId, 100, 0);
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
 
-    // TODO: Implement activity feed when user_activities table is ready
-    // For now, return empty feed
+    // Get activity feed from followed users
+    const activities = await socialDAO.getActivityFeed(userId, limit, offset);
+
     res.json({
       success: true,
-      data: {
-        activities: [],
-        followingCount: following.length,
-        message: 'Activity feed coming soon',
+      data: activities.map((activity: UserActivity) => ({
+        id: activity.id,
+        userId: activity.userId,
+        username: activity.username,
+        displayName: activity.displayName,
+        avatarUrl: activity.avatarUrl,
+        activityType: activity.activityType,
+        entityType: activity.entityType,
+        entityId: activity.entityId,
+        entityName: activity.entityName,
+        entityData: activity.entityData,
+        createdAt: activity.createdAt,
+      })),
+      pagination: {
+        limit,
+        offset,
+        hasMore: activities.length === limit,
       },
     });
   } catch (error: any) {
@@ -167,6 +181,9 @@ router.get('/:username', optionalAuthMiddleware, async (req: Request, res: Respo
       });
     }
 
+    // Check if viewer can see this profile
+    const canView = await socialDAO.canViewProfile(currentUser || null, user.id);
+    
     // Check if current user is following this user
     let isFollowing = false;
     if (currentUser) {
@@ -174,19 +191,22 @@ router.get('/:username', optionalAuthMiddleware, async (req: Request, res: Respo
     }
 
     // Build public profile response
+    // If can't view (blocked or private), show limited info
     const publicProfile = {
       id: user.id,
       username: user.username,
-      displayName: user.displayName,
-      avatarUrl: user.avatarUrl,
-      bio: user.bio,
-      websiteUrl: user.websiteUrl,
-      twitterHandle: user.twitterHandle,
+      displayName: canView ? user.displayName : null,
+      avatarUrl: canView ? user.avatarUrl : null,
+      bio: canView ? user.bio : null,
+      websiteUrl: canView ? user.websiteUrl : null,
+      twitterHandle: canView ? user.twitterHandle : null,
       followersCount: user.followersCount,
       followingCount: user.followingCount,
       isFollowing,
       isPublic: user.isPublic,
-      createdAt: user.createdAt,
+      isBlocked: currentUser ? await socialDAO.hasBlocked(user.id, currentUser) : false,
+      canViewProfile: canView,
+      createdAt: canView ? user.createdAt : null,
     };
 
     res.json({
@@ -343,6 +363,7 @@ router.get('/:username/strategies', optionalAuthMiddleware, async (req: Request,
 router.get('/:username/activities', optionalAuthMiddleware, async (req: Request, res: Response) => {
   try {
     const username = req.params.username as string;
+    const currentUserId = req.user?.id;
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = parseInt(req.query.offset as string) || 0;
 
@@ -355,17 +376,34 @@ router.get('/:username/activities', optionalAuthMiddleware, async (req: Request,
       });
     }
 
-    // TODO: Implement when user_activities table is created
-    // For now, return empty activities with a note
+    // Check if viewer can see this user's activities
+    const canView = await socialDAO.canViewProfile(currentUserId || null, user.id);
+    if (!canView) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot view this user\'s activities',
+      });
+    }
+
+    // Get user's activities
+    const activities = await socialDAO.getUserActivities(user.id, limit, offset);
+
     res.json({
       success: true,
-      data: [],
+      data: activities.map((activity: UserActivity) => ({
+        id: activity.id,
+        activityType: activity.activityType,
+        entityType: activity.entityType,
+        entityId: activity.entityId,
+        entityName: activity.entityName,
+        entityData: activity.entityData,
+        createdAt: activity.createdAt,
+      })),
       pagination: {
         limit,
         offset,
-        hasMore: false,
+        hasMore: activities.length === limit,
       },
-      message: 'Activity logging coming soon',
     });
   } catch (error: any) {
     log.error('Error fetching user activities:', error);
@@ -399,6 +437,15 @@ router.post('/:userId/follow', authMiddleware, async (req: Request, res: Respons
       });
     }
 
+    // Check if target user has blocked current user
+    const isBlocked = await socialDAO.hasBlocked(targetUserId, currentUserId);
+    if (isBlocked) {
+      return res.status(403).json({
+        success: false,
+        error: 'Cannot follow this user',
+      });
+    }
+
     // Check if already following
     const alreadyFollowing = await socialDAO.isFollowing(currentUserId, targetUserId);
     if (alreadyFollowing) {
@@ -417,7 +464,44 @@ router.post('/:userId/follow', authMiddleware, async (req: Request, res: Respons
       });
     }
 
+    // Check privacy - if user is private, they need to accept follow requests
+    // For now, we allow following but the content visibility is restricted
     await socialDAO.followUser(currentUserId, targetUserId);
+
+    // Log activity
+    await socialDAO.logActivity(
+      currentUserId,
+      'followed_user',
+      'user',
+      targetUserId,
+      targetUser.username
+    );
+
+    // Send notification to the followed user
+    const currentUser = await socialDAO.getUserById(currentUserId);
+    const shouldNotify = await shouldReceiveNotification(
+      targetUserId,
+      'SYSTEM',
+      'MEDIUM'
+    );
+
+    if (shouldNotify && currentUser) {
+      await createNotification({
+        user_id: targetUserId,
+        type: 'SYSTEM',
+        priority: 'MEDIUM',
+        title: 'New Follower',
+        message: `${currentUser.displayName || currentUser.username} started following you`,
+        data: {
+          followerId: currentUserId,
+          followerUsername: currentUser.username,
+          followerDisplayName: currentUser.displayName,
+        },
+        entity_type: 'user',
+        entity_id: currentUserId,
+        action_url: `/profile/${currentUser.username}`,
+      });
+    }
 
     res.json({
       success: true,
@@ -593,6 +677,153 @@ router.get('/:userId/following', optionalAuthMiddleware, async (req: Request, re
     res.status(500).json({
       success: false,
       error: 'Failed to fetch following',
+    });
+  }
+});
+
+// ============ Block Routes ============
+
+/**
+ * POST /api/users/:userId/block
+ * Block a user
+ */
+router.post('/:userId/block', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const currentUserId = req.user?.id;
+    const targetUserId = req.params.userId as string;
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+    }
+
+    if (currentUserId === targetUserId) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cannot block yourself',
+      });
+    }
+
+    // Check if target user exists
+    const targetUser = await socialDAO.getUserById(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found',
+      });
+    }
+
+    // Check if already blocked
+    const alreadyBlocked = await socialDAO.hasBlocked(currentUserId, targetUserId);
+    if (alreadyBlocked) {
+      return res.status(400).json({
+        success: false,
+        error: 'User already blocked',
+      });
+    }
+
+    await socialDAO.blockUser(currentUserId, targetUserId);
+
+    res.json({
+      success: true,
+      message: 'Successfully blocked user',
+      data: {
+        blockedId: targetUserId,
+      },
+    });
+  } catch (error: any) {
+    log.error('Error blocking user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to block user',
+    });
+  }
+});
+
+/**
+ * DELETE /api/users/:userId/block
+ * Unblock a user
+ */
+router.delete('/:userId/block', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const currentUserId = req.user?.id;
+    const targetUserId = req.params.userId as string;
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+    }
+
+    // Check if blocked
+    const isBlocked = await socialDAO.hasBlocked(currentUserId, targetUserId);
+    if (!isBlocked) {
+      return res.status(400).json({
+        success: false,
+        error: 'User not blocked',
+      });
+    }
+
+    await socialDAO.unblockUser(currentUserId, targetUserId);
+
+    res.json({
+      success: true,
+      message: 'Successfully unblocked user',
+      data: {
+        unblockedId: targetUserId,
+      },
+    });
+  } catch (error: any) {
+    log.error('Error unblocking user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to unblock user',
+    });
+  }
+});
+
+/**
+ * GET /api/users/me/blocked
+ * Get list of blocked users
+ */
+router.get('/me/blocked', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const currentUserId = req.user?.id;
+
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        error: 'User not authenticated',
+      });
+    }
+
+    const limit = parseInt(req.query.limit as string) || 50;
+    const offset = parseInt(req.query.offset as string) || 0;
+
+    const blockedUsers = await socialDAO.getBlockedUsers(currentUserId, limit, offset);
+
+    res.json({
+      success: true,
+      data: blockedUsers.map((user: User) => ({
+        id: user.id,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+      })),
+      pagination: {
+        limit,
+        offset,
+        hasMore: blockedUsers.length === limit,
+      },
+    });
+  } catch (error: any) {
+    log.error('Error fetching blocked users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch blocked users',
     });
   }
 });

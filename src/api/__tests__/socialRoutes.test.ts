@@ -19,12 +19,26 @@ jest.mock('../../database/social.dao', () => {
     getFollowing: jest.fn(),
     getUserBadges: jest.fn(),
     awardBadge: jest.fn(),
+    hasBlocked: jest.fn(),
+    canViewProfile: jest.fn(),
+    logActivity: jest.fn(),
+    getUserActivities: jest.fn(),
+    getActivityFeed: jest.fn(),
+    getBlockedUsers: jest.fn(),
+    blockUser: jest.fn(),
+    unblockUser: jest.fn(),
   };
 
   return {
     SocialDAO: jest.fn(() => mockSocialDAO),
   };
 });
+
+// Mock notifications.dao
+jest.mock('../../database/notifications.dao', () => ({
+  createNotification: jest.fn(),
+  shouldReceiveNotification: jest.fn(() => Promise.resolve(true)),
+}));
 
 // Mock auth middleware
 jest.mock('../authMiddleware', () => ({
@@ -67,6 +81,8 @@ describe('Social Routes', () => {
       });
 
       mockDAO.isFollowing.mockResolvedValue(false);
+      mockDAO.canViewProfile.mockResolvedValue(true);
+      mockDAO.hasBlocked.mockResolvedValue(false);
 
       const response = await request(app)
         .get('/api/users/testuser')
@@ -125,16 +141,22 @@ describe('Social Routes', () => {
       const { SocialDAO } = require('../../database/social.dao');
       const mockDAO = new SocialDAO();
 
+      mockDAO.hasBlocked.mockResolvedValue(false);
       mockDAO.isFollowing.mockResolvedValue(false);
-      mockDAO.getUserById.mockResolvedValue({
+      mockDAO.getUserById.mockResolvedValueOnce({
         id: 'target-user-id',
         username: 'targetuser',
+      });
+      mockDAO.getUserById.mockResolvedValueOnce({
+        id: 'test-user-id',
+        username: 'testuser',
       });
       mockDAO.followUser.mockResolvedValue({
         id: 'follow-123',
         followerId: 'test-user-id',
         followingId: 'target-user-id',
       });
+      mockDAO.logActivity.mockResolvedValue({});
 
       const response = await request(app)
         .post('/api/users/target-user-id/follow')
@@ -149,6 +171,7 @@ describe('Social Routes', () => {
       const { SocialDAO } = require('../../database/social.dao');
       const mockDAO = new SocialDAO();
 
+      mockDAO.hasBlocked.mockResolvedValue(false);
       mockDAO.isFollowing.mockResolvedValue(true);
 
       const response = await request(app)
