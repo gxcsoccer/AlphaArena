@@ -69,6 +69,7 @@ import performanceRoutes from './performanceRoutes';
 import userTrackingRoutes from './userTrackingRoutes';
 import userAnalyticsRoutes from './userAnalyticsRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
+import { createExperimentRouter } from './experimentRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
 import insightRoutes from './insightRoutes';
 import { errorLogService } from '../analytics/ErrorLogService';
@@ -1016,6 +1017,9 @@ export class APIServer extends EventEmitter {
 
     // User Feedback routes
     this.app.use('/api/feedback', createFeedbackRouter());
+
+    // A/B Testing Experiment routes
+    this.app.use('/api/experiments', createExperimentRouter());
 
     // Analytics Export routes
     this.app.use('/api/analytics-export', analyticsExportRoutes);

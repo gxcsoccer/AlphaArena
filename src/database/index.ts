@@ -326,3 +326,22 @@ export {
   type UpdateFeedbackInput,
   type FeedbackQueryOptions,
 } from './feedback.dao';
+
+// Experiment DAO (A/B Testing)
+export {
+  experimentDAO,
+  ExperimentStatus,
+  EventType,
+  type Experiment,
+  type ExperimentVariant,
+  type ExperimentAssignment,
+  type ExperimentEvent,
+  type ExperimentStatistics,
+  type VariantResult,
+  type CreateExperimentInput,
+  type UpdateExperimentInput,
+  type CreateVariantInput,
+  type UpdateVariantInput,
+  type TrackEventInput,
+  type ExperimentQueryOptions,
+} from './experiment.dao';
