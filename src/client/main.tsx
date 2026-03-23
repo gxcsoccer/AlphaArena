@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ConfigProvider } from '@arco-design/web-react';
-import '@arco-design/web-react/dist/css/arco.min.css';
 import zhCN from '@arco-design/web-react/es/locale/zh-CN';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -9,6 +8,14 @@ import { validateConfig, logConfigStatus } from './utils/config';
 import ToastContainer from './components/Toast';
 import { initCriticalPreloading } from './utils/resourcePreload';
 import { registerServiceWorker } from './utils/serviceWorker';
+
+// Design System - Import design tokens BEFORE Arco CSS
+import './styles/design-tokens.css';
+// Arco Design CSS
+import '@arco-design/web-react/dist/css/arco.min.css';
+// Arco Design theme overrides
+import './styles/arco-theme.css';
+// Global styles and overrides
 import './index.css';
 import './styles/ux-improvements.css'; // Issue #514: UX 改进样式
 

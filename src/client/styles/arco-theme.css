@@ -1,0 +1,681 @@
+/**
+ * Arco Design Theme Overrides
+ * 
+ * This file customizes Arco Design components to match AlphaArena's design system.
+ * It should be imported after Arco's CSS.
+ */
+
+/* ============================================
+   Color Theme Variables Override
+   ============================================ */
+
+:root {
+  /* Override Arco's primary colors with our design tokens */
+  --arco-color-primary: var(--color-primary);
+  --arco-color-primary-hover: var(--color-primary-hover);
+  --arco-color-primary-active: var(--color-primary-active);
+  --arco-color-primary-1: var(--color-primary-50);
+  --arco-color-primary-2: var(--color-primary-100);
+  --arco-color-primary-3: var(--color-primary-200);
+  --arco-color-primary-4: var(--color-primary-300);
+  --arco-color-primary-5: var(--color-primary-400);
+  --arco-color-primary-6: var(--color-primary-500);
+  --arco-color-primary-7: var(--color-primary-600);
+  --arco-color-primary-8: var(--color-primary-700);
+  --arco-color-primary-9: var(--color-primary-800);
+  --arco-color-primary-10: var(--color-primary-900);
+
+  /* Override success colors */
+  --arco-color-success: var(--color-success);
+  --arco-color-success-hover: var(--color-success-hover);
+  --arco-color-success-active: var(--color-success-active);
+  --arco-color-success-1: var(--color-success-50);
+  --arco-color-success-2: var(--color-success-100);
+  --arco-color-success-3: var(--color-success-200);
+  --arco-color-success-4: var(--color-success-300);
+  --arco-color-success-5: var(--color-success-400);
+  --arco-color-success-6: var(--color-success-500);
+  --arco-color-success-7: var(--color-success-600);
+  --arco-color-success-8: var(--color-success-700);
+
+  /* Override warning colors */
+  --arco-color-warning: var(--color-warning);
+  --arco-color-warning-hover: var(--color-warning-hover);
+  --arco-color-warning-active: var(--color-warning-active);
+  --arco-color-warning-1: var(--color-warning-50);
+  --arco-color-warning-2: var(--color-warning-100);
+  --arco-color-warning-3: var(--color-warning-200);
+  --arco-color-warning-4: var(--color-warning-300);
+  --arco-color-warning-5: var(--color-warning-400);
+  --arco-color-warning-6: var(--color-warning-500);
+  --arco-color-warning-7: var(--color-warning-600);
+  --arco-color-warning-8: var(--color-warning-700);
+
+  /* Override danger/error colors */
+  --arco-color-danger: var(--color-danger);
+  --arco-color-danger-hover: var(--color-danger-hover);
+  --arco-color-danger-active: var(--color-danger-active);
+  --arco-color-danger-1: var(--color-error-50);
+  --arco-color-danger-2: var(--color-error-100);
+  --arco-color-danger-3: var(--color-error-200);
+  --arco-color-danger-4: var(--color-error-300);
+  --arco-color-danger-5: var(--color-error-400);
+  --arco-color-danger-6: var(--color-error-500);
+  --arco-color-danger-7: var(--color-error-600);
+  --arco-color-danger-8: var(--color-error-700);
+
+  /* Override link colors */
+  --arco-color-link: var(--color-primary);
+  --arco-color-link-hover: var(--color-primary-hover);
+  --arco-color-link-active: var(--color-primary-active);
+
+  /* Override border radius */
+  --arco-border-radius-none: var(--radius-none);
+  --arco-border-radius-small: var(--radius-sm);
+  --arco-border-radius-medium: var(--radius-md);
+  --arco-border-radius-large: var(--radius-lg);
+  --arco-border-radius-circle: var(--radius-full);
+}
+
+/* ============================================
+   Light Theme Override
+   ============================================ */
+
+:root,
+:root.light,
+:root[data-theme='light'] {
+  /* Background */
+  --arco-color-bg-1: var(--color-bg-1);
+  --arco-color-bg-2: var(--color-bg-2);
+  --arco-color-bg-3: var(--color-bg-3);
+  --arco-color-bg-4: var(--color-bg-4);
+  --arco-color-bg-5: var(--color-bg-5);
+
+  /* Text */
+  --arco-color-text-1: var(--color-text-1);
+  --arco-color-text-2: var(--color-text-2);
+  --arco-color-text-3: var(--color-text-3);
+  --arco-color-text-4: var(--color-text-4);
+
+  /* Border */
+  --arco-color-border: var(--color-border-1);
+  --arco-color-border-1: var(--color-border-1);
+  --arco-color-border-2: var(--color-border-2);
+  --arco-color-border-3: var(--color-border-3);
+  --arco-color-border-4: var(--color-border-4);
+
+  /* Fill */
+  --arco-color-fill-1: var(--color-fill-1);
+  --arco-color-fill-2: var(--color-fill-2);
+  --arco-color-fill-3: var(--color-fill-3);
+  --arco-color-fill-4: var(--color-fill-4);
+
+  /* Shadows */
+  --arco-shadow-1: var(--shadow-xs);
+  --arco-shadow-2: var(--shadow-sm);
+  --arco-shadow-3: var(--shadow-md);
+  --arco-shadow-4: var(--shadow-lg);
+  --arco-shadow-5: var(--shadow-xl);
+}
+
+/* ============================================
+   Dark Theme Override
+   ============================================ */
+
+:root.dark,
+:root[data-theme='dark'] {
+  /* Background */
+  --arco-color-bg-1: var(--color-bg-1);
+  --arco-color-bg-2: var(--color-bg-2);
+  --arco-color-bg-3: var(--color-bg-3);
+  --arco-color-bg-4: var(--color-bg-4);
+  --arco-color-bg-5: var(--color-bg-5);
+
+  /* Text */
+  --arco-color-text-1: var(--color-text-1);
+  --arco-color-text-2: var(--color-text-2);
+  --arco-color-text-3: var(--color-text-3);
+  --arco-color-text-4: var(--color-text-4);
+
+  /* Border */
+  --arco-color-border: var(--color-border-1);
+  --arco-color-border-1: var(--color-border-1);
+  --arco-color-border-2: var(--color-border-2);
+  --arco-color-border-3: var(--color-border-3);
+  --arco-color-border-4: var(--color-border-4);
+
+  /* Fill */
+  --arco-color-fill-1: var(--color-fill-1);
+  --arco-color-fill-2: var(--color-fill-2);
+  --arco-color-fill-3: var(--color-fill-3);
+  --arco-color-fill-4: var(--color-fill-4);
+
+  /* Shadows */
+  --arco-shadow-1: var(--shadow-xs);
+  --arco-shadow-2: var(--shadow-sm);
+  --arco-shadow-3: var(--shadow-md);
+  --arco-shadow-4: var(--shadow-lg);
+  --arco-shadow-5: var(--shadow-xl);
+}
+
+/* ============================================
+   Component Specific Overrides
+   ============================================ */
+
+/* Button Enhancements */
+.arco-btn-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-btn-primary:hover {
+  background-color: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.arco-btn-primary:active {
+  background-color: var(--color-primary-active);
+  border-color: var(--color-primary-active);
+}
+
+.arco-btn-secondary {
+  background-color: var(--color-fill-2);
+  border-color: transparent;
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-btn-secondary:hover {
+  background-color: var(--color-fill-3);
+  border-color: transparent;
+}
+
+.arco-btn-outline {
+  background-color: transparent;
+  border-color: var(--color-border-1);
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-btn-outline:hover {
+  background-color: var(--color-fill-2);
+  border-color: var(--color-border-1);
+}
+
+.arco-btn-text {
+  background-color: transparent;
+  color: var(--color-text-1);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-btn-text:hover {
+  background-color: var(--color-fill-2);
+}
+
+.arco-btn-danger {
+  background-color: var(--color-danger);
+  border-color: var(--color-danger);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-btn-danger:hover {
+  background-color: var(--color-danger-hover);
+  border-color: var(--color-danger-hover);
+}
+
+/* Card Enhancements */
+.arco-card {
+  background-color: var(--color-bg-1);
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-lg);
+  transition: box-shadow var(--duration-200) var(--ease-in-out),
+              transform var(--duration-200) var(--ease-in-out);
+}
+
+.arco-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.arco-card-bordered {
+  border-color: var(--color-border-1);
+}
+
+.arco-card-meta-title {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-1);
+}
+
+/* Input Enhancements */
+.arco-input {
+  border-radius: var(--radius-md);
+  border-color: var(--color-border-1);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-input:focus,
+.arco-input:hover {
+  border-color: var(--color-primary);
+}
+
+.arco-input:focus {
+  box-shadow: var(--shadow-focus);
+}
+
+.arco-input-error {
+  border-color: var(--color-danger);
+}
+
+.arco-input-error:focus {
+  box-shadow: var(--shadow-focus-error);
+}
+
+/* Select Enhancements */
+.arco-select-view {
+  border-radius: var(--radius-md);
+  border-color: var(--color-border-1);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-select-view:focus,
+.arco-select-view:hover {
+  border-color: var(--color-primary);
+}
+
+.arco-select-view:focus {
+  box-shadow: var(--shadow-focus);
+}
+
+/* Modal Enhancements */
+.arco-modal {
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-2xl);
+}
+
+.arco-modal-header {
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Drawer Enhancements */
+.arco-drawer {
+  border-radius: var(--radius-2xl) 0 0 var(--radius-2xl);
+}
+
+/* Table Enhancements */
+.arco-table-th {
+  background-color: var(--color-bg-2);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-2);
+}
+
+.arco-table-td {
+  border-bottom: 1px solid var(--color-border-1);
+}
+
+.arco-table-tr:hover .arco-table-td {
+  background-color: var(--color-fill-1);
+}
+
+/* Tag Enhancements */
+.arco-tag {
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+/* Message/Notification Enhancements */
+.arco-message {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.arco-notification {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+/* Menu Enhancements */
+.arco-menu-item {
+  border-radius: var(--radius-md);
+  margin: 2px 8px;
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-menu-item:hover {
+  background-color: var(--color-fill-2);
+}
+
+.arco-menu-selected {
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+/* Tabs Enhancements */
+.arco-tabs-tab {
+  font-weight: var(--font-weight-medium);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-tabs-tab-active {
+  color: var(--color-primary);
+}
+
+.arco-tabs-tab:hover {
+  color: var(--color-primary-hover);
+}
+
+/* Progress Enhancements */
+.arco-progress-line-inner {
+  border-radius: var(--radius-sm);
+}
+
+/* Badge Enhancements */
+.arco-badge-number,
+.arco-badge-dot {
+  background-color: var(--color-danger);
+}
+
+/* Switch Enhancements */
+.arco-switch-checked {
+  background-color: var(--color-primary);
+}
+
+/* Checkbox/Radio Enhancements */
+.arco-checkbox-checked .arco-checkbox-icon {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.arco-radio-checked .arco-radio-icon-dot {
+  background-color: var(--color-primary);
+}
+
+/* Pagination Enhancements */
+.arco-pagination-item {
+  border-radius: var(--radius-md);
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-pagination-item:hover {
+  background-color: var(--color-fill-2);
+}
+
+.arco-pagination-item-active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Statistic Enhancements */
+.arco-statistic-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-3);
+  font-weight: var(--font-weight-medium);
+}
+
+.arco-statistic-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-1);
+}
+
+/* Descriptions Enhancements */
+.arco-descriptions-item-label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-2);
+}
+
+/* Form Enhancements */
+.arco-form-label-item > label {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+/* Spin Enhancements */
+.arco-spin-dot-item {
+  background-color: var(--color-primary);
+}
+
+/* Empty Enhancements */
+.arco-empty-description {
+  color: var(--color-text-3);
+}
+
+/* Tooltip Enhancements */
+.arco-tooltip-content {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Dropdown Enhancements */
+.arco-dropdown-menu {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-1);
+}
+
+.arco-dropdown-option {
+  border-radius: var(--radius-sm);
+  margin: 2px 8px;
+  transition: all var(--duration-150) var(--ease-in-out);
+}
+
+.arco-dropdown-option:hover {
+  background-color: var(--color-fill-2);
+}
+
+/* Divider Enhancements */
+.arco-divider {
+  border-color: var(--color-border-1);
+}
+
+/* Layout Enhancements */
+.arco-layout-sider {
+  background-color: var(--color-bg-1);
+  border-right: 1px solid var(--color-border-1);
+}
+
+.arco-layout-header {
+  background-color: var(--color-bg-1);
+  border-bottom: 1px solid var(--color-border-1);
+}
+
+/* List Enhancements */
+.arco-list-item {
+  border-bottom: 1px solid var(--color-border-1);
+  transition: background-color var(--duration-150) var(--ease-in-out);
+}
+
+.arco-list-item:hover {
+  background-color: var(--color-fill-1);
+}
+
+/* Timeline Enhancements */
+.arco-timeline-item-content {
+  color: var(--color-text-1);
+}
+
+.arco-timeline-item-dot {
+  background-color: var(--color-primary);
+}
+
+/* Steps Enhancements */
+.arco-steps-item-process .arco-steps-item-icon {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.arco-steps-item-finish .arco-steps-item-icon {
+  background-color: var(--color-primary-bg);
+  border-color: var(--color-primary);
+}
+
+/* Breadcrumb Enhancements */
+.arco-breadcrumb-item {
+  color: var(--color-text-2);
+}
+
+.arco-breadcrumb-item:last-child {
+  color: var(--color-text-1);
+}
+
+/* Avatar Enhancements */
+.arco-avatar {
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+/* Collapse Enhancements */
+.arco-collapse-item {
+  border: 1px solid var(--color-border-1);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-2);
+}
+
+.arco-collapse-item-header {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Tree Enhancements */
+.arco-tree-node-title {
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-150) var(--ease-in-out);
+}
+
+.arco-tree-node-title:hover {
+  background-color: var(--color-fill-2);
+}
+
+.arco-tree-node-selected .arco-tree-node-title {
+  background-color: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+/* Transfer Enhancements */
+.arco-transfer-view {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-1);
+}
+
+/* Calendar Enhancements */
+.arco-calendar-cell-selected {
+  background-color: var(--color-primary-bg);
+}
+
+/* TimePicker Enhancements */
+.arco-timepicker-popup {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* DatePicker Enhancements */
+.arco-datepicker-popup {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Slider Enhancements */
+.arco-slider-road {
+  background-color: var(--color-fill-3);
+}
+
+.arco-slider-track {
+  background-color: var(--color-primary);
+}
+
+.arco-slider-btn {
+  border-color: var(--color-primary);
+}
+
+/* Rate Enhancements */
+.arco-rate-character {
+  color: var(--color-fill-3);
+}
+
+.arco-rate-character-active {
+  color: var(--color-warning);
+}
+
+/* Skeleton Enhancements */
+.arco-skeleton-text-row {
+  background-color: var(--color-fill-2);
+}
+
+/* Comment Enhancements */
+.arco-comment-author {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-1);
+}
+
+/* Alert Enhancements */
+.arco-alert {
+  border-radius: var(--radius-lg);
+}
+
+.arco-alert-info {
+  background-color: var(--color-info-bg);
+  border-color: var(--color-info);
+}
+
+.arco-alert-success {
+  background-color: var(--color-success-bg);
+  border-color: var(--color-success);
+}
+
+.arco-alert-warning {
+  background-color: var(--color-warning-bg);
+  border-color: var(--color-warning);
+}
+
+.arco-alert-error {
+  background-color: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+/* Result Enhancements */
+.arco-result {
+  border-radius: var(--radius-xl);
+}
+
+/* Image Enhancements */
+.arco-image {
+  border-radius: var(--radius-lg);
+}
+
+.arco-image-preview-modal {
+  border-radius: var(--radius-2xl);
+}
+
+/* Typography Enhancements */
+.arco-typography {
+  color: var(--color-text-1);
+}
+
+.arco-typography-primary {
+  color: var(--color-primary);
+}
+
+.arco-typography-success {
+  color: var(--color-success);
+}
+
+.arco-typography-warning {
+  color: var(--color-warning);
+}
+
+.arco-typography-danger {
+  color: var(--color-danger);
+}
+
+/* Link Enhancements */
+.arco-typography a {
+  color: var(--color-primary);
+}
+
+.arco-typography a:hover {
+  color: var(--color-primary-hover);
+}
