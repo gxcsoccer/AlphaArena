@@ -9,6 +9,9 @@
  * - Trust badges and social proof
  * - Enhanced visual hierarchy
  * - Mobile-optimized experience
+ * 
+ * Issue #585: 核心页面英文翻译
+ * - Added i18n support for all hardcoded Chinese text
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -44,97 +47,11 @@ import {
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
-
-// ============================================
-// Features Data
-// ============================================
-const features = [
-  {
-    icon: <IconRobot />,
-    title: 'AI 驱动策略',
-    description: '利用先进的 AI 算法，自动分析市场趋势，生成交易信号和策略建议。',
-    highlights: ['智能市场分析', '策略优化建议', '风险管理指导'],
-    color: 'var(--color-primary)',
-    gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-  },
-  {
-    icon: <IconDashboard />,
-    title: '模拟交易',
-    description: '在真实市场环境中练习交易，无需承担真实资金风险。实时行情，零风险学习。',
-    highlights: ['真实市场数据', '无风险练习', '完整交易体验'],
-    color: 'var(--color-success)',
-    gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-  },
-  {
-    icon: <IconTrophy />,
-    title: '竞技排名',
-    description: '与其他交易者同台竞技，展示您的交易技巧，攀登排行榜获得荣誉。',
-    highlights: ['实时排行榜', '策略竞赛', '社区互动'],
-    color: 'var(--color-warning)',
-    gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
-  },
-  {
-    icon: <IconThunderbolt />,
-    title: '极速执行',
-    description: '毫秒级订单执行，支持多种订单类型，满足专业交易者的高要求。',
-    highlights: ['毫秒级执行', '高级订单类型', '实时订单簿'],
-    color: 'var(--color-secondary-500)',
-    gradient: 'linear-gradient(135deg, #A855F7 0%, #9333EA 100%)',
-  },
-];
-
-// ============================================
-// Testimonials Data
-// ============================================
-const testimonials = [
-  {
-    name: '张明',
-    role: '量化交易爱好者',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhangming',
-    content: 'AlphaArena 的模拟交易功能让我在真实投入前充分测试了我的策略，避免了不必要的损失。AI 助手的建议非常有价值。',
-    rating: 5,
-    stats: '使用 6 个月',
-  },
-  {
-    name: '李华',
-    role: '独立交易者',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lihua',
-    content: 'AI 助手的建议非常有帮助，特别是在我需要快速决策时，节省了大量研究时间。收益率提升了 30%。',
-    rating: 5,
-    stats: '收益率 +30%',
-  },
-  {
-    name: '王芳',
-    role: '金融专业学生',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangfang',
-    content: '作为学习工具，AlphaArena 提供了完整的专业交易体验，让我在实践中学习。比教科书有用多了！',
-    rating: 5,
-    stats: '学习时长 200h+',
-  },
-];
-
-// ============================================
-// Stats Data
-// ============================================
-const stats = [
-  { value: '10,000+', label: '活跃用户', icon: <IconUser /> },
-  { value: '$100M+', label: '模拟交易量', icon: <IconDashboard /> },
-  { value: '99.9%', label: '系统可用性', icon: <IconSafe /> },
-  { value: '24/7', label: '实时监控', icon: <IconHeart /> },
-];
-
-// ============================================
-// Trust Badges
-// ============================================
-const trustBadges = [
-  { label: '银行级安全', icon: <IconSafe /> },
-  { label: '10K+ 用户信赖', icon: <IconUser /> },
-  { label: '免费使用', icon: <IconStar /> },
-];
 
 // ============================================
 // Social Platforms
@@ -185,10 +102,106 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
+  const { t } = useTranslation('landing');
   const [isMobile, setIsMobile] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
   const statsRef = useRef<HTMLDivElement>(null);
+
+  // Features data with translations
+  const features = [
+    {
+      icon: <IconRobot />,
+      title: t('features.aiStrategy.title'),
+      description: t('features.aiStrategy.description'),
+      highlights: [
+        t('features.aiStrategy.highlights.marketAnalysis'),
+        t('features.aiStrategy.highlights.strategyOptimization'),
+        t('features.aiStrategy.highlights.riskManagement'),
+      ],
+      color: 'var(--color-primary)',
+      gradient: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
+    },
+    {
+      icon: <IconDashboard />,
+      title: t('features.simulation.title'),
+      description: t('features.simulation.description'),
+      highlights: [
+        t('features.simulation.highlights.realData'),
+        t('features.simulation.highlights.riskFree'),
+        t('features.simulation.highlights.fullExperience'),
+      ],
+      color: 'var(--color-success)',
+      gradient: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+    },
+    {
+      icon: <IconTrophy />,
+      title: t('features.competition.title'),
+      description: t('features.competition.description'),
+      highlights: [
+        t('features.competition.highlights.leaderboard'),
+        t('features.competition.highlights.strategyCompetition'),
+        t('features.competition.highlights.community'),
+      ],
+      color: 'var(--color-warning)',
+      gradient: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+    },
+    {
+      icon: <IconThunderbolt />,
+      title: t('features.execution.title'),
+      description: t('features.execution.description'),
+      highlights: [
+        t('features.execution.highlights.msExecution'),
+        t('features.execution.highlights.advancedOrders'),
+        t('features.execution.highlights.orderBook'),
+      ],
+      color: 'var(--color-secondary-500)',
+      gradient: 'linear-gradient(135deg, #A855F7 0%, #9333EA 100%)',
+    },
+  ];
+
+  // Testimonials data with translations
+  const testimonials = [
+    {
+      name: t('testimonials.items.zhangming.name'),
+      role: t('testimonials.items.zhangming.role'),
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=zhangming',
+      content: t('testimonials.items.zhangming.content'),
+      rating: 5,
+      stats: t('testimonials.items.zhangming.stats'),
+    },
+    {
+      name: t('testimonials.items.lihua.name'),
+      role: t('testimonials.items.lihua.role'),
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=lihua',
+      content: t('testimonials.items.lihua.content'),
+      rating: 5,
+      stats: t('testimonials.items.lihua.stats'),
+    },
+    {
+      name: t('testimonials.items.wangfang.name'),
+      role: t('testimonials.items.wangfang.role'),
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=wangfang',
+      content: t('testimonials.items.wangfang.content'),
+      rating: 5,
+      stats: t('testimonials.items.wangfang.stats'),
+    },
+  ];
+
+  // Stats data with translations
+  const stats = [
+    { value: '10,000+', label: t('stats.activeUsers'), icon: <IconUser /> },
+    { value: '$100M+', label: t('stats.simulationVolume'), icon: <IconDashboard /> },
+    { value: '99.9%', label: t('stats.systemUptime'), icon: <IconSafe /> },
+    { value: '24/7', label: t('stats.realTimeMonitoring'), icon: <IconHeart /> },
+  ];
+
+  // Trust Badges with translations
+  const trustBadges = [
+    { label: t('trustBadges.bankSecurity'), icon: <IconSafe /> },
+    { label: t('trustBadges.trustedUsers'), icon: <IconUser /> },
+    { label: t('trustBadges.freeUse'), icon: <IconStar /> },
+  ];
 
   // SEO: Update meta tags for landing page
   useSEO(PAGE_SEO_CONFIGS.landing);
@@ -240,7 +253,7 @@ const LandingPage: React.FC = () => {
     const url = getShareUrl('copy_link');
     try {
       await navigator.clipboard.writeText(url);
-      Message.success('链接已复制到剪贴板');
+      Message.success(t('share.linkCopied'));
     } catch {
       const textArea = document.createElement('textarea');
       textArea.value = url;
@@ -248,14 +261,14 @@ const LandingPage: React.FC = () => {
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      Message.success('链接已复制到剪贴板');
+      Message.success(t('share.linkCopied'));
     }
-  }, [getShareUrl]);
+  }, [getShareUrl, t]);
 
   // Share to social platform
   const shareToPlatform = useCallback((platform: typeof socialPlatforms[0]) => {
     const url = getShareUrl(platform.name.toLowerCase());
-    const text = 'AlphaArena - 专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境。免费注册，即刻开始您的量化交易之旅！';
+    const text = t('share.text');
     
     const shareUrl = platform.generateUrl(url, text);
     
@@ -264,14 +277,14 @@ const LandingPage: React.FC = () => {
     } else {
       copyLinkToClipboard();
     }
-  }, [getShareUrl, copyLinkToClipboard]);
+  }, [getShareUrl, copyLinkToClipboard, t]);
 
   // Handle native share
   const handleNativeShare = useCallback(async () => {
     const url = getShareUrl('native_share');
     const shareData = {
-      title: 'AlphaArena - 算法交易平台',
-      text: '专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境。免费注册，即刻开始！',
+      title: t('share.title'),
+      text: t('share.text'),
       url,
     };
 
@@ -286,7 +299,7 @@ const LandingPage: React.FC = () => {
     } else {
       setShowShareMenu(!showShareMenu);
     }
-  }, [getShareUrl, showShareMenu]);
+  }, [getShareUrl, showShareMenu, t]);
 
   // Register with referral tracking
   const handleRegister = useCallback(() => {
@@ -333,13 +346,12 @@ const LandingPage: React.FC = () => {
 
           {/* Main Headline */}
           <h1 className="hero-title">
-            专业级算法交易
-            <span className="hero-title-highlight">AI 驱动 · 无风险</span>
+            {t('hero.title')}
+            <span className="hero-title-highlight">{t('hero.titleHighlight')}</span>
           </h1>
 
           <p className="hero-subtitle">
-            在真实市场环境中练习算法交易策略，利用 AI 助手优化决策，
-            与全球交易者竞技排名，无需承担任何真实资金风险。
+            {t('hero.subtitle')}
           </p>
 
           {/* CTA Buttons */}
@@ -351,7 +363,7 @@ const LandingPage: React.FC = () => {
               onClick={handleRegister}
             >
               <IconUser />
-              免费注册
+              {t('hero.cta.register')}
             </Button>
             <Button
               size="large"
@@ -359,7 +371,7 @@ const LandingPage: React.FC = () => {
               onClick={handleNativeShare}
             >
               <IconShareAlt />
-              分享给朋友
+              {t('hero.cta.share')}
             </Button>
           </div>
 
@@ -380,7 +392,7 @@ const LandingPage: React.FC = () => {
                     </Button>
                   </Tooltip>
                 ))}
-                <Tooltip content="复制链接">
+                <Tooltip content={t('common.button.copy', { ns: 'common' })}>
                   <Button
                     shape="circle"
                     size="large"
@@ -392,7 +404,7 @@ const LandingPage: React.FC = () => {
                 </Tooltip>
               </Space>
               <Text type="secondary" className="share-hint">
-                分享给朋友，一起开始量化交易之旅！
+                {t('hero.shareHint')}
               </Text>
             </Card>
           )}
@@ -406,7 +418,7 @@ const LandingPage: React.FC = () => {
                   <span className="dot yellow" />
                   <span className="dot green" />
                 </div>
-                <Text className="screenshot-title">AlphaArena Dashboard</Text>
+                <Text className="screenshot-title">{t('screenshot.title')}</Text>
               </div>
               <div className="screenshot-content">
                 <div className="mock-chart">
@@ -416,15 +428,15 @@ const LandingPage: React.FC = () => {
                 </div>
                 <div className="mock-stats">
                   <div className="mock-stat">
-                    <span className="stat-label">收益率</span>
+                    <span className="stat-label">{t('screenshot.stats.returnRate')}</span>
                     <span className="stat-value positive">+12.5%</span>
                   </div>
                   <div className="mock-stat">
-                    <span className="stat-label">策略数</span>
+                    <span className="stat-label">{t('screenshot.stats.strategies')}</span>
                     <span className="stat-value">8</span>
                   </div>
                   <div className="mock-stat">
-                    <span className="stat-label">胜率</span>
+                    <span className="stat-label">{t('screenshot.stats.winRate')}</span>
                     <span className="stat-value positive">68%</span>
                   </div>
                 </div>
@@ -461,10 +473,10 @@ const LandingPage: React.FC = () => {
         <div className="section-header">
           <h2 className="section-title">
             <IconBulb className="section-icon" />
-            核心功能
+            {t('features.sectionTitle')}
           </h2>
           <p className="section-subtitle">
-            专业工具，助力您的量化交易之旅
+            {t('features.sectionSubtitle')}
           </p>
         </div>
 
@@ -506,19 +518,19 @@ const LandingPage: React.FC = () => {
         <div className="section-header">
           <h2 className="section-title">
             <IconFire className="section-icon" />
-            开始使用
+            {t('howItWorks.sectionTitle')}
           </h2>
           <p className="section-subtitle">
-            四步开启您的量化交易之旅
+            {t('howItWorks.sectionSubtitle')}
           </p>
         </div>
 
         <div className="steps-container">
           {[
-            { step: 1, title: '注册账户', desc: '免费创建账户，即刻开始', icon: <IconUser /> },
-            { step: 2, title: '选择策略', desc: '内置多种策略模板，或自定义', icon: <IconDashboard /> },
-            { step: 3, title: '模拟交易', desc: '在真实环境中测试您的策略', icon: <IconList /> },
-            { step: 4, title: '优化改进', desc: '利用 AI 助手优化策略表现', icon: <IconRobot /> },
+            { step: 1, title: t('howItWorks.steps.register.title'), desc: t('howItWorks.steps.register.description'), icon: <IconUser /> },
+            { step: 2, title: t('howItWorks.steps.selectStrategy.title'), desc: t('howItWorks.steps.selectStrategy.description'), icon: <IconDashboard /> },
+            { step: 3, title: t('howItWorks.steps.simulate.title'), desc: t('howItWorks.steps.simulate.description'), icon: <IconList /> },
+            { step: 4, title: t('howItWorks.steps.optimize.title'), desc: t('howItWorks.steps.optimize.description'), icon: <IconRobot /> },
           ].map((item, index) => (
             <div key={item.step} className="step-item" style={{ animationDelay: `${index * 0.15}s` }}>
               <div className="step-number">{item.step}</div>
@@ -538,10 +550,10 @@ const LandingPage: React.FC = () => {
         <div className="section-header">
           <h2 className="section-title">
             <IconStar className="section-icon" />
-            用户评价
+            {t('testimonials.sectionTitle')}
           </h2>
           <p className="section-subtitle">
-            来自真实用户的反馈
+            {t('testimonials.sectionSubtitle')}
           </p>
         </div>
 
@@ -584,10 +596,10 @@ const LandingPage: React.FC = () => {
         </div>
         <div className="cta-content">
           <h2 className="cta-title">
-            准备好开始您的算法交易之旅了吗？
+            {t('cta.title')}
           </h2>
           <p className="cta-subtitle">
-            立即注册，免费体验专业级算法交易平台，无任何门槛。
+            {t('cta.subtitle')}
           </p>
           <Button
             type="primary"
@@ -595,11 +607,11 @@ const LandingPage: React.FC = () => {
             className="cta-button"
             onClick={handleRegister}
           >
-            立即开始
+            {t('cta.button')}
             <IconArrowRight />
           </Button>
           <Text className="cta-hint">
-            无需信用卡 · 免费使用核心功能 · 随时升级
+            {t('cta.hint')}
           </Text>
         </div>
       </section>
@@ -612,24 +624,24 @@ const LandingPage: React.FC = () => {
           <Col xs={24} sm={8} className="footer-brand">
             <Title heading={5}>AlphaArena</Title>
             <Paragraph className="footer-description">
-              专业级算法交易平台
+              {t('footer.brandTagline')}
               <br />
-              AI 驱动 · 无风险模拟交易
+              {t('footer.brandSubtagline')}
             </Paragraph>
           </Col>
           <Col xs={12} sm={4} className="footer-links">
-            <Text strong>产品</Text>
+            <Text strong>{t('footer.product')}</Text>
             <div className="footer-link-list">
-              <a href="/register">注册</a>
-              <a href="/login">登录</a>
-              <a href="/docs/api">API 文档</a>
+              <a href="/register">{t('footer.links.register')}</a>
+              <a href="/login">{t('footer.links.login')}</a>
+              <a href="/docs/api">{t('footer.links.apiDocs')}</a>
             </div>
           </Col>
           <Col xs={12} sm={4} className="footer-links">
-            <Text strong>资源</Text>
+            <Text strong>{t('footer.resources')}</Text>
             <div className="footer-link-list">
-              <a href="/leaderboard">排行榜</a>
-              <a href="/subscription">订阅方案</a>
+              <a href="/leaderboard">{t('footer.links.leaderboard')}</a>
+              <a href="/subscription">{t('footer.links.subscription')}</a>
             </div>
           </Col>
         </Row>

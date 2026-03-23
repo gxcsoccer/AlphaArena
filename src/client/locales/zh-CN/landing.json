@@ -1,0 +1,141 @@
+{
+  "hero": {
+    "title": "专业级算法交易",
+    "titleHighlight": "AI 驱动 · 无风险",
+    "subtitle": "在真实市场环境中练习算法交易策略，利用 AI 助手优化决策，与全球交易者竞技排名，无需承担任何真实资金风险。",
+    "cta": {
+      "register": "免费注册",
+      "share": "分享给朋友"
+    },
+    "shareHint": "分享给朋友，一起开始量化交易之旅！"
+  },
+  "trustBadges": {
+    "bankSecurity": "银行级安全",
+    "trustedUsers": "10K+ 用户信赖",
+    "freeUse": "免费使用"
+  },
+  "screenshot": {
+    "title": "AlphaArena Dashboard",
+    "stats": {
+      "returnRate": "收益率",
+      "strategies": "策略数",
+      "winRate": "胜率"
+    }
+  },
+  "stats": {
+    "activeUsers": "活跃用户",
+    "simulationVolume": "模拟交易量",
+    "systemUptime": "系统可用性",
+    "realTimeMonitoring": "实时监控"
+  },
+  "features": {
+    "sectionTitle": "核心功能",
+    "sectionSubtitle": "专业工具，助力您的量化交易之旅",
+    "aiStrategy": {
+      "title": "AI 驱动策略",
+      "description": "利用先进的 AI 算法，自动分析市场趋势，生成交易信号和策略建议。",
+      "highlights": {
+        "marketAnalysis": "智能市场分析",
+        "strategyOptimization": "策略优化建议",
+        "riskManagement": "风险管理指导"
+      }
+    },
+    "simulation": {
+      "title": "模拟交易",
+      "description": "在真实市场环境中练习交易，无需承担真实资金风险。实时行情，零风险学习。",
+      "highlights": {
+        "realData": "真实市场数据",
+        "riskFree": "无风险练习",
+        "fullExperience": "完整交易体验"
+      }
+    },
+    "competition": {
+      "title": "竞技排名",
+      "description": "与其他交易者同台竞技，展示您的交易技巧，攀登排行榜获得荣誉。",
+      "highlights": {
+        "leaderboard": "实时排行榜",
+        "strategyCompetition": "策略竞赛",
+        "community": "社区互动"
+      }
+    },
+    "execution": {
+      "title": "极速执行",
+      "description": "毫秒级订单执行，支持多种订单类型，满足专业交易者的高要求。",
+      "highlights": {
+        "msExecution": "毫秒级执行",
+        "advancedOrders": "高级订单类型",
+        "orderBook": "实时订单簿"
+      }
+    }
+  },
+  "howItWorks": {
+    "sectionTitle": "开始使用",
+    "sectionSubtitle": "四步开启您的量化交易之旅",
+    "steps": {
+      "register": {
+        "title": "注册账户",
+        "description": "免费创建账户，即刻开始"
+      },
+      "selectStrategy": {
+        "title": "选择策略",
+        "description": "内置多种策略模板，或自定义"
+      },
+      "simulate": {
+        "title": "模拟交易",
+        "description": "在真实环境中测试您的策略"
+      },
+      "optimize": {
+        "title": "优化改进",
+        "description": "利用 AI 助手优化策略表现"
+      }
+    }
+  },
+  "testimonials": {
+    "sectionTitle": "用户评价",
+    "sectionSubtitle": "来自真实用户的反馈",
+    "items": {
+      "zhangming": {
+        "name": "张明",
+        "role": "量化交易爱好者",
+        "content": "AlphaArena 的模拟交易功能让我在真实投入前充分测试了我的策略，避免了不必要的损失。AI 助手的建议非常有价值。",
+        "stats": "使用 6 个月"
+      },
+      "lihua": {
+        "name": "李华",
+        "role": "独立交易者",
+        "content": "AI 助手的建议非常有帮助，特别是在我需要快速决策时，节省了大量研究时间。收益率提升了 30%。",
+        "stats": "收益率 +30%"
+      },
+      "wangfang": {
+        "name": "王芳",
+        "role": "金融专业学生",
+        "content": "作为学习工具，AlphaArena 提供了完整的专业交易体验，让我在实践中学习。比教科书有用多了！",
+        "stats": "学习时长 200h+"
+      }
+    }
+  },
+  "cta": {
+    "title": "准备好开始您的算法交易之旅了吗？",
+    "subtitle": "立即注册，免费体验专业级算法交易平台，无任何门槛。",
+    "button": "立即开始",
+    "hint": "无需信用卡 · 免费使用核心功能 · 随时升级"
+  },
+  "footer": {
+    "brandTagline": "专业级算法交易平台",
+    "brandSubtagline": "AI 驱动 · 无风险模拟交易",
+    "product": "产品",
+    "resources": "资源",
+    "links": {
+      "register": "注册",
+      "login": "登录",
+      "apiDocs": "API 文档",
+      "leaderboard": "排行榜",
+      "subscription": "订阅方案"
+    }
+  },
+  "share": {
+    "title": "AlphaArena - 算法交易平台",
+    "text": "专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境。免费注册，即刻开始您的量化交易之旅！",
+    "linkCopied": "链接已复制到剪贴板"
+  }
+}

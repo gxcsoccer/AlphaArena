@@ -9,6 +9,7 @@ import { IconUser, IconLock } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/brand/Logo';
 
 const { Title, Text } = Typography;
@@ -23,6 +24,7 @@ interface LoginFormValues {
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
@@ -51,7 +53,7 @@ const LoginPage: React.FC = () => {
       await login(values);
       navigate('/dashboard');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
+      const message = err instanceof Error ? err.message : t('login.error');
       setError(message);
       
       // Check if remaining attempts info is available
@@ -70,9 +72,9 @@ const LoginPage: React.FC = () => {
           <div style={styles.header}>
             <Logo size="lg" showWordmark={true} onClick={() => navigate('/')} />
             <Title heading={isMobile ? 5 : 4} style={{ margin: '16px 0 8px' }}>
-              Welcome Back
+              {t('login.subtitle')}
             </Title>
-            <Text type="secondary">登录您的 AlphaArena 账户</Text>
+            <Text type="secondary">{t('login.loginSubtitle')}</Text>
           </div>
 
           {error && (
@@ -91,7 +93,7 @@ const LoginPage: React.FC = () => {
             style={{ width: '100%' }}
           >
             <FormItem
-              label="Email or Username"
+              label={t('login.email')}
               field="identifier"
               rules={[
                 { required: true, message: 'Please enter your email or username' },
@@ -105,7 +107,7 @@ const LoginPage: React.FC = () => {
             </FormItem>
 
             <FormItem
-              label="Password"
+              label={t('login.password')}
               field="password"
               rules={[{ required: true, message: 'Please enter your password' }]}
             >
@@ -124,16 +126,16 @@ const LoginPage: React.FC = () => {
                 size="large"
                 loading={loading}
               >
-                Sign In
+                {t('login.submit')}
               </Button>
             </FormItem>
           </Form>
 
           <div style={styles.footer}>
             <Text type="secondary">
-              Don&apos;t have an account?{' '}
+              {t('login.noAccount')}{' '}
               <Link>
-                <RouterLink to="/register">Sign up</RouterLink>
+                <RouterLink to="/register">{t('login.register')}</RouterLink>
               </Link>
             </Text>
           </div>
