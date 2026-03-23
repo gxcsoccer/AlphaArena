@@ -345,3 +345,17 @@ export {
   type TrackEventInput,
   type ExperimentQueryOptions,
 } from './experiment.dao';
+
+// Referral System DAO
+export {
+  ReferralDAO,
+  getReferralDAO,
+  type ReferralCode,
+  type Referral,
+  type Reward,
+  type ReferralFraudFlag,
+  type ReferralStats,
+  type CreateReferralCodeData,
+  type CreateReferralInviteData,
+  type ProcessRegistrationData,
+} from './referral.dao';

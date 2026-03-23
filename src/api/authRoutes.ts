@@ -176,7 +176,7 @@ function sanitizeUser(user: User): Partial<User> {
  */
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, username, password } = req.body;
+    const { email, username, password, ref } = req.body; // ref is the referral token or code
 
     // Validate required fields
     if (!email || !password) {
@@ -262,6 +262,53 @@ router.post('/register', async (req: Request, res: Response) => {
       expires_at: expiresAt,
     });
 
+    // Process referral if provided
+    let referralBonus = 0;
+    if (ref) {
+      try {
+        const { getReferralDAO } = await import('../database/referral.dao');
+        const referralDAO = getReferralDAO();
+        
+        // Check if ref is a UUID (invite token) or a code
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        let result;
+        
+        if (uuidRegex.test(ref)) {
+          // Process as invite token
+          result = await referralDAO.processReferralRegistration({
+            inviteToken: ref,
+            inviteeUserId: user.id,
+            deviceFingerprint: req.headers['x-device-fingerprint'] as string,
+            ipAddress: req.ip,
+          });
+        } else {
+          // Process as referral code - create invite first
+          const referralCode = await referralDAO.getReferralCodeByCode(ref);
+          if (referralCode) {
+            const inviteResult = await referralDAO.createReferralInvite({
+              referrerUserId: referralCode.userId,
+            });
+            if (inviteResult.success && inviteResult.inviteToken) {
+              result = await referralDAO.processReferralRegistration({
+                inviteToken: inviteResult.inviteToken,
+                inviteeUserId: user.id,
+                deviceFingerprint: req.headers['x-device-fingerprint'] as string,
+                ipAddress: req.ip,
+              });
+            }
+          }
+        }
+
+        if (result?.success && result.inviteeBonus) {
+          referralBonus = result.inviteeBonus;
+          log.info(`Referral processed for user ${user.id}, bonus: ${referralBonus}`);
+        }
+      } catch (referralError) {
+        log.warn(`Failed to process referral for user ${user.id}:`, referralError);
+        // Don't fail registration if referral processing fails
+      }
+    }
+
     // Start trial for new user
     try {
       const promoDao = getPromoCodeDAO();
@@ -279,6 +326,7 @@ router.post('/register', async (req: Request, res: Response) => {
         accessToken,
         refreshToken,
         expiresIn: JWT_EXPIRES_IN,
+        referralBonus,
       },
     });
   } catch (error) {

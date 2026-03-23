@@ -68,6 +68,7 @@ import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
 import userTrackingRoutes from './userTrackingRoutes';
 import userAnalyticsRoutes from './userAnalyticsRoutes';
+import referralRoutes from './referralRoutes';
 import { createFeedbackRouter } from './feedbackRoutes';
 import { createExperimentRouter } from './experimentRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
@@ -1030,6 +1031,9 @@ export class APIServer extends EventEmitter {
 
     // User Onboarding routes
     this.app.use('/api/onboarding', onboardingRoutes);
+
+    // Referral System routes
+    this.app.use('/api/referral', referralRoutes);
 
     // Error log endpoint
     this.app.get('/api/error-logs/summary', async (req: Request, res: Response) => {
