@@ -11,10 +11,11 @@
  * - Keyboard accessible
  * 
  * Issue #586: 语言切换功能实现
+ * Issue #598: Fixed dropdown click handling by using Arco Menu component
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dropdown, Button, Space, Tooltip } from '@arco-design/web-react';
+import { Dropdown, Button, Space, Tooltip, Menu } from '@arco-design/web-react';
 import {
   IconLanguage,
   IconCheck,
@@ -80,20 +81,28 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
     }
   }, [currentLanguage, isChanging, changeLanguage, location, navigate, isAuthenticated]);
 
-  // Build dropdown menu items
-  const menuItems = supportedLanguages.map(lang => ({
-    key: lang.code,
-    label: (
-      <div className="language-option">
-        <span className="language-option__name">{lang.nativeName}</span>
-        <span className="language-option__native">{lang.name}</span>
-        {currentLanguage === lang.code && (
-          <IconCheck className="language-option__check" />
-        )}
-      </div>
-    ),
-    onClick: () => handleLanguageChange(lang.code),
-  }));
+  // Build dropdown menu using Arco Design Menu component
+  // Issue #598: Using proper Menu component for reliable click handling
+  const menuDroplist = (
+    <Menu
+      className="language-dropdown-menu"
+      selectedKeys={[currentLanguage]}
+      onClickMenuItem={(key) => {
+        handleLanguageChange(key as SupportedLanguage);
+      }}
+    >
+      {supportedLanguages.map(lang => (
+        <Menu.Item key={lang.code} className="language-menu-item">
+          <div className="language-option">
+            <span className="language-option__name">{lang.nativeName}</span>
+            {currentLanguage === lang.code && (
+              <IconCheck className="language-option__check" />
+            )}
+          </div>
+        </Menu.Item>
+      ))}
+    </Menu>
+  );
 
   // Get current language display name
   const currentLangInfo = SUPPORTED_LANGUAGES[currentLanguage] || SUPPORTED_LANGUAGES['zh-CN'];
@@ -114,31 +123,7 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
     <Dropdown
       trigger="click"
       position="bottomRight"
-      droplist={
-        <div className="language-dropdown">
-          <div className="language-dropdown__header">
-            {t('language.switchTo')}
-          </div>
-          <div className="language-dropdown__options">
-            {menuItems.map(item => (
-              <div
-                key={item.key}
-                className={`language-option ${currentLanguage === item.key ? 'language-option--active' : ''}`}
-                onClick={item.onClick}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    item.onClick();
-                  }
-                }}
-              >
-                {item.label}
-              </div>
-            ))}
-          </div>
-        </div>
-      }
+      droplist={menuDroplist}
     >
       <Tooltip content={t('language.switchTo')} position="bottom">
         <Button

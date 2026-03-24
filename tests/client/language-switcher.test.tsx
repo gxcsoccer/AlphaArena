@@ -202,6 +202,40 @@ describe('LanguageSwitcher Component', () => {
       expect(englishElements.length).toBeGreaterThan(0);
     });
   });
+
+  // Issue #598: Test the specific bug scenario - switching back to Chinese
+  it('should be able to switch back to Chinese after switching to English', async () => {
+    render(
+      <MemoryRouter>
+        <LocaleProvider>
+          <TestComponent />
+        </LocaleProvider>
+      </MemoryRouter>
+    );
+    
+    // Initially Chinese
+    await waitFor(() => {
+      expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
+    });
+    
+    // Switch to English
+    await act(async () => {
+      screen.getByTestId('switch-en').click();
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
+    });
+    
+    // Switch back to Chinese - this is the bug scenario
+    await act(async () => {
+      screen.getByTestId('switch-zh').click();
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
+    });
+  });
 });
 
 describe('URL Parameter Support', () => {
