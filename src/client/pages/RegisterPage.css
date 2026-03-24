@@ -1,0 +1,94 @@
+/**
+ * Register Page Styles
+ * Enhanced focus states and password validation UI
+ */
+
+/* Enhanced input focus states */
+.register-form-input:focus,
+.register-form-input:focus-within {
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Error state focus */
+.register-form-input.error:focus,
+.register-form-input.error:focus-within {
+  border-color: var(--color-danger) !important;
+  box-shadow: var(--shadow-focus-error) !important;
+}
+
+/* Success state focus */
+.register-form-input.success:focus,
+.register-form-input.success:focus-within {
+  border-color: var(--color-success) !important;
+  box-shadow: var(--shadow-focus-success) !important;
+}
+
+/* Password requirements panel animation */
+.password-requirements-panel {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Password requirement item */
+.password-requirement {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.password-requirement.valid {
+  color: var(--color-success);
+}
+
+.password-requirement.invalid {
+  color: var(--color-text-3);
+}
+
+/* Submit button hover effect */
+.register-submit-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.register-submit-button:not(:disabled):active {
+  transform: translateY(0);
+}
+
+/* Disabled button style */
+.register-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Arco Design input overrides for better focus visibility */
+.arco-input:focus,
+.arco-input-password:focus-within,
+.arco-input:focus-within {
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--shadow-focus) !important;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .password-requirements-panel {
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--color-fill-1);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-1);
+  }
+}
