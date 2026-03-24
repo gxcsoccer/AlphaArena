@@ -45,6 +45,16 @@ const RegisterPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Password change handler with explicit value extraction
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+  };
+
+  // Confirm password change handler
+  const handleConfirmPasswordChange = (value: string) => {
+    setConfirmPassword(value);
+  };
+
   // SEO: Update meta tags for register page
   useSEO(PAGE_SEO_CONFIGS.register);
 
@@ -236,9 +246,10 @@ const RegisterPage: React.FC = () => {
                   size="large"
                   tabIndex={3}
                   value={password}
-                  onChange={setPassword}
+                  onChange={handlePasswordChange}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
+                  autoComplete="new-password"
                   className={`register-form-input ${password && !passwordValidation.isValid ? 'error' : ''}`}
                   style={{
                     ...styles.inputFocus,
@@ -284,7 +295,8 @@ const RegisterPage: React.FC = () => {
                   size="large"
                   tabIndex={4}
                   value={confirmPassword}
-                  onChange={setConfirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  autoComplete="new-password"
                   className={`register-form-input ${passwordsMatch === false ? 'error' : passwordsMatch === true ? 'success' : ''}`}
                   style={{
                     ...styles.inputFocus,
