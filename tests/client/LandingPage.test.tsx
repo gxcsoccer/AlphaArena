@@ -5,6 +5,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
+import { LocaleProvider } from '../../src/client/i18n/LocaleProvider';
+import { SettingsProvider } from '../../src/client/store/settingsStore';
 import LandingPage from '../../src/client/pages/LandingPage';
 
 // Mock useAuth hook
@@ -25,7 +27,11 @@ jest.mock('react-router-dom', () => ({
 const renderLandingPage = () => {
   return render(
     <BrowserRouter>
-      <LandingPage />
+      <SettingsProvider>
+        <LocaleProvider>
+          <LandingPage />
+        </LocaleProvider>
+      </SettingsProvider>
     </BrowserRouter>
   );
 };
@@ -87,7 +93,8 @@ describe('LandingPage', () => {
 
   it('renders footer with links', () => {
     renderLandingPage();
-    expect(screen.getByText('AlphaArena')).toBeInTheDocument();
+    // Use getAllByText since AlphaArena appears multiple times (header + footer)
+    expect(screen.getAllByText('AlphaArena').length).toBeGreaterThan(0);
     expect(screen.getByText('产品')).toBeInTheDocument();
     expect(screen.getByText('资源')).toBeInTheDocument();
   });

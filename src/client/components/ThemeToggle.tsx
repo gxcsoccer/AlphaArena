@@ -14,6 +14,7 @@ import React from 'react';
 import { Button, Tooltip } from '@arco-design/web-react';
 import { IconSun, IconMoonFill } from '@arco-design/web-react/icon';
 import { useSettings } from '../store/settingsStore';
+import { useTranslation } from 'react-i18next';
 
 interface ThemeToggleProps {
   compact?: boolean;
@@ -21,12 +22,15 @@ interface ThemeToggleProps {
 
 const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
   const { settings, toggleTheme } = useSettings();
+  const { t } = useTranslation('common');
 
   const isDark = settings.theme === 'dark';
-  const themeLabel = isDark ? '深色模式' : '浅色模式';
+  const themeLabel = isDark ? t('theme.dark') : t('theme.light');
+
+  const oppositeTheme = isDark ? t('theme.light') : t('theme.dark');
 
   return (
-    <Tooltip content={`当前: ${themeLabel} - 点击切换`} position="br">
+    <Tooltip content={`${t('theme.current', { defaultValue: '当前' })}: ${themeLabel}`} position="br">
       <Button
         icon={isDark ? <IconSun style={{ fontSize: compact ? 18 : 20 }} /> : <IconMoonFill style={{ fontSize: compact ? 18 : 20 }} />}
         onClick={toggleTheme}
@@ -45,7 +49,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
           transition: 'all 0.3s ease',
         }}
         className="theme-toggle-button"
-        aria-label={`主题切换: 当前${themeLabel}，点击切换到${isDark ? '浅色' : '深色'}模式`}
+        aria-label={`${t('theme.toggle', { defaultValue: '主题切换' })}: ${t('theme.current', { defaultValue: '当前' })}${themeLabel}，点击切换`}
         aria-pressed={isDark}
         role="switch"
       >

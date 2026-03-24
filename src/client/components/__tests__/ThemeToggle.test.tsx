@@ -43,6 +43,8 @@ const renderWithSettingsProvider = (component: React.ReactElement) => {
 describe('ThemeToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset localStorage mock to return light mode by default for consistent tests
+    localStorageMock.getItem.mockReturnValue(JSON.stringify({ theme: 'light', language: 'zh' }));
   });
 
   it('should render theme toggle button', () => {

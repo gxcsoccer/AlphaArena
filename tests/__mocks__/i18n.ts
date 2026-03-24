@@ -13,6 +13,7 @@ const authZhCN = require('../../src/client/locales/zh-CN/auth.json');
 const tradingZhCN = require('../../src/client/locales/zh-CN/trading.json');
 const dashboardZhCN = require('../../src/client/locales/zh-CN/dashboard.json');
 const leaderboardZhCN = require('../../src/client/locales/zh-CN/leaderboard.json');
+const settingsZhCN = require('../../src/client/locales/zh-CN/settings.json');
 
 const landingEnUS = require('../../src/client/locales/en-US/landing.json');
 const commonEnUS = require('../../src/client/locales/en-US/common.json');
@@ -21,6 +22,7 @@ const authEnUS = require('../../src/client/locales/en-US/auth.json');
 const tradingEnUS = require('../../src/client/locales/en-US/trading.json');
 const dashboardEnUS = require('../../src/client/locales/en-US/dashboard.json');
 const leaderboardEnUS = require('../../src/client/locales/en-US/leaderboard.json');
+const settingsEnUS = require('../../src/client/locales/en-US/settings.json');
 
 // Combined translations for both languages
 const allTranslations: Record<string, Record<string, Record<string, any>>> = {
@@ -32,6 +34,7 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     trading: tradingZhCN,
     dashboard: dashboardZhCN,
     leaderboard: leaderboardZhCN,
+    settings: settingsZhCN,
   },
   'en-US': {
     landing: landingEnUS,
@@ -41,6 +44,7 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     trading: tradingEnUS,
     dashboard: dashboardEnUS,
     leaderboard: leaderboardEnUS,
+    settings: settingsEnUS,
   },
 };
 

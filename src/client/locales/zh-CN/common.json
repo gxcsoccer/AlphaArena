@@ -36,7 +36,9 @@
     "expandAll": "全部展开",
     "collapseAll": "全部收起",
     "showMore": "查看更多",
-    "showLess": "收起"
+    "showLess": "收起",
+    "login": "登录",
+    "register": "注册"
   },
   "label": {
     "name": "名称",
@@ -113,7 +115,9 @@
   "theme": {
     "light": "浅色模式",
     "dark": "深色模式",
-    "auto": "跟随系统"
+    "auto": "跟随系统",
+    "current": "当前",
+    "toggle": "主题切换"
   },
   "language": {
     "zh": "简体中文",

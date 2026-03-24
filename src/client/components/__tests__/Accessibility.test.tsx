@@ -54,6 +54,8 @@ const renderWithSettingsProvider = (component: React.ReactElement) => {
 describe('Accessibility - ThemeToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset localStorage mock to return light mode by default for consistent tests
+    localStorageMock.getItem.mockReturnValue(JSON.stringify({ theme: 'light', language: 'zh' }));
   });
 
   it('should have an accessible aria-label describing current theme state', () => {
@@ -106,6 +108,8 @@ describe('Accessibility - ThemeToggle', () => {
 describe('Accessibility - SettingsPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset localStorage mock to return light mode by default for consistent tests
+    localStorageMock.getItem.mockReturnValue(JSON.stringify({ theme: 'light', language: 'zh' }));
   });
 
   it('should have an accessible aria-label on the settings button', () => {

@@ -1,5 +1,23 @@
 {
   "title": "Settings",
+  "button": {
+    "reset": "Reset to Default",
+    "done": "Done"
+  },
+  "panel": {
+    "ariaLabel": "Open settings panel",
+    "currentSettings": "Current Settings"
+  },
+  "theme": {
+    "title": "Theme Mode",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "title": "Language",
+    "zh": "中文",
+    "en": "English"
+  },
   "general": {
     "title": "General Settings",
     "language": "Language",

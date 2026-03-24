@@ -1,5 +1,23 @@
 {
   "title": "设置",
+  "button": {
+    "reset": "恢复默认",
+    "done": "完成"
+  },
+  "panel": {
+    "ariaLabel": "打开设置面板",
+    "currentSettings": "当前设置"
+  },
+  "theme": {
+    "title": "主题模式",
+    "light": "浅色",
+    "dark": "深色"
+  },
+  "language": {
+    "title": "语言",
+    "zh": "中文",
+    "en": "English"
+  },
   "general": {
     "title": "通用设置",
     "language": "语言",
