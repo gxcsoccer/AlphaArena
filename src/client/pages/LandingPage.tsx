@@ -104,7 +104,8 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, isLoading } = useAuth();
-  const { t } = useTranslation('landing');
+  // Use both 'landing' and 'common' namespaces for translations
+  const { t } = useTranslation(['landing', 'common']);
   const [isMobile, setIsMobile] = useState(false);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [animateStats, setAnimateStats] = useState(false);
@@ -340,7 +341,7 @@ const LandingPage: React.FC = () => {
                 onClick={() => navigate('/login')}
                 className="landing-header__login"
               >
-                {t('common.button.login', { ns: 'common', defaultValue: '登录' })}
+                {t('common:button.login')}
               </Button>
               <Button
                 type="primary"
@@ -348,7 +349,7 @@ const LandingPage: React.FC = () => {
                 onClick={handleRegister}
                 className="landing-header__register"
               >
-                {t('common.button.register', { ns: 'common', defaultValue: '注册' })}
+                {t('common:button.register')}
               </Button>
             </>
           )}
@@ -430,7 +431,7 @@ const LandingPage: React.FC = () => {
                     </Button>
                   </Tooltip>
                 ))}
-                <Tooltip content={t('common.button.copy', { ns: 'common' })}>
+                <Tooltip content={t('common:button.copy')}>
                   <Button
                     shape="circle"
                     size="large"
