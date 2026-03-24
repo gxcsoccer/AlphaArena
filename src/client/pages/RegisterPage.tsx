@@ -1,16 +1,18 @@
 /**
  * Register Page
  * New user registration form with mobile responsive design
+ * Features: Real-time password validation, proper tab order, enhanced focus styles
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Form, Input, Button, Message, Typography, Space, Link, Grid } from '@arco-design/web-react';
-import { IconUser, IconLock, IconEmail } from '@arco-design/web-react/icon';
+import { IconUser, IconLock, IconEmail, IconCheck, IconClose } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/brand/Logo';
+import './RegisterPage.css';
 
 const { Title, Text } = Typography;
 const FormItem = Form.Item;
@@ -23,6 +25,14 @@ interface RegisterFormValues {
   confirmPassword: string;
 }
 
+interface PasswordValidation {
+  hasMinLength: boolean;
+  hasUppercase: boolean;
+  hasLowercase: boolean;
+  hasNumber: boolean;
+  isValid: boolean;
+}
+
 const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +41,9 @@ const RegisterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // SEO: Update meta tags for register page
   useSEO(PAGE_SEO_CONFIGS.register);
@@ -46,7 +59,30 @@ const RegisterPage: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Real-time password validation
+  const passwordValidation: PasswordValidation = useMemo(() => {
+    return {
+      hasMinLength: password.length >= 8,
+      hasUppercase: /[A-Z]/.test(password),
+      hasLowercase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      isValid: password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password),
+    };
+  }, [password]);
+
+  // Check if passwords match
+  const passwordsMatch = useMemo(() => {
+    if (!confirmPassword) return null;
+    return password === confirmPassword;
+  }, [password, confirmPassword]);
+
   const handleSubmit = async (values: RegisterFormValues) => {
+    // Check password validation
+    if (!passwordValidation.isValid) {
+      setError(t('register.passwordRequirements.title'));
+      return;
+    }
+
     // Check password confirmation
     if (values.password !== values.confirmPassword) {
       setError(t('register.passwordMismatch'));
@@ -75,6 +111,30 @@ const RegisterPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // Render password requirement item with validation status
+  const renderRequirement = (text: string, isValid: boolean) => (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '4px 0',
+      transition: 'color 0.2s ease',
+    }}>
+      {isValid ? (
+        <IconCheck style={{ color: 'var(--color-success)', fontSize: '14px' }} />
+      ) : (
+        <IconClose style={{ color: 'var(--color-text-4)', fontSize: '14px' }} />
+      )}
+      <Text style={{
+        fontSize: '12px',
+        color: isValid ? 'var(--color-success)' : 'var(--color-text-3)',
+        transition: 'color 0.2s ease',
+      }}>
+        {text}
+      </Text>
+    </div>
+  );
 
   return (
     <div style={isMobile ? styles.containerMobile : styles.container}>
@@ -119,6 +179,9 @@ const RegisterPage: React.FC = () => {
                 prefix={<IconEmail />}
                 placeholder="Enter your email"
                 size="large"
+                tabIndex={1}
+                className="register-form-input"
+                style={styles.inputFocus}
               />
             </FormItem>
 
@@ -143,50 +206,102 @@ const RegisterPage: React.FC = () => {
                 prefix={<IconUser />}
                 placeholder="Choose a username"
                 size="large"
+                tabIndex={2}
+                className="register-form-input"
+                style={styles.inputFocus}
               />
             </FormItem>
 
             <FormItem
               label={t('register.password')}
               field="password"
+              required
               rules={[
                 { required: true, message: 'Please enter your password' },
-                { minLength: 8, message: 'Password must be at least 8 characters' },
+                {
+                  validator: (_, callback) => {
+                    if (password && !passwordValidation.isValid) {
+                      callback('Password does not meet all requirements');
+                    } else {
+                      callback();
+                    }
+                  },
+                },
               ]}
-              extra={
-                !isMobile && (
-                  <Text type="secondary" style={{ fontSize: '12px' }}>
-                    Must contain: 8+ characters, uppercase, lowercase, and number
-                  </Text>
-                )
-              }
             >
-              <Input.Password
-                prefix={<IconLock />}
-                placeholder="Create a password"
-                size="large"
-              />
+              <div>
+                <Input.Password
+                  prefix={<IconLock />}
+                  placeholder="Create a password"
+                  size="large"
+                  tabIndex={3}
+                  value={password}
+                  onChange={setPassword}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                  className={`register-form-input ${password && !passwordValidation.isValid ? 'error' : ''}`}
+                  style={{
+                    ...styles.inputFocus,
+                    ...(password && !passwordValidation.isValid ? styles.inputError : {}),
+                  }}
+                />
+                {/* Password requirements panel - shows on focus or when there's an error */}
+                {(passwordFocused || (password && !passwordValidation.isValid)) && (
+                  <div style={styles.passwordRequirements} className="password-requirements-panel">
+                    <Text style={{ fontSize: '12px', fontWeight: 500, marginBottom: '8px', display: 'block' }}>
+                      {t('register.passwordRequirements.title')}
+                    </Text>
+                    {renderRequirement(t('register.passwordRequirements.minLength'), passwordValidation.hasMinLength)}
+                    {renderRequirement(t('register.passwordRequirements.uppercase'), passwordValidation.hasUppercase)}
+                    {renderRequirement(t('register.passwordRequirements.lowercase'), passwordValidation.hasLowercase)}
+                    {renderRequirement(t('register.passwordRequirements.number'), passwordValidation.hasNumber)}
+                  </div>
+                )}
+              </div>
             </FormItem>
 
             <FormItem
               label={t('register.confirmPassword')}
               field="confirmPassword"
+              required
               rules={[
                 { required: true, message: 'Please confirm your password' },
+                {
+                  validator: (_, callback) => {
+                    if (confirmPassword && passwordsMatch === false) {
+                      callback(t('register.passwordMismatch'));
+                    } else {
+                      callback();
+                    }
+                  },
+                },
               ]}
             >
-              <Input.Password
-                prefix={<IconLock />}
-                placeholder="Confirm your password"
-                size="large"
-              />
+              <div>
+                <Input.Password
+                  prefix={<IconLock />}
+                  placeholder="Confirm your password"
+                  size="large"
+                  tabIndex={4}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  className={`register-form-input ${passwordsMatch === false ? 'error' : passwordsMatch === true ? 'success' : ''}`}
+                  style={{
+                    ...styles.inputFocus,
+                    ...(passwordsMatch === false ? styles.inputError : {}),
+                    ...(passwordsMatch === true ? styles.inputSuccess : {}),
+                  }}
+                />
+                {passwordsMatch === true && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                    <IconCheck style={{ color: 'var(--color-success)', fontSize: '14px' }} />
+                    <Text style={{ fontSize: '12px', color: 'var(--color-success)' }}>
+                      Passwords match
+                    </Text>
+                  </div>
+                )}
+              </div>
             </FormItem>
-
-            {isMobile && (
-              <Text type="secondary" style={{ fontSize: '12px', display: 'block', marginBottom: 16 }}>
-                Must contain: 8+ characters, uppercase, lowercase, and number
-              </Text>
-            )}
 
             <FormItem>
               <Button
@@ -195,6 +310,10 @@ const RegisterPage: React.FC = () => {
                 long
                 size="large"
                 loading={loading}
+                tabIndex={5}
+                disabled={!passwordValidation.isValid || passwordsMatch === false}
+                className="register-submit-button"
+                style={styles.submitButton}
               >
                 {t('register.submit')}
               </Button>
@@ -257,6 +376,26 @@ const styles: Record<string, React.CSSProperties> = {
   footer: {
     textAlign: 'center',
     marginTop: '16px',
+  },
+  inputFocus: {
+    transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+  },
+  inputError: {
+    borderColor: 'var(--color-danger)',
+  },
+  inputSuccess: {
+    borderColor: 'var(--color-success)',
+  },
+  passwordRequirements: {
+    marginTop: '8px',
+    padding: '12px',
+    background: 'var(--color-fill-1)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--color-border-1)',
+  },
+  submitButton: {
+    marginTop: '8px',
+    transition: 'all 0.15s ease',
   },
 };
 
