@@ -92,7 +92,12 @@ async function authFetch<T>(
     ...options.headers,
   };
 
-  const response = await fetch(`${API_BASE_URL}/api/auth${endpoint}`, {
+  // Build the correct URL based on whether API_BASE_URL is set
+  // - If API_BASE_URL is set (e.g., Supabase Edge Function URL): use /auth${endpoint}
+  // - If API_BASE_URL is empty: use /api/auth${endpoint} (will be rewritten by Vercel)
+  const authPath = API_BASE_URL ? `/auth${endpoint}` : `/api/auth${endpoint}`;
+  
+  const response = await fetch(`${API_BASE_URL}${authPath}`, {
     ...options,
     headers,
   });
