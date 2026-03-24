@@ -124,6 +124,9 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
       trigger="click"
       position="bottomRight"
       droplist={menuDroplist}
+      // Issue #606: Render dropdown to body to escape stacking context
+      // caused by backdrop-filter on parent containers (e.g., landing-header)
+      getPopupContainer={() => document.body}
     >
       <Tooltip content={t('language.switchTo')} position="bottom">
         <Button
