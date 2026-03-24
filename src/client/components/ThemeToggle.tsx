@@ -49,7 +49,7 @@ const ThemeToggle: React.FC<ThemeToggleProps> = ({ compact = false }) => {
           transition: 'all 0.3s ease',
         }}
         className="theme-toggle-button"
-        aria-label={`${t('theme.toggle', { defaultValue: '主题切换' })}: ${themeLabel}`}
+        aria-label={`${t('theme.toggle', { defaultValue: '主题切换' })}: ${t('theme.current', { defaultValue: '当前' })}${themeLabel}，点击切换`}
         aria-pressed={isDark}
         role="switch"
       >

@@ -17,6 +17,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
 import LandingPage from '../LandingPage';
+import { LocaleProvider } from '../../i18n/LocaleProvider';
+import { SettingsProvider } from '../../store/settingsStore';
 
 // Mock react-router-dom hooks
 const mockNavigate = jest.fn();
@@ -92,7 +94,11 @@ Object.defineProperty(navigator, 'share', {
 const renderLandingPage = () => {
   return render(
     <BrowserRouter>
-      <LandingPage />
+      <SettingsProvider>
+        <LocaleProvider>
+          <LandingPage />
+        </LocaleProvider>
+      </SettingsProvider>
     </BrowserRouter>
   );
 };
