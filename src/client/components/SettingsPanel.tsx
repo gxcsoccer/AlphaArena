@@ -15,6 +15,7 @@ import React, { useState } from 'react';
 import { Modal, Button, Radio, Space, Divider, Typography, Tooltip } from '@arco-design/web-react';
 import { IconSettings, IconSun, IconMoonFill, IconLanguage } from '@arco-design/web-react/icon';
 import { useSettings } from '../store/settingsStore';
+import { useTranslation } from 'react-i18next';
 
 const { Text } = Typography;
 
@@ -25,6 +26,7 @@ interface SettingsPanelProps {
 const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
   const [visible, setVisible] = useState(false);
   const { settings, setTheme, setLanguage, resetSettings } = useSettings();
+  const { t } = useTranslation('settings');
 
   const handleThemeChange = (value: string | number | boolean) => {
     setTheme(value as 'light' | 'dark');
@@ -40,7 +42,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
 
   return (
     <>
-      <Tooltip content="设置 (主题、语言)" position="br">
+      <Tooltip content={`${t('title')} (${t('general.theme')}, ${t('general.language')})`} position="br">
         <Button
           icon={<IconSettings style={{ fontSize: compact ? 18 : 20 }} />}
           onClick={() => setVisible(true)}
@@ -59,34 +61,34 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
             transition: 'all 0.3s ease',
           }}
           className="settings-button"
-          aria-label="打开设置面板"
+          aria-label={t('panel.ariaLabel')}
           aria-haspopup="dialog"
           aria-expanded={visible}
         >
           {!compact && (
             <span style={{ fontSize: 12, color: 'var(--color-text-2)' }}>
-              设置
+              {t('title')}
             </span>
           )}
         </Button>
       </Tooltip>
-      
+
       <Modal
         title={
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <IconSettings aria-hidden="true" />
-            <span>设置</span>
+            <span>{t('title')}</span>
           </div>
         }
         visible={visible}
         onCancel={() => setVisible(false)}
         footer={
           <Space>
-            <Button onClick={handleReset} aria-label="恢复默认设置">
-              恢复默认
+            <Button onClick={handleReset} aria-label={t('button.reset')}>
+              {t('button.reset')}
             </Button>
-            <Button type="primary" onClick={() => setVisible(false)} aria-label="关闭设置面板">
-              完成
+            <Button type="primary" onClick={() => setVisible(false)} aria-label={t('button.done')}>
+              {t('button.done')}
             </Button>
           </Space>
         }
@@ -101,25 +103,25 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
           <div style={{ marginBottom: 24 }} role="group" aria-labelledby="theme-setting-label">
             <div id="theme-setting-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               {settings.theme === 'dark' ? <IconMoonFill aria-hidden="true" /> : <IconSun aria-hidden="true" />}
-              <Text bold>主题模式</Text>
+              <Text bold>{t('theme.title')}</Text>
             </div>
             <Radio.Group
               value={settings.theme}
               onChange={handleThemeChange}
               type="button"
               style={{ width: '100%' }}
-              aria-label="选择主题模式"
+              aria-label={t('theme.title')}
             >
-              <Radio value="light" style={{ width: '50%', textAlign: 'center' }} aria-label="浅色模式">
+              <Radio value="light" style={{ width: '50%', textAlign: 'center' }} aria-label={t('theme.light')}>
                 <Space>
                   <IconSun aria-hidden="true" />
-                  浅色
+                  {t('theme.light')}
                 </Space>
               </Radio>
-              <Radio value="dark" style={{ width: '50%', textAlign: 'center' }} aria-label="深色模式">
+              <Radio value="dark" style={{ width: '50%', textAlign: 'center' }} aria-label={t('theme.dark')}>
                 <Space>
                   <IconMoonFill aria-hidden="true" />
-                  深色
+                  {t('theme.dark')}
                 </Space>
               </Radio>
             </Radio.Group>
@@ -131,20 +133,20 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
           <div style={{ marginBottom: 24 }} role="group" aria-labelledby="language-setting-label">
             <div id="language-setting-label" style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <IconLanguage aria-hidden="true" />
-              <Text bold>语言</Text>
+              <Text bold>{t('language.title')}</Text>
             </div>
             <Radio.Group
               value={settings.language}
               onChange={handleLanguageChange}
               type="button"
               style={{ width: '100%' }}
-              aria-label="选择语言"
+              aria-label={t('language.title')}
             >
-              <Radio value="zh" style={{ width: '50%', textAlign: 'center' }} aria-label="中文">
-                中文
+              <Radio value="zh" style={{ width: '50%', textAlign: 'center' }} aria-label={t('language.zh')}>
+                {t('language.zh')}
               </Radio>
-              <Radio value="en" style={{ width: '50%', textAlign: 'center' }} aria-label="English">
-                English
+              <Radio value="en" style={{ width: '50%', textAlign: 'center' }} aria-label={t('language.en')}>
+                {t('language.en')}
               </Radio>
             </Radio.Group>
           </div>
@@ -152,23 +154,23 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ compact = false }) => {
           <Divider style={{ margin: '16px 0' }} role="separator" />
 
           {/* Current Settings Summary */}
-          <div 
-            style={{ 
-              padding: 12, 
-              background: 'var(--color-fill-1)', 
+          <div
+            style={{
+              padding: 12,
+              background: 'var(--color-fill-1)',
               borderRadius: 4,
               fontSize: 12,
               color: 'var(--color-text-3)'
             }}
             role="status"
             aria-live="polite"
-            aria-label="当前设置摘要"
+            aria-label={t('panel.currentSettings')}
           >
-            <div>当前设置：</div>
+            <div>{t('panel.currentSettings')}：</div>
             <div style={{ marginTop: 4 }}>
-              主题: {settings.theme === 'dark' ? '深色模式' : '浅色模式'}
+              {t('general.theme')}: {settings.theme === 'dark' ? t('theme.dark') : t('theme.light')}
             </div>
-            <div>语言: {settings.language === 'zh' ? '中文' : 'English'}</div>
+            <div>{t('language.title')}: {settings.language === 'zh' ? t('language.zh') : t('language.en')}</div>
           </div>
         </div>
       </Modal>

@@ -36,7 +36,9 @@
     "expandAll": "Expand All",
     "collapseAll": "Collapse All",
     "showMore": "Show More",
-    "showLess": "Show Less"
+    "showLess": "Show Less",
+    "login": "Login",
+    "register": "Register"
   },
   "label": {
     "name": "Name",
@@ -113,7 +115,9 @@
   "theme": {
     "light": "Light Mode",
     "dark": "Dark Mode",
-    "auto": "Follow System"
+    "auto": "Follow System",
+    "current": "Current",
+    "toggle": "Toggle Theme"
   },
   "language": {
     "zh": "简体中文",
