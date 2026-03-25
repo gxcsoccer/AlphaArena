@@ -22,33 +22,66 @@ jest.mock('../../ai/StrategyAssistant', () => ({
   },
 }));
 
-// Mock Supabase auth
-jest.mock('../../database/client', () => ({
-  __esModule: true,
-  default: () => ({
-    auth: {
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: { id: 'test-user-id' } },
-        error: null,
-      }),
-    },
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({
-      data: { plan_type: 'pro', status: 'active' },
-      error: null,
-    }),
-  }),
-}));
-
 const app = express();
 app.use(express.json());
 app.use('/api/ai', aiRoutes);
 
+// Helper to create a chainable mock for Supabase queries
+function createChainableMock(finalResult: any) {
+  const chainable: any = {
+    select: jest.fn(() => chainable),
+    insert: jest.fn(() => chainable),
+    update: jest.fn(() => chainable),
+    delete: jest.fn(() => chainable),
+    eq: jest.fn(() => chainable),
+    neq: jest.fn(() => chainable),
+    lt: jest.fn(() => chainable),
+    lte: jest.fn(() => chainable),
+    gt: jest.fn(() => chainable),
+    gte: jest.fn(() => chainable),
+    order: jest.fn(() => chainable),
+    limit: jest.fn(() => chainable),
+    single: jest.fn(() => Promise.resolve(finalResult)),
+    maybeSingle: jest.fn(() => Promise.resolve(finalResult)),
+    then: (resolve: (value: any) => any) => Promise.resolve(finalResult).then(resolve),
+  };
+  return chainable;
+}
+
 describe('AI Routes', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Set up auth mock for this test file
+    // The database/client is mocked via jest.config.js moduleNameMapper
+    const { getSupabaseClient } = require('../../../tests/__mocks__/supabase');
+    const mockClient = getSupabaseClient();
+    
+    // Mock auth.getUser to return a valid user
+    mockClient.auth.getUser = jest.fn().mockResolvedValue({
+      data: { user: { id: 'test-user-id' } },
+      error: null,
+    });
+    
+    // Mock from() to return a chainable query builder
+    mockClient.from = jest.fn().mockImplementation((table: string) => {
+      if (table === 'subscriptions') {
+        return createChainableMock({
+          data: { plan_type: 'pro', status: 'active' },
+          error: null,
+        });
+      }
+      if (table === 'ai_messages') {
+        return createChainableMock({
+          data: [],
+          error: null,
+        });
+      }
+      return createChainableMock({
+        data: null,
+        error: null,
+      });
+    });
   });
 
   describe('POST /api/ai/chat', () => {

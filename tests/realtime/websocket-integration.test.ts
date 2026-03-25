@@ -239,17 +239,29 @@ describe('WebSocket Integration Tests', () => {
         removeChannel: jest.fn(() => Promise.resolve('ok')),
       };
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
+      // Use the global mock from tests/__mocks__/supabase.ts
+      // The moduleNameMapper in jest.config.js maps database/client to the mock
+      // We need to set up the mock to return our test mock
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      
+      // Override the channel method to use our test mock
+      // This makes mockSupabase.channel and client.channel return the same mockChannel
+      client.channel = mockSupabase.channel;
+      client.removeChannel = mockSupabase.removeChannel;
+      
+      // Reset singleton to use new mock
+      const { resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
     });
 
     afterEach(async () => {
       if (service) {
         await service.cleanupAll();
       }
-      jest.dontMock('../../src/database/client');
+      // Reset singleton after each test
+      const { resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
     });
 
     describe('Status Change Broadcast', () => {
@@ -610,17 +622,14 @@ describe('WebSocket Integration Tests', () => {
           }),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(() => Promise.resolve('ok')),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.resetModules();
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        // Reset singleton to use new mock
+        const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        resetSchedulerRealtimeService();
         const service = getSchedulerRealtimeService();
 
         // Simulate a complete execution lifecycle
@@ -650,7 +659,6 @@ describe('WebSocket Integration Tests', () => {
         }
 
         await service.cleanupAll();
-        jest.dontMock('../../src/database/client');
       });
 
       it('should handle rapid status changes', async () => {
@@ -663,17 +671,14 @@ describe('WebSocket Integration Tests', () => {
           }),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(() => Promise.resolve('ok')),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.resetModules();
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        // Reset singleton to use new mock
+        const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        resetSchedulerRealtimeService();
         const service = getSchedulerRealtimeService();
 
         // Rapid status changes
@@ -689,7 +694,6 @@ describe('WebSocket Integration Tests', () => {
         }
 
         await service.cleanupAll();
-        jest.dontMock('../../src/database/client');
       });
 
       it('should handle execution failure sequence', async () => {
@@ -702,17 +706,14 @@ describe('WebSocket Integration Tests', () => {
           }),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(() => Promise.resolve('ok')),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.resetModules();
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        // Reset singleton to use new mock
+        const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        resetSchedulerRealtimeService();
         const service = getSchedulerRealtimeService();
 
         // Execution failure sequence
@@ -733,7 +734,6 @@ describe('WebSocket Integration Tests', () => {
         expect(messages[1].payload.result.errorMessage).toBe('API error');
 
         await service.cleanupAll();
-        jest.dontMock('../../src/database/client');
       });
 
       it('should handle skip sequence', async () => {
@@ -746,17 +746,14 @@ describe('WebSocket Integration Tests', () => {
           }),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(() => Promise.resolve('ok')),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.resetModules();
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        // Reset singleton to use new mock
+        const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+        resetSchedulerRealtimeService();
         const service = getSchedulerRealtimeService();
 
         await service.broadcastExecutionSkipped('user-123', 'schedule-1', 'Test', 'exec-1', 'Condition not met');
@@ -766,7 +763,6 @@ describe('WebSocket Integration Tests', () => {
         expect(messages[0].payload.result.errorMessage).toBe('Condition not met');
 
         await service.cleanupAll();
-        jest.dontMock('../../src/database/client');
       });
     });
   });
@@ -777,17 +773,14 @@ describe('WebSocket Integration Tests', () => {
         send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastStatus('user-123', 'running', 5);
@@ -801,7 +794,6 @@ describe('WebSocket Integration Tests', () => {
       expect(typeof payload.timestamp).toBe('number');
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
 
     it('should have correct types for ExecutionEvent', async () => {
@@ -809,17 +801,14 @@ describe('WebSocket Integration Tests', () => {
         send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastExecutionComplete(
@@ -848,17 +837,14 @@ describe('WebSocket Integration Tests', () => {
         send: jest.fn((_message: any) => Promise.resolve('ok')),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastScheduleUpdate('user-123', 'schedule-1', 'updated');
@@ -871,7 +857,6 @@ describe('WebSocket Integration Tests', () => {
       expect(typeof payload.scheduleId).toBe('string');
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
   });
 
@@ -930,17 +915,14 @@ describe('WebSocket Integration Tests', () => {
         }),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       const result = await service.broadcastExecutionStart(
@@ -955,7 +937,6 @@ describe('WebSocket Integration Tests', () => {
       expect(messages[0].payload.scheduleName).toBe('');
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
 
     it('should handle zero activeJobs', async () => {
@@ -967,17 +948,14 @@ describe('WebSocket Integration Tests', () => {
         }),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastStatus('user-123', 'stopped', 0);
@@ -985,7 +963,6 @@ describe('WebSocket Integration Tests', () => {
       expect(messages[0].payload.activeJobs).toBe(0);
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
 
     it('should handle large numbers of activeJobs', async () => {
@@ -997,17 +974,14 @@ describe('WebSocket Integration Tests', () => {
         }),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastStatus('user-123', 'running', 1000000);
@@ -1015,7 +989,6 @@ describe('WebSocket Integration Tests', () => {
       expect(messages[0].payload.activeJobs).toBe(1000000);
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
 
     it('should handle special characters in schedule name', async () => {
@@ -1027,17 +1000,14 @@ describe('WebSocket Integration Tests', () => {
         }),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       const specialName = 'Schedule with "quotes" and \n newlines & <html>';
@@ -1052,7 +1022,6 @@ describe('WebSocket Integration Tests', () => {
       expect(messages[0].payload.scheduleName).toBe(specialName);
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
 
     it('should handle unicode in user IDs', async () => {
@@ -1064,17 +1033,14 @@ describe('WebSocket Integration Tests', () => {
         }),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(() => Promise.resolve('ok')),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.resetModules();
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
-      }));
-
-      const { getSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      // Reset singleton to use new mock
+      const { getSchedulerRealtimeService, resetSchedulerRealtimeService } = require('../../src/realtime/SchedulerRealtimeService');
+      resetSchedulerRealtimeService();
       const service = getSchedulerRealtimeService();
 
       await service.broadcastStatus('用户-123-测试', 'running', 1);
@@ -1082,7 +1048,6 @@ describe('WebSocket Integration Tests', () => {
       expect(messages[0].payload.userId).toBe('用户-123-测试');
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
     });
   });
 

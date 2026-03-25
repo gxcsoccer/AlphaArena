@@ -504,18 +504,14 @@ describe('WebSocket Signal Integration Tests', () => {
           subscribe: jest.fn(),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        jest.resetModules();
-
-        const { getSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        // Reset singleton to use new mock
+        const { getSignalRealtimeService, resetSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        resetSignalRealtimeService();
         const service = getSignalRealtimeService();
 
         const signal = {
@@ -541,8 +537,6 @@ describe('WebSocket Signal Integration Tests', () => {
 
         expect(result.success).toBeGreaterThanOrEqual(0);
         await service.cleanupAll();
-
-        jest.dontMock('../../src/database/client');
       });
 
       it('should handle signal update events', async () => {
@@ -550,18 +544,14 @@ describe('WebSocket Signal Integration Tests', () => {
           send: jest.fn().mockResolvedValue('ok'),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
-        }));
-
-        jest.resetModules();
-
-        const { getSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        // Reset singleton to use new mock
+        const { getSignalRealtimeService, resetSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        resetSignalRealtimeService();
         const service = getSignalRealtimeService();
 
         const signal = {
@@ -583,8 +573,6 @@ describe('WebSocket Signal Integration Tests', () => {
         
         expect(mockChannel.send).toHaveBeenCalled();
         await service.cleanupAll();
-
-        jest.dontMock('../../src/database/client');
       });
 
       it('should handle signal alert events', async () => {
@@ -592,40 +580,34 @@ describe('WebSocket Signal Integration Tests', () => {
           send: jest.fn().mockResolvedValue('ok'),
         };
 
-        const mockSupabase = {
-          channel: jest.fn(() => mockChannel),
-          removeChannel: jest.fn(),
-        };
+        // Use the global mock from tests/__mocks__/supabase.ts
+        const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+        const client = getSupabaseClient();
+        client.channel = jest.fn(() => mockChannel);
 
-        jest.doMock('../../src/database/client', () => ({
-          getSupabaseClient: jest.fn(() => mockSupabase),
+        // The DAOs are mocked via jest.config.js moduleNameMapper
+        // Override the mock implementations for this test
+        const { SignalSubscriptionsDAO } = require('../../tests/__mocks__/signal-subscriptions.dao');
+        (SignalSubscriptionsDAO as jest.Mock).mockImplementation(() => ({
+          getActiveSubscriptionsForSource: jest.fn().mockResolvedValue([
+            { subscriberId: 'user-123' },
+          ]),
         }));
 
-        // Mock SignalSubscriptionsDAO
-        jest.doMock('../../src/database/signal-subscriptions.dao', () => ({
-          SignalSubscriptionsDAO: jest.fn().mockImplementation(() => ({
-            getActiveSubscriptionsForSource: jest.fn().mockResolvedValue([
-              { subscriberId: 'user-123' },
-            ]),
-          })),
+        const { SignalPushConfigDAO } = require('../../tests/__mocks__/signal-push-config.dao');
+        (SignalPushConfigDAO as jest.Mock).mockImplementation(() => ({
+          getOrCreate: jest.fn().mockResolvedValue({
+            pushEnabled: true,
+            signalTypes: ['all'],
+            riskLevels: ['low', 'medium', 'high', 'very_high'],
+            symbols: [],
+            quietHoursEnabled: false,
+          }),
         }));
 
-        // Mock SignalPushConfigDAO
-        jest.doMock('../../src/database/signal-push-config.dao', () => ({
-          SignalPushConfigDAO: jest.fn().mockImplementation(() => ({
-            getOrCreate: jest.fn().mockResolvedValue({
-              pushEnabled: true,
-              signalTypes: ['all'],
-              riskLevels: ['low', 'medium', 'high', 'very_high'],
-              symbols: [],
-              quietHoursEnabled: false,
-            }),
-          })),
-        }));
-
-        jest.resetModules();
-
-        const { getSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        // Reset singleton to use new mock
+        const { getSignalRealtimeService, resetSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+        resetSignalRealtimeService();
         const service = getSignalRealtimeService();
 
         const signal = {
@@ -653,10 +635,6 @@ describe('WebSocket Signal Integration Tests', () => {
 
         expect(mockChannel.send).toHaveBeenCalled();
         await service.cleanupAll();
-
-        jest.dontMock('../../src/database/client');
-        jest.dontMock('../../src/database/signal-subscriptions.dao');
-        jest.dontMock('../../src/database/signal-push-config.dao');
       });
     });
 
@@ -1510,40 +1488,34 @@ describe('WebSocket Signal Integration Tests', () => {
         subscribe: jest.fn(),
       };
 
-      const mockSupabase = {
-        channel: jest.fn(() => mockChannel),
-        removeChannel: jest.fn(),
-      };
+      // Use the global mock from tests/__mocks__/supabase.ts
+      const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+      const client = getSupabaseClient();
+      client.channel = jest.fn(() => mockChannel);
 
-      jest.doMock('../../src/database/client', () => ({
-        getSupabaseClient: jest.fn(() => mockSupabase),
+      // The DAOs are mocked via jest.config.js moduleNameMapper
+      // Override the mock implementations for this test
+      const { SignalSubscriptionsDAO } = require('../../tests/__mocks__/signal-subscriptions.dao');
+      (SignalSubscriptionsDAO as jest.Mock).mockImplementation(() => ({
+        getActiveSubscriptionsForSource: jest.fn().mockResolvedValue([
+          { subscriberId: 'user-123' },
+        ]),
       }));
 
-      // Mock SignalSubscriptionsDAO
-      jest.doMock('../../src/database/signal-subscriptions.dao', () => ({
-        SignalSubscriptionsDAO: jest.fn().mockImplementation(() => ({
-          getActiveSubscriptionsForSource: jest.fn().mockResolvedValue([
-            { subscriberId: 'user-123' },
-          ]),
-        })),
+      const { SignalPushConfigDAO } = require('../../tests/__mocks__/signal-push-config.dao');
+      (SignalPushConfigDAO as jest.Mock).mockImplementation(() => ({
+        getOrCreate: jest.fn().mockResolvedValue({
+          pushEnabled: true,
+          signalTypes: ['all'],
+          riskLevels: ['low', 'medium', 'high', 'very_high'],
+          symbols: [],
+          quietHoursEnabled: false,
+        }),
       }));
 
-      // Mock SignalPushConfigDAO
-      jest.doMock('../../src/database/signal-push-config.dao', () => ({
-        SignalPushConfigDAO: jest.fn().mockImplementation(() => ({
-          getOrCreate: jest.fn().mockResolvedValue({
-            pushEnabled: true,
-            signalTypes: ['all'],
-            riskLevels: ['low', 'medium', 'high', 'very_high'],
-            symbols: [],
-            quietHoursEnabled: false,
-          }),
-        })),
-      }));
-
-      jest.resetModules();
-
-      const { getSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+      // Reset singleton to use new mock
+      const { getSignalRealtimeService, resetSignalRealtimeService } = require('../../src/signal/SignalRealtimeService');
+      resetSignalRealtimeService();
       const service = getSignalRealtimeService();
 
       const signal = {
@@ -1579,9 +1551,6 @@ describe('WebSocket Signal Integration Tests', () => {
       expect(mockChannel.send).toHaveBeenCalled();
 
       await service.cleanupAll();
-      jest.dontMock('../../src/database/client');
-      jest.dontMock('../../src/database/signal-subscriptions.dao');
-      jest.dontMock('../../src/database/signal-push-config.dao');
     });
 
     it('should handle connection lifecycle with signals', async () => {
