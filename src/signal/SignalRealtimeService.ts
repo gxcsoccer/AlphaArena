@@ -462,6 +462,13 @@ export function getSignalRealtimeService(): SignalRealtimeService {
   return instance;
 }
 
+/**
+ * Reset the singleton instance (for testing purposes only)
+ */
+export function resetSignalRealtimeService(): void {
+  instance = null;
+}
+
 // Named export for the class
 export { SignalRealtimeService };
 

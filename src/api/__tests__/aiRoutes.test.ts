@@ -4,51 +4,82 @@
 
 import request from 'supertest';
 import express from 'express';
-import aiRoutes from '../aiRoutes';
-import { strategyAssistant } from '../../ai/StrategyAssistant';
+import aiRoutes from '../aiRoutes.js';
+import { strategyAssistant } from '../../ai/StrategyAssistant.js';
+import { getSupabaseClient } from '../../database/client.js';
 
-// Mock the strategy assistant
-jest.mock('../../ai/StrategyAssistant', () => ({
-  strategyAssistant: {
-    chat: jest.fn(),
-    listUserConversations: jest.fn(),
-    getConversationHistory: jest.fn(),
-    deleteConversation: jest.fn(),
-    deleteAllUserConversations: jest.fn(),
-    analyzeMarket: jest.fn(),
-    optimizeStrategy: jest.fn(),
-    generateAdvice: jest.fn(),
-    explain: jest.fn(),
+// Mock dependencies
+jest.mock('../../ai/StrategyAssistant.js');
+jest.mock('../../database/client.js');
+
+// Create a mock Supabase client with all needed methods
+const mockSupabase = {
+  auth: {
+    getUser: jest.fn(),
   },
-}));
+  from: jest.fn(),
+};
 
-// Mock Supabase auth
-jest.mock('../../database/client', () => ({
-  __esModule: true,
-  default: () => ({
-    auth: {
-      getUser: jest.fn().mockResolvedValue({
-        data: { user: { id: 'test-user-id' } },
-        error: null,
-      }),
-    },
-    from: jest.fn().mockReturnThis(),
+// Mock getSupabaseClient to return our mock
+(getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+
+// Helper to create chainable query mock
+function createQueryMock(result: any) {
+  const query: any = {
     select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({
-      data: { plan_type: 'pro', status: 'active' },
-      error: null,
-    }),
-  }),
-}));
+    neq: jest.fn().mockReturnThis(),
+    lt: jest.fn().mockReturnThis(),
+    lte: jest.fn().mockReturnThis(),
+    gt: jest.fn().mockReturnThis(),
+    gte: jest.fn().mockReturnThis(),
+    order: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    single: jest.fn().mockResolvedValue(result),
+    maybeSingle: jest.fn().mockResolvedValue(result),
+  };
+  // Make it thenable
+  query.then = (resolve: any) => Promise.resolve(result).then(resolve);
+  return query;
+}
 
+// Create test app
 const app = express();
 app.use(express.json());
 app.use('/api/ai', aiRoutes);
 
 describe('AI Routes', () => {
+  const mockUserId = 'test-user-id';
+  const mockToken = 'test-token';
+
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Setup auth mock
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: mockUserId } },
+      error: null,
+    });
+    
+    // Setup subscription query mock - return pro subscription
+    mockSupabase.from.mockImplementation((table: string) => {
+      if (table === 'subscriptions') {
+        return createQueryMock({
+          data: { plan_type: 'pro', status: 'active' },
+          error: null,
+        });
+      }
+      if (table === 'ai_messages') {
+        return createQueryMock({
+          data: [],
+          error: null,
+        });
+      }
+      return createQueryMock({ data: null, error: null });
+    });
   });
 
   describe('POST /api/ai/chat', () => {
@@ -63,7 +94,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .post('/api/ai/chat')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({
           message: 'What is the current trend for BTC?',
         });
@@ -77,7 +108,7 @@ describe('AI Routes', () => {
     it('should return 400 if message is missing', async () => {
       const response = await request(app)
         .post('/api/ai/chat')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({});
 
       expect(response.status).toBe(400);
@@ -107,7 +138,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .get('/api/ai/conversations')
-        .set('Authorization', 'Bearer test-token');
+        .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -129,7 +160,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .get('/api/ai/conversations/conv-1')
-        .set('Authorization', 'Bearer test-token');
+        .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -143,7 +174,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .get('/api/ai/conversations/nonexistent')
-        .set('Authorization', 'Bearer test-token');
+        .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(404);
     });
@@ -155,7 +186,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .delete('/api/ai/conversations/conv-1')
-        .set('Authorization', 'Bearer test-token');
+        .set('Authorization', `Bearer ${mockToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -180,7 +211,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .post('/api/ai/analyze/market')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({
           symbol: 'BTC/USDT',
           market_data: { price: 52000 },
@@ -194,7 +225,7 @@ describe('AI Routes', () => {
     it('should return 400 if symbol is missing', async () => {
       const response = await request(app)
         .post('/api/ai/analyze/market')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({});
 
       expect(response.status).toBe(400);
@@ -219,7 +250,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .post('/api/ai/analyze/strategy')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({
           strategy_id: 'strat-1',
           strategy_data: { name: 'SMA Crossover', parameters: { shortPeriod: 5 } },
@@ -233,7 +264,7 @@ describe('AI Routes', () => {
     it('should return 400 if strategy_id is missing', async () => {
       const response = await request(app)
         .post('/api/ai/analyze/strategy')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({});
 
       expect(response.status).toBe(400);
@@ -260,7 +291,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .post('/api/ai/suggest')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({
           context: { currentPosition: { symbol: 'BTC/USDT' } },
         });
@@ -273,7 +304,7 @@ describe('AI Routes', () => {
     it('should return 400 if context is missing', async () => {
       const response = await request(app)
         .post('/api/ai/suggest')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({});
 
       expect(response.status).toBe(400);
@@ -289,7 +320,7 @@ describe('AI Routes', () => {
 
       const response = await request(app)
         .post('/api/ai/explain')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({
           topic: 'MACD',
         });
@@ -302,7 +333,7 @@ describe('AI Routes', () => {
     it('should return 400 if topic is missing', async () => {
       const response = await request(app)
         .post('/api/ai/explain')
-        .set('Authorization', 'Bearer test-token')
+        .set('Authorization', `Bearer ${mockToken}`)
         .send({});
 
       expect(response.status).toBe(400);

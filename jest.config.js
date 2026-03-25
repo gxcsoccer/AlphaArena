@@ -115,6 +115,11 @@ module.exports = {
     // Also mock relative imports from DAO files (e.g., './client' in database directory)
     '^\\./client$': '<rootDir>/tests/__mocks__/supabase.ts',
     '^\\./client\\.js$': '<rootDir>/tests/__mocks__/supabase.ts',
+    // Mock signal-related DAOs
+    '^src/database/signal-subscriptions.dao$': '<rootDir>/tests/__mocks__/signal-subscriptions.dao.ts',
+    '^(\\.\\./)+database/signal-subscriptions.dao$': '<rootDir>/tests/__mocks__/signal-subscriptions.dao.ts',
+    '^src/database/signal-push-config.dao$': '<rootDir>/tests/__mocks__/signal-push-config.dao.ts',
+    '^(\\.\\./)+database/signal-push-config.dao$': '<rootDir>/tests/__mocks__/signal-push-config.dao.ts',
     // Handle marked ESM module - use UMD build
     '^marked$': '<rootDir>/node_modules/marked/lib/marked.umd.js',
     // Mock CSS files

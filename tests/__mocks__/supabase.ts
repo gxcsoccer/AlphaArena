@@ -338,8 +338,30 @@ let _selectColumns = '*';
   return builder;
 }
 
+// Create a mock channel factory that can be customized per test
+let mockChannelInstance: any = null;
+
+function createMockChannel() {
+  return {
+    on: jest.fn().mockReturnThis(),
+    subscribe: jest.fn().mockReturnThis(),
+    unsubscribe: jest.fn().mockResolvedValue('ok'),
+    send: jest.fn().mockResolvedValue('ok'),
+    track: jest.fn().mockResolvedValue('ok'),
+    untrack: jest.fn().mockResolvedValue('ok'),
+  };
+}
+
 const mockSupabaseClient = {
   from: jest.fn().mockImplementation((table: string) => createMockQueryBuilder(table)),
+  // channel method at top level for realtime broadcasts (used by SchedulerRealtimeService)
+  channel: jest.fn().mockImplementation(() => {
+    if (!mockChannelInstance) {
+      mockChannelInstance = createMockChannel();
+    }
+    return mockChannelInstance;
+  }),
+  removeChannel: jest.fn().mockResolvedValue('ok'),
   auth: {
     getUser: jest.fn().mockResolvedValue({ data: { user: null }, error: null }),
     getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
@@ -358,11 +380,12 @@ const mockSupabaseClient = {
     })),
   },
   realtime: {
-    channel: jest.fn().mockImplementation(() => ({
-      on: jest.fn().mockReturnThis(),
-      subscribe: jest.fn().mockReturnThis(),
-      unsubscribe: jest.fn(),
-    })),
+    channel: jest.fn().mockImplementation(() => {
+      if (!mockChannelInstance) {
+        mockChannelInstance = createMockChannel();
+      }
+      return mockChannelInstance;
+    }),
   },
   rpc: jest.fn().mockResolvedValue({ data: null, error: null }),
 };
@@ -372,6 +395,18 @@ export function clearMockData() {
   // DEBUG
   // console.log('[Mock] clearMockData called');
   mockDataStore.clear();
+  // Reset channel instance for realtime tests
+  mockChannelInstance = null;
+}
+
+// Helper to get the mock channel for testing
+export function getMockChannel() {
+  return mockChannelInstance;
+}
+
+// Helper to set a custom mock channel for specific test scenarios
+export function setMockChannel(channel: any) {
+  mockChannelInstance = channel;
 }
 
 // Export helper to seed mock data
@@ -391,4 +426,5 @@ export function createClient() {
   return mockSupabaseClient;
 }
 
-export default mockSupabaseClient;
+// Default export must be the function (matching src/database/client.ts)
+export default getSupabaseClient;

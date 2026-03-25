@@ -27,10 +27,8 @@ function createChainableMock(finalResult: any) {
   return chainable;
 }
 
-// Mock the Supabase client
-jest.mock('../../src/database/client', () => ({
-  getSupabaseClient: jest.fn(),
-}));
+// The database/client is mocked via jest.config.js moduleNameMapper
+// We use the global mock from tests/__mocks__/supabase.ts
 
 describe('WebhookStorage', () => {
   let storage: WebhookStorage;
@@ -40,11 +38,10 @@ describe('WebhookStorage', () => {
     jest.clearAllMocks();
     storage = new WebhookStorage();
     
-    const { getSupabaseClient } = require('../../src/database/client');
-    mockSupabase = {
-      from: jest.fn(),
-    };
-    getSupabaseClient.mockReturnValue(mockSupabase);
+    // Get the global mock and set up the from method
+    const { getSupabaseClient } = require('../../tests/__mocks__/supabase');
+    mockSupabase = getSupabaseClient();
+    mockSupabase.from = jest.fn();
   });
 
   describe('createWebhook', () => {

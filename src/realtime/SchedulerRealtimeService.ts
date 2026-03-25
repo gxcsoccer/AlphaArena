@@ -325,4 +325,11 @@ export function getSchedulerRealtimeService(): SchedulerRealtimeService {
   return instance;
 }
 
+/**
+ * Reset the singleton instance (for testing purposes only)
+ */
+export function resetSchedulerRealtimeService(): void {
+  instance = null;
+}
+
 export default SchedulerRealtimeService;

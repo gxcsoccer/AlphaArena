@@ -46,6 +46,12 @@ jest.mock('../../database/share-stats.dao', () => ({
       weibo: 20,
     }),
     getShareCountByContent: jest.fn().mockResolvedValue(42),
+    getConversionRate: jest.fn().mockResolvedValue({
+      totalReferrals: 100,
+      successfulReferrals: 25,
+      conversionRate: 0.25,
+      period: '30d',
+    }),
   })),
 }));
 
