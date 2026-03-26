@@ -1,0 +1,43 @@
+{
+  "title": "ダッシュボード",
+  "subtitle": "アカウント概要とリアルタイムデータ",
+  "columns": {
+    "time": "時刻",
+    "strategy": "ストラテジー",
+    "symbol": "シンボル",
+    "side": "売買"
+  },
+  "overview": {
+    "title": "アカウント概要",
+    "balance": "アカウント残高",
+    "todayPnL": "本日の損益",
+    "totalPnL": "総損益",
+    "openOrders": "未約定注文",
+    "activeStrategies": "アクティブストラテジー"
+  },
+  "chart": {
+    "equityCurve": "資産曲線",
+    "dailyPnL": "日次損益",
+    "volume": "出来高",
+    "trades": "取引"
+  },
+  "recentActivity": {
+    "title": "最近のアクティビティ",
+    "trades": "取引",
+    "orders": "注文",
+    "alerts": "アラート",
+    "notifications": "通知"
+  },
+  "quickStats": {
+    "title": "クイック統計",
+    "winRate": "勝率",
+    "profitFactor": "プロフィットファクター",
+    "avgTrade": "平均取引",
+    "maxDrawdown": "最大ドローダウン"
+  },
+  "watchlist": {
+    "title": "ウォッチリスト",
+    "addPair": "ペアを追加",
+    "removePair": "ペアを削除"
+  }
+}

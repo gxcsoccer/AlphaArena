@@ -1,0 +1,74 @@
+{
+  "title": "Settings",
+  "button": {
+    "reset": "Reset to Default",
+    "done": "Done"
+  },
+  "panel": {
+    "ariaLabel": "Open settings panel",
+    "currentSettings": "Current Settings"
+  },
+  "theme": {
+    "title": "Theme Mode",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "title": "Language",
+    "zh": "中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어"
+  },
+  "general": {
+    "title": "General Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "timezone": "Timezone",
+    "currency": "Currency",
+    "dateFormat": "Date Format"
+  },
+  "notification": {
+    "title": "Notification Settings",
+    "email": "Email Notifications",
+    "push": "Push Notifications",
+    "sms": "SMS Notifications",
+    "trade": "Trade Notifications",
+    "alert": "Alert Notifications",
+    "report": "Report Notifications",
+    "marketing": "Marketing Notifications"
+  },
+  "security": {
+    "title": "Security Settings",
+    "twoFA": "Two-Factor Authentication",
+    "changePassword": "Change Password",
+    "sessionManagement": "Session Management",
+    "loginHistory": "Login History",
+    "apiKeys": "API Keys"
+  },
+  "trading": {
+    "title": "Trading Settings",
+    "defaultPair": "Default Pair",
+    "orderConfirm": "Order Confirmation",
+    "autoCancel": "Auto Cancel",
+    "riskLimit": "Risk Limit",
+    "leverageLimit": "Leverage Limit"
+  },
+  "display": {
+    "title": "Display Settings",
+    "compactMode": "Compact Mode",
+    "showBalances": "Show Balances",
+    "showPnL": "Show PnL",
+    "chartStyle": "Chart Style",
+    "tableRows": "Table Rows"
+  },
+  "api": {
+    "title": "API Settings",
+    "createKey": "Create Key",
+    "keyName": "Key Name",
+    "permissions": "Permissions",
+    "expiresAt": "Expires At",
+    "lastUsed": "Last Used",
+    "revoke": "Revoke"
+  }
+}

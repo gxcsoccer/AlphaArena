@@ -1,0 +1,62 @@
+{
+  "title": "高度なバックテストビジュアライゼーション",
+  "subtitle": "バックテストパラメータを設定し、「バックテスト実行」をクリックして分析を開始してください",
+  "form": {
+    "title": "設定",
+    "strategy": "ストラテジー",
+    "startDate": "開始日",
+    "endDate": "終了日",
+    "initialCapital": "初期資本",
+    "commission": "手数料率",
+    "slippage": "スリッページ",
+    "leverage": "レバレッジ",
+    "symbol": "シンボル",
+    "dateRange": "期間"
+  },
+  "result": {
+    "title": "バックテスト結果",
+    "totalReturn": "総リターン",
+    "annualReturn": "年間リターン",
+    "maxDrawdown": "最大ドローダウン",
+    "sharpeRatio": "シャープレシオ",
+    "sortinoRatio": "ソルティノレシオ",
+    "calmarRatio": "カルマーレシオ",
+    "winRate": "勝率",
+    "profitFactor": "プロフィットファクター",
+    "totalTrades": "総取引数",
+    "avgProfit": "平均利益",
+    "avgLoss": "平均損失",
+    "maxConsecWins": "最大連勝数",
+    "maxConsecLosses": "最大連敗数",
+    "finalCapital": "最終資本",
+    "totalPnL": "総損益",
+    "winningTrades": "勝ち取引",
+    "losingTrades": "負け取引"
+  },
+  "holdingTime": {
+    "less1h": "1時間未満",
+    "oneTo4h": "1-4時間",
+    "fourTo24h": "4-24時間",
+    "oneTo3d": "1-3日",
+    "threeTo7d": "3-7日",
+    "more7d": "7日以上"
+  },
+  "chart": {
+    "equityCurve": "資産曲線",
+    "drawdown": "ドローダウン曲線",
+    "monthlyReturns": "月次リターン",
+    "tradeDistribution": "取引分布"
+  },
+  "actions": {
+    "run": "バックテスト実行",
+    "export": "レポートエクスポート",
+    "compare": "結果比較",
+    "optimize": "パラメータ最適化"
+  },
+  "status": {
+    "pending": "保留中",
+    "running": "実行中",
+    "completed": "完了",
+    "failed": "失敗"
+  }
+}

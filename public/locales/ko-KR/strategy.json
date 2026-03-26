@@ -1,0 +1,64 @@
+{
+  "title": "전략",
+  "subtitle": "트레이딩 전략 생성 및 관리",
+  "list": {
+    "title": "전략 목록",
+    "create": "전략 생성",
+    "search": "전략 검색",
+    "filter": "필터",
+    "noResults": "전략을 찾을 수 없습니다"
+  },
+  "detail": {
+    "title": "전략 상세",
+    "edit": "전략 편집",
+    "delete": "전략 삭제",
+    "clone": "전략 복제",
+    "backtest": "백테스트 실행",
+    "start": "전략 시작",
+    "stop": "전략 중지"
+  },
+  "form": {
+    "name": "전략명",
+    "description": "설명",
+    "type": "전략 유형",
+    "status": "상태",
+    "symbol": "거래쌍",
+    "timeframe": "타임프레임",
+    "indicators": "지표",
+    "conditions": "조건",
+    "actions": "작업",
+    "risk": "리스크 관리",
+    "stopLoss": "손절가",
+    "takeProfit": "익절가",
+    "positionSize": "포지션 크기",
+    "maxPositions": "최대 포지션"
+  },
+  "type": {
+    "trend": "추세 추종",
+    "meanReversion": "평균 회귀",
+    "momentum": "모멘텀",
+    "breakout": "돌파",
+    "arbitrage": "차익 거래",
+    "marketMaking": "마켓 메이킹",
+    "custom": "커스텀"
+  },
+  "status": {
+    "active": "활성",
+    "paused": "일시정지",
+    "stopped": "중지",
+    "error": "오류",
+    "backtesting": "백테스트 중"
+  },
+  "performance": {
+    "title": "전략 성과",
+    "totalReturn": "총 수익률",
+    "annualReturn": "연간 수익률",
+    "maxDrawdown": "최대 낙폭",
+    "sharpeRatio": "샤프 비율",
+    "winRate": "승률",
+    "profitFactor": "프로핏 팩터",
+    "trades": "총 거래",
+    "avgProfit": "평균 수익",
+    "avgLoss": "평균 손실"
+  }
+}

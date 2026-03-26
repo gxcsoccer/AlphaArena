@@ -1,0 +1,36 @@
+{
+  "title": "Notifications",
+  "list": {
+    "title": "Notification List",
+    "markAllRead": "Mark All Read",
+    "clearAll": "Clear All",
+    "noNotifications": "No notifications"
+  },
+  "type": {
+    "trade": "Trade Notification",
+    "order": "Order Notification",
+    "alert": "Alert Notification",
+    "system": "System Notification",
+    "promotion": "Promotion Notification"
+  },
+  "settings": {
+    "title": "Notification Settings",
+    "enabled": "Enable Notifications",
+    "email": "Email Notifications",
+    "push": "Push Notifications",
+    "sms": "SMS Notifications",
+    "tradeAlerts": "Trade Alerts",
+    "priceAlerts": "Price Alerts",
+    "strategyAlerts": "Strategy Alerts",
+    "systemAlerts": "System Notifications"
+  },
+  "status": {
+    "read": "Read",
+    "unread": "Unread"
+  },
+  "actions": {
+    "view": "View Details",
+    "dismiss": "Dismiss",
+    "delete": "Delete"
+  }
+}

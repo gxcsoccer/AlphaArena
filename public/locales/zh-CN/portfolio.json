@@ -1,0 +1,48 @@
+{
+  "title": "投资组合",
+  "subtitle": "资产配置与组合分析",
+  "balance": {
+    "title": "账户余额",
+    "available": "可用余额",
+    "frozen": "冻结金额",
+    "total": "总资产",
+    "profit": "总盈利",
+    "profitPercent": "盈利率"
+  },
+  "asset": {
+    "title": "资产列表",
+    "name": "资产名称",
+    "amount": "持有数量",
+    "value": "价值",
+    "price": "当前价格",
+    "change24h": "24h涨跌",
+    "allocation": "占比"
+  },
+  "allocation": {
+    "title": "资产配置",
+    "chart": "配置图表",
+    "rebalance": "再平衡",
+    "target": "目标配置",
+    "current": "当前配置",
+    "deviation": "偏离度"
+  },
+  "history": {
+    "title": "历史记录",
+    "deposit": "充值",
+    "withdraw": "提现",
+    "transfer": "转账",
+    "trade": "交易",
+    "dividend": "分红"
+  },
+  "holding": {
+    "title": "持仓详情",
+    "pair": "交易对",
+    "amount": "数量",
+    "avgPrice": "均价",
+    "currentPrice": "现价",
+    "pnl": "盈亏",
+    "pnlPercent": "盈亏比例",
+    "value": "市值",
+    "actions": "操作"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "title": "設定",
+  "button": {
+    "reset": "デフォルトに戻す",
+    "done": "完了"
+  },
+  "panel": {
+    "ariaLabel": "設定パネルを開く",
+    "currentSettings": "現在の設定"
+  },
+  "theme": {
+    "title": "テーマモード",
+    "light": "ライト",
+    "dark": "ダーク"
+  },
+  "language": {
+    "title": "言語",
+    "zh": "中文",
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어"
+  },
+  "general": {
+    "title": "一般設定",
+    "language": "言語",
+    "theme": "テーマ",
+    "timezone": "タイムゾーン",
+    "currency": "通貨",
+    "dateFormat": "日付形式"
+  },
+  "notification": {
+    "title": "通知設定",
+    "email": "メール通知",
+    "push": "プッシュ通知",
+    "sms": "SMS通知",
+    "trade": "取引通知",
+    "alert": "アラート通知",
+    "report": "レポート通知",
+    "marketing": "マーケティング通知"
+  },
+  "security": {
+    "title": "セキュリティ設定",
+    "twoFA": "二要素認証",
+    "changePassword": "パスワード変更",
+    "sessionManagement": "セッション管理",
+    "loginHistory": "ログイン履歴",
+    "apiKeys": "APIキー"
+  },
+  "trading": {
+    "title": "取引設定",
+    "defaultPair": "デフォルトペア",
+    "orderConfirm": "注文確認",
+    "autoCancel": "自動取消",
+    "riskLimit": "リスク制限",
+    "leverageLimit": "レバレッジ制限"
+  },
+  "display": {
+    "title": "表示設定",
+    "compactMode": "コンパクトモード",
+    "showBalances": "残高を表示",
+    "showPnL": "損益を表示",
+    "chartStyle": "チャートスタイル",
+    "tableRows": "テーブル行数"
+  },
+  "api": {
+    "title": "API設定",
+    "createKey": "キー作成",
+    "keyName": "キー名",
+    "permissions": "権限",
+    "expiresAt": "有効期限",
+    "lastUsed": "最終使用",
+    "revoke": "無効化"
+  }
+}

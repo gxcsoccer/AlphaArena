@@ -46,7 +46,9 @@ export function updateDocumentTitle(title: string, lang: SupportedLanguage = DEF
   if (typeof document === 'undefined') return;
   
   // Add language suffix for non-default languages
-  const languageSuffix = lang === DEFAULT_LANGUAGE ? '' : ` | ${SUPPORTED_LANGUAGES[lang].nativeName}`;
+  // Handle case where lang might not be in SUPPORTED_LANGUAGES
+  const normalizedLang = (lang && SUPPORTED_LANGUAGES[lang]) ? lang : DEFAULT_LANGUAGE;
+  const languageSuffix = normalizedLang === DEFAULT_LANGUAGE ? '' : ` | ${SUPPORTED_LANGUAGES[normalizedLang].nativeName}`;
   document.title = `${title}${languageSuffix}`;
   
   // Update meta title tag
@@ -89,13 +91,16 @@ export function updateMetaKeywords(keywords: string): void {
 export function updateOpenGraphTags(meta: SEOMeta, lang: SupportedLanguage = DEFAULT_LANGUAGE): void {
   if (typeof document === 'undefined') return;
   
+  // Ensure lang is a valid string
+  const normalizedLang = (lang && typeof lang === 'string') ? lang : DEFAULT_LANGUAGE;
+  
   const ogTags = {
     'og:title': meta.title,
     'og:description': meta.description,
     'og:type': meta.ogType || 'website',
     'og:url': meta.canonicalUrl || window.location.href,
     'og:image': meta.ogImage || `${SITE_URL}/og-image.png`,
-    'og:locale': lang.replace('-', '_'),
+    'og:locale': normalizedLang.replace('-', '_'),
     'og:site_name': 'AlphaArena',
   };
   
@@ -285,18 +290,20 @@ export function updateSEOMeta(meta: SEOMeta, lang: SupportedLanguage = DEFAULT_L
  * Generate JSON-LD structured data for the website
  */
 export function generateWebsiteStructuredData(lang: SupportedLanguage = DEFAULT_LANGUAGE): object {
-  const langInfo = SUPPORTED_LANGUAGES[lang];
+  // Ensure lang is valid
+  const normalizedLang = (lang && SUPPORTED_LANGUAGES[lang]) ? lang : DEFAULT_LANGUAGE;
+  const langInfo = SUPPORTED_LANGUAGES[normalizedLang];
   
   return {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: 'AlphaArena',
     url: SITE_URL,
-    description: lang === 'zh-CN' 
+    description: normalizedLang === 'zh-CN' 
       ? '专业级算法交易平台，AI 驱动的智能策略，无风险模拟交易环境'
-      : lang === 'en-US'
+      : normalizedLang === 'en-US'
         ? 'Professional algorithmic trading platform with AI-powered strategies and risk-free simulation'
-        : lang === 'ja-JP'
+        : normalizedLang === 'ja-JP'
           ? 'AI駆動のスマート戦略とリスクフリーのシミュレーション環境を備えたプロフェッショナルアルゴリズム取引プラットフォーム'
           : 'AI 기반 스마트 전략과 리스크 프리 시뮬레이션 환경을 갖춘 전문 알고리즘 트레이딩 플랫폼',
     inLanguage: langInfo.nativeName,

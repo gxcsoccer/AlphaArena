@@ -1,0 +1,64 @@
+{
+  "title": "策略管理",
+  "subtitle": "创建和管理您的交易策略",
+  "list": {
+    "title": "策略列表",
+    "create": "创建策略",
+    "search": "搜索策略",
+    "filter": "筛选",
+    "noResults": "暂无策略"
+  },
+  "detail": {
+    "title": "策略详情",
+    "edit": "编辑策略",
+    "delete": "删除策略",
+    "clone": "克隆策略",
+    "backtest": "运行回测",
+    "start": "启动策略",
+    "stop": "停止策略"
+  },
+  "form": {
+    "name": "策略名称",
+    "description": "策略描述",
+    "type": "策略类型",
+    "status": "状态",
+    "symbol": "交易对",
+    "timeframe": "时间周期",
+    "indicators": "指标",
+    "conditions": "条件",
+    "actions": "动作",
+    "risk": "风险控制",
+    "stopLoss": "止损",
+    "takeProfit": "止盈",
+    "positionSize": "仓位大小",
+    "maxPositions": "最大持仓数"
+  },
+  "type": {
+    "trend": "趋势跟踪",
+    "meanReversion": "均值回归",
+    "momentum": "动量",
+    "breakout": "突破",
+    "arbitrage": "套利",
+    "marketMaking": "做市",
+    "custom": "自定义"
+  },
+  "status": {
+    "active": "运行中",
+    "paused": "已暂停",
+    "stopped": "已停止",
+    "error": "错误",
+    "backtesting": "回测中"
+  },
+  "performance": {
+    "title": "策略表现",
+    "totalReturn": "总收益",
+    "annualReturn": "年化收益",
+    "maxDrawdown": "最大回撤",
+    "sharpeRatio": "夏普比率",
+    "winRate": "胜率",
+    "profitFactor": "盈利因子",
+    "trades": "交易次数",
+    "avgProfit": "平均盈利",
+    "avgLoss": "平均亏损"
+  }
+}

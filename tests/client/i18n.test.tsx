@@ -1,7 +1,8 @@
 /**
- * i18n Framework Tests (Issue #584)
+ * i18n Framework Tests (Issue #584, Issue #618)
  * 
  * Tests for internationalization configuration and functionality.
+ * Updated for lazy loading support.
  */
 
 import { render, screen, act, waitFor } from '@testing-library/react';
@@ -35,14 +36,17 @@ describe('i18n Framework', () => {
   });
 
   describe('LocaleProvider', () => {
-    it('should render children without errors', () => {
+    it('should render children after loading', async () => {
       render(
         <LocaleProvider>
           <div>Test Content</div>
         </LocaleProvider>
       );
       
-      expect(screen.getByText('Test Content')).toBeInTheDocument();
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.getByText('Test Content')).toBeInTheDocument();
+      }, { timeout: 5000 });
     });
 
     it('should provide default Chinese locale', async () => {
@@ -54,7 +58,7 @@ describe('i18n Framework', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-      });
+      }, { timeout: 5000 });
     });
 
     it('should provide translation function', async () => {
@@ -66,7 +70,7 @@ describe('i18n Framework', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('translation-submit')).toHaveTextContent('提交');
-      });
+      }, { timeout: 5000 });
     });
   });
 
@@ -82,7 +86,7 @@ describe('i18n Framework', () => {
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
         expect(screen.getByTestId('translation-submit')).toHaveTextContent('提交');
-      });
+      }, { timeout: 5000 });
       
       // Switch to English
       await act(async () => {
@@ -92,7 +96,7 @@ describe('i18n Framework', () => {
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
         expect(screen.getByTestId('translation-submit')).toHaveTextContent('Submit');
-      });
+      }, { timeout: 5000 });
     });
 
     it('should switch language back to Chinese', async () => {
@@ -102,6 +106,11 @@ describe('i18n Framework', () => {
         </LocaleProvider>
       );
       
+      // Wait for initial render
+      await waitFor(() => {
+        expect(screen.getByTestId('switch-en')).toBeInTheDocument();
+      }, { timeout: 5000 });
+      
       // Switch to English first
       await act(async () => {
         screen.getByTestId('switch-en').click();
@@ -109,7 +118,7 @@ describe('i18n Framework', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
-      });
+      }, { timeout: 5000 });
       
       // Switch back to Chinese
       await act(async () => {
@@ -118,7 +127,7 @@ describe('i18n Framework', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-      });
+      }, { timeout: 5000 });
     });
   });
 
@@ -132,7 +141,7 @@ describe('i18n Framework', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('supported-languages')).toHaveTextContent('4');
-      });
+      }, { timeout: 5000 });
     });
   });
 });
@@ -165,7 +174,7 @@ describe('Translation Keys', () => {
       expect(screen.getByTestId('key-name')).toHaveTextContent('名称');
       expect(screen.getByTestId('key-success')).toHaveTextContent('操作成功');
       expect(screen.getByTestId('key-required')).toHaveTextContent('此字段为必填项');
-    });
+    }, { timeout: 5000 });
   });
 });
 
@@ -198,6 +207,34 @@ describe('Namespaces', () => {
       expect(screen.getByTestId('ns-navigation')).toHaveTextContent('仪表盘');
       expect(screen.getByTestId('ns-auth')).toHaveTextContent('登录');
       expect(screen.getByTestId('ns-trading')).toHaveTextContent('买入');
-    });
+    }, { timeout: 5000 });
+  });
+});
+
+describe('Lazy Loading (Issue #618)', () => {
+  it('should preload essential namespaces', async () => {
+    render(
+      <LocaleProvider>
+        <TestComponent />
+      </LocaleProvider>
+    );
+    
+    // Wait for provider to be ready
+    await waitFor(() => {
+      expect(screen.getByTestId('current-language')).toBeInTheDocument();
+    }, { timeout: 5000 });
+    
+    // Common namespace should be loaded
+    expect(i18n.hasLoadedNamespace('common')).toBe(true);
+    // SEO namespace should be preloaded
+    expect(i18n.hasLoadedNamespace('seo')).toBe(true);
+  });
+  
+  it('should have loadNamespaces function available', async () => {
+    // Verify the loadNamespaces function exists and works
+    await i18n.loadNamespaces('strategy');
+    
+    // Namespace should be loaded after calling loadNamespaces
+    expect(i18n.hasLoadedNamespace('strategy')).toBe(true);
   });
 });

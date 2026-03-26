@@ -1,0 +1,32 @@
+{
+  "title": "리더보드",
+  "subtitle": "전략 성과 순위",
+  "tabs": {
+    "all": "전체",
+    "daily": "일간",
+    "weekly": "주간",
+    "monthly": "월간",
+    "allTime": "전체 기간"
+  },
+  "rank": {
+    "title": "순위",
+    "strategy": "전략",
+    "owner": "소유자",
+    "return": "수익률",
+    "sharpe": "샤프",
+    "drawdown": "최대 낙폭",
+    "trades": "거래",
+    "winRate": "승률"
+  },
+  "stats": {
+    "totalStrategies": "총 전략",
+    "avgReturn": "평균 수익률",
+    "topPerformer": "최고 성과"
+  },
+  "filter": {
+    "byReturn": "수익률순",
+    "bySharpe": "샤프순",
+    "byWinRate": "승률순",
+    "byDrawdown": "낙폭순"
+  }
+}

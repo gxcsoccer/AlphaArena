@@ -1,0 +1,32 @@
+{
+  "title": "排行榜",
+  "subtitle": "策略表现排名",
+  "tabs": {
+    "all": "全部",
+    "daily": "日榜",
+    "weekly": "周榜",
+    "monthly": "月榜",
+    "allTime": "总榜"
+  },
+  "rank": {
+    "title": "排名",
+    "strategy": "策略",
+    "owner": "所有者",
+    "return": "收益率",
+    "sharpe": "夏普比率",
+    "drawdown": "最大回撤",
+    "trades": "交易数",
+    "winRate": "胜率"
+  },
+  "stats": {
+    "totalStrategies": "参与策略",
+    "avgReturn": "平均收益",
+    "topPerformer": "最佳表现"
+  },
+  "filter": {
+    "byReturn": "按收益率",
+    "bySharpe": "按夏普比率",
+    "byWinRate": "按胜率",
+    "byDrawdown": "按回撤"
+  }
+}

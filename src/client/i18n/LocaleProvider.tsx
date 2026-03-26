@@ -2,6 +2,7 @@
  * Locale Provider Component
  * 
  * Provides unified language management for both i18next and Arco Design.
+ * With lazy loading support (Issue #618).
  * 
  * Usage:
  * ```tsx
@@ -17,10 +18,10 @@
  * ```
  */
 
-import React, { createContext, useContext, useMemo, useEffect, useState } from 'react';
-import { ConfigProvider } from '@arco-design/web-react';
+import React, { createContext, useContext, useMemo, useEffect, useState, Suspense } from 'react';
+import { ConfigProvider, Spin } from '@arco-design/web-react';
 import { I18nextProvider, useTranslation } from 'react-i18next';
-import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './index';
+import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, ESSENTIAL_NAMESPACES } from './index';
 
 // Import Arco Design locales (use lib for CommonJS compatibility in Jest)
 import zhCN from '@arco-design/web-react/lib/locale/zh-CN';
@@ -58,11 +59,45 @@ export function useLocaleContext() {
   return context;
 }
 
+// Loading component for i18n initialization
+const I18nLoader: React.FC = () => (
+  <div 
+    style={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '100vh',
+      background: 'var(--color-bg-1, #18181c)',
+    }}
+  >
+    <Spin size={32} />
+  </div>
+);
+
 // Inner component that has access to i18n hooks
 function LocaleProviderInner({ children }: { children: React.ReactNode }) {
   const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>(
     i18n.language as SupportedLanguage || DEFAULT_LANGUAGE
   );
+  const [ready, setReady] = useState(false);
+
+  // Initialize i18n and wait for essential namespaces
+  useEffect(() => {
+    const initI18n = async () => {
+      // Wait for i18n to be initialized
+      if (!i18n.isInitialized) {
+        await new Promise<void>((resolve) => {
+          i18n.on('initialized', () => resolve());
+        });
+      }
+      
+      // Wait for essential namespaces to be loaded
+      await i18n.loadNamespaces(ESSENTIAL_NAMESPACES);
+      setReady(true);
+    };
+    
+    initI18n();
+  }, []);
 
   // Listen for language changes
   useEffect(() => {
@@ -96,6 +131,11 @@ function LocaleProviderInner({ children }: { children: React.ReactNode }) {
     supportedLanguages,
   }), [currentLanguage]);
 
+  // Show loading state while i18n is initializing
+  if (!ready) {
+    return <I18nLoader />;
+  }
+
   return (
     <LocaleContext.Provider value={contextValue}>
       <ConfigProvider locale={arcoLocale}>
@@ -108,15 +148,19 @@ function LocaleProviderInner({ children }: { children: React.ReactNode }) {
 // Main provider component
 interface LocaleProviderProps {
   children: React.ReactNode;
+  /** Show loading spinner while namespaces load */
+  showLoading?: boolean;
 }
 
-export function LocaleProvider({ children }: LocaleProviderProps) {
+export function LocaleProvider({ children, showLoading = true }: LocaleProviderProps) {
   return (
-    <I18nextProvider i18n={i18n}>
-      <LocaleProviderInner>
-        {children}
-      </LocaleProviderInner>
-    </I18nextProvider>
+    <Suspense fallback={showLoading ? <I18nLoader /> : null}>
+      <I18nextProvider i18n={i18n}>
+        <LocaleProviderInner>
+          {children}
+        </LocaleProviderInner>
+      </I18nextProvider>
+    </Suspense>
   );
 }
 

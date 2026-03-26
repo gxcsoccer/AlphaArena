@@ -3,6 +3,7 @@
  * 
  * This mock provides actual translated text for tests instead of translation keys.
  * It supports dynamic language switching with proper event handling.
+ * Updated for lazy loading support (Issue #618).
  */
 
 // Import actual translation files for both languages
@@ -14,6 +15,12 @@ const tradingZhCN = require('../../src/client/locales/zh-CN/trading.json');
 const dashboardZhCN = require('../../src/client/locales/zh-CN/dashboard.json');
 const leaderboardZhCN = require('../../src/client/locales/zh-CN/leaderboard.json');
 const settingsZhCN = require('../../src/client/locales/zh-CN/settings.json');
+const strategyZhCN = require('../../src/client/locales/zh-CN/strategy.json');
+const portfolioZhCN = require('../../src/client/locales/zh-CN/portfolio.json');
+const backtestZhCN = require('../../src/client/locales/zh-CN/backtest.json');
+const notificationZhCN = require('../../src/client/locales/zh-CN/notification.json');
+const seoZhCN = require('../../src/client/locales/zh-CN/seo.json');
+const errorsZhCN = require('../../src/client/locales/zh-CN/errors.json');
 
 const landingEnUS = require('../../src/client/locales/en-US/landing.json');
 const commonEnUS = require('../../src/client/locales/en-US/common.json');
@@ -23,6 +30,12 @@ const tradingEnUS = require('../../src/client/locales/en-US/trading.json');
 const dashboardEnUS = require('../../src/client/locales/en-US/dashboard.json');
 const leaderboardEnUS = require('../../src/client/locales/en-US/leaderboard.json');
 const settingsEnUS = require('../../src/client/locales/en-US/settings.json');
+const strategyEnUS = require('../../src/client/locales/en-US/strategy.json');
+const portfolioEnUS = require('../../src/client/locales/en-US/portfolio.json');
+const backtestEnUS = require('../../src/client/locales/en-US/backtest.json');
+const notificationEnUS = require('../../src/client/locales/en-US/notification.json');
+const seoEnUS = require('../../src/client/locales/en-US/seo.json');
+const errorsEnUS = require('../../src/client/locales/en-US/errors.json');
 
 const landingJaJP = require('../../src/client/locales/ja-JP/landing.json');
 const commonJaJP = require('../../src/client/locales/ja-JP/common.json');
@@ -32,6 +45,12 @@ const tradingJaJP = require('../../src/client/locales/ja-JP/trading.json');
 const dashboardJaJP = require('../../src/client/locales/ja-JP/dashboard.json');
 const leaderboardJaJP = require('../../src/client/locales/ja-JP/leaderboard.json');
 const settingsJaJP = require('../../src/client/locales/ja-JP/settings.json');
+const strategyJaJP = require('../../src/client/locales/ja-JP/strategy.json');
+const portfolioJaJP = require('../../src/client/locales/ja-JP/portfolio.json');
+const backtestJaJP = require('../../src/client/locales/ja-JP/backtest.json');
+const notificationJaJP = require('../../src/client/locales/ja-JP/notification.json');
+const seoJaJP = require('../../src/client/locales/ja-JP/seo.json');
+const errorsJaJP = require('../../src/client/locales/ja-JP/errors.json');
 
 const landingKoKR = require('../../src/client/locales/ko-KR/landing.json');
 const commonKoKR = require('../../src/client/locales/ko-KR/common.json');
@@ -41,6 +60,12 @@ const tradingKoKR = require('../../src/client/locales/ko-KR/trading.json');
 const dashboardKoKR = require('../../src/client/locales/ko-KR/dashboard.json');
 const leaderboardKoKR = require('../../src/client/locales/ko-KR/leaderboard.json');
 const settingsKoKR = require('../../src/client/locales/ko-KR/settings.json');
+const strategyKoKR = require('../../src/client/locales/ko-KR/strategy.json');
+const portfolioKoKR = require('../../src/client/locales/ko-KR/portfolio.json');
+const backtestKoKR = require('../../src/client/locales/ko-KR/backtest.json');
+const notificationKoKR = require('../../src/client/locales/ko-KR/notification.json');
+const seoKoKR = require('../../src/client/locales/ko-KR/seo.json');
+const errorsKoKR = require('../../src/client/locales/ko-KR/errors.json');
 
 // Combined translations for both languages
 const allTranslations: Record<string, Record<string, Record<string, any>>> = {
@@ -53,6 +78,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardZhCN,
     leaderboard: leaderboardZhCN,
     settings: settingsZhCN,
+    strategy: strategyZhCN,
+    portfolio: portfolioZhCN,
+    backtest: backtestZhCN,
+    notification: notificationZhCN,
+    seo: seoZhCN,
+    errors: errorsZhCN,
   },
   'en-US': {
     landing: landingEnUS,
@@ -63,6 +94,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardEnUS,
     leaderboard: leaderboardEnUS,
     settings: settingsEnUS,
+    strategy: strategyEnUS,
+    portfolio: portfolioEnUS,
+    backtest: backtestEnUS,
+    notification: notificationEnUS,
+    seo: seoEnUS,
+    errors: errorsEnUS,
   },
   'ja-JP': {
     landing: landingJaJP,
@@ -73,6 +110,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardJaJP,
     leaderboard: leaderboardJaJP,
     settings: settingsJaJP,
+    strategy: strategyJaJP,
+    portfolio: portfolioJaJP,
+    backtest: backtestJaJP,
+    notification: notificationJaJP,
+    seo: seoJaJP,
+    errors: errorsJaJP,
   },
   'ko-KR': {
     landing: landingKoKR,
@@ -83,6 +126,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardKoKR,
     leaderboard: leaderboardKoKR,
     settings: settingsKoKR,
+    strategy: strategyKoKR,
+    portfolio: portfolioKoKR,
+    backtest: backtestKoKR,
+    notification: notificationKoKR,
+    seo: seoKoKR,
+    errors: errorsKoKR,
   },
 };
 
@@ -90,6 +139,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
  * Current language state (mutable for testing)
  */
 let currentLanguage = 'zh-CN';
+
+/**
+ * Track loaded namespaces for lazy loading mock
+ * Preload essential namespaces (common, seo) as per Issue #618
+ */
+const loadedNamespaces: Set<string> = new Set(['common', 'seo', 'landing', 'navigation', 'auth', 'trading', 'dashboard', 'strategy', 'portfolio', 'settings', 'errors', 'backtest', 'leaderboard', 'notification']);
 
 /**
  * Event listeners storage
@@ -149,15 +204,21 @@ const createTFunction = (namespace: string, lang?: string) => {
  */
 const resetLanguage = () => {
   currentLanguage = 'zh-CN';
+  loadedNamespaces.clear();
+  loadedNamespaces.add('common');
+  loadedNamespaces.add('seo');
   eventListeners.clear();
 };
 
 /**
- * Mock i18n instance with proper state management
+ * Mock i18n instance with proper state management and lazy loading support
  */
 const mockI18n = {
   get language() {
     return currentLanguage;
+  },
+  get isInitialized() {
+    return true;
   },
   changeLanguage: jest.fn((lang: string) => {
     const previousLanguage = currentLanguage;
@@ -194,8 +255,22 @@ const mockI18n = {
       listeners.forEach(listener => listener(...args));
     }
   },
+  // Lazy loading support (Issue #618)
+  hasLoadedNamespace: jest.fn((ns: string) => {
+    return loadedNamespaces.has(ns);
+  }),
+  loadNamespaces: jest.fn((namespaces: string | string[]) => {
+    const nsArray = Array.isArray(namespaces) ? namespaces : [namespaces];
+    nsArray.forEach(ns => loadedNamespaces.add(ns));
+    return Promise.resolve();
+  }),
+  loadNamespace: jest.fn((ns: string) => {
+    loadedNamespaces.add(ns);
+    return Promise.resolve();
+  }),
   // Expose reset for tests
   _resetLanguage: resetLanguage,
+  _loadedNamespaces: loadedNamespaces,
 };
 
 /**
@@ -249,6 +324,22 @@ jest.mock('i18next', () => {
   };
 });
 
+// Mock i18next-http-backend module (Issue #618)
+jest.mock('i18next-http-backend', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockI18n),
+  };
+});
+
+// Mock i18next-browser-languagedetector module
+jest.mock('i18next-browser-languagedetector', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockI18n),
+  };
+});
+
 // Export for direct access in tests if needed
 module.exports = {
   mockI18n,
@@ -256,4 +347,4 @@ module.exports = {
   getTranslationsForLanguage,
 };
 
-console.log('[Setup] i18n mock applied with actual translations and dynamic language switching');
+console.log('[Setup] i18n mock applied with actual translations, dynamic language switching, and lazy loading support');
