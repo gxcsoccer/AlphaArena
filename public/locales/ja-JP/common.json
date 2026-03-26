@@ -133,5 +133,27 @@
     "return": "リターン",
     "maxDrawdown": "最大ドローダウン",
     "noData": "データがありません"
+  },
+  "pwa": {
+    "offline": "現在オフラインです",
+    "online": "オンライン",
+    "reconnecting": "再接続中...",
+    "backOnline": "接続が復元されました",
+    "retry": "再試行",
+    "install": {
+      "title": "AlphaArenaをインストール",
+      "description": "ホーム画面に追加して、より良いトレーディング体験を",
+      "benefitOffline": "オフラインでキャッシュデータにアクセス",
+      "benefitFast": "高速起動",
+      "benefitNative": "ネイティブのような体験",
+      "installNow": "今すぐインストール",
+      "later": "後で",
+      "installed": "インストール済み"
+    },
+    "update": {
+      "available": "新しいバージョンがあります",
+      "refresh": "更新するにはリフレッシュ",
+      "updated": "最新版に更新されました"
+    }
   }
 }

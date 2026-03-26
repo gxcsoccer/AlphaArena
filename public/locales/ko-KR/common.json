@@ -133,5 +133,27 @@
     "return": "수익률",
     "maxDrawdown": "최대 낙폭",
     "noData": "데이터가 없습니다"
+  },
+  "pwa": {
+    "offline": "현재 오프라인 상태입니다",
+    "online": "온라인",
+    "reconnecting": "재연결 중...",
+    "backOnline": "연결이 복원되었습니다",
+    "retry": "재시도",
+    "install": {
+      "title": "AlphaArena 설치",
+      "description": "홈 화면에 추가하여 더 나은 트레이딩 경험을",
+      "benefitOffline": "오프라인에서 캐시된 데이터 접근",
+      "benefitFast": "빠른 시작",
+      "benefitNative": "네이티브와 같은 경험",
+      "installNow": "지금 설치",
+      "later": "나중에",
+      "installed": "설치됨"
+    },
+    "update": {
+      "available": "새 버전이 있습니다",
+      "refresh": "업데이트하려면 새로고침",
+      "updated": "최신 버전으로 업데이트되었습니다"
+    }
   }
 }

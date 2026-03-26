@@ -133,5 +133,27 @@
     "return": "收益",
     "maxDrawdown": "最大回撤",
     "noData": "暂无数据"
+  },
+  "pwa": {
+    "offline": "当前处于离线状态",
+    "online": "在线",
+    "reconnecting": "正在重连...",
+    "backOnline": "已恢复连接",
+    "retry": "重试",
+    "install": {
+      "title": "安装 AlphaArena",
+      "description": "将 AlphaArena 添加到主屏幕，享受更流畅的交易体验",
+      "benefitOffline": "离线访问已缓存数据",
+      "benefitFast": "更快的启动速度",
+      "benefitNative": "类原生应用体验",
+      "installNow": "立即安装",
+      "later": "稍后再说",
+      "installed": "已安装"
+    },
+    "update": {
+      "available": "有新版本可用",
+      "refresh": "刷新更新",
+      "updated": "已更新到最新版本"
+    }
   }
 }
