@@ -24,6 +24,24 @@ const dashboardEnUS = require('../../src/client/locales/en-US/dashboard.json');
 const leaderboardEnUS = require('../../src/client/locales/en-US/leaderboard.json');
 const settingsEnUS = require('../../src/client/locales/en-US/settings.json');
 
+const landingJaJP = require('../../src/client/locales/ja-JP/landing.json');
+const commonJaJP = require('../../src/client/locales/ja-JP/common.json');
+const navigationJaJP = require('../../src/client/locales/ja-JP/navigation.json');
+const authJaJP = require('../../src/client/locales/ja-JP/auth.json');
+const tradingJaJP = require('../../src/client/locales/ja-JP/trading.json');
+const dashboardJaJP = require('../../src/client/locales/ja-JP/dashboard.json');
+const leaderboardJaJP = require('../../src/client/locales/ja-JP/leaderboard.json');
+const settingsJaJP = require('../../src/client/locales/ja-JP/settings.json');
+
+const landingKoKR = require('../../src/client/locales/ko-KR/landing.json');
+const commonKoKR = require('../../src/client/locales/ko-KR/common.json');
+const navigationKoKR = require('../../src/client/locales/ko-KR/navigation.json');
+const authKoKR = require('../../src/client/locales/ko-KR/auth.json');
+const tradingKoKR = require('../../src/client/locales/ko-KR/trading.json');
+const dashboardKoKR = require('../../src/client/locales/ko-KR/dashboard.json');
+const leaderboardKoKR = require('../../src/client/locales/ko-KR/leaderboard.json');
+const settingsKoKR = require('../../src/client/locales/ko-KR/settings.json');
+
 // Combined translations for both languages
 const allTranslations: Record<string, Record<string, Record<string, any>>> = {
   'zh-CN': {
@@ -45,6 +63,26 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardEnUS,
     leaderboard: leaderboardEnUS,
     settings: settingsEnUS,
+  },
+  'ja-JP': {
+    landing: landingJaJP,
+    common: commonJaJP,
+    navigation: navigationJaJP,
+    auth: authJaJP,
+    trading: tradingJaJP,
+    dashboard: dashboardJaJP,
+    leaderboard: leaderboardJaJP,
+    settings: settingsJaJP,
+  },
+  'ko-KR': {
+    landing: landingKoKR,
+    common: commonKoKR,
+    navigation: navigationKoKR,
+    auth: authKoKR,
+    trading: tradingKoKR,
+    dashboard: dashboardKoKR,
+    leaderboard: leaderboardKoKR,
+    settings: settingsKoKR,
   },
 };
 
