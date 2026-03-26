@@ -1,221 +1,195 @@
 /**
  * useSubscription Hook
- * Provides subscription state, usage data, and feature access checks
+ * React hook for accessing and managing user subscription state
  */
 
-import { useState, useEffect, useCallback, useContext, createContext, ReactNode } from 'react';
-import { useAuth } from './useAuth';
+import { useState, useEffect, useCallback, useContext, createContext } from 'react';
+import {
+  SubscriptionPlan,
+  UserSubscription,
+  SubscriptionWithPlan,
+  PlanFeatures,
+  PlanLimits,
+  PLAN_HIERARCHY,
+} from '../../types/subscription.types';
 
-// Types
-export interface PlanLimits {
-  concurrentStrategies: number;
-  dailyBacktests: number;
-  dataRetention: number;
-  apiCalls: number;
-  aiAssistantMessages?: number;
-  [key: string]: number;
+/**
+ * Subscription context value
+ */
+interface SubscriptionContextValue {
+  subscription: SubscriptionWithPlan | null;
+  loading: boolean;
+  error: Error | null;
+  plan: SubscriptionPlan;
+  features: PlanFeatures | null;
+  limits: PlanLimits | null;
+  isActive: boolean;
+  isTrial: boolean;
+  daysUntilExpiry: number | null;
+  refresh: () => Promise<void>;
+  checkFeatureAccess: (featureKey: string) => Promise<boolean>;
+  checkMultipleFeatures: (featureKeys: string[]) => Promise<Record<string, boolean>>;
+  checkFeatureLimit: (featureKey: string) => Promise<{ allowed: boolean; current: number; limit: number }>;
+  incrementFeatureUsage: (featureKey: string) => Promise<number>;
 }
 
-export interface FeatureUsage {
-  featureKey: string;
-  limit: number;
-  currentUsage: number;
-  remaining: number;
-  resetAt?: Date;
-}
+// Create context
+const SubscriptionContext = createContext<SubscriptionContextValue | null>(null);
 
-export interface SubscriptionStatus {
-  planId: string;
-  planName: string;
-  status: 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing';
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  features: Record<string, unknown>;
-  limits: PlanLimits;
-  cancelAtPeriodEnd: boolean;
-}
+/**
+ * Subscription Provider Component
+ * Wrap your app or a section with this to provide subscription state
+ */
+export function SubscriptionProvider({ children }: { children: React.ReactNode }) {
+  const [subscription, setSubscription] = useState<SubscriptionWithPlan | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-export interface SubscriptionState {
-  subscription: SubscriptionStatus | null;
-  usage: Record<string, FeatureUsage>;
-  isLoading: boolean;
-  error: string | null;
-  isPro: boolean;
-  isEnterprise: boolean;
-}
-
-interface SubscriptionContextType extends SubscriptionState {
-  refreshSubscription: () => Promise<void>;
-  checkFeatureAccess: (featureKey: string) => Promise<FeatureUsage | null>;
-  hasFeature: (featureKey: string) => boolean;
-  getUsagePercentage: (featureKey: string) => number;
-  isNearLimit: (featureKey: string, threshold?: number) => boolean;
-}
-
-const SubscriptionContext = createContext<SubscriptionContextType | undefined>(undefined);
-
-// API helper
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
-
-async function fetchSubscription(): Promise<SubscriptionStatus> {
-  const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-  
-  const response = await fetch(`${API_BASE_URL}/api/subscriptions`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch subscription');
-  }
-
-  const result = await response.json();
-  return result.data;
-}
-
-async function fetchFeatureUsage(featureKey: string): Promise<FeatureUsage> {
-  const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-  
-  const response = await fetch(`${API_BASE_URL}/api/subscriptions/usage/${featureKey}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch feature usage');
-  }
-
-  const result = await response.json();
-  return result.data;
-}
-
-async function fetchAllUsage(): Promise<Record<string, FeatureUsage>> {
-  const token = localStorage.getItem('auth_access_token') || localStorage.getItem('token');
-  
-  const response = await fetch(`${API_BASE_URL}/api/subscriptions/usage`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch usage');
-  }
-
-  const result = await response.json();
-  return result.data || {};
-}
-
-// Provider component
-interface SubscriptionProviderProps {
-  children: ReactNode;
-}
-
-export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
-  const { isAuthenticated } = useAuth();
-  const [state, setState] = useState<SubscriptionState>({
-    subscription: null,
-    usage: {},
-    isLoading: true,
-    error: null,
-    isPro: false,
-    isEnterprise: false,
-  });
-
-  const refreshSubscription = useCallback(async () => {
-    if (!isAuthenticated) {
-      setState(prev => ({
-        ...prev,
-        subscription: null,
-        usage: {},
-        isLoading: false,
-        isPro: false,
-        isEnterprise: false,
-      }));
-      return;
-    }
-
-    setState(prev => ({ ...prev, isLoading: true, error: null }));
-
+  // Fetch subscription data
+  const refresh = useCallback(async () => {
     try {
-      const [subscription, usage] = await Promise.all([
-        fetchSubscription(),
-        fetchAllUsage().catch(() => ({})), // Don't fail if usage fetch fails
-      ]);
-
-      const isPro = subscription.planId === 'pro' || subscription.planId === 'enterprise';
-      const isEnterprise = subscription.planId === 'enterprise';
-
-      setState({
-        subscription,
-        usage,
-        isLoading: false,
-        error: null,
-        isPro,
-        isEnterprise,
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/subscription/current', {
+        credentials: 'include',
       });
-    } catch (error) {
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load subscription',
-      }));
-    }
-  }, [isAuthenticated]);
-
-  // Initial fetch
-  useEffect(() => {
-    refreshSubscription();
-  }, [refreshSubscription]);
-
-  const checkFeatureAccess = useCallback(async (featureKey: string): Promise<FeatureUsage | null> => {
-    try {
-      const usage = await fetchFeatureUsage(featureKey);
-      setState(prev => ({
-        ...prev,
-        usage: { ...prev.usage, [featureKey]: usage },
-      }));
-      return usage;
-    } catch (error) {
-      console.error('Failed to check feature access:', error);
-      return null;
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // User not authenticated, use free plan
+          setSubscription(null);
+          return;
+        }
+        throw new Error(`Failed to fetch subscription: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      setSubscription(data.subscription);
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unknown error'));
+      console.error('Error fetching subscription:', err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const hasFeature = useCallback((featureKey: string): boolean => {
-    const { subscription } = state;
-    if (!subscription) return false;
-    
-    // Pro users have access to all features
-    if (state.isPro) return true;
-    
-    // Check if feature is in the plan features
-    const featureValue = subscription.features[featureKey];
-    if (typeof featureValue === 'boolean') return featureValue;
-    if (typeof featureValue === 'number') return featureValue > 0;
-    
-    return false;
-  }, [state]);
+  // Fetch on mount
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
-  const getUsagePercentage = useCallback((featureKey: string): number => {
-    const usage = state.usage[featureKey];
-    if (!usage || usage.limit <= 0) return 0;
-    return Math.min(100, (usage.currentUsage / usage.limit) * 100);
-  }, [state.usage]);
+  // Check feature access
+  const checkFeatureAccess = useCallback(async (featureKey: string): Promise<boolean> => {
+    try {
+      const response = await fetch(`/api/subscription/features/${featureKey}/check`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) return false;
+      
+      const data = await response.json();
+      return data.hasAccess;
+    } catch (err) {
+      console.error('Error checking feature access:', err);
+      return false;
+    }
+  }, []);
 
-  const isNearLimit = useCallback((featureKey: string, threshold: number = 80): boolean => {
-    return getUsagePercentage(featureKey) >= threshold;
-  }, [getUsagePercentage]);
+  // Check multiple features
+  const checkMultipleFeatures = useCallback(async (
+    featureKeys: string[]
+  ): Promise<Record<string, boolean>> => {
+    try {
+      const response = await fetch('/api/subscription/features/check-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ features: featureKeys }),
+      });
+      
+      if (!response.ok) return {};
+      
+      const data = await response.json();
+      return data.accesses || {};
+    } catch (err) {
+      console.error('Error checking multiple features:', err);
+      return {};
+    }
+  }, []);
 
-  const value: SubscriptionContextType = {
-    ...state,
-    refreshSubscription,
+  // Check feature limit
+  const checkFeatureLimit = useCallback(async (
+    featureKey: string
+  ): Promise<{ allowed: boolean; current: number; limit: number }> => {
+    try {
+      const response = await fetch(`/api/subscription/features/${featureKey}/limit`, {
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        return { allowed: false, current: 0, limit: 0 };
+      }
+      
+      const data = await response.json();
+      return {
+        allowed: data.allowed,
+        current: data.current_usage,
+        limit: data.limit,
+      };
+    } catch (err) {
+      console.error('Error checking feature limit:', err);
+      return { allowed: false, current: 0, limit: 0 };
+    }
+  }, []);
+
+  // Increment feature usage
+  const incrementFeatureUsage = useCallback(async (featureKey: string): Promise<number> => {
+    try {
+      const response = await fetch(`/api/subscription/features/${featureKey}/usage`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) return 0;
+      
+      const data = await response.json();
+      return data.usage_count;
+    } catch (err) {
+      console.error('Error incrementing feature usage:', err);
+      return 0;
+    }
+  }, []);
+
+  // Derived values
+  const plan: SubscriptionPlan = subscription?.plan || 'free';
+  const features: PlanFeatures | null = subscription?.plan_details?.features || null;
+  const limits: PlanLimits | null = subscription?.plan_details?.limits || null;
+  const isActive = subscription?.status === 'active' || subscription?.status === 'past_due';
+  
+  const isTrial = subscription?.trial_end && new Date(subscription.trial_end) > new Date() || false;
+  
+  const daysUntilExpiry = subscription?.current_period_end
+    ? Math.ceil(
+        (new Date(subscription.current_period_end).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      )
+    : null;
+
+  const value: SubscriptionContextValue = {
+    subscription,
+    loading,
+    error,
+    plan,
+    features,
+    limits,
+    isActive,
+    isTrial,
+    daysUntilExpiry,
+    refresh,
     checkFeatureAccess,
-    hasFeature,
-    getUsagePercentage,
-    isNearLimit,
+    checkMultipleFeatures,
+    checkFeatureLimit,
+    incrementFeatureUsage,
   };
 
   return (
@@ -225,13 +199,119 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   );
 }
 
-// Hook to use subscription context
-export function useSubscription(): SubscriptionContextType {
+/**
+ * useSubscription Hook
+ * Access subscription state and methods
+ */
+export function useSubscription(): SubscriptionContextValue {
   const context = useContext(SubscriptionContext);
-  if (context === undefined) {
+  
+  if (!context) {
     throw new Error('useSubscription must be used within a SubscriptionProvider');
   }
+  
   return context;
 }
 
-export default useSubscription;
+/**
+ * useFeatureAccess Hook
+ * Simplified hook for checking a single feature
+ */
+export function useFeatureAccess(featureKey: string): {
+  hasAccess: boolean;
+  loading: boolean;
+  check: () => Promise<boolean>;
+} {
+  const { checkFeatureAccess, plan } = useSubscription();
+  const [hasAccess, setHasAccess] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const check = useCallback(async () => {
+    setLoading(true);
+    const result = await checkFeatureAccess(featureKey);
+    setHasAccess(result);
+    setLoading(false);
+    return result;
+  }, [featureKey, checkFeatureAccess]);
+
+  useEffect(() => {
+    check();
+  }, [check]);
+
+  return { hasAccess, loading, check };
+}
+
+/**
+ * useFeatureLimit Hook
+ * Track usage and limits for a feature
+ */
+export function useFeatureLimit(featureKey: string): {
+  allowed: boolean;
+  current: number;
+  limit: number;
+  loading: boolean;
+  increment: () => Promise<number>;
+  refresh: () => Promise<void>;
+} {
+  const { checkFeatureLimit, incrementFeatureUsage } = useSubscription();
+  const [state, setState] = useState({
+    allowed: true,
+    current: 0,
+    limit: -1,
+    loading: true,
+  });
+
+  const refresh = useCallback(async () => {
+    setState(prev => ({ ...prev, loading: true }));
+    const result = await checkFeatureLimit(featureKey);
+    setState({
+      ...result,
+      loading: false,
+    });
+  }, [featureKey, checkFeatureLimit]);
+
+  const increment = useCallback(async () => {
+    const newCount = await incrementFeatureUsage(featureKey);
+    setState(prev => ({
+      ...prev,
+      current: newCount,
+      allowed: prev.limit === -1 || newCount < prev.limit,
+    }));
+    return newCount;
+  }, [featureKey, incrementFeatureUsage]);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { ...state, increment, refresh };
+}
+
+/**
+ * usePlan Hook
+ * Get current plan and compare with required plan
+ */
+export function usePlan(): {
+  plan: SubscriptionPlan;
+  isFree: boolean;
+  isPro: boolean;
+  isEnterprise: boolean;
+  isAtLeast: (requiredPlan: SubscriptionPlan) => boolean;
+} {
+  const { plan } = useSubscription();
+  
+  const isAtLeast = useCallback((requiredPlan: SubscriptionPlan): boolean => {
+    return PLAN_HIERARCHY[plan] >= PLAN_HIERARCHY[requiredPlan];
+  }, [plan]);
+
+  return {
+    plan,
+    isFree: plan === 'free',
+    isPro: plan === 'pro',
+    isEnterprise: plan === 'enterprise',
+    isAtLeast,
+  };
+}
+
+// Export types
+export type { SubscriptionContextValue };
