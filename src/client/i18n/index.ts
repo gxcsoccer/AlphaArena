@@ -8,7 +8,7 @@
  * ### Language Detection
  * - Browser language detection via i18next-browser-languagedetector
  * - Fallback language: zh-CN (Chinese Simplified)
- * - Supported languages: zh-CN, en-US
+ * - Supported languages: zh-CN, en-US, ja-JP
  * 
  * ### Namespace Strategy
  * Namespaces are organized by feature module for better code splitting and maintainability:
@@ -96,6 +96,33 @@ import notificationEnUS from '../locales/en-US/notification.json';
 // Landing namespace
 import landingZhCN from '../locales/zh-CN/landing.json';
 import landingEnUS from '../locales/en-US/landing.json';
+import landingJaJP from '../locales/ja-JP/landing.json';
+
+// Japanese imports
+// Common namespace
+import commonJaJP from '../locales/ja-JP/common.json';
+// Navigation namespace
+import navigationJaJP from '../locales/ja-JP/navigation.json';
+// Auth namespace
+import authJaJP from '../locales/ja-JP/auth.json';
+// Trading namespace
+import tradingJaJP from '../locales/ja-JP/trading.json';
+// Portfolio namespace
+import portfolioJaJP from '../locales/ja-JP/portfolio.json';
+// Strategy namespace
+import strategyJaJP from '../locales/ja-JP/strategy.json';
+// Settings namespace
+import settingsJaJP from '../locales/ja-JP/settings.json';
+// Errors namespace
+import errorsJaJP from '../locales/ja-JP/errors.json';
+// Dashboard namespace
+import dashboardJaJP from '../locales/ja-JP/dashboard.json';
+// Leaderboard namespace
+import leaderboardJaJP from '../locales/ja-JP/leaderboard.json';
+// Backtest namespace
+import backtestJaJP from '../locales/ja-JP/backtest.json';
+// Notification namespace
+import notificationJaJP from '../locales/ja-JP/notification.json';
 
 // Define supported languages
 export const SUPPORTED_LANGUAGES = {
@@ -108,6 +135,11 @@ export const SUPPORTED_LANGUAGES = {
     name: 'English',
     nativeName: 'English',
     arcoLocale: 'en-US',
+  },
+  'ja-JP': {
+    name: '日本語',
+    nativeName: '日本語',
+    arcoLocale: 'ja-JP',
   },
 } as const;
 
@@ -145,6 +177,21 @@ const resources = {
     backtest: backtestEnUS,
     notification: notificationEnUS,
     landing: landingEnUS,
+  },
+  'ja-JP': {
+    common: commonJaJP,
+    navigation: navigationJaJP,
+    auth: authJaJP,
+    trading: tradingJaJP,
+    portfolio: portfolioJaJP,
+    strategy: strategyJaJP,
+    settings: settingsJaJP,
+    errors: errorsJaJP,
+    dashboard: dashboardJaJP,
+    leaderboard: leaderboardJaJP,
+    backtest: backtestJaJP,
+    notification: notificationJaJP,
+    landing: landingJaJP,
   },
 };
 

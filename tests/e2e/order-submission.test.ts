@@ -11,8 +11,15 @@
  */
 
 import puppeteer from 'puppeteer';
+import { newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+// Helper to build URL with lang parameter
+const buildUrl = (path: string): string => {
+  const separator = path.includes('?') ? '&' : '?';
+  return BASE_URL + path + separator + 'lang=en-US';
+};
 const TIMEOUT = 30000;
 const WAIT_AFTER_LOAD = 5000; // Wait time after page load for data to populate
 
@@ -41,7 +48,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 1: Trading Order Panel\n');
 
-    const page1 = await browser.newPage();
+    const page1 = await newAuthenticatedPage(browser);
     await page1.setViewport({ width: 1280, height: 800 });
 
     const consoleErrors: string[] = [];
@@ -54,7 +61,7 @@ async function runTests(): Promise<number> {
     // Test 1.1: Page loads successfully
     console.log('  Test 1.1: Home page loads');
     const startTime = Date.now();
-    await page1.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page1.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
     const loadTime = Date.now() - startTime;
 
@@ -113,10 +120,10 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 2: Order Form Interactions\n');
 
-    const page2 = await browser.newPage();
+    const page2 = await newAuthenticatedPage(browser);
     await page2.setViewport({ width: 1280, height: 800 });
 
-    await page2.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page2.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 2.1: Buy/Sell tab switching
@@ -207,10 +214,10 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 3: Form Validation\n');
 
-    const page3 = await browser.newPage();
+    const page3 = await newAuthenticatedPage(browser);
     await page3.setViewport({ width: 1280, height: 800 });
 
-    await page3.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page3.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 3.1: Empty form validation
@@ -291,7 +298,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 4: Orders Panel\n');
 
-    const page4 = await browser.newPage();
+    const page4 = await newAuthenticatedPage(browser);
     await page4.setViewport({ width: 1280, height: 800 });
 
     const panelErrors: string[] = [];
@@ -301,7 +308,7 @@ async function runTests(): Promise<number> {
       }
     });
 
-    await page4.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page4.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 4.1: Orders panel visibility
@@ -369,7 +376,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 5: Console Error Check\n');
 
-    const page5 = await browser.newPage();
+    const page5 = await newAuthenticatedPage(browser);
     await page5.setViewport({ width: 1280, height: 800 });
 
     const finalErrors: string[] = [];
@@ -379,7 +386,7 @@ async function runTests(): Promise<number> {
       }
     });
 
-    await page5.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page5.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Try various interactions to trigger potential errors

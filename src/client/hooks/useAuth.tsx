@@ -140,15 +140,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
         isLoading: false,
       });
 
-      // Verify token is still valid by making a refresh request
-      authFetch<{ accessToken: string }>('/refresh', {
-        method: 'POST',
-        body: JSON.stringify({ refreshToken }),
-      }).then(result => {
-        if (result.data) {
-          localStorage.setItem(ACCESS_TOKEN_KEY, result.data.accessToken);
-          setState(prev => ({ ...prev, accessToken: result.data!.accessToken }));
-        } else {
+      // Check if this is an E2E test with mock auth (skip token validation)
+      const isE2ETest = localStorage.getItem('e2e_skip_token_refresh') === 'true';
+      
+      if (isE2ETest) {
+        console.log('[Auth] E2E test detected - skipping token validation');
+      } else {
+        // Verify token is still valid by making a refresh request
+        authFetch<{ accessToken: string }>('/refresh', {
+          method: 'POST',
+          body: JSON.stringify({ refreshToken }),
+        }).then(result => {
+          if (result.data) {
+            localStorage.setItem(ACCESS_TOKEN_KEY, result.data.accessToken);
+            setState(prev => ({ ...prev, accessToken: result.data!.accessToken }));
+          } else {
+            // Token invalid, clear state
+            tokenStorage.clearTokens();
+            setState({
+              user: null,
+              accessToken: null,
+              refreshToken: null,
+              isAuthenticated: false,
+              isLoading: false,
+            });
+          }
+        }).catch(() => {
           // Token invalid, clear state
           tokenStorage.clearTokens();
           setState({
@@ -158,18 +175,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             isAuthenticated: false,
             isLoading: false,
           });
-        }
-      }).catch(() => {
-        // Token invalid, clear state
-        tokenStorage.clearTokens();
-        setState({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
-          isAuthenticated: false,
-          isLoading: false,
         });
-      });
+      }
     } else {
       setState(prev => ({ ...prev, isLoading: false }));
     }

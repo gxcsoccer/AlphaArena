@@ -25,11 +25,13 @@ import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '
 // Import Arco Design locales (use lib for CommonJS compatibility in Jest)
 import zhCN from '@arco-design/web-react/lib/locale/zh-CN';
 import enUS from '@arco-design/web-react/lib/locale/en-US';
+import jaJP from '@arco-design/web-react/lib/locale/ja-JP';
 
 // Arco locale map
 const ARCO_LOCALES: Record<string, typeof zhCN> = {
   'zh-CN': zhCN,
   'en-US': enUS,
+  'ja-JP': jaJP,
 };
 
 // Context for locale management

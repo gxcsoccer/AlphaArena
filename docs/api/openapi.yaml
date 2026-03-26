@@ -1878,6 +1878,180 @@ paths:
       responses:
         '200':
           description: 'Performance trend data'
+  /api/performance/alerts/thresholds:
+    get:
+      summary: 'Get all performance thresholds'
+      description: 'Get configured performance thresholds for alerting'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      responses:
+        '200':
+          description: 'Performance thresholds'
+  '/api/performance/alerts/thresholds/{metricType}':
+    put:
+      summary: 'Update a performance threshold'
+      description: 'Update threshold configuration for a specific metric (admin only)'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: metricType
+          required: true
+          schema:
+            type: string
+            enum:
+              - lcp
+              - fcp
+              - fid
+              - cls
+              - ttfb
+              - inp
+              - api_latency
+              - error_rate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                warning_threshold:
+                  type: number
+                critical_threshold:
+                  type: number
+                enabled:
+                  type: boolean
+                notification_channels:
+                  type: object
+                  properties: {in_app: {type: boolean}, email: {type: boolean}, webhook: {type: boolean}}
+                cooldown_minutes:
+                  type: number
+      responses:
+        '200':
+          description: 'Threshold updated'
+  /api/performance/alerts:
+    get:
+      summary: 'Get active performance alerts'
+      description: 'Get list of active performance alerts'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: 'Active alerts'
+  /api/performance/alerts/history:
+    get:
+      summary: 'Get alert history'
+      description: 'Get paginated history of performance alerts'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: start_date
+          schema:
+            type: string
+            format: date-time
+        -
+          in: query
+          name: end_date
+          schema:
+            type: string
+            format: date-time
+        -
+          in: query
+          name: metric_type
+          schema:
+            type: string
+        -
+          in: query
+          name: severity
+          schema:
+            type: string
+            enum:
+              - warning
+              - critical
+        -
+          in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - active
+              - acknowledged
+              - resolved
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: 'Alert history'
+  '/api/performance/alerts/{alertId}/acknowledge':
+    post:
+      summary: 'Acknowledge an alert'
+      description: 'Mark an alert as acknowledged'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: alertId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Alert acknowledged'
+  '/api/performance/alerts/{alertId}/resolve':
+    post:
+      summary: 'Resolve an alert'
+      description: 'Mark an alert as resolved'
+      tags:
+        - Performance
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: alertId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 'Alert resolved'
   /public/v1:
     get:
       summary: 'Get public API information'

@@ -11,8 +11,15 @@
  */
 
 import puppeteer from 'puppeteer';
+import { setupAuth, newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+// Helper to build URL with lang parameter
+const buildUrl = (path: string): string => {
+  const separator = path.includes('?') ? '&' : '?';
+  return BASE_URL + path + separator + 'lang=en-US';
+};
 const TIMEOUT = 60000; // Increased from 30000 to 60000 for CI stability
 const WAIT_AFTER_LOAD = 5000; // Increased wait time after page load for CI stability
 
@@ -83,7 +90,7 @@ async function runTests(): Promise<number> {
     console.log('📋 Test Suite 1: Core Page Loading\n');
 
     for (const pageInfo of PAGES) {
-      const page = await browser.newPage();
+      const page = await newAuthenticatedPage(browser);
       await page.setViewport({ width: 1280, height: 800 });
 
       const consoleErrors: string[] = [];
@@ -97,7 +104,7 @@ async function runTests(): Promise<number> {
       
       const startTime = Date.now();
       try {
-        await page.goto(BASE_URL + pageInfo.path, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+        await page.goto(buildUrl(pageInfo.path), { waitUntil: 'networkidle0', timeout: TIMEOUT });
         await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
         const loadTime = Date.now() - startTime;
 
@@ -161,7 +168,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 2: URL Navigation\n');
 
-    const navPage = await browser.newPage();
+    const navPage = await newAuthenticatedPage(browser);
     await navPage.setViewport({ width: 1280, height: 800 });
 
     const navErrors: string[] = [];
@@ -186,11 +193,11 @@ async function runTests(): Promise<number> {
       const startTime = Date.now();
       
       try {
-        await navPage.goto(BASE_URL + navTest.to, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+        await navPage.goto(buildUrl(navTest.to), { waitUntil: 'networkidle0', timeout: TIMEOUT });
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const currentUrl = navPage.url();
-        const expectedUrl = BASE_URL + navTest.to;
+        const expectedUrl = buildUrl(navTest.to);
         const onCorrectPage = currentUrl === expectedUrl || currentUrl.startsWith(expectedUrl);
         
         results.push({
@@ -216,14 +223,17 @@ async function runTests(): Promise<number> {
     await navPage.close();
 
     // ========================================
-    // Test Suite 3: Page Elements
+    // Test Suite 3: Page Elements (on protected route with MainLayout)
     // ========================================
     console.log('📋 Test Suite 3: Core UI Elements\n');
 
-    const uiPage = await browser.newPage();
+    const uiPage = await newAuthenticatedPage(browser);
     await uiPage.setViewport({ width: 1280, height: 800 });
 
-    await uiPage.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    // Use /dashboard instead of / - dashboard has MainLayout with sidebar, header, etc.
+    // Note: / is IndexPage which shows HomePage (no MainLayout) for authenticated users
+    // or LandingPage for unauthenticated users - neither has sidebar
+    await uiPage.goto(buildUrl('/dashboard'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test for essential UI elements
@@ -244,7 +254,7 @@ async function runTests(): Promise<number> {
     });
     console.log(headerCheck.hasBranding ? '    ✅ Branding present\n' : '    ❌ No branding\n');
 
-    // Test for sidebar
+    // Test for sidebar (only present on protected routes with MainLayout)
     console.log('  Test 3.2: Sidebar layout');
     const sidebarCheck = await uiPage.evaluate(() => {
       const sider = document.querySelector('.arco-layout-sider');
@@ -296,13 +306,13 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 4: Error Handling\n');
 
-    const errorPage = await browser.newPage();
+    const errorPage = await newAuthenticatedPage(browser);
     await errorPage.setViewport({ width: 1280, height: 800 });
 
     // Test invalid route
     console.log('  Test 4.1: Invalid route handling');
     try {
-      await errorPage.goto(BASE_URL + '/nonexistent-page-xyz', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+      await errorPage.goto(buildUrl('/nonexistent-page-xyz'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Check that app didn't crash
@@ -333,12 +343,12 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 5: Performance\n');
 
-    const perfPage = await browser.newPage();
+    const perfPage = await newAuthenticatedPage(browser);
     await perfPage.setViewport({ width: 1280, height: 800 });
 
     console.log('  Test 5.1: Page load time');
     const perfStart = Date.now();
-    await perfPage.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await perfPage.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     const perfLoadTime = Date.now() - perfStart;
 
     results.push({

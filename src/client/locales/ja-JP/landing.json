@@ -1,0 +1,141 @@
+{
+  "hero": {
+    "title": "プロフェッショナルアルゴリズム取引",
+    "titleHighlight": "AI搭載 · リスクフリー",
+    "subtitle": "リアルな市場環境でアルゴリズム取引ストラテジーを練習しましょう。AIアシスタントを使って意思決定を最適化し、世界中のトレーダーと競争 — 実際の資金リスクは一切ありません。",
+    "cta": {
+      "register": "無料で登録",
+      "share": "友達と共有"
+    },
+    "shareHint": "友達と共有して、一緒に定量取引の旅を始めましょう！"
+  },
+  "trustBadges": {
+    "bankSecurity": "銀行レベルのセキュリティ",
+    "trustedUsers": "10,000人以上の信頼ユーザー",
+    "freeUse": "無料で利用可能"
+  },
+  "screenshot": {
+    "title": "AlphaArenaダッシュボード",
+    "stats": {
+      "returnRate": "リターン率",
+      "strategies": "ストラテジー",
+      "winRate": "勝率"
+    }
+  },
+  "stats": {
+    "activeUsers": "アクティブユーザー",
+    "simulationVolume": "シミュレーション出来高",
+    "systemUptime": "システム稼働率",
+    "realTimeMonitoring": "リアルタイムモニタリング"
+  },
+  "features": {
+    "sectionTitle": "主な機能",
+    "sectionSubtitle": "定量取引の旅のためのプロフェッショナルツール",
+    "aiStrategy": {
+      "title": "AI搭載ストラテジー",
+      "description": "高度なAIアルゴリズムを活用して市場トレンドを自動的に分析し、取引シグナルとストラテジーの推奨を生成します。",
+      "highlights": {
+        "marketAnalysis": "インテリジェント市場分析",
+        "strategyOptimization": "ストラテジー最適化提案",
+        "riskManagement": "リスク管理ガイダンス"
+      }
+    },
+    "simulation": {
+      "title": "ペーパートレード",
+      "description": "実際の資金リスクなしでリアルな市場環境で取引を練習。リアルタイムの相場、ゼロリスクで学習。",
+      "highlights": {
+        "realData": "リアルな市場データ",
+        "riskFree": "リスクフリーの練習",
+        "fullExperience": "完全な取引体験"
+      }
+    },
+    "competition": {
+      "title": "競争とランキング",
+      "description": "他のトレーダーと競争し、取引スキルを披露し、リーダーボードを登って栄光を手に入れましょう。",
+      "highlights": {
+        "leaderboard": "リアルタイムリーダーボード",
+        "strategyCompetition": "ストラテジーコンペティション",
+        "community": "コミュニティ交流"
+      }
+    },
+    "execution": {
+      "title": "高速実行",
+      "description": "ミリ秒レベルの注文実行と複数の注文タイプをサポートし、プロトレーダーの高い要求に応えます。",
+      "highlights": {
+        "msExecution": "ミリ秒実行",
+        "advancedOrders": "高度な注文タイプ",
+        "orderBook": "リアルタイム注文板"
+      }
+    }
+  },
+  "howItWorks": {
+    "sectionTitle": "始め方",
+    "sectionSubtitle": "4つのステップで定量取引の旅を始めましょう",
+    "steps": {
+      "register": {
+        "title": "アカウント作成",
+        "description": "無料で登録してすぐに開始"
+      },
+      "selectStrategy": {
+        "title": "ストラテジー選択",
+        "description": "内蔵テンプレートまたはカスタマイズ"
+      },
+      "simulate": {
+        "title": "ペーパートレード",
+        "description": "リアルな条件でストラテジーをテスト"
+      },
+      "optimize": {
+        "title": "最適化と改善",
+        "description": "AIアシスタントでパフォーマンスを向上"
+      }
+    }
+  },
+  "testimonials": {
+    "sectionTitle": "ユーザーレビュー",
+    "sectionSubtitle": "実際のユーザーからのフィードバック",
+    "items": {
+      "zhangming": {
+        "name": "田中 明",
+        "role": "定量取引愛好家",
+        "content": "AlphaArenaのペーパートレード機能のおかげで、実際の資金を投資する前にストラテジーを十分にテストでき、不必要な損失を回避できました。AIアシスタントの提案は非常に価値があります。",
+        "stats": "6ヶ月使用"
+      },
+      "lihua": {
+        "name": "佐藤 健",
+        "role": "個人トレーダー",
+        "content": "AIアシスタントのアドバイスは、特に素早い意思決定が必要な時に非常に役立ちます。多くの調査時間を節約できました。リターンは30%向上しました。",
+        "stats": "リターン +30%"
+      },
+      "wangfang": {
+        "name": "山田 花",
+        "role": "金融学生",
+        "content": "学習ツールとして、AlphaArenaは完全なプロフェッショナル取引体験を提供し、実践を通じて学ぶことができます。教科書よりもずっと役立ちます！",
+        "stats": "200時間以上の学習"
+      }
+    }
+  },
+  "cta": {
+    "title": "アルゴリズム取引の旅を始める準備はできましたか？",
+    "subtitle": "今すぐ登録して、プロフェッショナルなアルゴリズム取引プラットフォームを無料で体験。障壁はありません。",
+    "button": "始める",
+    "hint": "クレジットカード不要 · コア機能は無料 · いつでもアップグレード可能"
+  },
+  "footer": {
+    "brandTagline": "プロフェッショナルアルゴリズム取引プラットフォーム",
+    "brandSubtagline": "AI搭載 · リスクフリーペーパートレード",
+    "product": "製品",
+    "resources": "リソース",
+    "links": {
+      "register": "新規登録",
+      "login": "ログイン",
+      "apiDocs": "APIドキュメント",
+      "leaderboard": "リーダーボード",
+      "subscription": "料金プラン"
+    }
+  },
+  "share": {
+    "title": "AlphaArena - アルゴリズム取引プラットフォーム",
+    "text": "AI搭載ストラテジーとリスクフリーペーパートレードを備えたプロフェッショナルアルゴリズム取引プラットフォーム。無料で登録して、今すぐ定量取引の旅を始めましょう！",
+    "linkCopied": "リンクをクリップボードにコピーしました"
+  }
+}

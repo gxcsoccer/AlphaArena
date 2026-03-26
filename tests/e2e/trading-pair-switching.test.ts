@@ -11,8 +11,15 @@
  */
 
 import puppeteer from 'puppeteer';
+import { newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+// Helper to build URL with lang parameter
+const buildUrl = (path: string): string => {
+  const separator = path.includes('?') ? '&' : '?';
+  return BASE_URL + path + separator + 'lang=en-US';
+};
 const TIMEOUT = 30000;
 const WAIT_AFTER_LOAD = 5000; // Wait time after page load for data to populate
 
@@ -33,8 +40,20 @@ async function verifyChartState(page: any): Promise<{ loaded: boolean; hasError:
 
 // Helper to find and click trading pair
 async function findAndClickTradingPair(page: any, symbolPattern: string): Promise<boolean> {
-  // Wait for table to be populated
-  await page.waitForSelector('.arco-table-tbody tr', { timeout: 10000 }).catch(() => {});
+  // Wait for table to be populated - use multiple selector strategies
+  // Note: TradingPairList uses Arco Design Table, which has .arco-table-tbody tr structure
+  // But we need to wait for data to load first
+  
+  // Wait for either the table rows or the loading spinner to disappear
+  await page.waitForFunction(() => {
+    const rows = document.querySelectorAll('.arco-table-tbody tr');
+    const loading = document.querySelector('.arco-spin-loading');
+    const empty = document.querySelector('.arco-empty');
+    return rows.length > 0 || empty || !loading;
+  }, { timeout: 15000 }).catch(() => {});
+  
+  // Additional wait for data to render
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   return await page.evaluate((pattern: string) => {
     // Try multiple selectors for trading pairs
@@ -42,25 +61,31 @@ async function findAndClickTradingPair(page: any, symbolPattern: string): Promis
       '.arco-table-tbody tr',
       'table tbody tr',
       '[role="row"]',
-      '.arco-table-row'
+      '.arco-table-row',
+      '.arco-table-body tr',
+      '.arco-table .arco-table-tbody tr'
     ];
     
     for (const selector of selectors) {
       const rows = document.querySelectorAll(selector);
+      console.log(`[E2E] Selector "${selector}" found ${rows.length} rows`);
+      
       for (const row of rows) {
         const text = row.textContent || '';
         // Check for pattern in various formats: BTC/USDT, BTC / USDT, or just BTC
         if (text.includes(pattern + '/') || text.includes(pattern + ' /') || 
-            text.includes('/' + pattern) || text.includes(' BTC ') ||
+            text.includes('/' + pattern) || text.includes(' ' + pattern + ' ') ||
             text.includes('BTCUSDT')) {
-          // Find clickable element
-          const clickable = row.querySelector('[role="button"], [style*="cursor: pointer"], td:first-child div') || row;
+          // Find clickable element - the symbol column or the row itself
+          const clickable = row.querySelector('td:first-child, [role="button"], [style*="cursor: pointer"]') || row;
           (clickable as HTMLElement).scrollIntoView({ behavior: 'instant', block: 'center' });
           (clickable as HTMLElement).click();
+          console.log(`[E2E] Clicked on row with pattern "${pattern}"`);
           return true;
         }
       }
     }
+    console.log(`[E2E] No row found with pattern "${pattern}"`);
     return false;
   }, symbolPattern);
 }
@@ -81,7 +106,7 @@ async function runTests(): Promise<number> {
     // Test Suite 1: Basic Trading Pair Switching
     console.log('📋 Test Suite 1: Basic Trading Pair Switching\n');
 
-    const page1 = await browser.newPage();
+    const page1 = await newAuthenticatedPage(browser);
     await page1.setViewport({ width: 1280, height: 800 });
 
     const consoleErrors: string[] = [];
@@ -94,7 +119,7 @@ async function runTests(): Promise<number> {
     // Test 1.1: Page loads successfully
     console.log('  Test 1.1: Page loads successfully');
     const startTime = Date.now();
-    await page1.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page1.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
     const loadTime = Date.now() - startTime;
 
@@ -185,7 +210,7 @@ async function runTests(): Promise<number> {
     // Test Suite 2: Rapid Switching Stability
     console.log('📋 Test Suite 2: Rapid Switching Stability\n');
 
-    const page2 = await browser.newPage();
+    const page2 = await newAuthenticatedPage(browser);
     await page2.setViewport({ width: 1280, height: 800 });
     
     const rapidErrors: string[] = [];
@@ -195,7 +220,7 @@ async function runTests(): Promise<number> {
       }
     });
 
-    await page2.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page2.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 2.1: Rapid switching
@@ -250,10 +275,10 @@ async function runTests(): Promise<number> {
     // Test Suite 3: Data Consistency
     console.log('📋 Test Suite 3: Data Consistency\n');
 
-    const page3 = await browser.newPage();
+    const page3 = await newAuthenticatedPage(browser);
     await page3.setViewport({ width: 1280, height: 800 });
 
-    await page3.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page3.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 3.1: Component verification

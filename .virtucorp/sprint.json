@@ -1,63 +1,70 @@
 {
   "sprint": {
-    "number": 49,
-    "title": "Sprint 49: 国际化基础建设",
-    "milestone": 50,
-    "status": "completed",
+    "number": 50,
+    "title": "Sprint 50: 国际化完善与 SEO 优化",
+    "milestone": 51,
+    "status": "planning",
     "period": {
-      "start": "2026-03-24",
-      "end": "2026-03-30"
+      "start": "2026-03-31",
+      "end": "2026-04-06"
     },
-    "goals": "实现多语言支持，为产品全球化打下基础。包括：i18n 框架搭建、核心页面英文翻译、语言切换功能、交易策略页面翻译、本地化适配与测试",
+    "goals": "基于 Sprint 49 的国际化基础建设，进一步完善多语言支持，添加日文/韩文语言，优化国际化 SEO，提升产品全球化能力。",
     "issues": {
       "planned": [
         {
-          "number": 584,
-          "title": "i18n 框架搭建与国际化架构设计",
-          "priority": "P0",
-          "type": "feature",
-          "status": "completed"
-        },
-        {
-          "number": 585,
-          "title": "核心页面英文翻译",
-          "priority": "P0",
-          "type": "feature",
-          "status": "completed"
-        },
-        {
-          "number": 586,
-          "title": "语言切换功能实现",
+          "number": 614,
+          "title": "添加日文语言支持",
           "priority": "P1",
           "type": "feature",
-          "status": "completed"
+          "status": "ready-for-dev"
         },
         {
-          "number": 587,
-          "title": "交易与策略功能页面翻译",
+          "number": 615,
+          "title": "添加韩文语言支持",
           "priority": "P1",
           "type": "feature",
-          "status": "completed"
+          "status": "ready-for-dev"
         },
         {
-          "number": 588,
-          "title": "本地化适配与测试",
+          "number": 616,
+          "title": "翻译完整性 CI 检查",
+          "priority": "P1",
+          "type": "feature",
+          "status": "ready-for-dev"
+        },
+        {
+          "number": 617,
+          "title": "国际化 SEO 优化",
+          "priority": "P1",
+          "type": "feature",
+          "status": "ready-for-dev"
+        },
+        {
+          "number": 618,
+          "title": "命名空间懒加载优化",
           "priority": "P2",
           "type": "feature",
-          "status": "completed"
+          "status": "ready-for-dev"
+        },
+        {
+          "number": 619,
+          "title": "翻译内容审校与完善",
+          "priority": "P2",
+          "type": "feature",
+          "status": "ready-for-dev"
         }
       ],
-      "total": 5,
-      "completed": 5
+      "total": 6,
+      "completed": 0
     },
-    "direction": "国际化 (i18n)",
-    "rationale": "经过 Sprint 44-48 的迭代，产品功能已完善（代码质量、用户反馈、数据驱动、用户增长、性能优化），UI/UX 也已完成商业化改版。下一步最合理的方向是国际化：1) Sprint 48 性能优化已为国际化打好基础；2) 当前代码硬编码中文 locale，需要支持多语言；3) 产品功能完善，可以面向国际市场扩大用户群体；4) 国际化是产品扩张的关键步骤。",
+    "direction": "国际化完善 (i18n Enhancement)",
+    "rationale": "Sprint 49 完成了国际化基础框架搭建，支持中英文。本 Sprint 继续：1) 扩展亚洲市场语言支持（日文、韩文）；2) 优化 SEO 以提升国际搜索流量；3) 完善翻译质量保障机制（CI 检查、审校）；4) 性能优化（命名空间懒加载）。",
     "previous_sprint": {
-      "number": 48,
-      "summary": "完成 5 个 issues，实现前端性能分析与优化方案、图片和静态资源优化、API 响应时间优化、前端打包体积优化、性能监控仪表板。首页 JS 体积减少 30%，集成 Lighthouse CI，实现 Core Web Vitals 监控。",
+      "number": 49,
+      "summary": "完成 5 个 issues，实现 i18n 框架搭建、核心页面翻译、语言切换功能、交易策略页面翻译、本地化适配与测试。新增 12 个命名空间翻译，支持中英文切换，集成 Arco Design 语言包。",
       "test_status": "全部验收通过"
     },
-    "created_at": "2026-03-24"
+    "created_at": "2026-03-26"
   },
   "next_sprint": null
 }
