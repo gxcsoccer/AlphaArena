@@ -6,7 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getSupabaseClient, getSupabaseAdminClient } from '../database/client';
-import authMiddleware, { optionalAuthMiddleware } from './authMiddleware';
+import authMiddleware, { optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('APMRoutes');
@@ -550,5 +550,78 @@ function calculatePercentile(values: number[], percentile: number): number {
   const index = Math.ceil((percentile / 100) * sorted.length) - 1;
   return sorted[Math.max(0, index)];
 }
+
+/**
+ * @swagger
+ * /api/apm/summary:
+ *   get:
+ *     summary: Get APM summary for unified dashboard
+ *     description: Get consolidated APM metrics for the unified admin monitoring dashboard
+ *     tags: [APM]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: APM summary
+ */
+router.get('/summary', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const client = getSupabaseAdminClient();
+    
+    // Get error counts
+    const { data: errorData, error: errorErr } = await client
+      .from('frontend_errors')
+      .select('severity')
+      .eq('resolved', false);
+
+    if (errorErr && errorErr.code !== '42P01') {
+      throw errorErr;
+    }
+
+    const errors = errorData || [];
+    const totalErrors = errors.length;
+    const criticalErrors = errors.filter(e => e.severity === 'critical').length;
+
+    // Get API latency data
+    const { data: latencyData, error: latencyErr } = await client
+      .from('performance_metrics')
+      .select('api_latency')
+      .not('api_latency', 'is', null)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (latencyErr && latencyErr.code !== '42P01') {
+      throw latencyErr;
+    }
+
+    const latencies = (latencyData || []).map(d => d.api_latency).filter(l => l != null) as number[];
+    const avgApiLatency = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    const p95Latency = calculatePercentile(latencies, 95);
+
+    // Calculate error rate (errors per 1000 requests - simplified)
+    const { count: requestCount, error: reqErr } = await client
+      .from('performance_metrics')
+      .select('*', { count: 'exact', head: true });
+
+    const errorRate = requestCount && requestCount > 0 ? (totalErrors / requestCount) * 100 : 0;
+
+    res.json({
+      success: true,
+      data: {
+        totalErrors,
+        criticalErrors,
+        avgApiLatency,
+        p95Latency,
+        errorRate,
+      },
+    });
+  } catch (err) {
+    log.error('Failed to fetch APM summary:', err);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch APM summary',
+    });
+  }
+});
 
 export default router;

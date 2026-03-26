@@ -119,4 +119,30 @@ router.get('/export', requireAdmin, async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/business-metrics/summary
+ * Get business metrics summary for unified admin dashboard
+ * Admin only
+ */
+router.get('/summary', requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const dashboard = await businessMetricsService.getDashboard(30);
+    
+    res.json({
+      success: true,
+      data: {
+        dau: dashboard?.dauMau?.current?.dau || 0,
+        mau: dashboard?.dauMau?.current?.mau || 0,
+        stickiness: dashboard?.dauMau?.current?.stickiness || 0,
+        mrr: dashboard?.revenue?.mrr || 0,
+        mrrGrowth: dashboard?.revenue?.mrrGrowth || 0,
+        conversionRate: dashboard?.conversionFunnel?.overallConversionRate || 0,
+      },
+    });
+  } catch (error: any) {
+    log.error('Failed to get business metrics summary:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 export default router;
