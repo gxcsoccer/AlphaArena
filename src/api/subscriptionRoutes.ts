@@ -5,7 +5,7 @@
 
 import { Router, Request, Response } from 'express';
 import { SubscriptionDAO } from '../database/subscription.dao';
-import { authenticate } from '../middleware/auth';
+import { authMiddleware as authenticate } from './authMiddleware';
 import { requireFeature, trackFeatureUsage } from '../middleware/subscription.middleware';
 import { createLogger } from '../utils/logger';
 import { SubscriptionPlan, BillingPeriod } from '../types/subscription.types';
