@@ -329,21 +329,17 @@ export {
 
 // Experiment DAO (A/B Testing)
 export {
-  experimentDAO,
-  ExperimentStatus,
-  EventType,
+  ExperimentDAO,
+  getExperimentDAO,
   type Experiment,
   type ExperimentVariant,
   type ExperimentAssignment,
   type ExperimentEvent,
-  type ExperimentStatistics,
-  type VariantResult,
-  type CreateExperimentInput,
-  type UpdateExperimentInput,
-  type CreateVariantInput,
-  type UpdateVariantInput,
-  type TrackEventInput,
-  type ExperimentQueryOptions,
+  type ExperimentStats,
+  type CreateExperimentData,
+  type CreateVariantData,
+  type ExperimentStatus,
+  type ExperimentType,
 } from './experiment.dao';
 
 // Referral System DAO
