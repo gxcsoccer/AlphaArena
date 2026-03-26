@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Typography, Space } from '@arco-design/web-react';
 import { IconDownload, IconClose } from '@arco-design/web-react/icon';
+import { useTranslation } from 'react-i18next';
 
 const { Title, Text } = Typography;
 
@@ -146,6 +147,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({
   onInstall,
   onDismiss,
 }) => {
+  const { t } = useTranslation();
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [visible, setVisible] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -225,7 +227,7 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({
           padding: 4,
           color: 'var(--color-text-3)',
         }}
-        aria-label="关闭"
+        aria-label={t('button.close')}
       >
         <IconClose style={{ fontSize: 16 }} />
       </button>
@@ -248,12 +250,12 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({
 
       {/* Title */}
       <Title heading={5} style={{ marginBottom: 8 }}>
-        安装 AlphaArena
+        {t('pwa.install.title')}
       </Title>
 
       {/* Description */}
       <Text style={{ color: 'var(--color-text-2)', display: 'block', marginBottom: 16 }}>
-        将 AlphaArena 添加到主屏幕，享受更流畅的交易体验
+        {t('pwa.install.description')}
       </Text>
 
       {/* Benefits */}
@@ -266,18 +268,18 @@ const InstallPrompt: React.FC<InstallPromptProps> = ({
           fontSize: 13,
         }}
       >
-        <div style={{ color: 'var(--color-text-2)' }}>✅ 离线访问已缓存数据</div>
-        <div style={{ color: 'var(--color-text-2)', marginTop: 4 }}>✅ 更快的启动速度</div>
-        <div style={{ color: 'var(--color-text-2)', marginTop: 4 }}>✅ 类原生应用体验</div>
+        <div style={{ color: 'var(--color-text-2)' }}>✅ {t('pwa.install.benefitOffline')}</div>
+        <div style={{ color: 'var(--color-text-2)', marginTop: 4 }}>✅ {t('pwa.install.benefitFast')}</div>
+        <div style={{ color: 'var(--color-text-2)', marginTop: 4 }}>✅ {t('pwa.install.benefitNative')}</div>
       </div>
 
       {/* Buttons */}
       <Space size="medium">
         <Button size="small" onClick={handleDismiss}>
-          稍后再说
+          {t('pwa.install.later')}
         </Button>
         <Button type="primary" size="small" onClick={handleInstall}>
-          立即安装
+          {t('pwa.install.installNow')}
         </Button>
       </Space>
     </div>
@@ -294,6 +296,7 @@ export const InstallButton: React.FC<{ className?: string; style?: React.CSSProp
   className,
   style,
 }) => {
+  const { t } = useTranslation();
   const { isInstallable, isInstalled, install } = usePWAInstall();
   const [installing, setInstalling] = useState(false);
 
@@ -306,7 +309,7 @@ export const InstallButton: React.FC<{ className?: string; style?: React.CSSProp
   if (isInstalled) {
     return (
       <Button disabled icon={<IconDownload />}>
-        已安装
+        {t('pwa.install.installed')}
       </Button>
     );
   }
@@ -324,7 +327,7 @@ export const InstallButton: React.FC<{ className?: string; style?: React.CSSProp
       className={className}
       style={style}
     >
-      安装应用
+      {t('pwa.install.installNow')}
     </Button>
   );
 };
