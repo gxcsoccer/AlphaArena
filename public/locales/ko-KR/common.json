@@ -129,7 +129,7 @@
   "chart": {
     "equity": "자산",
     "drawdown": "낙폭",
-    "highWaterMark": "최고 수익률",
+    "highWaterMark": "최대 자산가",
     "return": "수익률",
     "maxDrawdown": "최대 낙폭",
     "noData": "데이터가 없습니다"
