@@ -8,6 +8,7 @@
 import { APIServer } from './api/server';
 import { getPriceAlertMonitor } from './monitoring/PriceAlertMonitor';
 import { PaperTradingEngine } from './services/PaperTradingEngine';
+import { getAutoExecutionService } from './auto-execution';
 
 // Get port from environment variable or use default
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
@@ -55,6 +56,15 @@ server.start()
     } catch (error) {
       console.error('[Startup] Error starting paper trading engine:', error);
     }
+    
+    // Start auto execution service (VIP feature)
+    try {
+      const autoExecutionService = getAutoExecutionService();
+      await autoExecutionService.start(5000);
+      console.log('[Startup] Auto execution service started');
+    } catch (error) {
+      console.error('[Startup] Error starting auto execution service:', error);
+    }
   })
   .catch((error) => {
     console.error('[Startup] Failed to start server:', error);
@@ -64,6 +74,15 @@ server.start()
 // Handle graceful shutdown
 const gracefulShutdown = async (signal: string) => {
   console.log(`[Startup] ${signal} received, shutting down gracefully...`);
+  
+  // Stop auto execution service
+  try {
+    const autoExecutionService = getAutoExecutionService();
+    await autoExecutionService.stop();
+    console.log('[Startup] Auto execution service stopped');
+  } catch (error) {
+    console.error('[Startup] Error stopping auto execution service:', error);
+  }
   
   // Stop paper trading engine
   try {

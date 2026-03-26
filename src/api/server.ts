@@ -86,6 +86,7 @@ import auditRoutes from './auditRoutes'; // Issue #641: Security Audit
 import gdprRoutes from './gdprRoutes'; // Issue #642: GDPR Compliance
 import businessMetricsRoutes from './businessMetricsRoutes'; // Issue #652: Business Metrics
 import paymentFunnelRoutes from './paymentFunnelRoutes'; // Issue #662: Payment Funnel Optimization
+import { createAutoExecutionRouter } from './autoExecutionRoutes'; // Issue #668: Auto Execution
 import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
@@ -1109,6 +1110,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/gdpr', gdprRoutes); // Issue #642: GDPR Compliance
     this.app.use('/api/business-metrics', businessMetricsRoutes); // Issue #652: Business Metrics
     this.app.use('/api/payment-funnel', paymentFunnelRoutes); // Issue #662: Payment Funnel Optimization
+    this.app.use('/api/auto-execution', createAutoExecutionRouter()); // Issue #668: Auto Execution
 
     // Share Statistics routes
     this.app.use('/api/share', shareRoutes);

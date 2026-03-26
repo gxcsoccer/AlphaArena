@@ -133,6 +133,11 @@ export interface PlanFeatures {
   backtesting?: boolean;
   custom_strategies?: boolean;
   
+  // VIP Auto Execution Features (Issue #668)
+  auto_execution?: boolean; // Automated strategy signal execution
+  auto_execution_strategies?: number; // Max concurrent auto-execution strategies
+  auto_execution_daily_trades?: number; // Max daily auto trades
+  
   // VIP Advanced Features (Issue #640)
   multi_timeframe_charts?: boolean; // Multiple timeframes simultaneously
   advanced_indicators?: boolean; // MACD, RSI, Bollinger overlays
@@ -185,6 +190,9 @@ export interface PlanLimits {
   backtest_optimizations: number; // Max parameter optimizations per day
   backtest_history_records: number; // Max saved backtest records
   strategy_comparisons: number; // Max strategies to compare at once
+  // VIP Auto Execution Limits (Issue #668)
+  auto_execution_strategies: number; // Max concurrent auto-execution configs
+  auto_execution_daily_trades: number; // Max daily auto trades per config
 }
 
 /**
@@ -266,6 +274,9 @@ export function getDefaultPlanLimits(plan: SubscriptionPlan): PlanLimits {
       backtest_optimizations: 0, // No parameter optimization
       backtest_history_records: 0, // No history saving
       strategy_comparisons: 0, // No multi-strategy comparison
+      // VIP Auto Execution - Free tier gets no access
+      auto_execution_strategies: 0, // No auto execution
+      auto_execution_daily_trades: 0,
     },
     pro: {
       strategies: 10,
@@ -278,6 +289,9 @@ export function getDefaultPlanLimits(plan: SubscriptionPlan): PlanLimits {
       backtest_optimizations: 20, // 20 optimizations per day
       backtest_history_records: 100, // Save up to 100 records
       strategy_comparisons: 4, // Compare up to 4 strategies
+      // VIP Auto Execution - Pro tier gets standard access
+      auto_execution_strategies: 5, // Up to 5 auto-execution configs
+      auto_execution_daily_trades: 50, // 50 auto trades per day
     },
     enterprise: {
       strategies: -1, // unlimited
@@ -290,6 +304,9 @@ export function getDefaultPlanLimits(plan: SubscriptionPlan): PlanLimits {
       backtest_optimizations: -1,
       backtest_history_records: -1,
       strategy_comparisons: -1,
+      // VIP Auto Execution - Enterprise gets unlimited
+      auto_execution_strategies: -1,
+      auto_execution_daily_trades: -1,
     },
   };
   
