@@ -40,6 +40,7 @@ import { createBotRouter } from './botRoutes';
 import { createApiKeyRouter } from './apiKeyRoutes';
 import { createAttributionRouter } from './attributionRoutes';
 import notificationRoutes from './notificationRoutes.js';
+import signalNotificationRoutes from './signalNotificationRoutes.js'; // Issue #670
 import strategyComparisonRoutes from './strategyComparisonRoutes';
 import exportRoutes from './exportRoutes';
 import { createTemplateRouter } from './templateRoutes';
@@ -1020,6 +1021,7 @@ export class APIServer extends EventEmitter {
 
     // Notification routes
     this.app.use('/api/notifications', notificationRoutes);
+    this.app.use('/api/signal-notifications', signalNotificationRoutes); // Issue #670: Signal notifications
     this.app.use('/api/strategies/compare', strategyComparisonRoutes);
     this.app.use('/api/export', exportRoutes);
 

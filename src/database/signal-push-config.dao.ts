@@ -281,3 +281,13 @@ export class SignalPushConfigDAO {
     };
   }
 }
+
+// Singleton instance
+let signalPushConfigDAO: SignalPushConfigDAO | null = null;
+
+export function getSignalPushConfigDAO(): SignalPushConfigDAO {
+  if (!signalPushConfigDAO) {
+    signalPushConfigDAO = new SignalPushConfigDAO();
+  }
+  return signalPushConfigDAO;
+}

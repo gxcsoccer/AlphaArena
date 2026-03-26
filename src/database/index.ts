@@ -29,6 +29,26 @@ export { TradingSignalsDAO, type TradingSignal, type CreateSignalInput, type Upd
 export { SignalSubscriptionsDAO, type SignalSubscription, type CreateSubscriptionInput, type UpdateSubscriptionInput, type SubscriptionFilters, type SubscriptionType, type SubscriptionStatus } from './signal-subscriptions.dao';
 export { SignalExecutionsDAO, type SignalExecution, type CreateExecutionInput, type UpdateExecutionInput, type ExecutionFilters, type ExecutionType, type ExecutionStatus } from './signal-executions.dao';
 export { SignalPublisherStatsDAO, type PublisherStats, type CreateStatsInput, type UpdateStatsInput, type StatsFilters } from './signal-publisher-stats.dao';
+
+// Signal Notification DAOs (Issue #670)
+export {
+  NotificationHistoryDAO,
+  getNotificationHistoryDAO,
+  type NotificationHistory,
+  type NotificationChannel,
+  type NotificationStatus,
+  type CreateNotificationHistoryInput,
+  type NotificationHistoryListOptions,
+  type NotificationStats,
+} from './notification-history.dao';
+
+export {
+  StrategyNotificationConfigDAO,
+  getStrategyNotificationConfigDAO,
+  type StrategyNotificationConfig,
+  type CreateStrategyNotificationConfigInput,
+  type UpdateStrategyNotificationConfigInput,
+} from './strategy-notification-config.dao';
 export { CommentsDAO, commentsDAO, StrategyComment, CommentLike, CommentReport, CreateCommentInput, UpdateCommentInput, CommentListOptions } from './comments.dao';
 export { RiskMonitorDAO, riskMonitorDAO, type RiskAlert, type CreateRiskAlertInput, type UpdateRiskAlertInput, type RiskAlertHistoryEntry, type RiskHistoryEntry, type CreateRiskHistoryInput, type PositionRisk, type CreatePositionRiskInput, type CorrelationEntry, type CreateCorrelationInput, type RiskHistoryFilters, type RiskAlertFilters, type RiskMetric, type AlertOperator, type AlertChannel, type RiskPeriodType } from './risk-monitor.dao';
 export * from './ai.dao.js';
