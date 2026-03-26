@@ -223,14 +223,17 @@ async function runTests(): Promise<number> {
     await navPage.close();
 
     // ========================================
-    // Test Suite 3: Page Elements
+    // Test Suite 3: Page Elements (on protected route with MainLayout)
     // ========================================
     console.log('📋 Test Suite 3: Core UI Elements\n');
 
     const uiPage = await newAuthenticatedPage(browser);
     await uiPage.setViewport({ width: 1280, height: 800 });
 
-    await uiPage.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    // Use /dashboard instead of / - dashboard has MainLayout with sidebar, header, etc.
+    // Note: / is IndexPage which shows HomePage (no MainLayout) for authenticated users
+    // or LandingPage for unauthenticated users - neither has sidebar
+    await uiPage.goto(buildUrl('/dashboard'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test for essential UI elements
@@ -251,7 +254,7 @@ async function runTests(): Promise<number> {
     });
     console.log(headerCheck.hasBranding ? '    ✅ Branding present\n' : '    ❌ No branding\n');
 
-    // Test for sidebar
+    // Test for sidebar (only present on protected routes with MainLayout)
     console.log('  Test 3.2: Sidebar layout');
     const sidebarCheck = await uiPage.evaluate(() => {
       const sider = document.querySelector('.arco-layout-sider');

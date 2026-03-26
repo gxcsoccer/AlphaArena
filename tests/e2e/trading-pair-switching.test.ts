@@ -40,8 +40,20 @@ async function verifyChartState(page: any): Promise<{ loaded: boolean; hasError:
 
 // Helper to find and click trading pair
 async function findAndClickTradingPair(page: any, symbolPattern: string): Promise<boolean> {
-  // Wait for table to be populated
-  await page.waitForSelector('.arco-table-tbody tr', { timeout: 10000 }).catch(() => {});
+  // Wait for table to be populated - use multiple selector strategies
+  // Note: TradingPairList uses Arco Design Table, which has .arco-table-tbody tr structure
+  // But we need to wait for data to load first
+  
+  // Wait for either the table rows or the loading spinner to disappear
+  await page.waitForFunction(() => {
+    const rows = document.querySelectorAll('.arco-table-tbody tr');
+    const loading = document.querySelector('.arco-spin-loading');
+    const empty = document.querySelector('.arco-empty');
+    return rows.length > 0 || empty || !loading;
+  }, { timeout: 15000 }).catch(() => {});
+  
+  // Additional wait for data to render
+  await new Promise(resolve => setTimeout(resolve, 1000));
   
   return await page.evaluate((pattern: string) => {
     // Try multiple selectors for trading pairs
@@ -49,25 +61,31 @@ async function findAndClickTradingPair(page: any, symbolPattern: string): Promis
       '.arco-table-tbody tr',
       'table tbody tr',
       '[role="row"]',
-      '.arco-table-row'
+      '.arco-table-row',
+      '.arco-table-body tr',
+      '.arco-table .arco-table-tbody tr'
     ];
     
     for (const selector of selectors) {
       const rows = document.querySelectorAll(selector);
+      console.log(`[E2E] Selector "${selector}" found ${rows.length} rows`);
+      
       for (const row of rows) {
         const text = row.textContent || '';
         // Check for pattern in various formats: BTC/USDT, BTC / USDT, or just BTC
         if (text.includes(pattern + '/') || text.includes(pattern + ' /') || 
-            text.includes('/' + pattern) || text.includes(' BTC ') ||
+            text.includes('/' + pattern) || text.includes(' ' + pattern + ' ') ||
             text.includes('BTCUSDT')) {
-          // Find clickable element
-          const clickable = row.querySelector('[role="button"], [style*="cursor: pointer"], td:first-child div') || row;
+          // Find clickable element - the symbol column or the row itself
+          const clickable = row.querySelector('td:first-child, [role="button"], [style*="cursor: pointer"]') || row;
           (clickable as HTMLElement).scrollIntoView({ behavior: 'instant', block: 'center' });
           (clickable as HTMLElement).click();
+          console.log(`[E2E] Clicked on row with pattern "${pattern}"`);
           return true;
         }
       }
     }
+    console.log(`[E2E] No row found with pattern "${pattern}"`);
     return false;
   }, symbolPattern);
 }
