@@ -4,7 +4,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { authMiddleware as authenticate } from './authMiddleware';
+import { authMiddleware as authenticate, requireAdmin } from './authMiddleware';
 import { getPaymentMonitoringService } from '../services/paymentMonitoringService';
 import { createLogger } from '../utils/logger';
 
@@ -341,7 +341,7 @@ router.post('/health-check', async (req: Request, res: Response) => {
  * GET /api/payment-monitoring/summary
  * Get payment summary for unified admin dashboard
  */
-router.get('/summary', async (req: Request, res: Response) => {
+router.get('/summary', requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {

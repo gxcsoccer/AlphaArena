@@ -6,7 +6,7 @@
 
 import { Router, Request, Response } from 'express';
 import { getSupabaseClient, getSupabaseAdminClient } from '../database/client';
-import authMiddleware, { optionalAuthMiddleware } from './authMiddleware';
+import authMiddleware, { optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('APMRoutes');
@@ -564,7 +564,7 @@ function calculatePercentile(values: number[], percentile: number): number {
  *       200:
  *         description: APM summary
  */
-router.get('/summary', authMiddleware, async (req: Request, res: Response) => {
+router.get('/summary', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const client = getSupabaseAdminClient();
     
