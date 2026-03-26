@@ -54,6 +54,7 @@
     "perf:analyze": "node scripts/bundle-analysis.mjs",
     "perf:visualizer": "vite-bundle-visualizer",
     "perf:budget": "node scripts/check-performance-budget.mjs",
+    "perf:mobile": "ts-node --transpile-only scripts/mobile-performance-test.ts",
     "i18n:check": "ts-node --transpile-only scripts/check-i18n-integrity.ts"
   },
   "repository": {
