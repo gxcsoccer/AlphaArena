@@ -3,7 +3,7 @@
  * Handles A/B testing experiment management and tracking
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { getExperimentDAO } from '../database/experiment.dao';
 import { getExperimentService } from '../services/experiment/ExperimentService';
 import { authMiddleware } from './authMiddleware';
@@ -12,6 +12,26 @@ import { createLogger } from '../utils/logger';
 const log = createLogger('ExperimentRoutes');
 
 const router = Router();
+
+// Admin middleware - check if user is admin
+const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const userRole = (req.user as any)?.role;
+  const userEmail = req.user?.email;
+
+  // Check if user is admin by role or by email domain
+  const isAdmin = userRole === 'admin' ||
+    userEmail?.endsWith('@alphaarena.io') ||
+    userEmail === process.env.ADMIN_EMAIL;
+
+  if (!isAdmin) {
+    return res.status(403).json({
+      success: false,
+      error: 'Admin access required',
+    });
+  }
+
+  next();
+};
 
 // ============================================
 // Public Endpoints (for client-side experiment participation)
@@ -153,7 +173,7 @@ router.get('/active', authMiddleware, async (req: Request, res: Response) => {
  * POST /api/experiments/admin
  * Create a new experiment
  */
-router.post('/admin', authMiddleware, async (req: Request, res: Response) => {
+router.post('/admin', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -161,9 +181,6 @@ router.post('/admin', authMiddleware, async (req: Request, res: Response) => {
         error: 'Not authenticated',
       });
     }
-
-    // TODO: Add admin role check
-    // For now, any authenticated user can create experiments
 
     const {
       name,
@@ -230,7 +247,7 @@ router.post('/admin', authMiddleware, async (req: Request, res: Response) => {
  * GET /api/experiments/admin
  * List all experiments
  */
-router.get('/admin', authMiddleware, async (req: Request, res: Response) => {
+router.get('/admin', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -293,7 +310,7 @@ router.get('/admin', authMiddleware, async (req: Request, res: Response) => {
  * GET /api/experiments/admin/:experimentId
  * Get experiment details
  */
-router.get('/admin/:experimentId', authMiddleware, async (req: Request, res: Response) => {
+router.get('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -351,7 +368,7 @@ router.get('/admin/:experimentId', authMiddleware, async (req: Request, res: Res
  * POST /api/experiments/admin/:experimentId/start
  * Start an experiment
  */
-router.post('/admin/:experimentId/start', authMiddleware, async (req: Request, res: Response) => {
+router.post('/admin/:experimentId/start', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -387,7 +404,7 @@ router.post('/admin/:experimentId/start', authMiddleware, async (req: Request, r
  * POST /api/experiments/admin/:experimentId/pause
  * Pause an experiment
  */
-router.post('/admin/:experimentId/pause', authMiddleware, async (req: Request, res: Response) => {
+router.post('/admin/:experimentId/pause', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -422,7 +439,7 @@ router.post('/admin/:experimentId/pause', authMiddleware, async (req: Request, r
  * POST /api/experiments/admin/:experimentId/complete
  * Complete an experiment
  */
-router.post('/admin/:experimentId/complete', authMiddleware, async (req: Request, res: Response) => {
+router.post('/admin/:experimentId/complete', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -461,7 +478,7 @@ router.post('/admin/:experimentId/complete', authMiddleware, async (req: Request
  * PUT /api/experiments/admin/:experimentId
  * Update experiment configuration
  */
-router.put('/admin/:experimentId', authMiddleware, async (req: Request, res: Response) => {
+router.put('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -503,7 +520,7 @@ router.put('/admin/:experimentId', authMiddleware, async (req: Request, res: Res
  * PUT /api/experiments/admin/variants/:variantId
  * Update variant configuration
  */
-router.put('/admin/variants/:variantId', authMiddleware, async (req: Request, res: Response) => {
+router.put('/admin/variants/:variantId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -547,7 +564,7 @@ router.put('/admin/variants/:variantId', authMiddleware, async (req: Request, re
  * DELETE /api/experiments/admin/:experimentId
  * Delete an experiment (draft only)
  */
-router.delete('/admin/:experimentId', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
@@ -580,7 +597,7 @@ router.delete('/admin/:experimentId', authMiddleware, async (req: Request, res: 
  * GET /api/experiments/admin/:experimentId/events
  * Get events for an experiment
  */
-router.get('/admin/:experimentId/events', authMiddleware, async (req: Request, res: Response) => {
+router.get('/admin/:experimentId/events', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({
