@@ -22,6 +22,7 @@ import './styles/ux-improvements.css'; // Issue #514: UX 改进样式
 import './styles/visual-optimization.css'; // Issue #573: 视觉优化样式
 import './styles/touch-feedback.css'; // Touch feedback utilities
 import './styles/interaction-enhancements.css'; // Issue #571: 交互体验优化
+import './styles/mobile-responsive.css'; // Issue #627: 移动端响应式优化
 
 // Initialize critical resource preloading for better performance
 initCriticalPreloading();

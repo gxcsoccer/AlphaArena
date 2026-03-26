@@ -1,0 +1,497 @@
+/**
+ * Mobile Responsive Optimization
+ * Issue #627: 移动端响应式优化 - 核心页面适配
+ * 
+ * This file contains mobile-specific styles to ensure:
+ * 1. Touch targets are at least 44px
+ * 2. Content fits within viewport (320px-768px)
+ * 3. Tables are scrollable or converted to cards
+ * 4. Charts and data visualizations are readable
+ */
+
+/* ============================================
+   Mobile Container Styles
+   ============================================ */
+
+.dashboard-mobile,
+.trades-mobile,
+.holdings-mobile {
+  padding: 8px;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure all cards have proper mobile padding */
+@media (max-width: 768px) {
+  .arco-card {
+    margin-bottom: 12px;
+  }
+
+  .arco-card-body {
+    padding: 12px;
+  }
+
+  /* Reduce title sizes on mobile */
+  .arco-typography-title {
+    margin-bottom: 12px !important;
+  }
+
+  /* Ensure tabs are scrollable on mobile */
+  .arco-tabs-nav {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .arco-tabs-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Better touch targets for form inputs */
+  .arco-input,
+  .arco-select .arco-select-view,
+  .arco-picker,
+  .arco-input-password {
+    height: 44px;
+    min-height: 44px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  /* Larger touch targets for buttons */
+  .arco-btn {
+    min-height: 44px;
+    padding: 8px 16px;
+  }
+
+  .arco-btn-size-small {
+    min-height: 36px;
+  }
+
+  .arco-btn-size-mini {
+    min-height: 32px;
+  }
+
+  /* Better spacing for statistics */
+  .arco-statistic {
+    text-align: center;
+  }
+
+  .arco-statistic-title {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .arco-statistic-value {
+    font-size: 18px;
+  }
+
+  /* Collapse/accordion improvements */
+  .arco-collapse-item-header {
+    padding: 12px;
+    min-height: 44px;
+  }
+
+  /* Table improvements */
+  .mobile-table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .mobile-table-container::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .mobile-table-container::-webkit-scrollbar-track {
+    background: var(--color-fill-1);
+  }
+
+  .mobile-table-container::-webkit-scrollbar-thumb {
+    background: var(--color-fill-3);
+    border-radius: 2px;
+  }
+
+  /* Filter card improvements */
+  .arco-card .arco-space-vertical .arco-select,
+  .arco-card .arco-space-vertical .arco-picker {
+    width: 100% !important;
+  }
+
+  /* Tab improvements */
+  .arco-tabs-card .arco-tabs-tab,
+  .arco-tabs-rounded .arco-tabs-tab {
+    padding: 8px 12px;
+    min-height: 36px;
+  }
+
+  /* Progress bar improvements */
+  .arco-progress {
+    font-size: 12px;
+  }
+
+  /* Tag improvements */
+  .arco-tag {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+
+  /* Message improvements */
+  .arco-message {
+    max-width: calc(100vw - 32px);
+    word-break: break-word;
+  }
+
+  /* Modal improvements */
+  .arco-modal {
+    width: calc(100vw - 32px) !important;
+    max-width: 400px;
+    margin: 16px auto;
+  }
+
+  .arco-modal-body {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  /* Tooltip improvements */
+  .arco-tooltip-content {
+    max-width: calc(100vw - 32px);
+  }
+}
+
+/* ============================================
+   Touch Target Optimization
+   Ensure all interactive elements are at least 44x44px
+   ============================================ */
+
+@media (max-width: 768px) and (pointer: coarse) {
+  /* Buttons */
+  .arco-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Form controls */
+  .arco-checkbox-wrapper,
+  .arco-radio-wrapper {
+    min-height: 44px;
+    padding: 10px 0;
+  }
+
+  /* Links in lists */
+  .arco-menu-item,
+  .arco-dropdown-option {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Tab items */
+  .arco-tabs-tab {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Collapse headers */
+  .arco-collapse-item-header {
+    min-height: 48px;
+    padding: 12px 16px;
+  }
+}
+
+/* ============================================
+   Chart Optimizations for Mobile
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Reduce chart legend font size */
+  .recharts-legend-item-text {
+    font-size: 11px;
+  }
+
+  /* Smaller axis labels */
+  .recharts-cartesian-axis-tick-value {
+    font-size: 10px;
+  }
+
+  /* Better tooltip positioning */
+  .recharts-tooltip-wrapper {
+    max-width: 200px;
+  }
+
+  .recharts-default-tooltip {
+    padding: 8px;
+    font-size: 11px;
+  }
+}
+
+/* ============================================
+   Form Optimizations for Mobile
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Login/Register pages */
+  .arco-form-item {
+    margin-bottom: 16px;
+  }
+
+  .arco-form-item-label {
+    padding-bottom: 4px;
+  }
+
+  .arco-form-item-label-text {
+    font-size: 14px;
+  }
+
+  /* Better password requirements panel */
+  .password-requirements-panel {
+    padding: 10px;
+    margin-top: 6px;
+  }
+
+  /* Full-width submit buttons */
+  .arco-form .arco-btn-long {
+    margin-top: 8px;
+  }
+}
+
+/* ============================================
+   Specific Page Optimizations
+   ============================================ */
+
+/* Landing Page - Mobile */
+@media (max-width: 768px) {
+  .hero-section {
+    min-height: auto;
+    padding: 80px 16px 32px;
+  }
+
+  .hero-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .hero-cta {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cta-primary,
+  .cta-secondary {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .trust-badges {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .trust-badge {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
+  }
+
+  .stats-section {
+    padding: 32px 16px;
+  }
+
+  .features-section {
+    padding: 32px 16px;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+  }
+
+  .how-it-works-section {
+    padding: 32px 16px;
+  }
+
+  .cta-section {
+    padding: 48px 16px;
+  }
+
+  .landing-footer {
+    padding: 24px 16px;
+  }
+}
+
+/* Dashboard - Mobile */
+@media (max-width: 768px) {
+  .stats-card-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stats-card {
+    padding: 12px;
+  }
+
+  .stats-card__title {
+    font-size: 11px;
+  }
+
+  .stats-card__value {
+    font-size: 18px;
+  }
+
+  .chart-card {
+    margin-bottom: 12px;
+  }
+}
+
+/* Trades Page - Mobile */
+@media (max-width: 768px) {
+  .trades-mobile .arco-card {
+    margin-bottom: 12px;
+  }
+
+  .trades-mobile .arco-collapse {
+    margin-bottom: 12px;
+  }
+}
+
+/* Holdings Page - Mobile */
+@media (max-width: 768px) {
+  .holdings-mobile .arco-tabs-content {
+    padding-top: 12px;
+  }
+
+  .holdings-mobile .arco-tabs-tab {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+}
+
+/* ============================================
+   Safe Area Support (iOS)
+   For devices with notch/home indicator
+   ============================================ */
+
+@supports (padding: max(0px)) {
+  @media (max-width: 768px) {
+    /* Bottom safe area for fixed elements */
+    .arco-layout-footer,
+    .arco-affix,
+    .bottom-nav {
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    /* Top safe area for fixed headers */
+    .arco-layout-header,
+    .landing-header {
+      padding-top: max(0px, env(safe-area-inset-top));
+    }
+
+    /* Full height adjustments */
+    .arco-layout {
+      min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    }
+  }
+}
+
+/* ============================================
+   Landscape Mode Optimizations
+   ============================================ */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  /* Reduce vertical spacing in landscape */
+  .dashboard-mobile,
+  .trades-mobile,
+  .holdings-mobile {
+    padding: 4px 8px;
+  }
+
+  .arco-card {
+    margin-bottom: 8px;
+  }
+
+  .arco-card-body {
+    padding: 8px;
+  }
+
+  /* Smaller stat values */
+  .arco-statistic-value {
+    font-size: 14px;
+  }
+
+  /* Compact tables */
+  .mobile-table-card {
+    margin-bottom: 8px;
+  }
+
+  .mobile-table-card__row {
+    min-height: 24px;
+  }
+}
+
+/* ============================================
+   High Contrast Mode Support
+   ============================================ */
+
+@media (prefers-contrast: high) {
+  @media (max-width: 768px) {
+    .arco-btn {
+      border-width: 2px;
+    }
+
+    .arco-input,
+    .arco-select .arco-select-view {
+      border-width: 2px;
+    }
+
+    .arco-card {
+      border-width: 2px;
+    }
+  }
+}
+
+/* ============================================
+   Dark Mode Adjustments for Mobile
+   ============================================ */
+
+@media (max-width: 768px) {
+  :root.dark .arco-card,
+  [data-theme='dark'] .arco-card {
+    background: var(--color-bg-2);
+  }
+
+  :root.dark .mobile-table-card,
+  [data-theme='dark'] .mobile-table-card {
+    background: var(--color-bg-2);
+  }
+
+  :root.dark .arco-collapse,
+  [data-theme='dark'] .arco-collapse {
+    background: var(--color-bg-2);
+  }
+}
+
+/* ============================================
+   Print Styles (for mobile)
+   ============================================ */
+
+@media print {
+  @media (max-width: 768px) {
+    .dashboard-mobile,
+    .trades-mobile,
+    .holdings-mobile {
+      padding: 0;
+    }
+
+    .arco-tabs,
+    .arco-collapse,
+    .arco-btn {
+      display: none;
+    }
+
+    .arco-card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+}

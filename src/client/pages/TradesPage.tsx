@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button } from '@arco-design/web-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Collapse } from '@arco-design/web-react';
 const { Row, Col } = Grid;
+const CollapseItem = Collapse.Item;
 import {
   AreaChart,
   Area,
@@ -16,6 +17,7 @@ import {
 import { useTrades, useStrategies } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import ExportModal from '../components/ExportModal';
+import MobileTableCard from '../components/MobileTableCard';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade } from '../utils/api';
 
@@ -34,7 +36,7 @@ const TradesPage: React.FC = () => {
   const { strategies } = useStrategies();
 
   // Detect mobile on mount and resize
-  React.useEffect(() => {
+  useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -43,6 +45,16 @@ const TradesPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Filter trades by date range if selected
+  const filteredTrades = useMemo(() => {
+    if (!dateRange || !dateRange[0] || !dateRange[1]) return trades;
+    const [start, end] = dateRange;
+    return trades.filter(trade => {
+      const tradeDate = new Date(trade.executedAt);
+      return tradeDate >= start && tradeDate <= end;
+    });
+  }, [trades, dateRange]);
 
   // Get unique symbols from trades
   const availableSymbols = useMemo(() => {
@@ -84,6 +96,56 @@ const TradesPage: React.FC = () => {
       price: trade.price,
       volume: trade.quantity,
     }));
+
+  // Mobile card fields for trades
+  const tradeCardFields = useMemo(() => [
+    { 
+      key: 'symbol', 
+      label: 'Symbol', 
+      priority: 'high' as const,
+      type: 'text' as const,
+    },
+    { 
+      key: 'side', 
+      label: 'Side', 
+      priority: 'high' as const,
+      render: (v: 'buy' | 'sell') => (
+        <Tag color={v === 'buy' ? 'green' : 'red'}>
+          {v.toUpperCase()}
+        </Tag>
+      ),
+    },
+    { 
+      key: 'price', 
+      label: 'Price', 
+      priority: 'medium' as const,
+      render: (v: number) => `$${v.toLocaleString()}`,
+    },
+    { 
+      key: 'quantity', 
+      label: 'Qty', 
+      priority: 'medium' as const,
+      type: 'number' as const,
+    },
+    { 
+      key: 'total', 
+      label: 'Total', 
+      priority: 'high' as const,
+      render: (v: number) => `$${v.toLocaleString()}`,
+    },
+    { 
+      key: 'executedAt', 
+      label: 'Time', 
+      priority: 'low' as const,
+      render: (v: string) => new Date(v).toLocaleString(),
+    },
+    { 
+      key: 'fee', 
+      label: 'Fee', 
+      priority: 'low' as const,
+      render: (v?: number) => v ? `$${v.toFixed(4)}` : '-',
+    },
+  ], []);
 
   // Trade table columns
   const tradeColumns: TableProps<Trade>['columns'] = [
@@ -158,20 +220,148 @@ const TradesPage: React.FC = () => {
     },
   ];
 
+  // Mobile layout with cards
+  if (isMobile) {
+    return (
+      <ErrorBoundary>
+        <div className="trades-mobile">
+          <Title heading={4} style={{ marginBottom: 12 }}>
+            Trades
+          </Title>
+
+          {/* Filters - Collapsible on mobile */}
+          <Card style={{ marginBottom: 12 }}>
+            <Collapse accordion>
+              <CollapseItem header="Filters" name="filters">
+                <Space direction="vertical" style={{ width: '100%' }}>
+                  <Select
+                    placeholder="All Symbols"
+                    style={{ width: '100%' }}
+                    allowClear
+                    value={symbol}
+                    onChange={setSymbol}
+                  >
+                    {Array.from(new Set(trades.map(t => t.symbol))).map(s => (
+                      <Select.Option key={s} value={s}>{s}</Select.Option>
+                    ))}
+                  </Select>
+                  <Select
+                    placeholder="All Sides"
+                    style={{ width: '100%' }}
+                    allowClear
+                    value={side}
+                    onChange={setSide}
+                  >
+                    <Select.Option value="buy">Buy</Select.Option>
+                    <Select.Option value="sell">Sell</Select.Option>
+                  </Select>
+                  <DatePicker.RangePicker
+                    value={dateRange}
+                    onChange={(dates) => setDateRange(dates as [any, any] | null)}
+                    style={{ width: '100%' }}
+                  />
+                  <Button 
+                    type="primary" 
+                    onClick={() => setShowExportModal(true)}
+                    style={{ width: '100%' }}
+                  >
+                    Export
+                  </Button>
+                </Space>
+              </CollapseItem>
+            </Collapse>
+          </Card>
+
+          {/* Charts - Collapsible on mobile */}
+          <Collapse accordion style={{ marginBottom: 12 }}>
+            <CollapseItem header="Hourly Distribution" name="hourly">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={hourlyData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="trades" fill="#8884d8" name="Trades" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CollapseItem>
+            <CollapseItem header="Volume by Symbol" name="volume">
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={symbolVolumeData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="symbol" tick={{ fontSize: 10 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="volume" fill="#82ca9d" name="Volume ($)" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CollapseItem>
+            <CollapseItem header="Price Trend" name="price">
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={priceTrendData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" tick={{ fontSize: 10 }} />
+                  <YAxis />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="price"
+                    stroke="#8884d8"
+                    fill="#8884d8"
+                    fillOpacity={0.3}
+                    name="Price ($)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CollapseItem>
+          </Collapse>
+
+          {/* Trade Cards */}
+          <Card title="Trade History" loading={loading}>
+            {filteredTrades.length > 0 ? (
+              filteredTrades.slice(0, 20).map((trade) => (
+                <MobileTableCard
+                  key={trade.id}
+                  data={trade}
+                  fields={tradeCardFields}
+                  title={trade.symbol}
+                />
+              ))
+            ) : (
+              <div style={{ padding: 20, textAlign: 'center', color: '#999' }}>
+                No trades found
+              </div>
+            )}
+          </Card>
+
+          {/* Export Modal */}
+          <ExportModal
+            visible={showExportModal}
+            onCancel={() => setShowExportModal(false)}
+            trades={filteredTrades}
+            availableSymbols={availableSymbols}
+            availableStrategies={availableStrategies}
+          />
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
+  // Desktop layout
   return (
     <ErrorBoundary>
       <div>
         {/* Page Title */}
-        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24 }}>
+        <Title heading={3} style={{ marginBottom: 24 }}>
           Trades
         </Title>
 
         {/* Filters */}
-        <Card style={{ marginBottom: isMobile ? 16 : 24 }}>
-          <Space wrap direction={isMobile ? 'vertical' : 'horizontal'}>
+        <Card style={{ marginBottom: 24 }}>
+          <Space wrap>
             <Select
               placeholder="All Symbols"
-              style={{ width: isMobile ? '100%' : 150 }}
+              style={{ width: 150 }}
               allowClear
               value={symbol}
               onChange={setSymbol}
@@ -182,7 +372,7 @@ const TradesPage: React.FC = () => {
             </Select>
             <Select
               placeholder="All Sides"
-              style={{ width: isMobile ? '100%' : 120 }}
+              style={{ width: 120 }}
               allowClear
               value={side}
               onChange={setSide}
@@ -193,7 +383,6 @@ const TradesPage: React.FC = () => {
             <DatePicker.RangePicker
               value={dateRange}
               onChange={(dates) => setDateRange(dates as [any, any] | null)}
-              style={{ width: isMobile ? '100%' : 'auto' }}
             />
             <Button 
               type="primary" 
@@ -205,13 +394,13 @@ const TradesPage: React.FC = () => {
         </Card>
 
         {/* Charts */}
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col xs={24} md={12}>
             <Card title="Hourly Trade Distribution">
-              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hourlyData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hour" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                  <XAxis dataKey="hour" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -222,10 +411,10 @@ const TradesPage: React.FC = () => {
           </Col>
           <Col xs={24} md={12}>
             <Card title="Volume by Symbol">
-              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={symbolVolumeData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="symbol" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                  <XAxis dataKey="symbol" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -236,13 +425,13 @@ const TradesPage: React.FC = () => {
           </Col>
         </Row>
 
-        <Row gutter={isMobile ? 8 : 16} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Row gutter={16} style={{ marginBottom: 24 }}>
           <Col span={24}>
             <Card title="Price Trend">
-              <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={priceTrendData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" tick={{ fontSize: isMobile ? 10 : 12 }} />
+                  <XAxis dataKey="time" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
@@ -268,7 +457,7 @@ const TradesPage: React.FC = () => {
           <div className={isMobile ? 'mobile-table-container' : ''}>
             <Table
               columns={tradeColumns}
-              dataSource={trades}
+              dataSource={filteredTrades}
               rowKey="id"
               loading={loading}
               pagination={{ pageSize: 20, showSizeChanger: true }}
@@ -282,7 +471,7 @@ const TradesPage: React.FC = () => {
         <ExportModal
           visible={showExportModal}
           onCancel={() => setShowExportModal(false)}
-          trades={trades}
+          trades={filteredTrades}
           availableSymbols={availableSymbols}
           availableStrategies={availableStrategies}
         />
