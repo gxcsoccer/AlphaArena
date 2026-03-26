@@ -2,8 +2,12 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps for all languages
 Sitemap: https://alphaarena.app/sitemap.xml
+Sitemap: https://alphaarena.app/sitemap-zh-cn.xml
+Sitemap: https://alphaarena.app/sitemap-en-us.xml
+Sitemap: https://alphaarena.app/sitemap-ja-jp.xml
+Sitemap: https://alphaarena.app/sitemap-ko-kr.xml
 
 # Disallow private pages
 Disallow: /dashboard

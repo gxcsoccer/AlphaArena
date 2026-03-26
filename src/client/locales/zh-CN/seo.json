@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "AlphaArena - 算法交易平台 | AI 驱动的智能交易",
+    "description": "AlphaArena 是一个专业的算法交易平台，提供 AI 驱动的智能策略、无风险的模拟交易环境、实时市场数据和竞技排名系统。免费注册，即刻开始您的量化交易之旅。",
+    "keywords": "算法交易, 量化交易, AI 交易, 模拟交易, 虚拟交易, 智能策略, 交易机器人, 量化投资, 交易平台, 股票交易, 加密货币交易, AlphaArena"
+  },
+  "pages": {
+    "home": {
+      "title": "AlphaArena - 算法交易平台 | AI 驱动的智能交易",
+      "description": "AlphaArena 是一个专业的算法交易平台，提供 AI 驱动的智能策略、无风险的模拟交易环境、实时市场数据和竞技排名系统。免费注册，即刻开始您的量化交易之旅。"
+    },
+    "landing": {
+      "title": "AlphaArena - 开启您的量化交易之旅",
+      "description": "探索 AlphaArena 的强大功能：AI 驱动的智能策略、实时市场分析、无风险模拟交易、竞技排名系统。免费注册，体验专业级交易工具。"
+    },
+    "login": {
+      "title": "登录 - AlphaArena",
+      "description": "登录您的 AlphaArena 账户，访问您的个性化交易仪表板、策略组合和绩效分析。"
+    },
+    "register": {
+      "title": "免费注册 - AlphaArena",
+      "description": "立即注册 AlphaArena，免费获得模拟交易账户、AI 策略推荐和实时市场数据。无需信用卡，即刻开始。"
+    },
+    "leaderboard": {
+      "title": "交易排行榜 - AlphaArena",
+      "description": "查看 AlphaArena 顶级交易者的实时排名，了解他们的策略表现和收益。参与竞技，展示您的交易技能。"
+    },
+    "subscription": {
+      "title": "订阅计划 - AlphaArena",
+      "description": "选择适合您的 AlphaArena 订阅计划。从免费基础版到专业版，解锁更多高级功能和策略工具。"
+    },
+    "marketplace": {
+      "title": "策略市场 - AlphaArena",
+      "description": "浏览和购买经过验证的交易策略。发现适合您投资风格的专业级量化策略。"
+    },
+    "apiDocs": {
+      "title": "API 文档 - AlphaArena",
+      "description": "AlphaArena API 文档 - 集成我们的算法交易 API，构建您的自动化交易系统。"
+    }
+  },
+  "og": {
+    "siteName": "AlphaArena",
+    "imageAlt": "AlphaArena - 专业级算法交易平台"
+  }
+}

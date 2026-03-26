@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "AlphaArena - Algorithmic Trading Platform | AI-Powered Smart Trading",
+    "description": "AlphaArena is a professional algorithmic trading platform offering AI-powered strategies, risk-free simulation environment, real-time market data, and competitive ranking system. Sign up for free and start your quantitative trading journey today.",
+    "keywords": "algorithmic trading, quantitative trading, AI trading, paper trading, simulation trading, smart strategies, trading bot, quant investment, trading platform, stock trading, crypto trading, AlphaArena"
+  },
+  "pages": {
+    "home": {
+      "title": "AlphaArena - Algorithmic Trading Platform | AI-Powered Smart Trading",
+      "description": "AlphaArena is a professional algorithmic trading platform offering AI-powered strategies, risk-free simulation environment, real-time market data, and competitive ranking system. Sign up for free and start your quantitative trading journey today."
+    },
+    "landing": {
+      "title": "AlphaArena - Start Your Quantitative Trading Journey",
+      "description": "Explore AlphaArena's powerful features: AI-powered smart strategies, real-time market analysis, risk-free simulation trading, and competitive ranking system. Sign up for free and experience professional trading tools."
+    },
+    "login": {
+      "title": "Login - AlphaArena",
+      "description": "Log in to your AlphaArena account to access your personalized trading dashboard, strategy portfolio, and performance analytics."
+    },
+    "register": {
+      "title": "Sign Up Free - AlphaArena",
+      "description": "Sign up for AlphaArena today and get a free simulation trading account, AI strategy recommendations, and real-time market data. No credit card required, start instantly."
+    },
+    "leaderboard": {
+      "title": "Trading Leaderboard - AlphaArena",
+      "description": "View real-time rankings of AlphaArena's top traders. See their strategy performance and returns. Join the competition and showcase your trading skills."
+    },
+    "subscription": {
+      "title": "Subscription Plans - AlphaArena",
+      "description": "Choose the AlphaArena subscription plan that fits you. From free basic to professional tier, unlock advanced features and strategy tools."
+    },
+    "marketplace": {
+      "title": "Strategy Marketplace - AlphaArena",
+      "description": "Browse and purchase verified trading strategies. Discover professional quantitative strategies that match your investment style."
+    },
+    "apiDocs": {
+      "title": "API Documentation - AlphaArena",
+      "description": "AlphaArena API Documentation - Integrate our algorithmic trading API to build your automated trading system."
+    }
+  },
+  "og": {
+    "siteName": "AlphaArena",
+    "imageAlt": "AlphaArena - Professional Algorithmic Trading Platform"
+  }
+}
