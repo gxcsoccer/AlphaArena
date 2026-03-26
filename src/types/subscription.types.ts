@@ -133,6 +133,17 @@ export interface PlanFeatures {
   backtesting?: boolean;
   custom_strategies?: boolean;
   
+  // VIP Advanced Features (Issue #640)
+  multi_timeframe_charts?: boolean; // Multiple timeframes simultaneously
+  advanced_indicators?: boolean; // MACD, RSI, Bollinger overlays
+  chart_templates?: boolean; // Save/load indicator templates
+  chart_export?: boolean; // Chart screenshot export
+  backtest_optimization?: boolean; // Parameter optimization
+  multi_strategy_comparison?: boolean; // Compare multiple strategies
+  backtest_history?: boolean; // Save/load backtest records
+  report_export_pdf?: boolean; // PDF report export
+  report_export_excel?: boolean; // Excel report export
+  
   // API features
   api_basic?: boolean;
   api_advanced?: boolean;
@@ -168,6 +179,12 @@ export interface PlanLimits {
   historical_data_days: number; // -1 for unlimited
   backtests_per_day: number; // -1 for unlimited
   api_calls_per_day: number; // -1 for unlimited
+  // VIP Advanced Features Limits (Issue #640)
+  chart_timeframes: number; // Max timeframes to display simultaneously
+  saved_chart_templates: number; // Max saved indicator templates
+  backtest_optimizations: number; // Max parameter optimizations per day
+  backtest_history_records: number; // Max saved backtest records
+  strategy_comparisons: number; // Max strategies to compare at once
 }
 
 /**
@@ -243,18 +260,36 @@ export function getDefaultPlanLimits(plan: SubscriptionPlan): PlanLimits {
       historical_data_days: 7,
       backtests_per_day: 1,
       api_calls_per_day: 100,
+      // VIP Advanced Features - Free tier gets minimal/no access
+      chart_timeframes: 1, // Single timeframe only
+      saved_chart_templates: 0, // No template saving
+      backtest_optimizations: 0, // No parameter optimization
+      backtest_history_records: 0, // No history saving
+      strategy_comparisons: 0, // No multi-strategy comparison
     },
     pro: {
       strategies: 10,
       historical_data_days: 30,
       backtests_per_day: 50,
       api_calls_per_day: 10000,
+      // VIP Advanced Features - Pro tier gets full access
+      chart_timeframes: 4, // Up to 4 timeframes
+      saved_chart_templates: 10, // Save up to 10 templates
+      backtest_optimizations: 20, // 20 optimizations per day
+      backtest_history_records: 100, // Save up to 100 records
+      strategy_comparisons: 4, // Compare up to 4 strategies
     },
     enterprise: {
       strategies: -1, // unlimited
       historical_data_days: -1,
       backtests_per_day: -1,
       api_calls_per_day: -1,
+      // VIP Advanced Features - Enterprise gets unlimited
+      chart_timeframes: -1,
+      saved_chart_templates: -1,
+      backtest_optimizations: -1,
+      backtest_history_records: -1,
+      strategy_comparisons: -1,
     },
   };
   

@@ -34,37 +34,46 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
   showUpgradeOnLimit = true,
   onLimitReached,
 }) => {
-  const { subscription: _subscription, usage, isLoading, isPro } = useSubscription();
+  const { loading, isPro, isEnterprise, checkFeatureLimit } = useSubscription();
   const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
   const [hasChecked, setHasChecked] = useState(false);
+  const [limitState, setLimitState] = useState<{ allowed: boolean; current: number; limit: number }>({
+    allowed: true,
+    current: 0,
+    limit: -1,
+  });
 
-  const checkAccess = useCallback(() => {
-    // Pro users have access to everything
-    if (isPro) return { hasAccess: true, remaining: -1 };
-
-    const featureUsage = usage[featureKey];
-    if (!featureUsage) return { hasAccess: true, remaining: -1 };
-
-    const { limit, currentUsage } = featureUsage;
-    if (limit === -1) return { hasAccess: true, remaining: -1 };
-
-    const remaining = limit - currentUsage;
-    return { hasAccess: remaining > 0, remaining };
-  }, [isPro, usage, featureKey]);
+  // Check feature limit on mount
+  useEffect(() => {
+    const checkLimit = async () => {
+      if (isPro || isEnterprise) {
+        // Pro and Enterprise users have access to everything
+        setLimitState({ allowed: true, current: 0, limit: -1 });
+        return;
+      }
+      
+      const result = await checkFeatureLimit(featureKey);
+      setLimitState(result);
+    };
+    
+    if (!loading) {
+      checkLimit();
+    }
+  }, [loading, featureKey, checkFeatureLimit, isPro, isEnterprise]);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!loading) {
       setHasChecked(true);
     }
-  }, [isLoading]);
+  }, [loading]);
 
-  const { hasAccess, remaining: _remaining } = checkAccess();
+  const hasAccess = limitState.allowed;
 
   const handleUpgrade = () => {
     window.location.href = '/subscription';
   };
 
-  const _handleLimitReached = () => {
+  const handleLimitReached = () => {
     if (onLimitReached) {
       onLimitReached();
     } else if (showUpgradeOnLimit) {
@@ -73,7 +82,7 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
   };
 
   // Show loading state
-  if (isLoading || !hasChecked) {
+  if (loading || !hasChecked) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
         <Spin />
@@ -141,23 +150,38 @@ const FeatureGate: React.FC<FeatureGateProps> = ({
  * Returns access state and handlers for programmatic use
  */
 export function useFeatureGate(featureKey: string) {
-  const { subscription: _subscription, usage, isLoading, isPro, refreshSubscription } = useSubscription();
+  const { loading, isPro, isEnterprise, checkFeatureLimit, refresh } = useSubscription();
   const [upgradeModalVisible, setUpgradeModalVisible] = useState(false);
+  const [limitState, setLimitState] = useState<{
+    allowed: boolean;
+    current: number;
+    limit: number;
+  }>({
+    allowed: true,
+    current: 0,
+    limit: -1,
+  });
 
-  const checkAccess = useCallback(() => {
-    if (isPro) return { hasAccess: true, remaining: -1, isNearLimit: false };
+  // Check feature limit
+  useEffect(() => {
+    const checkLimit = async () => {
+      if (isPro || isEnterprise) {
+        setLimitState({ allowed: true, current: 0, limit: -1 });
+        return;
+      }
+      
+      const result = await checkFeatureLimit(featureKey);
+      setLimitState(result);
+    };
+    
+    if (!loading) {
+      checkLimit();
+    }
+  }, [loading, featureKey, checkFeatureLimit, isPro, isEnterprise]);
 
-    const featureUsage = usage[featureKey];
-    if (!featureUsage) return { hasAccess: true, remaining: -1, isNearLimit: false };
-
-    const { limit, currentUsage } = featureUsage;
-    if (limit === -1) return { hasAccess: true, remaining: -1, isNearLimit: false };
-
-    const remaining = limit - currentUsage;
-    const isNearLimit = remaining <= Math.ceil(limit * 0.2);
-
-    return { hasAccess: remaining > 0, remaining, isNearLimit };
-  }, [isPro, usage, featureKey]);
+  const isNearLimit = limitState.limit > 0 && 
+    limitState.current > 0 && 
+    (limitState.limit - limitState.current) <= Math.ceil(limitState.limit * 0.2);
 
   const showUpgradeModal = useCallback(() => {
     setUpgradeModalVisible(true);
@@ -172,13 +196,15 @@ export function useFeatureGate(featureKey: string) {
   }, []);
 
   return {
-    ...checkAccess(),
-    isLoading,
+    hasAccess: limitState.allowed,
+    remaining: limitState.limit === -1 ? -1 : limitState.limit - limitState.current,
+    isNearLimit,
+    isLoading: loading,
     showUpgradeModal,
     hideUpgradeModal,
     handleUpgrade,
     upgradeModalVisible,
-    refreshSubscription,
+    refreshSubscription: refresh,
   };
 }
 

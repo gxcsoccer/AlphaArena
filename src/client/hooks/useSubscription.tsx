@@ -21,6 +21,9 @@ interface SubscriptionContextValue {
   loading: boolean;
   error: Error | null;
   plan: SubscriptionPlan;
+  isPro: boolean;
+  isEnterprise: boolean;
+  isFree: boolean;
   features: PlanFeatures | null;
   limits: PlanLimits | null;
   isActive: boolean;
@@ -163,6 +166,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
 
   // Derived values
   const plan: SubscriptionPlan = subscription?.plan || 'free';
+  const isFree = plan === 'free';
+  const isPro = plan === 'pro';
+  const isEnterprise = plan === 'enterprise';
   const features: PlanFeatures | null = subscription?.plan_details?.features || null;
   const limits: PlanLimits | null = subscription?.plan_details?.limits || null;
   const isActive = subscription?.status === 'active' || subscription?.status === 'past_due';
@@ -180,6 +186,9 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     loading,
     error,
     plan,
+    isPro,
+    isEnterprise,
+    isFree,
     features,
     limits,
     isActive,
