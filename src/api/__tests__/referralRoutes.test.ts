@@ -304,6 +304,7 @@ describe('Referral Routes', () => {
         success: true,
         referralId: 'ref-1',
         rewardAmount: 100,
+        vipDaysGranted: 30,
         rewardScheduledAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       });
 
@@ -312,6 +313,7 @@ describe('Referral Routes', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.rewardAmount).toBe(100);
+      expect(response.body.data.vipDaysGranted).toBe(30);
     });
 
     it('should return 404 if user has no referral', async () => {

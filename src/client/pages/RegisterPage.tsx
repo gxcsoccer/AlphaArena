@@ -5,10 +5,10 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Form, Input, Button, Message, Typography, Space, Link, Grid } from '@arco-design/web-react';
-import { IconUser, IconLock, IconEmail, IconCheck, IconClose } from '@arco-design/web-react/icon';
+import { Form, Input, Button, Message, Typography, Space, Link, Grid, Tag, Alert } from '@arco-design/web-react';
+import { IconUser, IconLock, IconEmail, IconCheck, IconClose, IconGift } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/brand/Logo';
@@ -37,6 +37,7 @@ const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
+  const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
@@ -44,6 +45,8 @@ const RegisterPage: React.FC = () => {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralValid, setReferralValid] = useState<boolean | null>(null);
 
   // Password change handler with explicit value extraction
   const handlePasswordChange = (value: string) => {
@@ -68,6 +71,23 @@ const RegisterPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Check for referral code in URL
+  useEffect(() => {
+    const ref = searchParams.get('ref');
+    if (ref) {
+      setReferralCode(ref);
+      // Validate the referral code
+      fetch(`/api/referral/validate/${ref}`)
+        .then(res => res.json())
+        .then(data => {
+          setReferralValid(data.success && data.data?.valid);
+        })
+        .catch(() => {
+          setReferralValid(false);
+        });
+    }
+  }, [searchParams]);
 
   // Real-time password validation
   const passwordValidation: PasswordValidation = useMemo(() => {
@@ -108,6 +128,7 @@ const RegisterPage: React.FC = () => {
         email: values.email,
         username: values.username || undefined,
         password: values.password,
+        ref: referralCode || undefined,
       });
       navigate('/dashboard');
     } catch (err) {
@@ -169,6 +190,21 @@ const RegisterPage: React.FC = () => {
                 </ul>
               )}
             </Message>
+          )}
+
+          {/* Referral Bonus Banner */}
+          {referralCode && (
+            <Alert
+              type="success"
+              icon={<IconGift />}
+              content={
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span>🎉 通过邀请链接注册</span>
+                  <Tag color="green">获赠 7 天 VIP Pro</Tag>
+                </div>
+              }
+              style={{ marginBottom: 16 }}
+            />
           )}
 
           <Form

@@ -194,7 +194,9 @@ describe('ReferralDAO', () => {
         success: true,
         referral_id: 'referral-id',
         referrer_user_id: 'referrer-id',
-        invitee_bonus: 50,
+        invitee_bonus: 7,
+        invitee_bonus_type: 'vip_days',
+        vip_days_granted: 7,
       };
 
       mockAdminClient.rpc.mockResolvedValueOnce({ data: mockResult, error: null });
@@ -208,7 +210,8 @@ describe('ReferralDAO', () => {
         p_ip_address: data.ipAddress,
       });
       expect(result.success).toBe(true);
-      expect(result.inviteeBonus).toBe(50);
+      expect(result.inviteeBonus).toBe(7);
+      expect(result.inviteeBonusType).toBe('vip_days');
     });
 
     it('should handle fraud detection', async () => {

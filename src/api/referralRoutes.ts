@@ -357,6 +357,7 @@ router.post('/activate', authMiddleware, async (req: Request, res: Response) => 
       data: {
         referralId: result.referralId,
         rewardAmount: result.rewardAmount,
+        vipDaysGranted: result.vipDaysGranted,
         rewardScheduledAt: result.rewardScheduledAt,
         message: 'Referral activated successfully',
       },
