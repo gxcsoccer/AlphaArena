@@ -3,44 +3,69 @@
  * 
  * This mock provides actual translated text for tests instead of translation keys.
  * It supports dynamic language switching with proper event handling.
+ * Updated for lazy loading support (Issue #618).
  */
 
-// Import actual translation files for both languages
-const landingZhCN = require('../../src/client/locales/zh-CN/landing.json');
-const commonZhCN = require('../../src/client/locales/zh-CN/common.json');
-const navigationZhCN = require('../../src/client/locales/zh-CN/navigation.json');
-const authZhCN = require('../../src/client/locales/zh-CN/auth.json');
-const tradingZhCN = require('../../src/client/locales/zh-CN/trading.json');
-const dashboardZhCN = require('../../src/client/locales/zh-CN/dashboard.json');
-const leaderboardZhCN = require('../../src/client/locales/zh-CN/leaderboard.json');
-const settingsZhCN = require('../../src/client/locales/zh-CN/settings.json');
+// Import actual translation files from public/locales (HTTP backend location)
+const landingZhCN = require('../../public/locales/zh-CN/landing.json');
+const commonZhCN = require('../../public/locales/zh-CN/common.json');
+const navigationZhCN = require('../../public/locales/zh-CN/navigation.json');
+const authZhCN = require('../../public/locales/zh-CN/auth.json');
+const tradingZhCN = require('../../public/locales/zh-CN/trading.json');
+const dashboardZhCN = require('../../public/locales/zh-CN/dashboard.json');
+const leaderboardZhCN = require('../../public/locales/zh-CN/leaderboard.json');
+const settingsZhCN = require('../../public/locales/zh-CN/settings.json');
+const strategyZhCN = require('../../public/locales/zh-CN/strategy.json');
+const portfolioZhCN = require('../../public/locales/zh-CN/portfolio.json');
+const backtestZhCN = require('../../public/locales/zh-CN/backtest.json');
+const notificationZhCN = require('../../public/locales/zh-CN/notification.json');
+const seoZhCN = require('../../public/locales/zh-CN/seo.json');
+const errorsZhCN = require('../../public/locales/zh-CN/errors.json');
 
-const landingEnUS = require('../../src/client/locales/en-US/landing.json');
-const commonEnUS = require('../../src/client/locales/en-US/common.json');
-const navigationEnUS = require('../../src/client/locales/en-US/navigation.json');
-const authEnUS = require('../../src/client/locales/en-US/auth.json');
-const tradingEnUS = require('../../src/client/locales/en-US/trading.json');
-const dashboardEnUS = require('../../src/client/locales/en-US/dashboard.json');
-const leaderboardEnUS = require('../../src/client/locales/en-US/leaderboard.json');
-const settingsEnUS = require('../../src/client/locales/en-US/settings.json');
+const landingEnUS = require('../../public/locales/en-US/landing.json');
+const commonEnUS = require('../../public/locales/en-US/common.json');
+const navigationEnUS = require('../../public/locales/en-US/navigation.json');
+const authEnUS = require('../../public/locales/en-US/auth.json');
+const tradingEnUS = require('../../public/locales/en-US/trading.json');
+const dashboardEnUS = require('../../public/locales/en-US/dashboard.json');
+const leaderboardEnUS = require('../../public/locales/en-US/leaderboard.json');
+const settingsEnUS = require('../../public/locales/en-US/settings.json');
+const strategyEnUS = require('../../public/locales/en-US/strategy.json');
+const portfolioEnUS = require('../../public/locales/en-US/portfolio.json');
+const backtestEnUS = require('../../public/locales/en-US/backtest.json');
+const notificationEnUS = require('../../public/locales/en-US/notification.json');
+const seoEnUS = require('../../public/locales/en-US/seo.json');
+const errorsEnUS = require('../../public/locales/en-US/errors.json');
 
-const landingJaJP = require('../../src/client/locales/ja-JP/landing.json');
-const commonJaJP = require('../../src/client/locales/ja-JP/common.json');
-const navigationJaJP = require('../../src/client/locales/ja-JP/navigation.json');
-const authJaJP = require('../../src/client/locales/ja-JP/auth.json');
-const tradingJaJP = require('../../src/client/locales/ja-JP/trading.json');
-const dashboardJaJP = require('../../src/client/locales/ja-JP/dashboard.json');
-const leaderboardJaJP = require('../../src/client/locales/ja-JP/leaderboard.json');
-const settingsJaJP = require('../../src/client/locales/ja-JP/settings.json');
+const landingJaJP = require('../../public/locales/ja-JP/landing.json');
+const commonJaJP = require('../../public/locales/ja-JP/common.json');
+const navigationJaJP = require('../../public/locales/ja-JP/navigation.json');
+const authJaJP = require('../../public/locales/ja-JP/auth.json');
+const tradingJaJP = require('../../public/locales/ja-JP/trading.json');
+const dashboardJaJP = require('../../public/locales/ja-JP/dashboard.json');
+const leaderboardJaJP = require('../../public/locales/ja-JP/leaderboard.json');
+const settingsJaJP = require('../../public/locales/ja-JP/settings.json');
+const strategyJaJP = require('../../public/locales/ja-JP/strategy.json');
+const portfolioJaJP = require('../../public/locales/ja-JP/portfolio.json');
+const backtestJaJP = require('../../public/locales/ja-JP/backtest.json');
+const notificationJaJP = require('../../public/locales/ja-JP/notification.json');
+const seoJaJP = require('../../public/locales/ja-JP/seo.json');
+const errorsJaJP = require('../../public/locales/ja-JP/errors.json');
 
-const landingKoKR = require('../../src/client/locales/ko-KR/landing.json');
-const commonKoKR = require('../../src/client/locales/ko-KR/common.json');
-const navigationKoKR = require('../../src/client/locales/ko-KR/navigation.json');
-const authKoKR = require('../../src/client/locales/ko-KR/auth.json');
-const tradingKoKR = require('../../src/client/locales/ko-KR/trading.json');
-const dashboardKoKR = require('../../src/client/locales/ko-KR/dashboard.json');
-const leaderboardKoKR = require('../../src/client/locales/ko-KR/leaderboard.json');
-const settingsKoKR = require('../../src/client/locales/ko-KR/settings.json');
+const landingKoKR = require('../../public/locales/ko-KR/landing.json');
+const commonKoKR = require('../../public/locales/ko-KR/common.json');
+const navigationKoKR = require('../../public/locales/ko-KR/navigation.json');
+const authKoKR = require('../../public/locales/ko-KR/auth.json');
+const tradingKoKR = require('../../public/locales/ko-KR/trading.json');
+const dashboardKoKR = require('../../public/locales/ko-KR/dashboard.json');
+const leaderboardKoKR = require('../../public/locales/ko-KR/leaderboard.json');
+const settingsKoKR = require('../../public/locales/ko-KR/settings.json');
+const strategyKoKR = require('../../public/locales/ko-KR/strategy.json');
+const portfolioKoKR = require('../../public/locales/ko-KR/portfolio.json');
+const backtestKoKR = require('../../public/locales/ko-KR/backtest.json');
+const notificationKoKR = require('../../public/locales/ko-KR/notification.json');
+const seoKoKR = require('../../public/locales/ko-KR/seo.json');
+const errorsKoKR = require('../../public/locales/ko-KR/errors.json');
 
 // Combined translations for both languages
 const allTranslations: Record<string, Record<string, Record<string, any>>> = {
@@ -53,6 +78,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardZhCN,
     leaderboard: leaderboardZhCN,
     settings: settingsZhCN,
+    strategy: strategyZhCN,
+    portfolio: portfolioZhCN,
+    backtest: backtestZhCN,
+    notification: notificationZhCN,
+    seo: seoZhCN,
+    errors: errorsZhCN,
   },
   'en-US': {
     landing: landingEnUS,
@@ -63,6 +94,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardEnUS,
     leaderboard: leaderboardEnUS,
     settings: settingsEnUS,
+    strategy: strategyEnUS,
+    portfolio: portfolioEnUS,
+    backtest: backtestEnUS,
+    notification: notificationEnUS,
+    seo: seoEnUS,
+    errors: errorsEnUS,
   },
   'ja-JP': {
     landing: landingJaJP,
@@ -73,6 +110,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardJaJP,
     leaderboard: leaderboardJaJP,
     settings: settingsJaJP,
+    strategy: strategyJaJP,
+    portfolio: portfolioJaJP,
+    backtest: backtestJaJP,
+    notification: notificationJaJP,
+    seo: seoJaJP,
+    errors: errorsJaJP,
   },
   'ko-KR': {
     landing: landingKoKR,
@@ -83,6 +126,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
     dashboard: dashboardKoKR,
     leaderboard: leaderboardKoKR,
     settings: settingsKoKR,
+    strategy: strategyKoKR,
+    portfolio: portfolioKoKR,
+    backtest: backtestKoKR,
+    notification: notificationKoKR,
+    seo: seoKoKR,
+    errors: errorsKoKR,
   },
 };
 
@@ -90,6 +139,12 @@ const allTranslations: Record<string, Record<string, Record<string, any>>> = {
  * Current language state (mutable for testing)
  */
 let currentLanguage = 'zh-CN';
+
+/**
+ * Track loaded namespaces for lazy loading mock
+ * Preload essential namespaces (common, seo) as per Issue #618
+ */
+const loadedNamespaces: Set<string> = new Set(['common', 'seo', 'landing', 'navigation', 'auth', 'trading', 'dashboard', 'strategy', 'portfolio', 'settings', 'errors', 'backtest', 'leaderboard', 'notification']);
 
 /**
  * Event listeners storage
@@ -149,15 +204,21 @@ const createTFunction = (namespace: string, lang?: string) => {
  */
 const resetLanguage = () => {
   currentLanguage = 'zh-CN';
+  loadedNamespaces.clear();
+  loadedNamespaces.add('common');
+  loadedNamespaces.add('seo');
   eventListeners.clear();
 };
 
 /**
- * Mock i18n instance with proper state management
+ * Mock i18n instance with proper state management and lazy loading support
  */
 const mockI18n = {
   get language() {
     return currentLanguage;
+  },
+  get isInitialized() {
+    return true;
   },
   changeLanguage: jest.fn((lang: string) => {
     const previousLanguage = currentLanguage;
@@ -194,8 +255,22 @@ const mockI18n = {
       listeners.forEach(listener => listener(...args));
     }
   },
+  // Lazy loading support (Issue #618)
+  hasLoadedNamespace: jest.fn((ns: string) => {
+    return loadedNamespaces.has(ns);
+  }),
+  loadNamespaces: jest.fn((namespaces: string | string[]) => {
+    const nsArray = Array.isArray(namespaces) ? namespaces : [namespaces];
+    nsArray.forEach(ns => loadedNamespaces.add(ns));
+    return Promise.resolve();
+  }),
+  loadNamespace: jest.fn((ns: string) => {
+    loadedNamespaces.add(ns);
+    return Promise.resolve();
+  }),
   // Expose reset for tests
   _resetLanguage: resetLanguage,
+  _loadedNamespaces: loadedNamespaces,
 };
 
 /**
@@ -249,6 +324,22 @@ jest.mock('i18next', () => {
   };
 });
 
+// Mock i18next-http-backend module (Issue #618)
+jest.mock('i18next-http-backend', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockI18n),
+  };
+});
+
+// Mock i18next-browser-languagedetector module
+jest.mock('i18next-browser-languagedetector', () => {
+  return {
+    __esModule: true,
+    default: jest.fn(() => mockI18n),
+  };
+});
+
 // Export for direct access in tests if needed
 module.exports = {
   mockI18n,
@@ -256,4 +347,4 @@ module.exports = {
   getTranslationsForLanguage,
 };
 
-console.log('[Setup] i18n mock applied with actual translations and dynamic language switching');
+console.log('[Setup] i18n mock applied with actual translations, dynamic language switching, and lazy loading support');

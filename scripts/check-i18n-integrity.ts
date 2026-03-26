@@ -16,7 +16,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Configuration
-const LOCALES_DIR = path.join(__dirname, '../src/client/locales');
+// Translations are served from public/locales for HTTP backend (Issue #618)
+const LOCALES_DIR = path.join(__dirname, '../public/locales');
 const BASE_LANGUAGE = 'en-US';
 const SUPPORTED_LANGUAGES = ['en-US', 'zh-CN', 'ja-JP', 'ko-KR'];
 

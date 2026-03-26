@@ -172,8 +172,10 @@ strategy.performance.sharpeRatio → "夏普比率"
 
 ## 文件结构
 
+翻译文件位于 `public/locales/` 目录，由 HTTP 后端按需加载（Issue #618）：
+
 ```
-src/client/locales/
+public/locales/
 ├── zh-CN/
 │   ├── common.json
 │   ├── navigation.json
@@ -187,9 +189,13 @@ src/client/locales/
 │   ├── leaderboard.json
 │   ├── backtest.json
 │   └── notification.json
-└── en-US/
-    ├── common.json
-    ├── navigation.json
+├── en-US/
+│   ├── common.json
+│   ├── navigation.json
+│   └── ...
+├── ja-JP/
+│   └── ...
+└── ko-KR/
     └── ...
 ```
 

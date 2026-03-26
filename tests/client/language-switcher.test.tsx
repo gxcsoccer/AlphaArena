@@ -66,11 +66,11 @@ describe('Language Switcher (Issue #586)', () => {
     it('should switch language to English', async () => {
       renderWithRouter();
       
-      // Initially Chinese
+      // Initially Chinese - wait for loading to complete
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
         expect(screen.getByTestId('translation-submit')).toHaveTextContent('提交');
-      });
+      }, { timeout: 5000 });
       
       // Switch to English
       await act(async () => {
@@ -80,11 +80,16 @@ describe('Language Switcher (Issue #586)', () => {
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
         expect(screen.getByTestId('translation-submit')).toHaveTextContent('Submit');
-      });
+      }, { timeout: 5000 });
     });
 
     it('should switch language back to Chinese', async () => {
       renderWithRouter();
+      
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.getByTestId('switch-en')).toBeInTheDocument();
+      }, { timeout: 5000 });
       
       // Switch to English first
       await act(async () => {
@@ -93,7 +98,7 @@ describe('Language Switcher (Issue #586)', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
-      });
+      }, { timeout: 5000 });
       
       // Switch back to Chinese
       await act(async () => {
@@ -102,7 +107,7 @@ describe('Language Switcher (Issue #586)', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-      });
+      }, { timeout: 5000 });
     });
   });
 
@@ -112,6 +117,11 @@ describe('Language Switcher (Issue #586)', () => {
       // The actual persistence is handled by i18next-browser-languagedetector
       renderWithRouter();
       
+      // Wait for loading to complete
+      await waitFor(() => {
+        expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
+      }, { timeout: 5000 });
+      
       // Switch to English
       await act(async () => {
         screen.getByTestId('switch-en').click();
@@ -119,7 +129,7 @@ describe('Language Switcher (Issue #586)', () => {
       
       await waitFor(() => {
         expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
-      });
+      }, { timeout: 5000 });
       
       // Verify the language changed successfully in i18n
       expect(i18n.language).toBe('en-US');
@@ -213,10 +223,10 @@ describe('LanguageSwitcher Component', () => {
       </MemoryRouter>
     );
     
-    // Initially Chinese
+    // Wait for loading to complete
     await waitFor(() => {
       expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-    });
+    }, { timeout: 5000 });
     
     // Switch to English
     await act(async () => {
@@ -225,7 +235,7 @@ describe('LanguageSwitcher Component', () => {
     
     await waitFor(() => {
       expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
-    });
+    }, { timeout: 5000 });
     
     // Switch back to Chinese - this is the bug scenario
     await act(async () => {
@@ -234,7 +244,7 @@ describe('LanguageSwitcher Component', () => {
     
     await waitFor(() => {
       expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-    });
+    }, { timeout: 5000 });
   });
 });
 
@@ -261,7 +271,7 @@ describe('URL Parameter Support', () => {
     
     await waitFor(() => {
       expect(screen.getByTestId('current-language')).toHaveTextContent('zh-CN');
-    });
+    }, { timeout: 5000 });
     
     // Switch to English
     await act(async () => {
@@ -270,7 +280,7 @@ describe('URL Parameter Support', () => {
     
     await waitFor(() => {
       expect(screen.getByTestId('current-language')).toHaveTextContent('en-US');
-    });
+    }, { timeout: 5000 });
   });
 });
 

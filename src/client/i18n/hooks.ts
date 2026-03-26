@@ -5,8 +5,8 @@
  */
 
 import { useTranslation } from 'react-i18next';
-import { useCallback, useMemo } from 'react';
-import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './index';
+import { useCallback, useMemo, useEffect, useState } from 'react';
+import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, Namespace, loadNamespaces, getNamespacesForRoute } from './index';
 
 // Re-export useTranslation from react-i18next for convenience
 export { useTranslation } from 'react-i18next';
@@ -15,7 +15,13 @@ export { useTranslation } from 'react-i18next';
  * Hook for language switching functionality
  */
 export function useLanguage() {
-  const currentLanguage = i18n.language as SupportedLanguage;
+  // Ensure currentLanguage is a valid SupportedLanguage
+  const rawLanguage = i18n.language;
+  const currentLanguage = (
+    rawLanguage && rawLanguage in SUPPORTED_LANGUAGES 
+      ? rawLanguage 
+      : DEFAULT_LANGUAGE
+  ) as SupportedLanguage;
 
   const changeLanguage = useCallback(async (lang: SupportedLanguage) => {
     await i18n.changeLanguage(lang);
@@ -117,5 +123,112 @@ export function useDateFormatter() {
   }, [currentLanguage]);
 }
 
-export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE };
-export type { SupportedLanguage };
+/**
+ * Hook to lazy load namespaces on demand with retry support
+ * Use this in components that need specific namespaces
+ * 
+ * @param namespaces - Array of namespaces to load
+ * @param options - Configuration options
+ * @param options.maxRetries - Maximum number of retry attempts (default: 3)
+ * @param options.retryDelay - Base delay between retries in ms (default: 1000, uses exponential backoff)
+ */
+export function useLazyNamespaces(
+  namespaces: Namespace[],
+  options?: { maxRetries?: number; retryDelay?: number }
+) {
+  const { maxRetries = 3, retryDelay = 1000 } = options || {};
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  const loadWithRetry = useCallback(async (attempt: number) => {
+    const notLoaded = namespaces.filter(ns => !i18n.hasLoadedNamespace(ns));
+    
+    if (notLoaded.length === 0) {
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    
+    if (attempt > maxRetries) {
+      const err = new Error(`Failed to load namespaces after ${maxRetries} attempts: ${notLoaded.join(', ')}`);
+      console.error('[i18n] Max retries exceeded:', err.message);
+      setError(err);
+      setLoading(false);
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await loadNamespaces(notLoaded);
+      setLoading(false);
+      setError(null);
+      setRetryCount(0);
+    } catch (err) {
+      console.error(`[i18n] Failed to load namespaces (attempt ${attempt}/${maxRetries}):`, notLoaded, err);
+      
+      // Exponential backoff retry
+      const delay = retryDelay * Math.pow(2, attempt - 1);
+      setTimeout(() => {
+        setRetryCount(attempt);
+        loadWithRetry(attempt + 1);
+      }, delay);
+    }
+  }, [namespaces, maxRetries, retryDelay]);
+  
+  useEffect(() => {
+    const notLoaded = namespaces.filter(ns => !i18n.hasLoadedNamespace(ns));
+    
+    if (notLoaded.length === 0) {
+      return;
+    }
+    
+    // Reset retry count when namespaces change
+    setRetryCount(0);
+    loadWithRetry(1);
+  }, [namespaces.join(',')]); // eslint-disable-line react-hooks/exhaustive-deps
+  
+  const retry = useCallback(() => {
+    setRetryCount(0);
+    setError(null);
+    loadWithRetry(1);
+  }, [loadWithRetry]);
+  
+  return {
+    loading,
+    error,
+    loaded: namespaces.every(ns => i18n.hasLoadedNamespace(ns)),
+    retryCount,
+    retry,
+  };
+}
+
+/**
+ * Hook to load namespaces for current route
+ * Use this in page components to load their required translations
+ */
+export function useRouteNamespaces(route: string) {
+  const namespaces = useMemo(() => getNamespacesForRoute(route), [route]);
+  return useLazyNamespaces(namespaces);
+}
+
+/**
+ * Hook for translation with automatic namespace loading
+ * Combines useTranslation with useLazyNamespaces for convenience
+ */
+export function useTranslationWithLoading(namespace: Namespace | Namespace[]) {
+  const namespaces = Array.isArray(namespace) ? namespace : [namespace];
+  const { loading, error, loaded } = useLazyNamespaces(namespaces);
+  const { t, i18n: i18nInstance } = useTranslation(namespace);
+  
+  return {
+    t,
+    i18n: i18nInstance,
+    loading,
+    error,
+    loaded,
+  };
+}
+
+export { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, loadNamespaces, getNamespacesForRoute };
+export type { SupportedLanguage, Namespace };
