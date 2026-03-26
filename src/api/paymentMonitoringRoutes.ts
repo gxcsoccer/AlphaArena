@@ -337,4 +337,38 @@ router.post('/health-check', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /api/payment-monitoring/summary
+ * Get payment summary for unified admin dashboard
+ */
+router.get('/summary', async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get last 24 hours by default
+    const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const endDate = new Date();
+
+    const service = getPaymentMonitoringService();
+    const metrics = await service.getMetrics(startDate, endDate);
+    const alerts = await service.getActiveAlerts();
+
+    res.json({
+      success: true,
+      data: {
+        successRate: metrics?.successRate || 100,
+        totalPayments: metrics?.totalPayments || 0,
+        totalRevenue: metrics?.totalRevenue || 0,
+        activeAlerts: alerts?.length || 0,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get payment summary:', error);
+    res.status(500).json({ error: 'Failed to get payment summary' });
+  }
+});
+
 export default router;

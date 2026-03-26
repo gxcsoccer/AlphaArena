@@ -1469,6 +1469,18 @@ paths:
       responses:
         '200':
           description: 'API latency statistics'
+  /api/apm/summary:
+    get:
+      summary: 'Get APM summary for unified dashboard'
+      description: 'Get consolidated APM metrics for the unified admin monitoring dashboard'
+      tags:
+        - APM
+      security:
+        -
+          bearerAuth: []
+      responses:
+        '200':
+          description: 'APM summary'
   /api/audit/logs:
     get:
       tags:

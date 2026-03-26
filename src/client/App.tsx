@@ -98,6 +98,7 @@ const NotificationHistoryPage = lazyWithRetry(() => import('./pages/Notification
 const PrivacySettingsPage = lazyWithRetry(() => import('./pages/PrivacySettingsPage')); // Issue #642: GDPR
 const BusinessMetricsPage = lazyWithRetry(() => import('./pages/BusinessMetricsPage')); // Issue #652: Business Metrics
 const ReferralPage = lazyWithRetry(() => import('./pages/ReferralPage')); // Issue #653: 邀请系统
+const UnifiedAdminMonitoringPage = lazyWithRetry(() => import('./pages/UnifiedAdminMonitoringPage')); // Issue #660: Admin 后台集成
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -326,6 +327,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <MenuItem key="/user-analytics" icon={<IconUserGroup aria-hidden="true" />} role="menuitem">
               用户分析
             </MenuItem>
+            <MenuItem key="/admin/monitoring" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
+              监控中心
+            </MenuItem>
           </Menu>
         </Sider>
       )}
@@ -499,6 +503,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <MenuItem key="/user-analytics" icon={<IconUserGroup aria-hidden="true" />} role="menuitem">
             用户分析
           </MenuItem>
+          <MenuItem key="/admin/monitoring" icon={<IconDashboard aria-hidden="true" />} role="menuitem">
+            监控中心
+          </MenuItem>
         </Menu>
       </Drawer>
       {/* AI Strategy Assistant Floating Button */}
@@ -572,6 +579,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/privacy" element={<PrivacySettingsPage />} /> {/* Issue #642: GDPR */}
         <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
         <Route path="/admin/business-metrics" element={<BusinessMetricsPage />} /> {/* Issue #652: Business Metrics */}
+        <Route path="/admin/monitoring" element={<UnifiedAdminMonitoringPage />} /> {/* Issue #660: Admin 后台集成 */}
         <Route path="/referral" element={<ReferralPage />} /> {/* Issue #653: 邀请系统 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
