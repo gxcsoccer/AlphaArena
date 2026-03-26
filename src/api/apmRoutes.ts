@@ -1183,7 +1183,7 @@ router.get('/alerts', authMiddleware, async (req: Request, res: Response) => {
  *       200:
  *         description: Alert acknowledged
  */
-router.post('/alerts/:id/acknowledge', authMiddleware, async (req: Request, res: Response) => {
+router.post('/alerts/:id/acknowledge', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
@@ -1233,7 +1233,7 @@ router.post('/alerts/:id/acknowledge', authMiddleware, async (req: Request, res:
  *       200:
  *         description: Alert resolved
  */
-router.post('/alerts/:id/resolve', authMiddleware, async (req: Request, res: Response) => {
+router.post('/alerts/:id/resolve', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     
