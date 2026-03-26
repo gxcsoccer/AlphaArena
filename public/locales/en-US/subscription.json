@@ -1,0 +1,162 @@
+{
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Upgrade to unlock more features and boost your trading efficiency",
+    "free": "Free",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "save": "Save 2 months",
+    "popular": "Popular",
+    "mostPopular": "Most Popular",
+    "getStarted": "Get Started",
+    "subscribe": "Subscribe Now",
+    "contactSales": "Contact Sales",
+    "contactSalesBtn": "Contact Sales",
+    "contactSalesDesc": "Please email:",
+    "seo": {
+      "title": "Pricing - AlphaArena",
+      "description": "Choose the right subscription plan for you and unlock more trading features",
+      "keywords": "subscription,pricing,Pro,Enterprise,VIP"
+    }
+  },
+  "plans": {
+    "free": {
+      "name": "Free",
+      "features": {
+        "0": "Up to 3 concurrent strategies",
+        "1": "10 backtests per day",
+        "2": "Basic market data",
+        "3": "Community support"
+      }
+    },
+    "pro": {
+      "name": "Pro",
+      "features": {
+        "0": "Unlimited strategies",
+        "1": "Unlimited backtests",
+        "2": "Advanced market data (Level 2)",
+        "3": "AI Strategy Assistant",
+        "4": "Risk alerts",
+        "5": "Data export",
+        "6": "Priority support"
+      }
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "features": {
+        "0": "All Pro features",
+        "1": "Multi-user team management",
+        "2": "API access (high quota)",
+        "3": "Dedicated account manager",
+        "4": "Private deployment support",
+        "5": "SLA guarantee"
+      }
+    }
+  },
+  "comparison": {
+    "title": "Feature Comparison",
+    "tooltip": "Compare features across plans",
+    "feature": "Feature",
+    "strategies": "Strategies",
+    "backtests": "Daily Backtests",
+    "marketData": "Market Data",
+    "historicalData": "Historical Data",
+    "aiAssistant": "AI Assistant",
+    "alerts": "Risk Alerts",
+    "apiAccess": "API Access",
+    "export": "Data Export",
+    "support": "Support",
+    "unlimited": "Unlimited",
+    "basic": "Basic",
+    "advanced": "Advanced",
+    "premium": "Premium + API",
+    "days": "days",
+    "community": "Community",
+    "priority": "Priority",
+    "dedicated": "Dedicated"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "q1": "How do I cancel my subscription?",
+    "a1": "You can cancel anytime in 'Manage Subscription'. You'll continue to have access until the end of your billing period.",
+    "q2": "What payment methods are supported?",
+    "a2": "We support Alipay, WeChat Pay, and credit cards.",
+    "q3": "How does billing work when upgrading?",
+    "a3": "When upgrading, you'll be charged the prorated difference. No need to wait for your current period to end.",
+    "q4": "Can I get a refund?",
+    "a4": "Full refunds are available within 7 days of subscription. Please contact support."
+  },
+  "billing": {
+    "title": "Billing & Payments",
+    "seo": {
+      "title": "Billing History - AlphaArena",
+      "description": "View your billing history and manage payment methods"
+    },
+    "paymentMethods": "Payment Methods",
+    "add": "Add",
+    "addPaymentMethod": "Add Payment Method",
+    "addPaymentMethodDesc": "Payment method management coming soon.",
+    "addPaymentMethodNote": "You can add payment methods during the subscription process.",
+    "deletePaymentMethod": "Delete Payment Method",
+    "deletePaymentMethodConfirm": "Are you sure you want to delete this payment method?",
+    "deleteSuccess": "Payment method deleted",
+    "setDefault": "Set as Default",
+    "setDefaultSuccess": "Default payment method updated",
+    "default": "Default",
+    "noPaymentMethods": "No payment methods",
+    "addFirst": "Add your first payment method",
+    "history": "Billing History",
+    "refresh": "Refresh",
+    "noHistory": "No billing history",
+    "invoiceNumber": "Invoice #",
+    "date": "Date",
+    "plan": "Plan",
+    "amount": "Amount",
+    "status": {
+      "label": "Status",
+      "paid": "Paid",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    },
+    "actions": "Actions",
+    "download": "Download",
+    "downloadNotAvailable": "Invoice download coming soon",
+    "fetchError": "Failed to load billing data",
+    "help": {
+      "title": "Need Help?",
+      "contact": "For billing questions, please contact support:",
+      "hours": "Support hours: Monday-Friday 9:00-18:00"
+    }
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pastDue": "Past Due",
+    "canceled": "Canceled",
+    "expired": "Expired",
+    "trial": "Trial"
+  },
+  "manage": {
+    "portalError": "Failed to open management portal"
+  },
+  "upgrade": "Upgrade",
+  "upgradeToPro": "Upgrade to Pro",
+  "manageSubscription": "Manage Subscription",
+  "billingPeriod": "Billing Period",
+  "yearly": "Yearly",
+  "monthly": "Monthly",
+  "nextBilling": "Next Billing",
+  "daysRemaining": "Days Remaining",
+  "days": "days",
+  "expirySoon": "Expires in {{days}} days",
+  "cancelNotice": "Your subscription will be canceled at the end of the current period. You can reactivate anytime.",
+  "usage": {
+    "title": "Usage This Month",
+    "strategies": "Strategies",
+    "backtests": "Backtests"
+  },
+  "upgradeForUnlimited": "Upgrade for unlimited access"
+}

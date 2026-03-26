@@ -80,6 +80,8 @@ const RebalancePage = lazyWithRetry(() => import('./pages/RebalancePage'));
 const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'));
 const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/SubscriptionSuccessPage'));
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
+const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
+const BillingPage = lazyWithRetry(() => import('./pages/BillingPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
 const FeedbackManagementPage = lazyWithRetry(() => import('./pages/FeedbackManagementPage'));
 const DataSourceSettingsPage = lazyWithRetry(() => import('./pages/DataSourceSettingsPage'));
@@ -539,9 +541,11 @@ const AppRoutes: React.FC = () => {
         <Route path="/rebalance" element={<RebalancePage />} />
         <Route path="/user/:username" element={<UserProfilePage />} />
         <Route path="/scheduler" element={<SchedulerPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
+        <Route path="/settings/billing" element={<BillingPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/admin/performance" element={<PerformanceMonitoringPage />} />
         <Route path="/admin/feedback" element={<FeedbackManagementPage />} />
