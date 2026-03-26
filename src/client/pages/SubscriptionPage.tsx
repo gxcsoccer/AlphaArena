@@ -1,6 +1,7 @@
 /**
  * SubscriptionPage - Subscription Plans and Pricing
  * Displays available subscription plans and allows users to subscribe or upgrade
+ * Issue #662: Integrated with payment funnel tracking
  */
 
 import React, { useState, useEffect } from 'react';
@@ -27,6 +28,7 @@ import {
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import HelpButton, { HelpButtons } from '../components/HelpButton';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { usePaymentFunnel } from '../hooks/usePaymentFunnel'; // Issue #662
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -56,6 +58,9 @@ const SubscriptionPage: React.FC = () => {
   // SEO: Update meta tags for subscription page
   useSEO(PAGE_SEO_CONFIGS.subscription);
   
+  // Issue #662: Payment funnel tracking
+  const funnel = usePaymentFunnel({ debug: process.env.NODE_ENV === 'development' });
+  
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [currentSubscription, setCurrentSubscription] = useState<UserSubscription | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,6 +79,8 @@ const SubscriptionPage: React.FC = () => {
 
   useEffect(() => {
     fetchData();
+    // Issue #662: Track page view
+    funnel.trackPageView();
   }, []);
 
   const fetchData = async () => {
@@ -117,8 +124,21 @@ const SubscriptionPage: React.FC = () => {
       return;
     }
 
+    // Issue #662: Track plan selection
+    const selectedPlan = displayPlans.find(p => p.id === planId);
+    if (selectedPlan) {
+      const price = billingPeriod === 'yearly' ? selectedPlan.price * 10 : selectedPlan.price;
+      funnel.trackPlanSelected(planId, billingPeriod, price);
+    }
+
     setCheckoutLoading(planId);
     try {
+      // Issue #662: Track checkout initiated
+      if (selectedPlan) {
+        const price = billingPeriod === 'yearly' ? selectedPlan.price * 10 : selectedPlan.price;
+        funnel.trackCheckoutInitiated(planId, billingPeriod, price);
+      }
+
       const response = await fetch('/api/subscriptions/checkout', {
         method: 'POST',
         headers: {
@@ -142,11 +162,15 @@ const SubscriptionPage: React.FC = () => {
         window.location.href = data.checkoutUrl;
       } else {
         // Free plan - no redirect needed
+        // Issue #662: Track success for free plan
+        funnel.trackPaymentSucceeded('', planId);
         Message.success('Successfully subscribed!');
         fetchData();
       }
     } catch (error: any) {
       console.error('Checkout error:', error);
+      // Issue #662: Track checkout error
+      funnel.trackCheckoutCanceled('technical_issue', { error: error.message });
       Message.error(error.message || 'Failed to start checkout');
     } finally {
       setCheckoutLoading(null);
