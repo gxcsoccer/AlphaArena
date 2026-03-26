@@ -75,6 +75,7 @@ import apmRoutes from './apmRoutes'; // Issue #651: APM
 import userTrackingRoutes from './userTrackingRoutes';
 import userAnalyticsRoutes from './userAnalyticsRoutes';
 import referralRoutes from './referralRoutes';
+import rewardRoutes from './rewardRoutes'; // Issue #654: Reward Mechanism
 import { createFeedbackRouter } from './feedbackRoutes';
 import { createExperimentRouter } from './experimentRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
@@ -1102,6 +1103,7 @@ export class APIServer extends EventEmitter {
 
     // Referral System routes
     this.app.use('/api/referral', referralRoutes);
+    this.app.use('/api/reward', rewardRoutes); // Issue #654: Reward Mechanism
     this.app.use('/api/audit', auditRoutes); // Issue #641: Security Audit
     this.app.use('/api/gdpr', gdprRoutes); // Issue #642: GDPR Compliance
     this.app.use('/api/business-metrics', businessMetricsRoutes); // Issue #652: Business Metrics
