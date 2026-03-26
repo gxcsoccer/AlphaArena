@@ -1,0 +1,82 @@
+{
+  "menu": {
+    "home": "홈",
+    "dashboard": "대시보드",
+    "trading": "트레이딩",
+    "strategies": "전략",
+    "portfolio": "포트폴리오",
+    "holdings": "보유 자산",
+    "trades": "거래 내역",
+    "leaderboard": "리더보드",
+    "performance": "성과",
+    "risk": "리스크",
+    "sentiment": "시장 심리",
+    "copyTrading": "카피 트레이딩",
+    "backtest": "백테스트",
+    "journal": "트레이딩 저널",
+    "comparison": "전략 비교",
+    "attribution": "기여도 분석",
+    "marketplace": "마켓플레이스",
+    "advancedOrders": "고급 주문",
+    "scheduler": "스케줄러",
+    "rebalance": "리밸런싱",
+    "subscription": "구독",
+    "admin": "관리자",
+    "settings": "설정",
+    "profile": "프로필",
+    "apiDocs": "API 문서",
+    "notifications": "알림",
+    "feedback": "피드백"
+  },
+  "page": {
+    "home": {
+      "title": "AlphaArena - 알고리즘 트레이딩 플랫폼",
+      "subtitle": "퀀트 트레이딩, 미래를 이기다"
+    },
+    "dashboard": {
+      "title": "대시보드",
+      "subtitle": "계정 개요 및 실시간 데이터"
+    },
+    "trading": {
+      "title": "트레이딩",
+      "subtitle": "실시간 거래 및 주문 관리"
+    },
+    "strategies": {
+      "title": "전략",
+      "subtitle": "트레이딩 전략 생성 및 관리"
+    },
+    "portfolio": {
+      "title": "포트폴리오",
+      "subtitle": "자산 배분 및 포트폴리오 분석"
+    },
+    "holdings": {
+      "title": "보유 자산",
+      "subtitle": "현재 보유 자산 상세 정보"
+    },
+    "trades": {
+      "title": "거래 내역",
+      "subtitle": "거래 기록 상세 정보"
+    },
+    "leaderboard": {
+      "title": "리더보드",
+      "subtitle": "전략 성과 순위"
+    },
+    "performance": {
+      "title": "성과",
+      "subtitle": "상세 성과 지표 및 차트"
+    },
+    "risk": {
+      "title": "리스크 관리",
+      "subtitle": "리스크 지표 및 모니터링"
+    },
+    "backtest": {
+      "title": "백테스트",
+      "subtitle": "전략 백테스트 및 최적화"
+    }
+  },
+  "breadcrumb": {
+    "home": "홈",
+    "settings": "설정",
+    "profile": "프로필"
+  }
+}

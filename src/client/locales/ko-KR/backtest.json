@@ -1,0 +1,62 @@
+{
+  "title": "고급 백테스트 시각화",
+  "subtitle": "백테스트 매개변수를 설정하고 \"백테스트 실행\"을 클릭하여 분석을 시작하세요",
+  "form": {
+    "title": "설정",
+    "strategy": "전략",
+    "startDate": "시작일",
+    "endDate": "종료일",
+    "initialCapital": "초기 자본",
+    "commission": "수수료율",
+    "slippage": "슬리피지",
+    "leverage": "레버리지",
+    "symbol": "심볼",
+    "dateRange": "기간"
+  },
+  "result": {
+    "title": "백테스트 결과",
+    "totalReturn": "총 수익률",
+    "annualReturn": "연간 수익률",
+    "maxDrawdown": "최대 낙폭",
+    "sharpeRatio": "샤프 비율",
+    "sortinoRatio": "소르티노 비율",
+    "calmarRatio": "칼마 비율",
+    "winRate": "승률",
+    "profitFactor": "프로핏 팩터",
+    "totalTrades": "총 거래",
+    "avgProfit": "평균 수익",
+    "avgLoss": "평균 손실",
+    "maxConsecWins": "최대 연속 승리",
+    "maxConsecLosses": "최대 연속 패배",
+    "finalCapital": "최종 자본",
+    "totalPnL": "총 손익",
+    "winningTrades": "승리 거래",
+    "losingTrades": "패배 거래"
+  },
+  "holdingTime": {
+    "less1h": "< 1시간",
+    "oneTo4h": "1-4시간",
+    "fourTo24h": "4-24시간",
+    "oneTo3d": "1-3일",
+    "threeTo7d": "3-7일",
+    "more7d": "> 7일"
+  },
+  "chart": {
+    "equityCurve": "자산 곡선",
+    "drawdown": "낙폭 곡선",
+    "monthlyReturns": "월간 수익률",
+    "tradeDistribution": "거래 분포"
+  },
+  "actions": {
+    "run": "백테스트 실행",
+    "export": "보고서 내보내기",
+    "compare": "결과 비교",
+    "optimize": "매개변수 최적화"
+  },
+  "status": {
+    "pending": "대기 중",
+    "running": "실행 중",
+    "completed": "완료",
+    "failed": "실패"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "title": "대시보드",
+  "subtitle": "계정 개요 및 실시간 데이터",
+  "columns": {
+    "time": "시간",
+    "strategy": "전략",
+    "symbol": "심볼",
+    "side": "매수/매도"
+  },
+  "overview": {
+    "title": "계정 개요",
+    "balance": "계정 잔액",
+    "todayPnL": "오늘 손익",
+    "totalPnL": "총 손익",
+    "openOrders": "미체결 주문",
+    "activeStrategies": "활성 전략"
+  },
+  "chart": {
+    "equityCurve": "자산 곡선",
+    "dailyPnL": "일일 손익",
+    "volume": "거래량",
+    "trades": "거래"
+  },
+  "recentActivity": {
+    "title": "최근 활동",
+    "trades": "거래",
+    "orders": "주문",
+    "alerts": "알림",
+    "notifications": "공지"
+  },
+  "quickStats": {
+    "title": "빠른 통계",
+    "winRate": "승률",
+    "profitFactor": "프로핏 팩터",
+    "avgTrade": "평균 거래",
+    "maxDrawdown": "최대 낙폭"
+  },
+  "watchlist": {
+    "title": "관심 목록",
+    "addPair": "거래쌍 추가",
+    "removePair": "거래쌍 제거"
+  }
+}

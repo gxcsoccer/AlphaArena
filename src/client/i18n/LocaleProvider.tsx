@@ -26,12 +26,14 @@ import i18n, { SupportedLanguage, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '
 import zhCN from '@arco-design/web-react/lib/locale/zh-CN';
 import enUS from '@arco-design/web-react/lib/locale/en-US';
 import jaJP from '@arco-design/web-react/lib/locale/ja-JP';
+import koKR from '@arco-design/web-react/lib/locale/ko-KR';
 
 // Arco locale map
 const ARCO_LOCALES: Record<string, typeof zhCN> = {
   'zh-CN': zhCN,
   'en-US': enUS,
   'ja-JP': jaJP,
+  'ko-KR': koKR,
 };
 
 // Context for locale management

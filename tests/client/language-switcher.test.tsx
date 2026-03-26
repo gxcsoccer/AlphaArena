@@ -127,11 +127,11 @@ describe('Language Switcher (Issue #586)', () => {
   });
 
   describe('Supported Languages', () => {
-    it('should have exactly 3 supported languages', async () => {
+it('should have exactly 4 supported languages', async () => {
       renderWithRouter();
 
       await waitFor(() => {
-        expect(screen.getByTestId('supported-languages')).toHaveTextContent('3');
+        expect(screen.getByTestId('supported-languages')).toHaveTextContent('4');
       });
     });
   });
@@ -250,6 +250,8 @@ describe('URL Parameter Support', () => {
     // Verify the module exports the correct configuration
     expect(i18nConfig.SUPPORTED_LANGUAGES).toHaveProperty('zh-CN');
     expect(i18nConfig.SUPPORTED_LANGUAGES).toHaveProperty('en-US');
+    expect(i18nConfig.SUPPORTED_LANGUAGES).toHaveProperty('ja-JP');
+    expect(i18nConfig.SUPPORTED_LANGUAGES).toHaveProperty('ko-KR');
     expect(i18nConfig.DEFAULT_LANGUAGE).toBe('zh-CN');
   });
 
