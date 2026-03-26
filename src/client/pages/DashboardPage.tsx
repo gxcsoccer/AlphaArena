@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, memo, lazy, Suspense } from 'react';
-import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Spin } from '@arco-design/web-react';
+import { Typography, Card, Statistic, Table, Tag, Space, Button, Grid, Tabs, Collapse, Spin, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const { TabPane } = Tabs;
 const CollapseItem = Collapse.Item;
@@ -27,6 +27,8 @@ import { useStats, useStrategies, useTrades } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import MobileTableCard from '../components/MobileTableCard';
 import { LazyLoadWrapper } from '../components/LazyLoadWrapper';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
 import { useTranslation } from 'react-i18next';
 import type { TableProps } from '@arco-design/web-react';
 import type { Trade, Strategy } from '../utils/api';
@@ -377,12 +379,29 @@ MobileTabContent.displayName = 'MobileTabContent';
 
 // Main Dashboard Page Component
 const DashboardPage: React.FC = () => {
-  const { stats, loading: statsLoading } = useStats();
-  const { strategies, loading: strategiesLoading } = useStrategies();
-  const { trades, loading: tradesLoading } = useTrades(undefined, 10);
+  const { stats, loading: statsLoading, refresh: refreshStats } = useStats();
+  const { strategies, loading: strategiesLoading, refresh: refreshStrategies } = useStrategies();
+  const { trades, loading: tradesLoading, refresh: refreshTrades } = useTrades(undefined, 10);
   const isMobile = useMobileDetection();
   const [activeMobileTab, setActiveMobileTab] = useState<string>('overview');
   const { t } = useTranslation('dashboard');
+  
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    await Promise.all([
+      refreshStats?.(),
+      refreshStrategies?.(),
+      refreshTrades?.(),
+    ]);
+    Message.success('数据已刷新');
+  }, [refreshStats, refreshStrategies, refreshTrades]);
+  
+  // Pull-to-refresh hook
+  const { isRefreshing, pullDistance, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+    enabled: isMobile,
+  });
 
   // Memoize chart data calculations
   const chartData = useMemo(() => {
@@ -547,11 +566,22 @@ const DashboardPage: React.FC = () => {
     setActiveMobileTab(tab);
   }, []);
 
-  // Mobile layout with tabs
+  // Mobile layout with tabs and pull-to-refresh
   if (isMobile) {
     return (
       <ErrorBoundary>
-        <div className="dashboard-mobile">
+        <div 
+          className="dashboard-mobile" 
+          style={{ position: 'relative', overflow: 'hidden' }}
+          {...handlers}
+        >
+          {/* Pull-to-refresh indicator */}
+          <PullToRefreshIndicator
+            pullDistance={pullDistance}
+            threshold={80}
+            isRefreshing={isRefreshing}
+          />
+          
           <Title heading={4} style={{ marginBottom: 12, padding: '0 4px' }}>
             仪表板
           </Title>
@@ -572,11 +602,11 @@ const DashboardPage: React.FC = () => {
           <MobileTabContent
             activeTab={activeMobileTab}
             stats={stats}
-            statsLoading={statsLoading}
-            strategiesLoading={strategiesLoading}
+            statsLoading={statsLoading || isRefreshing}
+            strategiesLoading={strategiesLoading || isRefreshing}
             pieData={chartData.pieData}
             tradeVolumeData={chartData.tradeVolumeData}
-            tradesLoading={tradesLoading}
+            tradesLoading={tradesLoading || isRefreshing}
             trades={trades}
             strategies={strategies}
             tradeCardFields={tradeCardFields}

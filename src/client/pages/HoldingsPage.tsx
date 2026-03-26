@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Typography, Card, Table, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Empty, Collapse, Tabs } from '@arco-design/web-react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Typography, Card, Table, Statistic, Select, Grid, Radio, Space, Progress, Tooltip, Empty, Collapse, Tabs, Message } from '@arco-design/web-react';
 import {
   LineChart,
   Line,
@@ -15,11 +15,16 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { IconDelete } from '@arco-design/web-react/icon';
 import { useStrategies, useTrades, usePortfolioHistory } from '../hooks/useData';
 import { usePortfolioRealtime } from '../hooks/usePortfolioRealtime';
 import { usePortfolioAnalytics } from '../hooks/usePortfolioAnalytics';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import MobileTableCard from '../components/MobileTableCard';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
+import SwipeableRow from '../components/SwipeableRow';
+import MobileTableWrapper from '../components/MobileTableWrapper';
 import { formatPercent, formatDuration } from '../utils/portfolioAnalytics';
 import type { TableProps } from '@arco-design/web-react';
 import type { PortfolioWithPnL } from '../hooks/usePortfolioRealtime';
@@ -44,7 +49,7 @@ interface PnLData {
 }
 
 const HoldingsPage: React.FC = () => {
-  const { strategies, loading: strategiesLoading } = useStrategies();
+  const { strategies, loading: strategiesLoading, refresh: refreshStrategies } = useStrategies();
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | undefined>(
     strategies.length > 0 ? strategies[0].id : undefined
   );
@@ -80,6 +85,25 @@ const HoldingsPage: React.FC = () => {
     selectedStrategyId,
     timeRange
   );
+  
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    await refreshStrategies?.();
+    Message.success('数据已刷新');
+  }, [refreshStrategies]);
+  
+  // Pull-to-refresh hook
+  const { isRefreshing, pullDistance, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+    enabled: isMobile,
+  });
+  
+  // Handle position delete (for swipe-to-delete)
+  const handleDeletePosition = useCallback((symbol: string) => {
+    Message.info(`卖出 ${symbol} 功能开发中`);
+    // In a real app, this would trigger a sell order
+  }, []);
 
   // Track which positions recently changed for flash animation
   const [flashingPositions, setFlashingPositions] = useState<Set<string>>(new Set());
@@ -1302,23 +1326,78 @@ const HoldingsPage: React.FC = () => {
               </Col>
             </Row>
 
-            {/* Positions Table - Scrollable on mobile */}
+            {/* Positions Table - Scrollable on mobile with swipe-to-delete */}
             <Card
               title="Current Positions"
-              loading={loading}
-              bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+              loading={loading || isRefreshing}
+              bodyStyle={isMobile ? { padding: 0 } : undefined}
             >
               {portfolio?.positions && portfolio.positions.length > 0 ? (
-                <div className={isMobile ? 'mobile-table-container' : ''}>
-                  <Table
-                    columns={positionColumns}
-                    dataSource={portfolio.positions}
-                    rowKey="symbol"
-                    pagination={false}
-                    size="small"
-                    scroll={isMobile ? { x: 600 } : undefined}
-                  />
-                </div>
+                isMobile ? (
+                  // Mobile: Swipeable rows with horizontal scroll
+                  <div {...handlers} style={{ position: 'relative' }}>
+                    {/* Pull-to-refresh indicator */}
+                    <PullToRefreshIndicator
+                      pullDistance={pullDistance}
+                      threshold={80}
+                      isRefreshing={isRefreshing}
+                    />
+                    <div style={{ marginTop: pullDistance > 0 ? pullDistance : 0 }}>
+                      {portfolio.positions.map((position) => (
+                        <SwipeableRow
+                          key={position.symbol}
+                          rightActions={[
+                            {
+                              key: 'sell',
+                              label: '卖出',
+                              icon: <IconDelete />,
+                              backgroundColor: '#f53f3f',
+                              color: 'white',
+                              onClick: () => handleDeletePosition(position.symbol),
+                            },
+                          ]}
+                        >
+                          <div
+                            style={{
+                              padding: '12px 16px',
+                              borderBottom: '1px solid var(--color-border-1)',
+                              backgroundColor: 'var(--color-bg-1)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                              <Text strong style={{ fontSize: 16 }}>{position.symbol}</Text>
+                              <Text
+                                style={{
+                                  color: (position.unrealizedPnL || 0) >= 0 ? '#3f8600' : '#cf1322',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {position.unrealizedPnL && position.unrealizedPnL >= 0 ? '+' : ''}
+                                ${position.unrealizedPnL?.toFixed(2) || '0.00'}
+                              </Text>
+                            </div>
+                            <div style={{ display: 'flex', gap: 16, fontSize: 13, color: 'var(--color-text-2)' }}>
+                              <span>数量: {position.quantity.toFixed(6)}</span>
+                              <span>成本: ${position.averageCost.toLocaleString()}</span>
+                              <span>现价: ${position.currentPrice?.toLocaleString() || '-'}</span>
+                            </div>
+                          </div>
+                        </SwipeableRow>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  // Desktop: Standard table with horizontal scroll
+                  <MobileTableWrapper fixedFirstColumn minWidth={600}>
+                    <Table
+                      columns={positionColumns}
+                      dataSource={portfolio.positions}
+                      rowKey="symbol"
+                      pagination={false}
+                      size="small"
+                    />
+                  </MobileTableWrapper>
+                )
               ) : (
                 <div
                   style={{
