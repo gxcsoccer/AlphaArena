@@ -1,339 +1,383 @@
 /**
- * Tests for Subscription DAO
+ * Tests for SubscriptionDAO
  */
 
 import { SubscriptionDAO } from '../subscription.dao';
+import { getSupabaseClient } from '../client';
+import {
+  SubscriptionPlan,
+  SubscriptionStatus,
+  UserSubscription,
+  SubscriptionPlanConfig,
+} from '../../types/subscription.types';
 
-// Mock Supabase client chain methods
-const createMockChain = () => {
-  const chain: any = {};
-  chain.select = jest.fn(() => chain);
-  chain.eq = jest.fn(() => chain);
-  chain.order = jest.fn(() => chain);
-  chain.limit = jest.fn(() => chain);
-  chain.single = jest.fn(() => chain);
-  chain.maybeSingle = jest.fn(() => chain);
-  chain.insert = jest.fn(() => chain);
-  chain.update = jest.fn(() => chain);
-  chain.upsert = jest.fn(() => chain);
-  chain.rpc = jest.fn(() => chain);
-  return chain;
-};
-
-// Mock clients (anon for reads, admin for writes)
-const mockAnonClient = {
+// Mock Supabase client
+jest.mock('../client');
+const mockSupabase = {
   from: jest.fn(),
   rpc: jest.fn(),
 };
 
-const mockAdminClient = {
-  from: jest.fn(),
-  rpc: jest.fn(),
-};
+(getSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
 describe('SubscriptionDAO', () => {
-  let dao: SubscriptionDAO;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    // Constructor now takes two clients: anon for reads, admin for writes
-    dao = new SubscriptionDAO(mockAnonClient as any, mockAdminClient as any);
   });
 
-  describe('getPlans', () => {
+  describe('getAllPlans', () => {
     it('should return all active subscription plans', async () => {
-      const mockPlans = [
+      const mockPlans: SubscriptionPlanConfig[] = [
         {
-          id: 'free',
+          plan: 'free',
           name: 'Free',
-          description: 'Free plan',
-          price: 0,
-          currency: 'CNY',
-          billing_interval: 'month',
-          features: { basic: true },
-          limits: { concurrentStrategies: 3 },
-          stripe_price_id: null,
+          price_monthly: 0,
+          price_yearly: 0,
+          currency: 'USD',
+          features: {},
+          limits: { strategies: 1 },
           is_active: true,
-          display_order: 1,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: new Date(),
+          updated_at: new Date(),
         },
         {
-          id: 'pro',
+          plan: 'pro',
           name: 'Pro',
-          description: 'Pro plan',
-          price: 99,
-          currency: 'CNY',
-          billing_interval: 'month',
-          features: { advanced: true },
-          limits: { concurrentStrategies: -1 },
-          stripe_price_id: 'price_pro',
+          price_monthly: 9.99,
+          price_yearly: 99.99,
+          currency: 'USD',
+          features: {},
+          limits: { strategies: 10 },
           is_active: true,
-          display_order: 2,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at: new Date(),
+          updated_at: new Date(),
         },
       ];
 
-      const chain = createMockChain();
-      chain.order.mockResolvedValue({ data: mockPlans, error: null });
-      mockAnonClient.from.mockReturnValue(chain);
-
-      const result = await dao.getPlans();
-
-      expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('free');
-      expect(result[1].id).toBe('pro');
-    });
-
-    it('should return empty array when no plans exist', async () => {
-      const chain = createMockChain();
-      chain.order.mockResolvedValue({ data: [], error: null });
-      mockAnonClient.from.mockReturnValue(chain);
-
-      const result = await dao.getPlans();
-
-      expect(result).toHaveLength(0);
-    });
-  });
-
-  describe('getPlanById', () => {
-    it('should return a specific plan by ID', async () => {
-      const mockPlan = {
-        id: 'pro',
-        name: 'Pro',
-        description: 'Pro plan',
-        price: 99,
-        currency: 'CNY',
-        billing_interval: 'month',
-        features: { advanced: true },
-        limits: { concurrentStrategies: -1 },
-        stripe_price_id: 'price_pro',
-        is_active: true,
-        display_order: 2,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-
-      const chain = createMockChain();
-      chain.single.mockResolvedValue({ data: mockPlan, error: null });
-      mockAnonClient.from.mockReturnValue(chain);
-
-      const result = await dao.getPlanById('pro');
-
-      expect(result).not.toBeNull();
-      expect(result?.id).toBe('pro');
-      expect(result?.price).toBe(99);
-    });
-
-    it('should return null for non-existent plan', async () => {
-      const chain = createMockChain();
-      chain.single.mockResolvedValue({ 
-        data: null, 
-        error: { code: 'PGRST116' } 
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            order: jest.fn().mockResolvedValue({
+              data: mockPlans,
+              error: null,
+            }),
+          }),
+        }),
       });
-      mockAnonClient.from.mockReturnValue(chain);
 
-      const result = await dao.getPlanById('nonexistent');
+      const result = await SubscriptionDAO.getAllPlans();
 
-      expect(result).toBeNull();
+      expect(result).toEqual(mockPlans);
+      expect(mockSupabase.from).toHaveBeenCalledWith('subscription_plans');
+    });
+
+    it('should throw error when database query fails', async () => {
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            order: jest.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'Database error' },
+            }),
+          }),
+        }),
+      });
+
+      await expect(SubscriptionDAO.getAllPlans()).rejects.toThrow(
+        'Failed to get subscription plans'
+      );
     });
   });
 
   describe('getUserSubscription', () => {
-    it('should return user subscription', async () => {
-      const mockSubscription = {
-        id: 'sub-1',
-        user_id: 'user-1',
-        plan_id: 'pro',
+    it('should return user subscription when exists', async () => {
+      const userId = 'user-123';
+      const mockSubscription: UserSubscription = {
+        id: 'sub-123',
+        user_id: userId,
+        plan: 'pro',
         status: 'active',
-        current_period_start: new Date().toISOString(),
-        current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        stripe_subscription_id: 'stripe_sub_1',
-        stripe_customer_id: 'stripe_cust_1',
-        stripe_price_id: 'price_pro',
         cancel_at_period_end: false,
-        canceled_at: null,
-        cancellation_reason: null,
-        trial_start: null,
-        trial_end: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: new Date(),
+        updated_at: new Date(),
       };
 
-      const chain = createMockChain();
-      chain.maybeSingle.mockResolvedValue({ data: mockSubscription, error: null });
-      mockAnonClient.from.mockReturnValue(chain);
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            in: jest.fn().mockReturnValue({
+              order: jest.fn().mockReturnValue({
+                limit: jest.fn().mockReturnValue({
+                  maybeSingle: jest.fn().mockResolvedValue({
+                    data: mockSubscription,
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
 
-      const result = await dao.getUserSubscription('user-1');
+      const result = await SubscriptionDAO.getUserSubscription(userId);
 
-      expect(result).not.toBeNull();
-      expect(result?.planId).toBe('pro');
-      expect(result?.status).toBe('active');
+      expect(result).toEqual(mockSubscription);
     });
 
-    it('should return null for user without subscription', async () => {
-      const chain = createMockChain();
-      chain.maybeSingle.mockResolvedValue({ data: null, error: null });
-      mockAnonClient.from.mockReturnValue(chain);
+    it('should return null when user has no subscription', async () => {
+      const userId = 'user-123';
 
-      const result = await dao.getUserSubscription('user-without-sub');
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            in: jest.fn().mockReturnValue({
+              order: jest.fn().mockReturnValue({
+                limit: jest.fn().mockReturnValue({
+                  maybeSingle: jest.fn().mockResolvedValue({
+                    data: null,
+                    error: null,
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      });
+
+      const result = await SubscriptionDAO.getUserSubscription(userId);
 
       expect(result).toBeNull();
     });
   });
 
-  describe('checkFeatureAccess', () => {
-    it('should return access info for a feature', async () => {
-      // Mock getUserSubscription (returns null)
-      const chain1 = createMockChain();
-      chain1.maybeSingle.mockResolvedValue({ data: null, error: null });
+  describe('upsertSubscription', () => {
+    it('should create new subscription using RPC', async () => {
+      const userId = 'user-123';
+      const plan: SubscriptionPlan = 'pro';
+      const subscriptionId = 'sub-123';
 
-      // Mock getPlanById (returns free plan)
-      const chain2 = createMockChain();
-      chain2.single.mockResolvedValue({
-        data: {
-          id: 'free',
-          name: 'Free',
-          limits: { dailyBacktests: 10 },
-          features: {},
-        },
+      const mockSubscription: UserSubscription = {
+        id: subscriptionId,
+        user_id: userId,
+        plan: plan,
+        status: 'active',
+        cancel_at_period_end: false,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      // Mock RPC call
+      mockSupabase.rpc.mockResolvedValue({
+        data: subscriptionId,
         error: null,
       });
 
-      // Mock feature_usage query
-      const chain3 = createMockChain();
-      chain3.maybeSingle.mockResolvedValue({ 
-        data: { usage_count: 3 }, 
-        error: null 
+      // Mock fetch call
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockSubscription,
+              error: null,
+            }),
+          }),
+        }),
       });
 
-      mockAnonClient.from
-        .mockReturnValueOnce(chain1)
-        .mockReturnValueOnce(chain2)
-        .mockReturnValueOnce(chain3);
-
-      const result = await dao.checkFeatureAccess('user-1', 'dailyBacktests');
-
-      expect(result.hasAccess).toBe(true);
-      expect(result.limit).toBe(10);
-      expect(result.currentUsage).toBe(3);
-      expect(result.remaining).toBe(7);
-    });
-
-    it('should return no access when limit exceeded', async () => {
-      // Mock getUserSubscription (returns null)
-      const chain1 = createMockChain();
-      chain1.maybeSingle.mockResolvedValue({ data: null, error: null });
-
-      // Mock getPlanById (returns free plan)
-      const chain2 = createMockChain();
-      chain2.single.mockResolvedValue({
-        data: {
-          id: 'free',
-          name: 'Free',
-          limits: { dailyBacktests: 10 },
-          features: {},
-        },
-        error: null,
+      const result = await SubscriptionDAO.upsertSubscription({
+        user_id: userId,
+        plan: plan,
       });
 
-      // Mock feature_usage query with exceeded limit
-      const chain3 = createMockChain();
-      chain3.maybeSingle.mockResolvedValue({ 
-        data: { usage_count: 10 }, 
-        error: null 
+      expect(result).toEqual(mockSubscription);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('upsert_subscription', {
+        p_user_id: userId,
+        p_plan: plan,
+        p_status: 'active',
+        p_stripe_subscription_id: null,
+        p_stripe_customer_id: null,
+        p_billing_period: null,
+        p_current_period_end: null,
+        p_current_period_start: null,
+        p_trial_end: null,
+        p_trial_start: null,
       });
-
-      mockAnonClient.from
-        .mockReturnValueOnce(chain1)
-        .mockReturnValueOnce(chain2)
-        .mockReturnValueOnce(chain3);
-
-      const result = await dao.checkFeatureAccess('user-1', 'dailyBacktests');
-
-      expect(result.hasAccess).toBe(false);
-      expect(result.remaining).toBe(0);
     });
   });
 
-  describe('getSubscriptionHistory', () => {
-    it('should return subscription history', async () => {
-      const mockHistory = [
+  describe('checkFeatureAccess', () => {
+    it('should return true when user has access', async () => {
+      const userId = 'user-123';
+      const featureKey = 'advanced_charts';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: true,
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.checkFeatureAccess(userId, featureKey);
+
+      expect(result).toBe(true);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('check_feature_access', {
+        p_user_id: userId,
+        p_feature_key: featureKey,
+      });
+    });
+
+    it('should return false when user does not have access', async () => {
+      const userId = 'user-123';
+      const featureKey = 'api_advanced';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: false,
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.checkFeatureAccess(userId, featureKey);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('checkFeatureLimit', () => {
+    it('should return usage info for feature', async () => {
+      const userId = 'user-123';
+      const featureKey = 'backtests_per_day';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: {
+          allowed: true,
+          current_usage: 10,
+          limit: 50,
+        },
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.checkFeatureLimit(userId, featureKey);
+
+      expect(result).toEqual({
+        allowed: true,
+        current_usage: 10,
+        limit: 50,
+      });
+    });
+
+    it('should show when limit is exceeded', async () => {
+      const userId = 'user-123';
+      const featureKey = 'backtests_per_day';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: {
+          allowed: false,
+          current_usage: 50,
+          limit: 50,
+        },
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.checkFeatureLimit(userId, featureKey);
+
+      expect(result.allowed).toBe(false);
+      expect(result.current_usage).toBe(result.limit);
+    });
+  });
+
+  describe('incrementFeatureUsage', () => {
+    it('should increment feature usage and return new count', async () => {
+      const userId = 'user-123';
+      const featureKey = 'api_calls_per_day';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: 101,
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.incrementFeatureUsage(userId, featureKey);
+
+      expect(result).toBe(101);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('increment_feature_usage', {
+        p_user_id: userId,
+        p_feature_key: featureKey,
+        p_increment: 1,
+      });
+    });
+  });
+
+  describe('cancelSubscription', () => {
+    it('should cancel subscription immediately', async () => {
+      const userId = 'user-123';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: true,
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.cancelSubscription(userId, true);
+
+      expect(result).toBe(true);
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('cancel_subscription', {
+        p_user_id: userId,
+        p_immediately: true,
+      });
+    });
+
+    it('should schedule cancellation at period end', async () => {
+      const userId = 'user-123';
+
+      mockSupabase.rpc.mockResolvedValue({
+        data: true,
+        error: null,
+      });
+
+      const result = await SubscriptionDAO.cancelSubscription(userId, false);
+
+      expect(result).toBe(true);
+    });
+  });
+
+  describe('getExpiringSubscriptions', () => {
+    it('should return subscriptions expiring within specified days', async () => {
+      const mockSubscriptions: UserSubscription[] = [
         {
-          id: 'hist-1',
+          id: 'sub-1',
           user_id: 'user-1',
-          action: 'upgraded',
-          from_plan: 'free',
-          to_plan: 'pro',
-          from_status: 'active',
-          to_status: 'active',
-          reason: null,
-          stripe_event_id: null,
-          metadata: {},
-          created_at: new Date().toISOString(),
+          plan: 'pro',
+          status: 'active',
+          cancel_at_period_end: false,
+          current_period_end: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+        {
+          id: 'sub-2',
+          user_id: 'user-2',
+          plan: 'enterprise',
+          status: 'active',
+          cancel_at_period_end: false,
+          current_period_end: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+          created_at: new Date(),
+          updated_at: new Date(),
         },
       ];
 
-      const chain = createMockChain();
-      chain.limit.mockResolvedValue({ data: mockHistory, error: null });
-      mockAnonClient.from.mockReturnValue(chain);
-
-      const result = await dao.getSubscriptionHistory('user-1');
-
-      expect(result).toHaveLength(1);
-      expect(result[0].action).toBe('upgraded');
-      expect(result[0].fromPlan).toBe('free');
-      expect(result[0].toPlan).toBe('pro');
-    });
-  });
-
-  describe('createSubscription', () => {
-    it('should create a new subscription for new user', async () => {
-      // Mock getUserSubscription (returns null) - uses anon client
-      const chain1 = createMockChain();
-      chain1.maybeSingle.mockResolvedValue({ data: null, error: null });
-
-      // Mock insert - uses admin client
-      const chain2 = createMockChain();
-      chain2.single.mockResolvedValue({
-        data: {
-          id: 'sub-1',
-          user_id: 'user-1',
-          plan_id: 'pro',
-          status: 'active',
-          current_period_start: new Date().toISOString(),
-          current_period_end: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-          stripe_subscription_id: null,
-          stripe_customer_id: null,
-          stripe_price_id: null,
-          cancel_at_period_end: false,
-          canceled_at: null,
-          cancellation_reason: null,
-          trial_start: null,
-          trial_end: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-        error: null,
+      mockSupabase.from.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              lte: jest.fn().mockReturnValue({
+                order: jest.fn().mockResolvedValue({
+                  data: mockSubscriptions,
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        }),
       });
 
-      // Mock history insert - uses admin client
-      const chain3 = createMockChain();
-      chain3.insert.mockResolvedValue({ error: null });
+      const result = await SubscriptionDAO.getExpiringSubscriptions(7);
 
-      mockAnonClient.from.mockReturnValueOnce(chain1);
-      mockAdminClient.from
-        .mockReturnValueOnce(chain2)
-        .mockReturnValueOnce(chain3);
-
-      const result = await dao.createSubscription({
-        userId: 'user-1',
-        planId: 'pro',
-      });
-
-      expect(result.planId).toBe('pro');
-      expect(result.status).toBe('active');
+      expect(result).toEqual(mockSubscriptions);
     });
   });
 });
