@@ -127,11 +127,11 @@ describe('Language Switcher (Issue #586)', () => {
   });
 
   describe('Supported Languages', () => {
-    it('should have exactly 2 supported languages', async () => {
+    it('should have exactly 3 supported languages', async () => {
       renderWithRouter();
-      
+
       await waitFor(() => {
-        expect(screen.getByTestId('supported-languages')).toHaveTextContent('2');
+        expect(screen.getByTestId('supported-languages')).toHaveTextContent('3');
       });
     });
   });
