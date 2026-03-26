@@ -83,6 +83,7 @@ import insightRoutes from './insightRoutes';
 import onboardingRoutes from './onboarding.routes';
 import auditRoutes from './auditRoutes'; // Issue #641: Security Audit
 import gdprRoutes from './gdprRoutes'; // Issue #642: GDPR Compliance
+import businessMetricsRoutes from './businessMetricsRoutes'; // Issue #652: Business Metrics
 import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
@@ -1103,6 +1104,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/referral', referralRoutes);
     this.app.use('/api/audit', auditRoutes); // Issue #641: Security Audit
     this.app.use('/api/gdpr', gdprRoutes); // Issue #642: GDPR Compliance
+    this.app.use('/api/business-metrics', businessMetricsRoutes); // Issue #652: Business Metrics
 
     // Share Statistics routes
     this.app.use('/api/share', shareRoutes);
