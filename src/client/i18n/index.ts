@@ -108,20 +108,68 @@ export type Namespace = typeof ALL_NAMESPACES[number];
 export const ESSENTIAL_NAMESPACES: Namespace[] = ['common', 'seo'];
 
 // Route to namespace mapping for lazy loading
+// Routes are mapped to their required namespaces for on-demand loading.
+// Dynamic routes (with :param) are handled via prefix matching in getNamespacesForRoute.
 export const ROUTE_NAMESPACE_MAP: Record<string, Namespace[]> = {
-  '/': [], // Index page uses common only
+  // Public routes
+  '/': [], // Index page uses common only (preloaded)
   '/landing': ['landing'],
-  '/dashboard': ['dashboard'],
-  '/strategies': ['strategy'],
-  '/trades': ['trading'],
-  '/holdings': ['portfolio'],
-  '/backtest': ['backtest'],
   '/login': ['auth'],
   '/register': ['auth'],
+  
+  // Dashboard & Analytics
+  '/dashboard': ['dashboard'],
+  '/performance': ['dashboard'],
+  '/risk': ['dashboard'],
+  '/sentiment': ['dashboard'],
+  '/attribution': ['dashboard'],
+  '/user-dashboard': ['dashboard'],
+  
+  // Trading
+  '/trades': ['trading'],
+  '/copy-trading': ['trading'],
+  '/advanced-orders': ['trading'],
+  '/rebalance': ['trading', 'portfolio'],
+  '/journal': ['trading'],
+  
+  // Strategy
+  '/strategies': ['strategy'],
+  '/strategy-comparison': ['strategy'],
+  '/marketplace': ['strategy'],
+  
+  // Portfolio
+  '/holdings': ['portfolio'],
+  '/virtual-account': ['portfolio'],
+  '/strategy-portfolio': ['portfolio'],
+  
+  // Backtest
+  '/backtest': ['backtest'],
+  
+  // Leaderboard
   '/leaderboard': ['leaderboard'],
+  
+  // User profile (dynamic route)
+  '/user': ['auth'],
+  
+  // Notifications
   '/notification-preferences': ['notification'],
   '/notifications': ['notification'],
+  
+  // Settings & Configuration
   '/settings': ['settings'],
+  '/subscription': ['settings'],
+  '/data-source': ['settings'],
+  '/exchange-accounts': ['settings'],
+  '/scheduler': ['settings'],
+  
+  // Admin
+  '/admin': ['dashboard'],
+  
+  // API Docs (uses common namespace only)
+  '/docs/api': [],
+  
+  // User Analytics (admin feature)
+  '/user-analytics': ['dashboard'],
 };
 
 /**
@@ -137,6 +185,7 @@ export async function loadNamespaces(namespaces: Namespace[]): Promise<void> {
 
 /**
  * Get namespaces for a route
+ * Handles both exact matches and dynamic routes (with :param patterns)
  */
 export function getNamespacesForRoute(route: string): Namespace[] {
   // Exact match
@@ -144,13 +193,18 @@ export function getNamespacesForRoute(route: string): Namespace[] {
     return ROUTE_NAMESPACE_MAP[route];
   }
   
-  // Prefix match for routes with params
+  // Handle dynamic routes and nested paths
+  // e.g., '/user/johndoe' -> '/user', '/strategy-portfolio/123' -> '/strategy-portfolio'
+  // e.g., '/subscription/success' -> '/subscription'
+  // e.g., '/admin/revenue' -> '/admin'
   for (const [pattern, namespaces] of Object.entries(ROUTE_NAMESPACE_MAP)) {
+    // Check if route starts with pattern (for nested paths like /subscription/success)
     if (route.startsWith(pattern + '/') || route === pattern) {
       return namespaces;
     }
   }
   
+  // Fallback: return empty array (common namespace is always preloaded)
   return [];
 }
 

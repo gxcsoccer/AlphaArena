@@ -306,8 +306,10 @@ formatCurrency(value);
 
 ### 1. 在翻译文件中添加 key
 
+翻译文件位于 `public/locales/` 目录，由 HTTP 后端按需加载（Issue #618）：
+
 ```json
-// src/client/locales/zh-CN/common.json
+// public/locales/zh-CN/common.json
 {
   "newKey": {
     "title": "新标题",
@@ -315,7 +317,7 @@ formatCurrency(value);
   }
 }
 
-// src/client/locales/en-US/common.json
+// public/locales/en-US/common.json
 {
   "newKey": {
     "title": "New Title",
@@ -333,7 +335,7 @@ const { t } = useTranslation('common');
 
 ## 相关文件
 
-- 翻译文件: `src/client/locales/`
+- 翻译文件: `public/locales/` (HTTP 后端加载)
 - i18n 配置: `src/client/i18n/index.ts`
 - Locale Provider: `src/client/i18n/LocaleProvider.tsx`
 - Hooks: `src/client/i18n/hooks.ts`
