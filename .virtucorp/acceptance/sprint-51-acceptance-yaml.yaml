@@ -1,0 +1,47 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "VIP Subscription System"
+    flow:
+      - ai: "Navigate to /pricing page"
+      - aiAssert: "Pricing page displays subscription plans with clear pricing information"
+      - aiAssert: "There are different tier options visible (e.g., free, pro, premium)"
+      - ai: "Navigate to settings page"
+      - aiAssert: "Subscription status section is visible in settings"
+  - name: "i18n Chinese"
+    flow:
+      - ai: "Navigate to the homepage"
+      - ai: "Find and click the language selector"
+      - ai: "Select Chinese (zh-CN or 中文)"
+      - aiWaitFor: "Page content updates to Chinese"
+      - aiAssert: "Page displays Chinese text correctly, no broken characters or missing translations"
+  - name: "i18n English"
+    flow:
+      - ai: "Click the language selector"
+      - ai: "Select English (en-US or English)"
+      - aiWaitFor: "Page content updates to English"
+      - aiAssert: "Page displays English text correctly"
+  - name: "i18n Japanese"
+    flow:
+      - ai: "Click the language selector"
+      - ai: "Select Japanese (ja-JP or 日本語)"
+      - aiWaitFor: "Page content updates to Japanese"
+      - aiAssert: "Page displays Japanese text correctly, no broken characters"
+  - name: "i18n Korean"
+    flow:
+      - ai: "Click the language selector"
+      - ai: "Select Korean (ko-KR or 한국어)"
+      - aiWaitFor: "Page content updates to Korean"
+      - aiAssert: "Page displays Korean text correctly, no broken characters"
+  - name: "Security Headers"
+    flow:
+      - ai: "Navigate to any page on the site"
+      - aiAssert: "Page loads successfully over HTTPS"
+      - ai: "Check that the page is served securely"
+  - name: "GDPR Privacy Settings"
+    flow:
+      - ai: "Navigate to privacy settings page"
+      - aiAssert: "Privacy settings page is accessible and displays privacy options"
+      - ai: "Look for data export request option"
+      - aiAssert: "Data export request functionality is available"
