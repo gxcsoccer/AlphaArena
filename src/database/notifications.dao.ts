@@ -7,7 +7,7 @@ import getSupabaseClient from './client.js';
 
 const getSupabase = () => getSupabaseClient();
 
-export type NotificationType = 'SIGNAL' | 'RISK' | 'PERFORMANCE' | 'SYSTEM' | 'COMMENT';
+export type NotificationType = 'SIGNAL' | 'RISK' | 'PERFORMANCE' | 'SYSTEM' | 'COMMENT' | 'REFERRAL';
 export type NotificationPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
 
 export interface Notification {
@@ -437,6 +437,7 @@ export async function shouldReceiveNotification(
     PERFORMANCE: prefs.performance_notifications,
     SYSTEM: prefs.system_notifications,
     COMMENT: (prefs as any).comment_notifications ?? true,
+    REFERRAL: (prefs as any).referral_notifications ?? true,
   };
 
   if (!typeEnabled[type]) {
