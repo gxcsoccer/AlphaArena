@@ -6,7 +6,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { authMiddleware as authenticate } from './authMiddleware';
+import { authMiddleware as authenticate, requireAdmin } from './authMiddleware';
 import {
   getPaymentFunnelService,
   FunnelStage,
@@ -136,8 +136,9 @@ router.post('/track-batch', async (req: Request, res: Response) => {
 /**
  * GET /api/payment-funnel/analysis
  * Get funnel analysis for a period
+ * Admin only - contains sensitive business data
  */
-router.get('/analysis', authenticate, async (req: Request, res: Response) => {
+router.get('/analysis', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -170,8 +171,9 @@ router.get('/analysis', authenticate, async (req: Request, res: Response) => {
 /**
  * GET /api/payment-funnel/dropoff-analysis
  * Get drop-off analysis
+ * Admin only - contains sensitive business data
  */
-router.get('/dropoff-analysis', authenticate, async (req: Request, res: Response) => {
+router.get('/dropoff-analysis', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -204,8 +206,9 @@ router.get('/dropoff-analysis', authenticate, async (req: Request, res: Response
 /**
  * GET /api/payment-funnel/conversion-by-plan
  * Get conversion rate by plan
+ * Admin only - contains revenue metrics
  */
-router.get('/conversion-by-plan', authenticate, async (req: Request, res: Response) => {
+router.get('/conversion-by-plan', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -236,8 +239,9 @@ router.get('/conversion-by-plan', authenticate, async (req: Request, res: Respon
 /**
  * GET /api/payment-funnel/conversion-by-device
  * Get conversion rate by device type
+ * Admin only - contains sensitive business data
  */
-router.get('/conversion-by-device', authenticate, async (req: Request, res: Response) => {
+router.get('/conversion-by-device', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -268,8 +272,9 @@ router.get('/conversion-by-device', authenticate, async (req: Request, res: Resp
 /**
  * GET /api/payment-funnel/optimization-suggestions
  * Get AI-powered optimization suggestions
+ * Admin only - contains sensitive business insights
  */
-router.get('/optimization-suggestions', authenticate, async (req: Request, res: Response) => {
+router.get('/optimization-suggestions', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -300,8 +305,9 @@ router.get('/optimization-suggestions', authenticate, async (req: Request, res: 
 /**
  * GET /api/payment-funnel/ab-test/:experimentId
  * Get A/B test results for a payment experiment
+ * Admin only - contains sensitive A/B test results
  */
-router.get('/ab-test/:experimentId', authenticate, async (req: Request, res: Response) => {
+router.get('/ab-test/:experimentId', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -327,8 +333,9 @@ router.get('/ab-test/:experimentId', authenticate, async (req: Request, res: Res
 /**
  * GET /api/payment-funnel/session/:sessionId
  * Get session details
+ * Admin only - contains PII (user session data)
  */
-router.get('/session/:sessionId', authenticate, async (req: Request, res: Response) => {
+router.get('/session/:sessionId', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -358,8 +365,9 @@ router.get('/session/:sessionId', authenticate, async (req: Request, res: Respon
 /**
  * POST /api/payment-funnel/calculate-stats
  * Trigger daily statistics calculation
+ * Admin only - administrative action
  */
-router.post('/calculate-stats', authenticate, async (req: Request, res: Response) => {
+router.post('/calculate-stats', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -385,8 +393,9 @@ router.post('/calculate-stats', authenticate, async (req: Request, res: Response
 /**
  * GET /api/payment-funnel/dashboard
  * Get all dashboard data in one request
+ * Admin only - aggregates all sensitive business metrics
  */
-router.get('/dashboard', authenticate, async (req: Request, res: Response) => {
+router.get('/dashboard', authenticate, requireAdmin, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
