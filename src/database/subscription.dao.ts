@@ -6,10 +6,14 @@
 import { getSupabaseClient, getSupabaseAdminClient } from './client';
 import { createLogger } from '../utils/logger';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { SubscriptionPlan as SubscriptionPlanType, BillingPeriod } from '../types/subscription.types';
 
 const log = createLogger('SubscriptionDAO');
 
-// Type definitions
+// Re-export types from subscription.types for convenience
+export type { SubscriptionPlanType, BillingPeriod };
+
+// Type definitions for database rows
 export interface SubscriptionPlan {
   id: string;
   name: string;
@@ -218,7 +222,7 @@ export class SubscriptionDAO {
   async createSubscription(data: {
     userId: string;
     planId: string;
-    status?: 'active' | 'trialing';
+    status?: 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing';
     currentPeriodStart?: Date;
     currentPeriodEnd?: Date;
     stripeSubscriptionId?: string;
@@ -659,4 +663,250 @@ export function getSubscriptionDAO(): SubscriptionDAO {
     subscriptionDAO = new SubscriptionDAO(getSupabaseClient(), getSupabaseAdminClient());
   }
   return subscriptionDAO;
+}
+
+// Static methods for convenience (used by routes and middleware)
+export namespace SubscriptionDAO {
+  /**
+   * Get all active subscription plans
+   */
+  export async function getAllPlans(): Promise<SubscriptionPlan[]> {
+    return getSubscriptionDAO().getPlans();
+  }
+
+  /**
+   * Get a specific plan by ID
+   */
+  export async function getPlan(planId: string): Promise<SubscriptionPlan | null> {
+    return getSubscriptionDAO().getPlanById(planId);
+  }
+
+  /**
+   * Get user's current subscription
+   */
+  export async function getUserSubscription(userId: string): Promise<UserSubscription | null> {
+    return getSubscriptionDAO().getUserSubscription(userId);
+  }
+
+  /**
+   * Get user's subscription with plan details
+   */
+  export async function getUserSubscriptionWithPlan(userId: string): Promise<UserSubscriptionStatus | null> {
+    return getSubscriptionDAO().getUserSubscriptionStatus(userId);
+  }
+
+  /**
+   * Get subscription history for a user
+   */
+  export async function getSubscriptionHistory(userId: string, limit: number = 20): Promise<SubscriptionHistory[]> {
+    return getSubscriptionDAO().getSubscriptionHistory(userId, limit);
+  }
+
+  /**
+   * Cancel user's subscription
+   */
+  export async function cancelSubscription(userId: string, immediately: boolean = false): Promise<boolean> {
+    if (immediately) {
+      const result = await getSubscriptionDAO().updateSubscription(userId, {
+        status: 'canceled',
+        canceledAt: new Date(),
+      });
+      return result !== null;
+    }
+    const result = await getSubscriptionDAO().cancelSubscription(userId);
+    return result !== null;
+  }
+
+  /**
+   * Get all feature permissions
+   */
+  export async function getAllFeaturePermissions(): Promise<Array<{ feature_key: string; required_plan: string; description?: string; category?: string }>> {
+    const client = getSupabaseClient();
+    const { data, error } = await client
+      .from('feature_permissions')
+      .select('*')
+      .eq('is_active', true);
+
+    if (error) {
+      log.error('Failed to get feature permissions:', error);
+      return [];
+    }
+
+    return (data || []).map(row => ({
+      feature_key: row.feature_key as string,
+      required_plan: row.required_plan as string,
+      description: row.description as string | undefined,
+      category: row.category as string | undefined,
+    }));
+  }
+
+  /**
+   * Get a specific feature permission
+   */
+  export async function getFeaturePermission(featureKey: string): Promise<{ feature_key: string; required_plan: string; description?: string } | null> {
+    const client = getSupabaseClient();
+    const { data, error } = await client
+      .from('feature_permissions')
+      .select('*')
+      .eq('feature_key', featureKey)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null;
+      }
+      log.error('Failed to get feature permission:', error);
+      return null;
+    }
+
+    return {
+      feature_key: data.feature_key as string,
+      required_plan: data.required_plan as string,
+      description: data.description as string | undefined,
+    };
+  }
+
+  /**
+   * Check if user has access to a feature
+   */
+  export async function checkFeatureAccess(userId: string, featureKey: string): Promise<boolean> {
+    const result = await getSubscriptionDAO().checkFeatureAccess(userId, featureKey);
+    return result.hasAccess;
+  }
+
+  /**
+   * Check multiple feature accesses at once
+   */
+  export async function checkMultipleFeatureAccesses(userId: string, featureKeys: string[]): Promise<Record<string, boolean>> {
+    const results: Record<string, boolean> = {};
+    for (const key of featureKeys) {
+      results[key] = await checkFeatureAccess(userId, key);
+    }
+    return results;
+  }
+
+  /**
+   * Check feature usage limit
+   */
+  export async function checkFeatureLimit(userId: string, featureKey: string): Promise<{ allowed: boolean; current_usage: number; limit: number }> {
+    const result = await getSubscriptionDAO().checkFeatureAccess(userId, featureKey);
+    return {
+      allowed: result.hasAccess,
+      current_usage: result.currentUsage,
+      limit: result.limit,
+    };
+  }
+
+  /**
+   * Get user's feature usage for today
+   */
+  export async function getFeatureUsage(userId: string, featureKey: string): Promise<number> {
+    const usage = await getSubscriptionDAO().getFeatureUsage(userId, featureKey);
+    return usage?.usageCount || 0;
+  }
+
+  /**
+   * Increment feature usage
+   */
+  export async function incrementFeatureUsage(userId: string, featureKey: string, increment: number = 1): Promise<number> {
+    await getSubscriptionDAO().incrementFeatureUsage(userId, featureKey, increment);
+    return getFeatureUsage(userId, featureKey);
+  }
+
+  /**
+   * Get all feature usage for a user
+   */
+  export async function getAllFeatureUsage(userId: string): Promise<Array<{ feature_key: string; usage_count: number }>> {
+    const client = getSupabaseClient();
+    const today = new Date().toISOString().split('T')[0];
+    
+    const { data, error } = await client
+      .from('feature_usage')
+      .select('feature_key, usage_count')
+      .eq('user_id', userId)
+      .eq('usage_date', today);
+
+    if (error) {
+      log.error('Failed to get all feature usage:', error);
+      return [];
+    }
+
+    return (data || []).map(row => ({
+      feature_key: row.feature_key as string,
+      usage_count: row.usage_count as number,
+    }));
+  }
+
+  /**
+   * Create or update a subscription
+   */
+  export async function upsertSubscription(data: {
+    user_id: string;
+    plan: SubscriptionPlanType;
+    billing_period?: BillingPeriod;
+    stripe_subscription_id?: string;
+    stripe_customer_id?: string;
+    status?: 'active' | 'canceled' | 'expired' | 'past_due' | 'trialing';
+  }): Promise<UserSubscription> {
+    const planId = typeof data.plan === 'string' ? data.plan : 'free';
+    
+    return getSubscriptionDAO().createSubscription({
+      userId: data.user_id,
+      planId,
+      status: data.status || 'active',
+      stripeSubscriptionId: data.stripe_subscription_id,
+      stripeCustomerId: data.stripe_customer_id,
+    });
+  }
+
+  /**
+   * Update expired subscriptions
+   */
+  export async function updateExpiredSubscriptions(): Promise<number> {
+    const adminClient = getSupabaseAdminClient();
+    
+    const { data, error } = await adminClient
+      .from('user_subscriptions')
+      .update({
+        status: 'expired',
+        updated_at: new Date(),
+      })
+      .lt('current_period_end', new Date())
+      .eq('status', 'active')
+      .select('id');
+
+    if (error) {
+      log.error('Failed to update expired subscriptions:', error);
+      return 0;
+    }
+
+    return data?.length || 0;
+  }
+
+  /**
+   * Get subscriptions expiring soon
+   */
+  export async function getExpiringSubscriptions(days: number = 7): Promise<Array<{ user_id: string; current_period_end: Date; plan: string }>> {
+    const client = getSupabaseClient();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + days);
+    
+    const { data, error } = await client
+      .from('user_subscriptions')
+      .select('user_id, current_period_end, plan_id')
+      .eq('status', 'active')
+      .lte('current_period_end', endDate.toISOString())
+      .gt('current_period_end', new Date().toISOString());
+
+    if (error) {
+      log.error('Failed to get expiring subscriptions:', error);
+      return [];
+    }
+
+    return (data || []).map(row => ({
+      user_id: row.user_id as string,
+      current_period_end: new Date(row.current_period_end as string),
+      plan: row.plan_id as string,
+    }));
+  }
 }

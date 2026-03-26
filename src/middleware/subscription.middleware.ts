@@ -30,7 +30,7 @@ export function requirePlan(requiredPlans: SubscriptionPlan | SubscriptionPlan[]
       
       // Get user's current subscription
       const subscription = await SubscriptionDAO.getUserSubscription(userId);
-      const userPlan: SubscriptionPlan = subscription?.plan || 'free';
+      const userPlan: SubscriptionPlan = (subscription?.planId as SubscriptionPlan) || 'free';
       
       // Check if user's plan is in the allowed plans or higher
       const userPlanLevel = PLAN_HIERARCHY[userPlan];

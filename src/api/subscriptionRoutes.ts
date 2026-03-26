@@ -38,7 +38,7 @@ router.get('/plans', async (req: Request, res: Response) => {
  */
 router.get('/plans/:plan', async (req: Request, res: Response) => {
   try {
-    const { plan } = req.params;
+    const plan = req.params.plan as string;
     
     if (!['free', 'pro', 'enterprise'].includes(plan)) {
       return res.status(400).json({ error: 'Invalid plan' });
@@ -156,7 +156,7 @@ router.get('/features', async (req: Request, res: Response) => {
 router.get('/features/:featureKey/check', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { featureKey } = req.params;
+    const featureKey = req.params.featureKey as string;
     
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -204,7 +204,7 @@ router.post('/features/check-batch', authenticate, async (req: Request, res: Res
 router.get('/features/:featureKey/limit', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { featureKey } = req.params;
+    const featureKey = req.params.featureKey as string;
     
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -231,7 +231,7 @@ router.get('/features/:featureKey/limit', authenticate, async (req: Request, res
 router.get('/features/:featureKey/usage', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { featureKey } = req.params;
+    const featureKey = req.params.featureKey as string;
     
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -253,7 +253,7 @@ router.get('/features/:featureKey/usage', authenticate, async (req: Request, res
 router.post('/features/:featureKey/usage', authenticate, async (req: Request, res: Response) => {
   try {
     const userId = req.user?.id;
-    const { featureKey } = req.params;
+    const featureKey = req.params.featureKey as string;
     const { increment } = req.body;
     
     if (!userId) {
