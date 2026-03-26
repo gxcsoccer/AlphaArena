@@ -6,9 +6,15 @@
 import { Router, Request, Response } from 'express';
 import { SubscriptionDAO } from '../database/subscription.dao';
 import { authMiddleware as authenticate } from './authMiddleware';
-import { requireFeature, trackFeatureUsage } from '../middleware/subscription.middleware';
 import { createLogger } from '../utils/logger';
 import { SubscriptionPlan, BillingPeriod } from '../types/subscription.types';
+import {
+  createCheckoutSession,
+  createCustomerPortalSession,
+  getCustomerByEmail,
+  createCustomer,
+  getPriceId,
+} from '../services/stripeService';
 
 const log = createLogger('SubscriptionRoutes');
 
@@ -60,6 +66,107 @@ router.get('/plans/:plan', async (req: Request, res: Response) => {
 // ============================================================================
 // Authenticated Routes
 // ============================================================================
+
+/**
+ * POST /api/subscriptions/checkout
+ * Create a Stripe checkout session for subscription
+ */
+router.post('/checkout', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const userEmail = req.user?.email;
+    const { planId, billingPeriod = 'monthly' } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!planId || !['pro', 'enterprise'].includes(planId)) {
+      return res.status(400).json({ error: 'Invalid plan. Must be "pro" or "enterprise"' });
+    }
+
+    if (!['monthly', 'yearly'].includes(billingPeriod)) {
+      return res.status(400).json({ error: 'Invalid billing period. Must be "monthly" or "yearly"' });
+    }
+
+    // For enterprise, return contact info
+    if (planId === 'enterprise') {
+      return res.json({
+        message: 'Please contact sales',
+        email: 'sales@alphaarena.com',
+      });
+    }
+
+    // Get or create Stripe customer
+    let customerId: string | undefined;
+    if (userEmail) {
+      const existingCustomer = await getCustomerByEmail(userEmail);
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+      }
+    }
+
+    if (!customerId) {
+      customerId = await createCustomer(userId, userEmail || '', undefined);
+    }
+
+    // Get price ID based on plan and billing period
+    const priceId = getPriceId(planId, billingPeriod);
+
+    // Create checkout session
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const checkoutUrl = await createCheckoutSession({
+      userId,
+      email: userEmail,
+      priceId,
+      successUrl: `${frontendUrl}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${frontendUrl}/subscription/canceled`,
+      customerId,
+    });
+
+    log.info('Created subscription checkout session', { userId, planId, billingPeriod });
+
+    res.json({ checkoutUrl });
+  } catch (error) {
+    log.error('Error creating checkout session:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+/**
+ * POST /api/subscriptions/portal
+ * Create a Stripe customer portal session for managing subscription
+ */
+router.post('/portal', authenticate, async (req: Request, res: Response) => {
+  try {
+    const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Get user's subscription to find Stripe customer ID
+    const subscription = await SubscriptionDAO.getUserSubscription(userId);
+
+    if (!subscription?.stripeCustomerId) {
+      return res.status(400).json({ error: 'No active subscription found' });
+    }
+
+    // Create portal session
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const portalUrl = await createCustomerPortalSession({
+      customerId: subscription.stripeCustomerId,
+      returnUrl: `${frontendUrl}/subscription/manage`,
+    });
+
+    log.info('Created customer portal session', { userId });
+
+    res.json({ portalUrl });
+  } catch (error) {
+    log.error('Error creating portal session:', error);
+    res.status(500).json({ error: 'Failed to create portal session' });
+  }
+});
 
 /**
  * GET /api/subscription/current
