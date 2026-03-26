@@ -80,6 +80,7 @@ import shareRoutes from './shareRoutes';
 import insightRoutes from './insightRoutes';
 import onboardingRoutes from './onboarding.routes';
 import auditRoutes from './auditRoutes'; // Issue #641: Security Audit
+import gdprRoutes from './gdprRoutes'; // Issue #642: GDPR Compliance
 import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
@@ -1095,6 +1096,7 @@ export class APIServer extends EventEmitter {
     // Referral System routes
     this.app.use('/api/referral', referralRoutes);
     this.app.use('/api/audit', auditRoutes); // Issue #641: Security Audit
+    this.app.use('/api/gdpr', gdprRoutes); // Issue #642: GDPR Compliance
 
     // Share Statistics routes
     this.app.use('/api/share', shareRoutes);

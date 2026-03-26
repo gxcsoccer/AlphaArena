@@ -93,6 +93,7 @@ const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccount
 const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
 const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
 const NotificationHistoryPage = lazyWithRetry(() => import('./pages/NotificationHistoryPage'));
+const PrivacySettingsPage = lazyWithRetry(() => import('./pages/PrivacySettingsPage')); // Issue #642: GDPR
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -556,6 +557,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
         <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
         <Route path="/notifications" element={<NotificationHistoryPage />} />
+        <Route path="/privacy" element={<PrivacySettingsPage />} /> {/* Issue #642: GDPR */}
         <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
