@@ -81,22 +81,24 @@ export class BacktestLiveComparisonService {
         config
       );
 
-      // Analyze impacts (optional)
+      // Analyze impacts (optional - return undefined when real data not available)
+      // These require actual trade execution data, fee records, and market data
+      // which are not available in the current implementation
       const slippageImpact = config.includeSlippageAnalysis
-        ? await this.analyzeSlippageImpact(config)
+        ? undefined // Requires actual trade execution data with slippage
         : undefined;
 
       const feeImpact = config.includeFeeAnalysis
-        ? await this.analyzeFeeImpact(config)
+        ? undefined // Requires actual fee records from exchange
         : undefined;
 
       const executionDelayImpact = config.includeExecutionDelayAnalysis
-        ? await this.analyzeExecutionDelayImpact(config)
+        ? undefined // Requires actual execution timestamps
         : undefined;
 
       // Market environment comparison (optional)
       const marketEnvironment = config.includeMarketEnvironment
-        ? await this.compareMarketEnvironments(config)
+        ? undefined // Requires historical market data (volatility, volume, etc.)
         : undefined;
 
       // Divergence analysis
@@ -185,7 +187,7 @@ export class BacktestLiveComparisonService {
     config: ComparisonReportConfig
   ): Promise<LivePerformanceMetrics> {
     // In production, this would query actual trading data
-    // For now, return mock data based on historical comparisons
+    // For now, return data based on historical comparisons
     const comparisons = await backtestLiveDAO.getHistoricalComparisons(
       config.integrationId,
       100
@@ -445,9 +447,10 @@ export class BacktestLiveComparisonService {
 
   /**
    * Generate time period comparisons
+   * Distributes the total metrics evenly across time periods based on the actual data
    */
   private async generateTimePeriodComparisons(
-    _backtest: BacktestStats,
+    backtest: BacktestStats,
     live: LivePerformanceMetrics,
     config: ComparisonReportConfig
   ): Promise<TimePeriodComparison[]> {
@@ -455,25 +458,34 @@ export class BacktestLiveComparisonService {
     const periodDuration = config.periodEnd - config.periodStart;
     const numPeriods = Math.min(12, Math.ceil(periodDuration / (7 * 24 * 60 * 60 * 1000)));
 
+    // If no trades, return empty array
+    if (live.totalTrades === 0 && backtest.totalTrades === 0) {
+      return comparisons;
+    }
+
     // Generate weekly/bi-weekly periods
     const periodLength = periodDuration / numPeriods;
+
+    // Calculate even distribution
+    const liveReturnPerPeriod = live.totalReturn / numPeriods;
+    const backtestReturnPerPeriod = backtest.totalReturn / numPeriods;
+    const liveTradesPerPeriod = Math.floor(live.totalTrades / numPeriods);
+    const backtestTradesPerPeriod = Math.floor(backtest.totalTrades / numPeriods);
 
     for (let i = 0; i < numPeriods; i++) {
       const start = config.periodStart + i * periodLength;
       const end = Math.min(start + periodLength, config.periodEnd);
 
-      // In production, these would be calculated from actual trade data
-      const backtestReturn = (live.totalReturn / numPeriods) * (0.8 + Math.random() * 0.4);
-      const liveReturn = (live.totalReturn / numPeriods) * (0.7 + Math.random() * 0.6);
-
+      // Distribute evenly across periods
+      // This is a simplified approach - in production, this would be calculated from actual trade data
       comparisons.push({
         label: this.formatPeriodLabel(start, end),
         start,
         end,
-        backtestReturn,
-        liveReturn,
-        backtestTrades: Math.floor(live.totalTrades / numPeriods * (0.8 + Math.random() * 0.4)),
-        liveTrades: Math.floor(live.totalTrades / numPeriods * (0.7 + Math.random() * 0.6)),
+        backtestReturn: backtestReturnPerPeriod,
+        liveReturn: liveReturnPerPeriod,
+        backtestTrades: backtestTradesPerPeriod,
+        liveTrades: liveTradesPerPeriod,
       });
     }
 
@@ -490,93 +502,6 @@ export class BacktestLiveComparisonService {
   }
 
   /**
-   * Analyze slippage impact
-   */
-  private async analyzeSlippageImpact(
-    _config: ComparisonReportConfig
-  ): Promise<SlippageImpact> {
-    // In production, this would analyze actual trade execution data
-    return {
-      avgSlippagePercent: 0.05 + Math.random() * 0.15,
-      totalSlippageCost: 100 + Math.random() * 500,
-      returnImpact: -0.5 - Math.random() * 2,
-      sharpeImpact: -0.05 - Math.random() * 0.15,
-      byTradeType: [
-        { type: 'market', avgSlippage: 0.08, count: 45 },
-        { type: 'limit', avgSlippage: 0.02, count: 30 },
-        { type: 'stop', avgSlippage: 0.12, count: 15 },
-      ],
-    };
-  }
-
-  /**
-   * Analyze fee impact
-   */
-  private async analyzeFeeImpact(
-    _config: ComparisonReportConfig
-  ): Promise<FeeImpact> {
-    // In production, this would analyze actual fee data
-    return {
-      totalFees: 200 + Math.random() * 800,
-      feeRate: 0.001,
-      returnImpact: -0.2 - Math.random() * 0.8,
-      sharpeImpact: -0.02 - Math.random() * 0.08,
-      byPeriod: [
-        { period: 'Week 1', fees: 50, trades: 12 },
-        { period: 'Week 2', fees: 75, trades: 18 },
-        { period: 'Week 3', fees: 60, trades: 15 },
-        { period: 'Week 4', fees: 45, trades: 10 },
-      ],
-    };
-  }
-
-  /**
-   * Analyze execution delay impact
-   */
-  private async analyzeExecutionDelayImpact(
-    _config: ComparisonReportConfig
-  ): Promise<ExecutionDelayImpact> {
-    // In production, this would analyze actual execution timestamps
-    return {
-      avgDelayMs: 50 + Math.random() * 150,
-      maxDelayMs: 500 + Math.random() * 1000,
-      returnImpact: -0.1 - Math.random() * 0.5,
-      winRateImpact: -1 - Math.random() * 3,
-      affectedTrades: Math.floor(10 + Math.random() * 20),
-      affectedPercent: 10 + Math.random() * 20,
-    };
-  }
-
-  /**
-   * Compare market environments
-   */
-  private async compareMarketEnvironments(
-    _config: ComparisonReportConfig
-  ): Promise<MarketEnvironmentComparison> {
-    // In production, this would analyze actual market data
-    return {
-      backtestPeriod: {
-        avgVolatility: 0.02 + Math.random() * 0.03,
-        trendDirection: Math.random() > 0.5 ? 'up' : 'down',
-        avgVolume: 1000000 + Math.random() * 5000000,
-        significantEvents: ['Fed meeting', 'Earnings season'],
-      },
-      livePeriod: {
-        avgVolatility: 0.015 + Math.random() * 0.035,
-        trendDirection: Math.random() > 0.5 ? 'up' : 'sideways',
-        avgVolume: 800000 + Math.random() * 4000000,
-        significantEvents: ['Market correction', 'Regulatory news'],
-      },
-      similarityScore: 50 + Math.random() * 40,
-      keyDifferences: [
-        'Higher volatility in backtest period',
-        'Different trend direction',
-        'Lower trading volume in live period',
-      ],
-    };
-  }
-
-  /**
    * Analyze divergence
    */
   private analyzeDivergence(
@@ -586,7 +511,7 @@ export class BacktestLiveComparisonService {
   ): DivergenceAnalysis {
     const overallScore = deviation.overallScore;
 
-    // Determine trend based on historical data (simplified)
+    // Determine trend based on overall score
     const trend: 'improving' | 'stable' | 'worsening' =
       overallScore < 10 ? 'improving' :
       overallScore < 25 ? 'stable' : 'worsening';
@@ -615,7 +540,7 @@ export class BacktestLiveComparisonService {
       },
       {
         category: 'Efficiency',
-        score: metrics.find(m => m.key === 'profitFactor')?.deviation ?? 0,
+        score: Math.abs(metrics.find(m => m.key === 'profitFactor')?.deviation ?? 0),
         contribution: 10,
       },
     ];
@@ -717,54 +642,6 @@ export class BacktestLiveComparisonService {
       });
     }
 
-    // Slippage insight
-    if (slippageImpact && slippageImpact.avgSlippagePercent > 0.05) {
-      insights.push({
-        id: uuidv4(),
-        category: 'execution',
-        priority: 2,
-        title: 'High Slippage Impacting Returns',
-        description: `Average slippage of ${(slippageImpact.avgSlippagePercent * 100).toFixed(2)}% is reducing profitability.`,
-        currentSituation: `Total slippage cost: $${slippageImpact.totalSlippageCost.toFixed(2)}`,
-        recommendedAction: 'Use limit orders instead of market orders where possible. Consider trading during higher liquidity periods.',
-        expectedImprovement: 'Potential 0.5-1% return improvement',
-        confidence: 0.85,
-        supportingData: { avgSlippage: slippageImpact.avgSlippagePercent },
-      });
-    }
-
-    // Fee impact insight
-    if (feeImpact && Math.abs(feeImpact.returnImpact) > 0.3) {
-      insights.push({
-        id: uuidv4(),
-        category: 'execution',
-        priority: 3,
-        title: 'Trading Fees Impacting Performance',
-        description: `Total fees of $${feeImpact.totalFees.toFixed(2)} are reducing returns by ${Math.abs(feeImpact.returnImpact).toFixed(2)}%.`,
-        currentSituation: `Fee rate: ${(feeImpact.feeRate * 100).toFixed(2)}%`,
-        recommendedAction: 'Reduce trade frequency or negotiate better fee rates with exchange. Consider using maker orders.',
-        expectedImprovement: 'Potential 0.3-0.5% return improvement',
-        confidence: 0.75,
-        supportingData: { totalFees: feeImpact.totalFees },
-      });
-    }
-
-    // Execution delay insight
-    if (executionDelayImpact && executionDelayImpact.avgDelayMs > 100) {
-      insights.push({
-        id: uuidv4(),
-        category: 'timing',
-        priority: 2,
-        title: 'Execution Delays Affecting Win Rate',
-        description: `Average execution delay of ${executionDelayImpact.avgDelayMs.toFixed(0)}ms is impacting ${executionDelayImpact.affectedPercent.toFixed(1)}% of trades.`,
-        currentSituation: `Win rate impact: ${executionDelayImpact.winRateImpact.toFixed(2)}%`,
-        recommendedAction: 'Optimize API connection and server location. Consider using co-location or VPS near exchange servers.',
-        expectedImprovement: 'Potential 1-3% win rate improvement',
-        confidence: 0.7,
-        supportingData: { avgDelay: executionDelayImpact.avgDelayMs },
-      });
-    }
-
     // Drawdown insight
     const drawdownMetric = metrics.find(m => m.key === 'maxDrawdown');
     if (drawdownMetric && drawdownMetric.liveValue > drawdownMetric.backtestValue * 1.5) {
@@ -799,6 +676,23 @@ export class BacktestLiveComparisonService {
       });
     }
 
+    // Sharpe deviation insight
+    if (Math.abs(deviation.sharpeDeviation) > 15) {
+      const sharpeMetric = metrics.find(m => m.key === 'sharpeRatio');
+      insights.push({
+        id: uuidv4(),
+        category: 'risk',
+        priority: 2,
+        title: 'Sharpe Ratio Deviation',
+        description: `Risk-adjusted returns differ significantly from backtest.`,
+        currentSituation: `Backtest Sharpe: ${sharpeMetric?.backtestValue.toFixed(2)}, Live: ${sharpeMetric?.liveValue.toFixed(2)}`,
+        recommendedAction: 'Review risk management and position sizing strategies.',
+        expectedImprovement: 'Potential 0.1-0.3 Sharpe improvement',
+        confidence: 0.7,
+        supportingData: { sharpeDeviation: deviation.sharpeDeviation },
+      });
+    }
+
     // Sort by priority and limit
     return insights
       .sort((a, b) => a.priority - b.priority)
@@ -807,6 +701,7 @@ export class BacktestLiveComparisonService {
 
   /**
    * Generate visualization data
+   * Creates charts based on actual metrics without random data
    */
   private generateVisualizationData(
     backtest: BacktestStats,
@@ -814,30 +709,29 @@ export class BacktestLiveComparisonService {
     deviation: PerformanceDeviation,
     config: ComparisonReportConfig
   ): ComparisonVisualizationData {
-    // Generate equity curve comparison
+    // Generate equity curve comparison based on linear interpolation
     const numPoints = 50;
     const duration = config.periodEnd - config.periodStart;
     const backtestEquity: { timestamp: number; value: number }[] = [];
     const liveEquity: { timestamp: number; value: number }[] = [];
 
-    let backtestValue = 10000; // Starting capital
-    let liveValue = 10000;
+    const startingCapital = 10000;
 
+    // Generate equity curves using linear interpolation from 0 to final return
+    // This is a simplified model - in production, this would use actual equity snapshots
     for (let i = 0; i <= numPoints; i++) {
       const timestamp = config.periodStart + (duration * i) / numPoints;
+      const progress = i / numPoints;
 
-      // Simulate backtest equity curve
-      const backtestReturn = (backtest.totalReturn / numPoints) * (0.8 + Math.random() * 0.4);
-      backtestValue *= (1 + backtestReturn / 100);
+      // Linear interpolation of equity growth
+      const backtestValue = startingCapital * (1 + (backtest.totalReturn / 100) * progress);
       backtestEquity.push({ timestamp, value: backtestValue });
 
-      // Simulate live equity curve with deviation
-      const liveReturn = (backtest.totalReturn / numPoints) * (0.7 + Math.random() * 0.6) * (1 - deviation.overallScore / 200);
-      liveValue *= (1 + liveReturn / 100);
+      const liveValue = startingCapital * (1 + (live.totalReturn / 100) * progress);
       liveEquity.push({ timestamp, value: liveValue });
     }
 
-    // Generate metrics radar data
+    // Generate metrics radar data based on normalized actual values
     const metricsRadar = [
       {
         metric: 'Return',
@@ -866,15 +760,16 @@ export class BacktestLiveComparisonService {
       },
     ];
 
-    // Generate divergence timeline
+    // Generate divergence timeline based on steady state
     const divergenceTimeline: { timestamp: number; divergence: number }[] = [];
     for (let i = 0; i <= numPoints; i++) {
       const timestamp = config.periodStart + (duration * i) / numPoints;
-      const divergenceValue = deviation.overallScore * (0.5 + Math.random());
-      divergenceTimeline.push({ timestamp, divergence: divergenceValue });
+      // Divergence is relatively constant based on overall deviation
+      // In production, this would show actual divergence at each point in time
+      divergenceTimeline.push({ timestamp, divergence: deviation.overallScore });
     }
 
-    // Generate performance heatmap
+    // Generate performance heatmap based on even distribution
     const performanceHeatmap = this.generatePerformanceHeatmap(backtest, live);
 
     return {
@@ -898,6 +793,7 @@ export class BacktestLiveComparisonService {
 
   /**
    * Generate performance heatmap data
+   * Distributes returns evenly across periods based on actual data
    */
   private generatePerformanceHeatmap(
     backtest: BacktestStats,
@@ -906,16 +802,20 @@ export class BacktestLiveComparisonService {
     const periods = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const heatmap: ComparisonVisualizationData['performanceHeatmap'] = [];
 
+    // Distribute total return evenly across 6 months
+    const backtestMonthlyReturn = backtest.totalReturn / 6;
+    const liveMonthlyReturn = live.totalReturn / 6;
+
     for (const period of periods) {
-      const backtestReturn = backtest.totalReturn / 6 * (0.5 + Math.random());
-      const liveReturn = live.totalReturn / 6 * (0.4 + Math.random() * 0.8);
-      const divergence = ((liveReturn - backtestReturn) / Math.abs(backtestReturn || 1)) * 100;
+      const divergence = liveMonthlyReturn - backtestMonthlyReturn;
 
       heatmap.push({
         period,
-        backtestReturn,
-        liveReturn,
-        divergence,
+        backtestReturn: backtestMonthlyReturn,
+        liveReturn: liveMonthlyReturn,
+        divergence: backtestMonthlyReturn !== 0 
+          ? (divergence / Math.abs(backtestMonthlyReturn)) * 100 
+          : 0,
       });
     }
 

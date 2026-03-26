@@ -43,14 +43,31 @@ import {
   IconDownload,
   IconRefresh,
   IconInfoCircle,
-  IconAlertTriangle,
+  IconExclamationCircle,
   IconCheckCircle,
   IconCloseCircle,
-  IconTrendingUp,
-  IconTrendingDown,
+  IconDashboard,
   IconFilter,
 } from '@arco-design/web-react/icon';
-import ReactECharts from 'echarts-for-react';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  RadarChart,
+  Radar,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  BarChart,
+  Bar,
+  ComposedChart,
+  Area,
+} from 'recharts';
 import { useTranslation } from 'react-i18next';
 import { createLogger } from '../../utils/logger';
 
@@ -102,6 +119,7 @@ interface ComparisonReport {
     overallAssessment: 'outperforming' | 'on_track' | 'underperforming' | 'critical';
     keyFindings: string[];
     topRecommendations: string[];
+    nextSteps?: string[];
   };
   visualizationData: {
     equityCurveComparison: {
@@ -132,8 +150,8 @@ const SEVERITY_COLORS = {
 // Category icons
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   timing: <IconInfoCircle />,
-  execution: <IconTrendingUp />,
-  risk: <IconAlertTriangle />,
+  execution: <IconDashboard />,
+  risk: <IconExclamationCircle />,
   parameters: <IconFilter />,
   market_conditions: <IconCheckCircle />,
 };
@@ -247,7 +265,7 @@ const LiveBacktestComparisonPage: React.FC = () => {
       case 'on_track':
         return { color: 'blue', text: '符合预期', icon: <IconCheckCircle /> };
       case 'underperforming':
-        return { color: 'orange', text: '表现不佳', icon: <IconTrendingDown /> };
+        return { color: 'orange', text: '表现不佳', icon: <IconArrowFall /> };
       case 'critical':
         return { color: 'red', text: '严重偏离', icon: <IconCloseCircle /> };
       default:
@@ -255,216 +273,68 @@ const LiveBacktestComparisonPage: React.FC = () => {
     }
   }, [report]);
 
-  // Equity curve chart option
-  const equityCurveOption = useMemo(() => {
-    if (!report) return {};
+  // Prepare equity curve data for recharts
+  const equityCurveData = useMemo(() => {
+    if (!report) return [];
 
-    const backtestData = report.visualizationData.equityCurveComparison.backtest.map(
-      (d) => [d.timestamp, d.value]
-    );
-    const liveData = report.visualizationData.equityCurveComparison.live.map(
-      (d) => [d.timestamp, d.value]
-    );
+    const backtestData = report.visualizationData.equityCurveComparison.backtest;
+    const liveData = report.visualizationData.equityCurveComparison.live;
 
-    return {
-      title: {
-        text: '资金曲线对比',
-        left: 'center',
-      },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'cross' },
-      },
-      legend: {
-        data: ['回测', '实盘'],
-        bottom: 0,
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '10%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'time',
-        splitLine: { show: false },
-      },
-      yAxis: {
-        type: 'value',
-        name: '资金 ($)',
-        axisLabel: {
-          formatter: (value: number) => `$${(value / 1000).toFixed(1)}K`,
-        },
-      },
-      series: [
-        {
-          name: '回测',
-          type: 'line',
-          data: backtestData,
-          smooth: true,
-          lineStyle: { width: 2 },
-          itemStyle: { color: '#165DFF' },
-        },
-        {
-          name: '实盘',
-          type: 'line',
-          data: liveData,
-          smooth: true,
-          lineStyle: { width: 2 },
-          itemStyle: { color: '#14C9C9' },
-        },
-      ],
-    };
+    // Merge the two series by timestamp
+    const dataMap = new Map<number, { timestamp: number; backtest?: number; live?: number }>();
+
+    backtestData.forEach((d) => {
+      dataMap.set(d.timestamp, { timestamp: d.timestamp, backtest: d.value });
+    });
+
+    liveData.forEach((d) => {
+      const existing = dataMap.get(d.timestamp);
+      if (existing) {
+        existing.live = d.value;
+      } else {
+        dataMap.set(d.timestamp, { timestamp: d.timestamp, live: d.value });
+      }
+    });
+
+    return Array.from(dataMap.values())
+      .sort((a, b) => a.timestamp - b.timestamp)
+      .map((d) => ({
+        ...d,
+        time: new Date(d.timestamp).toLocaleDateString(),
+      }));
   }, [report]);
 
-  // Metrics radar chart option
-  const radarOption = useMemo(() => {
-    if (!report) return {};
+  // Prepare radar data for recharts
+  const radarData = useMemo(() => {
+    if (!report) return [];
 
-    const indicator = report.visualizationData.metricsRadar.map((m) => ({
-      name: m.metric,
-      max: 100,
+    return report.visualizationData.metricsRadar.map((m) => ({
+      metric: m.metric,
+      backtest: m.backtest,
+      live: m.live,
+      fullMark: 100,
     }));
-
-    return {
-      title: {
-        text: '指标雷达图',
-        left: 'center',
-      },
-      tooltip: {},
-      legend: {
-        data: ['回测', '实盘'],
-        bottom: 0,
-      },
-      radar: {
-        indicator,
-        center: ['50%', '50%'],
-        radius: '60%',
-      },
-      series: [
-        {
-          type: 'radar',
-          data: [
-            {
-              value: report.visualizationData.metricsRadar.map((m) => m.backtest),
-              name: '回测',
-              itemStyle: { color: '#165DFF' },
-              areaStyle: { opacity: 0.2 },
-            },
-            {
-              value: report.visualizationData.metricsRadar.map((m) => m.live),
-              name: '实盘',
-              itemStyle: { color: '#14C9C9' },
-              areaStyle: { opacity: 0.2 },
-            },
-          ],
-        },
-      ],
-    };
   }, [report]);
 
-  // Divergence timeline chart option
-  const divergenceTimelineOption = useMemo(() => {
-    if (!report) return {};
+  // Prepare divergence timeline data for recharts
+  const divergenceTimelineData = useMemo(() => {
+    if (!report) return [];
 
-    return {
-      title: {
-        text: '偏离度时间线',
-        left: 'center',
-      },
-      tooltip: {
-        trigger: 'axis',
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'time',
-        splitLine: { show: false },
-      },
-      yAxis: {
-        type: 'value',
-        name: '偏离度',
-        axisLabel: {
-          formatter: '{value}',
-        },
-      },
-      visualMap: {
-        show: false,
-        pieces: [
-          { lte: 10, color: '#00B42A' },
-          { gt: 10, lte: 20, color: '#165DFF' },
-          { gt: 20, lte: 40, color: '#FF7D00' },
-          { gt: 40, color: '#F53F3F' },
-        ],
-      },
-      series: [
-        {
-          type: 'line',
-          data: report.visualizationData.divergenceTimeline.map((d) => [d.timestamp, d.divergence]),
-          smooth: true,
-          areaStyle: { opacity: 0.3 },
-        },
-      ],
-    };
+    return report.visualizationData.divergenceTimeline.map((d) => ({
+      ...d,
+      time: new Date(d.timestamp).toLocaleDateString(),
+    }));
   }, [report]);
 
-  // Performance heatmap option
-  const heatmapOption = useMemo(() => {
-    if (!report) return {};
+  // Prepare heatmap data for recharts
+  const heatmapData = useMemo(() => {
+    if (!report) return [];
 
-    const periods = report.visualizationData.performanceHeatmap.map((d) => d.period);
-    const backtestReturns = report.visualizationData.performanceHeatmap.map((d) => d.backtestReturn);
-    const liveReturns = report.visualizationData.performanceHeatmap.map((d) => d.liveReturn);
-
-    return {
-      title: {
-        text: '月度收益对比',
-        left: 'center',
-      },
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: { type: 'shadow' },
-      },
-      legend: {
-        data: ['回测收益', '实盘收益'],
-        bottom: 0,
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '10%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'category',
-        data: periods,
-      },
-      yAxis: {
-        type: 'value',
-        name: '收益率 (%)',
-        axisLabel: {
-          formatter: '{value}%',
-        },
-      },
-      series: [
-        {
-          name: '回测收益',
-          type: 'bar',
-          data: backtestReturns,
-          itemStyle: { color: '#165DFF' },
-        },
-        {
-          name: '实盘收益',
-          type: 'bar',
-          data: liveReturns,
-          itemStyle: { color: '#14C9C9' },
-        },
-      ],
-    };
+    return report.visualizationData.performanceHeatmap.map((d) => ({
+      period: d.period,
+      回测收益: d.backtestReturn,
+      实盘收益: d.liveReturn,
+    }));
   }, [report]);
 
   // Metrics table columns
@@ -630,7 +500,7 @@ const LiveBacktestComparisonPage: React.FC = () => {
           <Card>
             <Empty
               description="选择策略和时间范围后点击「生成分析」按钮"
-              icon={<IconTrendingUp style={{ fontSize: 64 }} />}
+              icon={<IconDashboard style={{ fontSize: 64 }} />}
             />
           </Card>
         )}
@@ -716,20 +586,103 @@ const LiveBacktestComparisonPage: React.FC = () => {
                 <Tabs.TabPane key="overview" title="概览">
                   <Space direction="vertical" style={{ width: '100%' }} size="large">
                     {/* Equity Curve Comparison */}
-                    <ReactECharts option={equityCurveOption} style={{ height: 400 }} />
+                    <Card title="资金曲线对比" bordered={false}>
+                      <ResponsiveContainer width="100%" height={400}>
+                        <LineChart data={equityCurveData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="time" />
+                          <YAxis
+                            tickFormatter={(value) => `$${(value / 1000).toFixed(1)}K`}
+                          />
+                          <RechartsTooltip
+                            formatter={(value: number) => [`$${value.toFixed(2)}`, '']}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="backtest"
+                            name="回测"
+                            stroke="#165DFF"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="live"
+                            name="实盘"
+                            stroke="#14C9C9"
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </Card>
 
-                    {/* Metrics Radar */}
+                    {/* Metrics Radar and Divergence Timeline */}
                     <Row gutter={16}>
                       <Col span={12}>
-                        <ReactECharts option={radarOption} style={{ height: 350 }} />
+                        <Card title="指标雷达图" bordered={false}>
+                          <ResponsiveContainer width="100%" height={350}>
+                            <RadarChart data={radarData}>
+                              <PolarGrid />
+                              <PolarAngleAxis dataKey="metric" />
+                              <PolarRadiusAxis angle={30} domain={[0, 100]} />
+                              <Radar
+                                name="回测"
+                                dataKey="backtest"
+                                stroke="#165DFF"
+                                fill="#165DFF"
+                                fillOpacity={0.3}
+                              />
+                              <Radar
+                                name="实盘"
+                                dataKey="live"
+                                stroke="#14C9C9"
+                                fill="#14C9C9"
+                                fillOpacity={0.3}
+                              />
+                              <Legend />
+                              <RechartsTooltip />
+                            </RadarChart>
+                          </ResponsiveContainer>
+                        </Card>
                       </Col>
                       <Col span={12}>
-                        <ReactECharts option={divergenceTimelineOption} style={{ height: 350 }} />
+                        <Card title="偏离度时间线" bordered={false}>
+                          <ResponsiveContainer width="100%" height={350}>
+                            <ComposedChart data={divergenceTimelineData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="time" />
+                              <YAxis />
+                              <RechartsTooltip />
+                              <Area
+                                type="monotone"
+                                dataKey="divergence"
+                                name="偏离度"
+                                stroke="#165DFF"
+                                fill="#165DFF"
+                                fillOpacity={0.3}
+                              />
+                            </ComposedChart>
+                          </ResponsiveContainer>
+                        </Card>
                       </Col>
                     </Row>
 
                     {/* Monthly Returns */}
-                    <ReactECharts option={heatmapOption} style={{ height: 300 }} />
+                    <Card title="月度收益对比" bordered={false}>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={heatmapData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis tickFormatter={(value) => `${value.toFixed(1)}%`} />
+                          <RechartsTooltip formatter={(value: number) => [`${value.toFixed(2)}%`, '']} />
+                          <Legend />
+                          <Bar dataKey="回测收益" fill="#165DFF" />
+                          <Bar dataKey="实盘收益" fill="#14C9C9" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </Card>
                   </Space>
                 </Tabs.TabPane>
 
@@ -764,16 +717,18 @@ const LiveBacktestComparisonPage: React.FC = () => {
                       ))}
                     </Card>
 
-                    <Card title="下一步行动" bordered={false}>
-                      <List
-                        dataSource={report.summary.nextSteps}
-                        renderItem={(step, idx) => (
-                          <List.Item key={idx}>
-                            <Text>{idx + 1}. {step}</Text>
-                          </List.Item>
-                        )}
-                      />
-                    </Card>
+                    {report.summary.nextSteps && (
+                      <Card title="下一步行动" bordered={false}>
+                        <List
+                          dataSource={report.summary.nextSteps}
+                          renderItem={(step, idx) => (
+                            <List.Item key={idx}>
+                              <Text>{idx + 1}. {step}</Text>
+                            </List.Item>
+                          )}
+                        />
+                      </Card>
+                    )}
                   </Space>
                 </Tabs.TabPane>
               </Tabs>

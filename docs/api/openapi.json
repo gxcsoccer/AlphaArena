@@ -2218,7 +2218,7 @@
     "/api/apm/errors": {
       "post": {
         "summary": "Report frontend error",
-        "description": "Receive and store frontend error reports",
+        "description": "Receive and store frontend error reports with deduplication",
         "tags": [
           "APM"
         ],
@@ -2375,6 +2375,43 @@
         }
       }
     },
+    "/api/apm/errors/top": {
+      "get": {
+        "summary": "Get top errors by occurrence",
+        "description": "Get aggregated top errors with occurrence counts",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "schema": {
+              "type": "integer",
+              "default": 7
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Top errors by occurrence"
+          }
+        }
+      }
+    },
     "/api/apm/errors/summary": {
       "get": {
         "summary": "Get error summary",
@@ -2437,6 +2474,38 @@
         "responses": {
           "200": {
             "description": "Error details"
+          }
+        }
+      }
+    },
+    "/api/apm/errors/batch": {
+      "post": {
+        "summary": "Report multiple errors in batch",
+        "description": "Receive and store multiple frontend error reports at once",
+        "tags": [
+          "APM"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "errors": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Errors recorded"
           }
         }
       }
@@ -2529,6 +2598,177 @@
         "responses": {
           "200": {
             "description": "APM summary"
+          }
+        }
+      }
+    },
+    "/api/apm/thresholds": {
+      "get": {
+        "summary": "Get performance thresholds",
+        "description": "Get all performance threshold configurations",
+        "tags": [
+          "APM"
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance thresholds"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update performance threshold",
+        "description": "Update a performance threshold configuration (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "metric_type": {
+                    "type": "string"
+                  },
+                  "warning_threshold": {
+                    "type": "number"
+                  },
+                  "critical_threshold": {
+                    "type": "number"
+                  },
+                  "enabled": {
+                    "type": "boolean"
+                  },
+                  "notification_channels": {
+                    "type": "object"
+                  },
+                  "cooldown_minutes": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Threshold updated"
+          }
+        }
+      }
+    },
+    "/api/apm/alerts": {
+      "get": {
+        "summary": "Get performance alerts",
+        "description": "Get active performance alerts",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "acknowledged",
+                "resolved"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "severity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "warning",
+                "critical"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Performance alerts"
+          }
+        }
+      }
+    },
+    "/api/apm/alerts/{id}/acknowledge": {
+      "post": {
+        "summary": "Acknowledge performance alert",
+        "description": "Acknowledge a performance alert (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alert acknowledged"
+          }
+        }
+      }
+    },
+    "/api/apm/alerts/{id}/resolve": {
+      "post": {
+        "summary": "Resolve performance alert",
+        "description": "Resolve a performance alert (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Alert resolved"
           }
         }
       }
