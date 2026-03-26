@@ -12,7 +12,13 @@
 
 import puppeteer from 'puppeteer';
 
-const BASE_URL = (process.env.E2E_BASE_URL || 'http://localhost:3000') + '?lang=en-US';
+const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+// Helper to build URL with lang parameter
+const buildUrl = (path: string): string => {
+  const separator = path.includes('?') ? '&' : '?';
+  return BASE_URL + path + separator + 'lang=en-US';
+};
 const TIMEOUT = 30000;
 const WAIT_AFTER_LOAD = 5000;
 
@@ -54,7 +60,7 @@ async function runTests(): Promise<number> {
     // Test 1.1: Navigate to holdings page
     console.log('  Test 1.1: Navigate to holdings page');
     const startTime = Date.now();
-    await page1.goto(BASE_URL + '/holdings', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page1.goto(buildUrl('/holdings'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
     const loadTime = Date.now() - startTime;
 
@@ -105,7 +111,7 @@ async function runTests(): Promise<number> {
     const page2 = await browser.newPage();
     await page2.setViewport({ width: 1280, height: 800 });
 
-    await page2.goto(BASE_URL + '/holdings', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page2.goto(buildUrl('/holdings'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 2.1: Position table or list
@@ -184,7 +190,7 @@ async function runTests(): Promise<number> {
     const page3 = await browser.newPage();
     await page3.setViewport({ width: 1280, height: 800 });
 
-    await page3.goto(BASE_URL + '/holdings', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page3.goto(buildUrl('/holdings'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 3.1: P&L indicators
@@ -273,7 +279,7 @@ async function runTests(): Promise<number> {
     const page4 = await browser.newPage();
     await page4.setViewport({ width: 1280, height: 800 });
 
-    await page4.goto(BASE_URL + '/holdings', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page4.goto(buildUrl('/holdings'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 4.1: Strategy selector
@@ -348,7 +354,7 @@ async function runTests(): Promise<number> {
     const page5 = await browser.newPage();
     await page5.setViewport({ width: 1280, height: 800 });
 
-    await page5.goto(BASE_URL + '/holdings', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page5.goto(buildUrl('/holdings'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test 5.1: Chart elements

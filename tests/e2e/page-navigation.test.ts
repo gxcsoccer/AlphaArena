@@ -12,7 +12,13 @@
 
 import puppeteer from 'puppeteer';
 
-const BASE_URL = (process.env.E2E_BASE_URL || 'http://localhost:3000') + '?lang=en-US';
+const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+
+// Helper to build URL with lang parameter
+const buildUrl = (path: string): string => {
+  const separator = path.includes('?') ? '&' : '?';
+  return BASE_URL + path + separator + 'lang=en-US';
+};
 const TIMEOUT = 60000; // Increased from 30000 to 60000 for CI stability
 const WAIT_AFTER_LOAD = 5000; // Increased wait time after page load for CI stability
 
@@ -97,7 +103,7 @@ async function runTests(): Promise<number> {
       
       const startTime = Date.now();
       try {
-        await page.goto(BASE_URL + pageInfo.path, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+        await page.goto(buildUrl(pageInfo.path), { waitUntil: 'networkidle0', timeout: TIMEOUT });
         await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
         const loadTime = Date.now() - startTime;
 
@@ -186,11 +192,11 @@ async function runTests(): Promise<number> {
       const startTime = Date.now();
       
       try {
-        await navPage.goto(BASE_URL + navTest.to, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+        await navPage.goto(buildUrl(navTest.to), { waitUntil: 'networkidle0', timeout: TIMEOUT });
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         const currentUrl = navPage.url();
-        const expectedUrl = BASE_URL + navTest.to;
+        const expectedUrl = buildUrl(navTest.to);
         const onCorrectPage = currentUrl === expectedUrl || currentUrl.startsWith(expectedUrl);
         
         results.push({
@@ -223,7 +229,7 @@ async function runTests(): Promise<number> {
     const uiPage = await browser.newPage();
     await uiPage.setViewport({ width: 1280, height: 800 });
 
-    await uiPage.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await uiPage.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     await new Promise(resolve => setTimeout(resolve, WAIT_AFTER_LOAD));
 
     // Test for essential UI elements
@@ -302,7 +308,7 @@ async function runTests(): Promise<number> {
     // Test invalid route
     console.log('  Test 4.1: Invalid route handling');
     try {
-      await errorPage.goto(BASE_URL + '/nonexistent-page-xyz', { waitUntil: 'networkidle0', timeout: TIMEOUT });
+      await errorPage.goto(buildUrl('/nonexistent-page-xyz'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Check that app didn't crash
@@ -338,7 +344,7 @@ async function runTests(): Promise<number> {
 
     console.log('  Test 5.1: Page load time');
     const perfStart = Date.now();
-    await perfPage.goto(BASE_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await perfPage.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
     const perfLoadTime = Date.now() - perfStart;
 
     results.push({
