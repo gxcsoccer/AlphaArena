@@ -12,7 +12,7 @@
 
 import puppeteer from 'puppeteer';
 
-const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+const BASE_URL = (process.env.E2E_BASE_URL || 'http://localhost:3000') + '?lang=en-US';
 const TIMEOUT = 60000; // Increased from 30000 to 60000 for CI stability
 const WAIT_AFTER_LOAD = 5000; // Increased wait time after page load for CI stability
 

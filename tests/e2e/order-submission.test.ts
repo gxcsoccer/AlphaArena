@@ -12,7 +12,7 @@
 
 import puppeteer from 'puppeteer';
 
-const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
+const BASE_URL = (process.env.E2E_BASE_URL || 'http://localhost:3000') + '?lang=en-US';
 const TIMEOUT = 30000;
 const WAIT_AFTER_LOAD = 5000; // Wait time after page load for data to populate
 
