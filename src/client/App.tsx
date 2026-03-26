@@ -96,6 +96,7 @@ const PaymentMonitoringPage = lazyWithRetry(() => import('./pages/PaymentMonitor
 const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
 const NotificationHistoryPage = lazyWithRetry(() => import('./pages/NotificationHistoryPage'));
 const PrivacySettingsPage = lazyWithRetry(() => import('./pages/PrivacySettingsPage')); // Issue #642: GDPR
+const BusinessMetricsPage = lazyWithRetry(() => import('./pages/BusinessMetricsPage')); // Issue #652: Business Metrics
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -563,6 +564,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/notifications" element={<NotificationHistoryPage />} />
         <Route path="/privacy" element={<PrivacySettingsPage />} /> {/* Issue #642: GDPR */}
         <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
+        <Route path="/admin/business-metrics" element={<BusinessMetricsPage />} /> {/* Issue #652: Business Metrics */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>

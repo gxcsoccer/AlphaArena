@@ -2215,6 +2215,305 @@
         }
       }
     },
+    "/api/apm/errors": {
+      "post": {
+        "summary": "Report frontend error",
+        "description": "Receive and store frontend error reports",
+        "tags": [
+          "APM"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "stack": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "javascript",
+                      "promise",
+                      "react",
+                      "resource",
+                      "unknown"
+                    ]
+                  },
+                  "severity": {
+                    "type": "string",
+                    "enum": [
+                      "low",
+                      "medium",
+                      "high",
+                      "critical"
+                    ]
+                  },
+                  "context": {
+                    "type": "object"
+                  },
+                  "timestamp": {
+                    "type": "number"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "userAgent": {
+                    "type": "string"
+                  },
+                  "breadcrumbs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Error recorded"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get frontend errors",
+        "description": "Get paginated list of frontend errors (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "severity",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "javascript",
+                "promise",
+                "react",
+                "resource",
+                "unknown"
+              ]
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_filter",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 50
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "schema": {
+              "type": "integer",
+              "default": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of errors"
+          }
+        }
+      }
+    },
+    "/api/apm/errors/summary": {
+      "get": {
+        "summary": "Get error summary",
+        "description": "Get aggregated error statistics (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error summary"
+          }
+        }
+      }
+    },
+    "/api/apm/errors/{id}": {
+      "get": {
+        "summary": "Get error details",
+        "description": "Get detailed error information (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error details"
+          }
+        }
+      }
+    },
+    "/api/apm/errors/{id}/resolve": {
+      "post": {
+        "summary": "Mark error as resolved",
+        "description": "Mark a frontend error as resolved (admin only)",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error resolved"
+          }
+        }
+      }
+    },
+    "/api/apm/api-latency": {
+      "get": {
+        "summary": "Get API latency statistics",
+        "description": "Get aggregated API latency metrics",
+        "tags": [
+          "APM"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "start_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "end_date",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "in": "query",
+            "name": "endpoint",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API latency statistics"
+          }
+        }
+      }
+    },
     "/api/audit/logs": {
       "get": {
         "tags": [
