@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS signal_notification_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
   -- Template identification
-  template_key VARCHAR(100) NOT NULL UNIQUE,
+  template_key VARCHAR(100) NOT NULL,
   notification_type VARCHAR(50) NOT NULL,
   
   -- Content templates (with placeholders)
@@ -117,7 +117,10 @@ CREATE TABLE IF NOT EXISTS signal_notification_templates (
   -- Metadata
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Composite unique key allows same template_key with different languages
+  UNIQUE(template_key, language)
 );
 
 -- Insert default templates

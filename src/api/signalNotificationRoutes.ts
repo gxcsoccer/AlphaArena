@@ -291,7 +291,26 @@ router.post('/test', authenticateUser, async (req: Request, res: Response) => {
  */
 router.post('/:id/read', authenticateUser, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).userId;
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+    // Security: Verify notification belongs to the authenticated user
+    const supabase = getSupabaseClient();
+    const { data: notification, error: fetchError } = await supabase
+      .from('notification_history')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !notification) {
+      res.status(404).json({ error: 'Notification not found' });
+      return;
+    }
+
+    if (notification.user_id !== userId) {
+      res.status(403).json({ error: 'Forbidden: Notification does not belong to user' });
+      return;
+    }
 
     const historyDAO = getNotificationHistoryDAO();
     const history = await historyDAO.markAsRead(id);
@@ -317,8 +336,27 @@ router.post('/:id/read', authenticateUser, async (req: Request, res: Response) =
  */
 router.post('/:id/click', authenticateUser, async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).userId;
     const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
     const { action } = req.body;
+
+    // Security: Verify notification belongs to the authenticated user
+    const supabase = getSupabaseClient();
+    const { data: notification, error: fetchError } = await supabase
+      .from('notification_history')
+      .select('user_id')
+      .eq('id', id)
+      .single();
+
+    if (fetchError || !notification) {
+      res.status(404).json({ error: 'Notification not found' });
+      return;
+    }
+
+    if (notification.user_id !== userId) {
+      res.status(403).json({ error: 'Forbidden: Notification does not belong to user' });
+      return;
+    }
 
     const historyDAO = getNotificationHistoryDAO();
     const history = await historyDAO.recordClick(id, action);
