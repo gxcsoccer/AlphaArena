@@ -3,6 +3,12 @@
  * 
  * Comprehensive visualization dashboard for backtest results
  * featuring interactive charts, strategy comparison, and detailed analysis
+ * 
+ * VIP Features:
+ * - Parameter Optimization
+ * - Multi-Strategy Comparison
+ * - Backtest History Records
+ * - Extended Historical Data
  */
 
 import React, { useState, useMemo, useCallback } from 'react';
@@ -23,12 +29,14 @@ import {
   Tag,
   Descriptions,
   Drawer,
+  Alert,
 } from '@arco-design/web-react';
 import {
   IconPlayArrow,
   IconDownload,
   IconSettings,
   IconExperiment,
+  IconTrophy,
   
   
 } from '@arco-design/web-react/icon';
@@ -42,6 +50,13 @@ import { HoldingTimeChart, HoldingPeriod } from '../components/HoldingTimeChart'
 import { useBacktest, STRATEGIES, SYMBOLS, BacktestResult } from '../hooks/useBacktest';
 import { useTranslation } from 'react-i18next';
 import { createLogger } from '../../utils/logger';
+
+// VIP Components
+import BacktestOptimizer from '../components/BacktestOptimizer';
+import BacktestHistory from '../components/BacktestHistory';
+import MultiStrategyComparison from '../components/MultiStrategyComparison';
+import HistoricalDataGate, { useHistoricalDataLimit } from '../components/HistoricalDataGate';
+import { useSubscription, usePlan } from '../hooks/useSubscription';
 
 const _log = createLogger('BacktestVisualizationPage');
 
@@ -431,6 +446,21 @@ const BacktestVisualizationPage: React.FC = () => {
           {error}
         </Message>
       )}
+
+      {/* VIP Features - Historical Data Info */}
+      <HistoricalDataGate
+        requestedDays={Math.ceil((config.dateRange[1] - config.dateRange[0]) / (24 * 60 * 60 * 1000))}
+      >
+        <Alert
+          type="info"
+          style={{ marginBottom: 16 }}
+          content={
+            <Space>
+              <Text>VIP 功能：参数优化、多策略对比、回测历史记录已集成到下方的 VIP 标签页中</Text>
+            </Space>
+          }
+        />
+      </HistoricalDataGate>
       
       {/* Loading state */}
       {loading && (
@@ -450,7 +480,7 @@ const BacktestVisualizationPage: React.FC = () => {
             <PerformanceDashboard stats={result.stats} t={t} />
           </div>
           
-          {/* Main charts */}
+          {/* Main charts with VIP tabs */}
           <Tabs defaultActiveTab="overview">
             <Tabs.TabPane key="overview" title={t('chart.equityCurve')}>
               <Row gutter={[16, 16]}>
@@ -516,21 +546,135 @@ const BacktestVisualizationPage: React.FC = () => {
                 height={400}
               />
             </Tabs.TabPane>
+
+            {/* VIP Feature Tabs */}
+            <Tabs.TabPane
+              key="optimization"
+              title={
+                <Space>
+                  <IconTrophy />
+                  <span>参数优化</span>
+                  <Tag color="gold" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <BacktestOptimizer
+                symbol={config.symbol}
+                dateRange={config.dateRange}
+                initialCapital={config.capital}
+                onOptimalParamsFound={(params) => {
+                  setConfig((prev) => ({
+                    ...prev,
+                    strategyParams: { ...prev.strategyParams, ...params },
+                  }));
+                  Message.success('最优参数已应用到当前配置');
+                }}
+              />
+            </Tabs.TabPane>
+
+            <Tabs.TabPane
+              key="multi-strategy"
+              title={
+                <Space>
+                  <span>多策略对比</span>
+                  <Tag color="blue" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <MultiStrategyComparison
+                dateRange={config.dateRange}
+                initialCapital={config.capital}
+                maxStrategies={4}
+              />
+            </Tabs.TabPane>
+
+            <Tabs.TabPane
+              key="history"
+              title={
+                <Space>
+                  <span>回测历史</span>
+                  <Tag color="green" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <BacktestHistory
+                currentResult={result}
+                onLoadRecord={(record) => {
+                  setConfig({
+                    capital: record.initialCapital,
+                    symbol: record.symbol,
+                    strategy: record.strategy,
+                    dateRange: record.dateRange,
+                    strategyParams: record.strategyParams,
+                  });
+                  Message.success('历史配置已加载');
+                }}
+              />
+            </Tabs.TabPane>
           </Tabs>
         </>
       )}
       
       {/* Empty state */}
       {!loading && !result && (
-        <Card style={{ textAlign: 'center', padding: 48 }}>
-          <IconExperiment style={{ fontSize: 64, color: 'var(--color-text-3)' }} />
-          <div style={{ marginTop: 16 }}>
-            <Title heading={5}>{t('actions.run')}</Title>
-            <Text type="secondary">
-              {t('subtitle')}
-            </Text>
-          </div>
-        </Card>
+        <>
+          <Card style={{ textAlign: 'center', padding: 48, marginBottom: 16 }}>
+            <IconExperiment style={{ fontSize: 64, color: 'var(--color-text-3)' }} />
+            <div style={{ marginTop: 16 }}>
+              <Title heading={5}>{t('actions.run')}</Title>
+              <Text type="secondary">
+                {t('subtitle')}
+              </Text>
+            </div>
+          </Card>
+
+          {/* Show VIP features preview even when no results */}
+          <Tabs defaultActiveTab="optimization">
+            <Tabs.TabPane
+              key="optimization"
+              title={
+                <Space>
+                  <IconTrophy />
+                  <span>参数优化</span>
+                  <Tag color="gold" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <BacktestOptimizer
+                symbol={config.symbol}
+                dateRange={config.dateRange}
+                initialCapital={config.capital}
+              />
+            </Tabs.TabPane>
+
+            <Tabs.TabPane
+              key="multi-strategy"
+              title={
+                <Space>
+                  <span>多策略对比</span>
+                  <Tag color="blue" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <MultiStrategyComparison
+                dateRange={config.dateRange}
+                initialCapital={config.capital}
+              />
+            </Tabs.TabPane>
+
+            <Tabs.TabPane
+              key="history"
+              title={
+                <Space>
+                  <span>回测历史</span>
+                  <Tag color="green" size="small">VIP</Tag>
+                </Space>
+              }
+            >
+              <BacktestHistory />
+            </Tabs.TabPane>
+          </Tabs>
+        </>
       )}
       
       {/* Settings Drawer */}
