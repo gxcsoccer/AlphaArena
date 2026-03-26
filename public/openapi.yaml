@@ -1273,6 +1273,346 @@ paths:
                   timestamp: {type: integer}
         '404':
           description: 'Order book not found for symbol'
+  /api/audit/logs:
+    get:
+      tags:
+        - Audit
+      summary: 'Get audit logs'
+      description: 'Retrieve audit logs with filtering and pagination (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: user_id
+          schema:
+            type: string
+          description: 'Filter by user ID'
+        -
+          in: query
+          name: action
+          schema:
+            type: string
+          description: 'Filter by action'
+        -
+          in: query
+          name: action_category
+          schema:
+            type: string
+            enum:
+              - auth
+              - data_access
+              - payment
+              - subscription
+              - export
+              - admin
+              - security
+          description: 'Filter by action category'
+        -
+          in: query
+          name: resource_type
+          schema:
+            type: string
+          description: 'Filter by resource type'
+        -
+          in: query
+          name: risk_level
+          schema:
+            type: string
+            enum:
+              - low
+              - medium
+              - high
+              - critical
+          description: 'Filter by risk level'
+        -
+          in: query
+          name: is_sensitive
+          schema:
+            type: boolean
+          description: 'Filter sensitive actions only'
+        -
+          in: query
+          name: start_date
+          schema:
+            type: string
+            format: date-time
+          description: 'Start date filter'
+        -
+          in: query
+          name: end_date
+          schema:
+            type: string
+            format: date-time
+          description: 'End date filter'
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+            maximum: 200
+          description: 'Number of results'
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: 'Offset for pagination'
+        -
+          in: query
+          name: sort_by
+          schema:
+            type: string
+            enum:
+              - created_at
+              - response_time_ms
+              - risk_level
+            default: created_at
+          description: 'Sort field'
+        -
+          in: query
+          name: sort_order
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          description: 'Sort order'
+      responses:
+        '200':
+          description: 'Audit logs retrieved successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: {type: boolean}
+                  data: {type: array, items: {$ref: '#/components/schemas/AuditLog'}}
+                  total: {type: integer}
+                  limit: {type: integer}
+                  offset: {type: integer}
+        '401':
+          description: Unauthorized
+        '403':
+          description: 'Forbidden - Admin access required'
+  '/api/audit/logs/{id}':
+    get:
+      tags:
+        - Audit
+      summary: 'Get audit log by ID'
+      description: 'Retrieve a specific audit log entry (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: 'Audit log ID'
+      responses:
+        '200':
+          description: 'Audit log retrieved successfully'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+        '404':
+          description: 'Audit log not found'
+  /api/audit/stats:
+    get:
+      tags:
+        - Audit
+      summary: 'Get daily audit statistics'
+      description: 'Get aggregated daily audit statistics (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: start_date
+          schema:
+            type: string
+            format: date
+          description: 'Start date (YYYY-MM-DD)'
+        -
+          in: query
+          name: end_date
+          schema:
+            type: string
+            format: date
+          description: 'End date (YYYY-MM-DD)'
+      responses:
+        '200':
+          description: 'Statistics retrieved successfully'
+  /api/audit/stats/today:
+    get:
+      tags:
+        - Audit
+      summary: 'Get today''s audit statistics'
+      description: 'Get today''s aggregated audit statistics (admin only)'
+      security:
+        -
+          bearerAuth: []
+      responses:
+        '200':
+          description: 'Today''s statistics retrieved successfully'
+  '/api/audit/users/{userId}':
+    get:
+      tags:
+        - Audit
+      summary: 'Get user audit logs'
+      description: 'Get audit logs for a specific user (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: 'User ID'
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+          description: 'Number of results'
+        -
+          in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+          description: 'Offset for pagination'
+      responses:
+        '200':
+          description: 'User audit logs retrieved successfully'
+  '/api/audit/users/{userId}/summary':
+    get:
+      tags:
+        - Audit
+      summary: 'Get user audit summary'
+      description: 'Get audit summary for a specific user (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: 'User ID'
+        -
+          in: query
+          name: days
+          schema:
+            type: integer
+            default: 30
+          description: 'Number of days to include'
+      responses:
+        '200':
+          description: 'User audit summary retrieved successfully'
+  '/api/audit/resources/{resourceType}/{resourceId}':
+    get:
+      tags:
+        - Audit
+      summary: 'Get resource audit logs'
+      description: 'Get audit logs for a specific resource (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: path
+          name: resourceType
+          required: true
+          schema:
+            type: string
+          description: 'Resource type'
+        -
+          in: path
+          name: resourceId
+          required: true
+          schema:
+            type: string
+          description: 'Resource ID'
+        -
+          in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+          description: 'Number of results'
+      responses:
+        '200':
+          description: 'Resource audit logs retrieved successfully'
+  /api/audit/suspicious:
+    get:
+      tags:
+        - Audit
+      summary: 'Detect suspicious activity'
+      description: 'Detect potentially suspicious activity patterns (admin only)'
+      security:
+        -
+          bearerAuth: []
+      parameters:
+        -
+          in: query
+          name: user_id
+          schema:
+            type: string
+          description: 'User ID to check'
+        -
+          in: query
+          name: ip_address
+          schema:
+            type: string
+          description: 'IP address to check'
+        -
+          in: query
+          name: hours
+          schema:
+            type: integer
+            default: 24
+          description: 'Time window in hours'
+      responses:
+        '200':
+          description: 'Suspicious activity analysis completed'
+  /api/audit/aggregate:
+    post:
+      tags:
+        - Audit
+      summary: 'Aggregate daily stats'
+      description: 'Trigger daily stats aggregation for a specific date (admin only)'
+      security:
+        -
+          bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                  description: 'Date to aggregate (YYYY-MM-DD)'
+      responses:
+        '200':
+          description: 'Aggregation completed successfully'
   /api/exchange-accounts:
     get:
       summary: 'Get all exchange accounts'

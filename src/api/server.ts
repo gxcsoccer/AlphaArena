@@ -79,6 +79,7 @@ import analyticsExportRoutes from './analyticsExportRoutes';
 import shareRoutes from './shareRoutes';
 import insightRoutes from './insightRoutes';
 import onboardingRoutes from './onboarding.routes';
+import auditRoutes from './auditRoutes'; // Issue #641: Security Audit
 import { errorLogService } from '../analytics/ErrorLogService';
 import { createLogger } from '../utils/logger';
 import { 
@@ -86,6 +87,9 @@ import {
   notFoundMiddleware, 
   requestIdMiddleware 
 } from './errorMiddleware';
+import { securityHeadersMiddleware } from '../middleware/security.middleware'; // Issue #641
+import { rateLimiters } from '../middleware/rateLimit.middleware'; // Issue #641
+import { auditMiddleware } from '../middleware/audit.middleware'; // Issue #641
 import { 
   cacheMiddleware, 
   cacheStatsHandler, 
@@ -259,6 +263,18 @@ export class APIServer extends EventEmitter {
     // Cache middleware - cache API responses
     this.app.use(cacheMiddleware());
     log.info('API response caching enabled');
+
+    // Security headers middleware - Issue #641
+    this.app.use(securityHeadersMiddleware());
+    log.info('Security headers middleware enabled');
+
+    // Rate limiting middleware - Issue #641
+    this.app.use(rateLimiters.api);
+    log.info('Rate limiting middleware enabled');
+
+    // Audit logging middleware - Issue #641
+    this.app.use(auditMiddleware());
+    log.info('Audit logging middleware enabled');
 
     // Monitoring middleware - track request timing and errors
     this.app.use((req: Request, res: Response, next: NextFunction) => {
@@ -1078,6 +1094,7 @@ export class APIServer extends EventEmitter {
 
     // Referral System routes
     this.app.use('/api/referral', referralRoutes);
+    this.app.use('/api/audit', auditRoutes); // Issue #641: Security Audit
 
     // Share Statistics routes
     this.app.use('/api/share', shareRoutes);
