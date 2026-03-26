@@ -1,0 +1,50 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "1. Homepage Basic"
+    flow:
+      - sleep: 2000
+      - aiAssert: "Homepage shows AlphaArena logo and navigation"
+  - name: "2. i18n Switch to English"
+    flow:
+      - sleep: 2000
+      - ai: "Click on the language selector showing '简体中文' or similar"
+      - sleep: 1000
+      - ai: "Select English or EN from the dropdown"
+      - sleep: 2000
+      - aiAssert: "Page now displays English text, language selector shows EN or English"
+  - name: "3. i18n Switch to Japanese"
+    flow:
+      - sleep: 1000
+      - ai: "Click on the language selector"
+      - sleep: 1000
+      - ai: "Select Japanese or 日本語"
+      - sleep: 2000
+      - aiAssert: "Page now displays Japanese text"
+  - name: "4. i18n Switch to Korean"
+    flow:
+      - sleep: 1000
+      - ai: "Click on the language selector"
+      - sleep: 1000
+      - ai: "Select Korean or 한국어"
+      - sleep: 2000
+      - aiAssert: "Page now displays Korean text"
+  - name: "5. Pricing Page Check"
+    flow:
+      - sleep: 1000
+      - ai: "Navigate to /pricing in URL bar"
+      - sleep: 2000
+      - aiAssert: "Pricing page loads and shows pricing plans or under construction message"
+  - name: "6. Settings Page Check"
+    flow:
+      - sleep: 1000
+      - ai: "Navigate to /settings in URL bar"
+      - sleep: 2000
+      - aiAssert: "Settings page loads, showing subscription status or settings options"
+  - name: "7. Privacy Page Check"
+    flow:
+      - sleep: 1000
+      - ai: "Navigate to /privacy in URL bar"
+      - sleep: 2000
+      - aiAssert: "Privacy page loads, showing privacy options or data export functionality"
