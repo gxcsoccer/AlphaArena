@@ -253,8 +253,6 @@ describe('StrategyNotificationConfigDAO', () => {
 
   describe('getOrCreate', () => {
     it('should return a config object', async () => {
-      // Test that the method exists and returns an object
-      // Note: Actual behavior depends on database state
       const result = await dao.getOrCreate('user-1', 'strategy-1');
       expect(result).toBeDefined();
       expect(typeof result).toBe('object');
