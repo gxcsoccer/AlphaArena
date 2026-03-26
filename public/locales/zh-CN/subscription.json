@@ -1,0 +1,162 @@
+{
+  "pricing": {
+    "title": "选择适合您的计划",
+    "subtitle": "升级解锁更多功能，提升交易效率",
+    "free": "免费",
+    "perMonth": "/月",
+    "perYear": "/年",
+    "monthly": "按月付费",
+    "yearly": "按年付费",
+    "save": "省 2 个月",
+    "popular": "推荐",
+    "mostPopular": "最受欢迎",
+    "getStarted": "开始使用",
+    "subscribe": "立即订阅",
+    "contactSales": "联系销售",
+    "contactSalesBtn": "联系销售",
+    "contactSalesDesc": "请发送邮件至：",
+    "seo": {
+      "title": "定价 - AlphaArena",
+      "description": "选择适合您的订阅计划，解锁更多交易功能",
+      "keywords": "订阅,定价,Pro,Enterprise,VIP"
+    }
+  },
+  "plans": {
+    "free": {
+      "name": "免费版",
+      "features": {
+        "0": "最多 3 个并发策略",
+        "1": "每日 10 次回测",
+        "2": "基础市场数据",
+        "3": "社区支持"
+      }
+    },
+    "pro": {
+      "name": "专业版",
+      "features": {
+        "0": "无限策略运行",
+        "1": "无限回测",
+        "2": "高级市场数据 (Level 2)",
+        "3": "AI 策略助手",
+        "4": "风险预警通知",
+        "5": "数据导出",
+        "6": "优先支持"
+      }
+    },
+    "enterprise": {
+      "name": "企业版",
+      "features": {
+        "0": "所有 Pro 功能",
+        "1": "多用户团队管理",
+        "2": "API 访问（高配额）",
+        "3": "专属客户经理",
+        "4": "私有部署支持",
+        "5": "SLA 保障"
+      }
+    }
+  },
+  "comparison": {
+    "title": "功能对比",
+    "tooltip": "详细对比各套餐功能差异",
+    "feature": "功能",
+    "strategies": "策略数量",
+    "backtests": "每日回测次数",
+    "marketData": "市场数据",
+    "historicalData": "历史数据",
+    "aiAssistant": "AI 策略助手",
+    "alerts": "风险预警",
+    "apiAccess": "API 访问",
+    "export": "数据导出",
+    "support": "支持",
+    "unlimited": "无限",
+    "basic": "基础",
+    "advanced": "高级",
+    "premium": "高级 + API",
+    "days": "天",
+    "community": "社区",
+    "priority": "优先",
+    "dedicated": "专属"
+  },
+  "faq": {
+    "title": "常见问题",
+    "q1": "如何取消订阅？",
+    "a1": "您可以随时在「管理订阅」中取消，取消后您仍可使用当前付费期间的功能。",
+    "q2": "支持哪些支付方式？",
+    "a2": "目前支持支付宝、微信支付和信用卡支付。",
+    "q3": "升级后如何计费？",
+    "a3": "升级时会按比例计算差价，无需等待当前周期结束。",
+    "q4": "可以退款吗？",
+    "a4": "订阅后 7 天内可申请全额退款，请联系客服处理。"
+  },
+  "billing": {
+    "title": "账单与支付",
+    "seo": {
+      "title": "账单历史 - AlphaArena",
+      "description": "查看您的账单历史和管理支付方式"
+    },
+    "paymentMethods": "支付方式",
+    "add": "添加",
+    "addPaymentMethod": "添加支付方式",
+    "addPaymentMethodDesc": "支付方式管理功能即将上线，敬请期待。",
+    "addPaymentMethodNote": "目前支持在订阅流程中绑定支付方式。",
+    "deletePaymentMethod": "删除支付方式",
+    "deletePaymentMethodConfirm": "确定要删除此支付方式吗？",
+    "deleteSuccess": "支付方式已删除",
+    "setDefault": "设为默认",
+    "setDefaultSuccess": "已设为默认支付方式",
+    "default": "默认",
+    "noPaymentMethods": "暂无支付方式",
+    "addFirst": "添加支付方式",
+    "history": "账单历史",
+    "refresh": "刷新",
+    "noHistory": "暂无账单记录",
+    "invoiceNumber": "发票号",
+    "date": "日期",
+    "plan": "套餐",
+    "amount": "金额",
+    "status": {
+      "label": "状态",
+      "paid": "已支付",
+      "pending": "待支付",
+      "failed": "支付失败",
+      "refunded": "已退款"
+    },
+    "actions": "操作",
+    "download": "下载",
+    "downloadNotAvailable": "发票下载功能即将上线",
+    "fetchError": "加载账单数据失败",
+    "help": {
+      "title": "需要帮助？",
+      "contact": "如有账单相关问题，请联系客服：",
+      "hours": "客服工作时间：周一至周五 9:00-18:00"
+    }
+  },
+  "status": {
+    "active": "活跃",
+    "inactive": "未激活",
+    "pastDue": "逾期",
+    "canceled": "已取消",
+    "expired": "已过期",
+    "trial": "试用期"
+  },
+  "manage": {
+    "portalError": "打开管理面板失败"
+  },
+  "upgrade": "升级",
+  "upgradeToPro": "升级到专业版",
+  "manageSubscription": "管理订阅",
+  "billingPeriod": "计费周期",
+  "yearly": "年付",
+  "monthly": "月付",
+  "nextBilling": "下次计费",
+  "daysRemaining": "剩余天数",
+  "days": "天",
+  "expirySoon": "{{days}} 天后到期",
+  "cancelNotice": "您的订阅将在当前周期结束后取消，您可以随时重新激活。",
+  "usage": {
+    "title": "本月使用情况",
+    "strategies": "策略",
+    "backtests": "回测"
+  },
+  "upgradeForUnlimited": "升级解锁无限使用"
+}
