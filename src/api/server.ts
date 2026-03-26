@@ -65,6 +65,7 @@ import { createVirtualAccountRouter } from './virtualAccountRoutes';
 import analyticsRoutes from './analyticsRoutes';
 import { createStrategyPortfolioRouter } from './strategyPortfolioRoutes';
 import backtestLiveRoutes from './backtestLiveRoutes';
+import comparisonRoutes from './comparisonRoutes'; // Issue #669: 实盘与回测对比
 import riskAlertsRoutes from './risk-alerts';
 import { createRecommendationRouter } from './recommendationRoutes';
 import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
@@ -1060,6 +1061,9 @@ export class APIServer extends EventEmitter {
 
     // Backtest-Live Integration routes
     this.app.use('/api/backtest-live', backtestLiveRoutes);
+
+    // Live vs Backtest Comparison routes (Issue #669)
+    this.app.use('/api/comparison', comparisonRoutes);
 
     // Risk Alerts routes
     this.app.use('/api/risk-alerts', riskAlertsRoutes);
