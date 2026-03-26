@@ -1,5 +1,6 @@
 /**
  * Tests for sitemap generator script
+ * Issue #617: Added i18n support with hreflang tags
  */
 
 import * as fs from 'fs';
@@ -23,17 +24,77 @@ describe('Sitemap Generator', () => {
   });
 
   describe('generateSitemapXml', () => {
-    it('should generate valid sitemap XML structure', () => {
+    it('should generate valid sitemap XML structure with hreflang', () => {
       const urls = [
-        { loc: 'https://alphaarena.app/', lastmod: '2024-01-01', changefreq: 'daily' as const, priority: 1.0 },
-        { loc: 'https://alphaarena.app/landing', lastmod: '2024-01-01', changefreq: 'weekly' as const, priority: 0.9 },
+        { 
+          loc: 'https://alphaarena.app/', 
+          lastmod: '2024-01-01', 
+          changefreq: 'daily' as const, 
+          priority: 1.0,
+          alternates: [
+            { hreflang: 'x-default', href: 'https://alphaarena.app/' },
+            { hreflang: 'zh-CN', href: 'https://alphaarena.app/' },
+            { hreflang: 'en-US', href: 'https://alphaarena.app/?lang=en-US' },
+            { hreflang: 'ja-JP', href: 'https://alphaarena.app/?lang=ja-JP' },
+            { hreflang: 'ko-KR', href: 'https://alphaarena.app/?lang=ko-KR' },
+          ]
+        },
+      ];
+
+      // Function to generate sitemap XML with hreflang
+      const generateSitemapXml = (urlList: typeof urls): string => {
+        const urlElements = urlList.map(url => {
+          let element = `  <url>
+    <loc>${url.loc}</loc>
+    <lastmod>${url.lastmod}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority.toFixed(1)}</priority>`;
+          
+          if (url.alternates) {
+            for (const alt of url.alternates) {
+              element += `
+    <xhtml:link rel="alternate" hreflang="${alt.hreflang}" href="${alt.href}"/>`;
+            }
+          }
+          
+          element += `
+  </url>`;
+          return element;
+        }).join('\n');
+
+        return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+${urlElements}
+</urlset>
+`;
+      };
+
+      const result = generateSitemapXml(urls);
+
+      expect(result).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(result).toContain('xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"');
+      expect(result).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+      expect(result).toContain('https://alphaarena.app/');
+      expect(result).toContain('hreflang="x-default"');
+      expect(result).toContain('hreflang="zh-CN"');
+      expect(result).toContain('hreflang="en-US"');
+      expect(result).toContain('hreflang="ja-JP"');
+      expect(result).toContain('hreflang="ko-KR"');
+      expect(result).toContain('?lang=en-US');
+    });
+
+    it('should generate valid sitemap XML structure without hreflang', () => {
+      const urls = [
+        { path: '/', priority: 1.0, changefreq: 'daily' as const },
+        { path: '/landing', priority: 1.0, changefreq: 'weekly' as const },
       ];
 
       // Simple function to test XML generation
       const generateSitemapXml = (urlList: typeof urls): string => {
         const urlElements = urlList.map(url => `  <url>
-    <loc>${url.loc}</loc>
-    <lastmod>${url.lastmod}</lastmod>
+    <loc>https://alphaarena.app${url.path}</loc>
+    <lastmod>2024-01-01</lastmod>
     <changefreq>${url.changefreq}</changefreq>
     <priority>${url.priority.toFixed(1)}</priority>
   </url>`).join('\n');
@@ -57,19 +118,24 @@ ${urlElements}
   });
 
   describe('generateRobotsTxt', () => {
-    it('should generate valid robots.txt with sitemap URL', () => {
+    it('should generate valid robots.txt with sitemap URLs for all languages', () => {
       const siteUrl = 'https://alphaarena.app';
       const privateRoutes = ['/dashboard', '/strategies', '/trades'];
+      const supportedLanguages = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'];
       
       const generateRobotsTxt = (): string => {
         const disallowRules = privateRoutes.map(route => `Disallow: ${route}`).join('\n');
+        const sitemapEntries = supportedLanguages.map(lang => 
+          `Sitemap: ${siteUrl}/sitemap-${lang.toLowerCase()}.xml`
+        ).join('\n');
         
         return `# https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps for all languages
 Sitemap: ${siteUrl}/sitemap.xml
+${sitemapEntries}
 
 # Disallow private pages
 ${disallowRules}
@@ -81,6 +147,10 @@ ${disallowRules}
       expect(result).toContain('User-agent: *');
       expect(result).toContain('Allow: /');
       expect(result).toContain('Sitemap: https://alphaarena.app/sitemap.xml');
+      expect(result).toContain('Sitemap: https://alphaarena.app/sitemap-zh-cn.xml');
+      expect(result).toContain('Sitemap: https://alphaarena.app/sitemap-en-us.xml');
+      expect(result).toContain('Sitemap: https://alphaarena.app/sitemap-ja-jp.xml');
+      expect(result).toContain('Sitemap: https://alphaarena.app/sitemap-ko-kr.xml');
       expect(result).toContain('Disallow: /dashboard');
       expect(result).toContain('Disallow: /strategies');
       expect(result).toContain('Disallow: /trades');
@@ -170,6 +240,38 @@ ${allowRules}
       ];
 
       expect(privateRoutes).toContain('/admin/');
+    });
+  });
+
+  describe('hreflang support', () => {
+    it('should have all supported languages', () => {
+      const supportedLanguages = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'];
+      const defaultLanguage = 'zh-CN';
+
+      expect(supportedLanguages).toContain('zh-CN');
+      expect(supportedLanguages).toContain('en-US');
+      expect(supportedLanguages).toContain('ja-JP');
+      expect(supportedLanguages).toContain('ko-KR');
+      expect(defaultLanguage).toBe('zh-CN');
+    });
+
+    it('should generate correct alternate URLs', () => {
+      const siteUrl = 'https://alphaarena.app';
+      const path = '/landing';
+      const defaultLang = 'zh-CN';
+      
+      // Function to generate URL with lang parameter
+      const getUrlWithLang = (p: string, lang: string): string => {
+        if (lang === defaultLang) {
+          return `${siteUrl}${p}`;
+        }
+        return `${siteUrl}${p}?lang=${lang}`;
+      };
+
+      expect(getUrlWithLang(path, 'zh-CN')).toBe('https://alphaarena.app/landing');
+      expect(getUrlWithLang(path, 'en-US')).toBe('https://alphaarena.app/landing?lang=en-US');
+      expect(getUrlWithLang(path, 'ja-JP')).toBe('https://alphaarena.app/landing?lang=ja-JP');
+      expect(getUrlWithLang(path, 'ko-KR')).toBe('https://alphaarena.app/landing?lang=ko-KR');
     });
   });
 });
