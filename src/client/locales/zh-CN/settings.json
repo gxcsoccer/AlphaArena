@@ -16,7 +16,9 @@
   "language": {
     "title": "语言",
     "zh": "中文",
-    "en": "English"
+    "en": "English",
+    "ja": "日本語",
+    "ko": "한국어"
   },
   "general": {
     "title": "通用设置",

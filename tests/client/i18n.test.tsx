@@ -123,7 +123,7 @@ describe('i18n Framework', () => {
   });
 
   describe('Supported Languages', () => {
-    it('should have exactly 3 supported languages', async () => {
+    it('should have exactly 4 supported languages', async () => {
       render(
         <LocaleProvider>
           <TestComponent />
@@ -131,7 +131,7 @@ describe('i18n Framework', () => {
       );
       
       await waitFor(() => {
-        expect(screen.getByTestId('supported-languages')).toHaveTextContent('3');
+        expect(screen.getByTestId('supported-languages')).toHaveTextContent('4');
       });
     });
   });
