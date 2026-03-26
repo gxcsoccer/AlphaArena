@@ -31,6 +31,7 @@ import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
 import { LanguageSwitcher } from './components/LanguageSwitcher'; // Issue #586
 import OfflineIndicator from './components/OfflineIndicator';
+import InstallPrompt from './components/InstallPrompt'; // Issue #628: PWA 安装提示
 import MobileBottomNav from './components/MobileBottomNav';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { HeaderLogo } from './components/brand/Logo';
@@ -321,6 +322,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Layout>
         {/* Offline indicator - only shown for authenticated users */}
         <OfflineIndicator />
+        {/* PWA Install prompt - Issue #628 */}
+        <InstallPrompt autoShowDelay={10000} />
         <Header
           style={{
             padding: '0 16px',

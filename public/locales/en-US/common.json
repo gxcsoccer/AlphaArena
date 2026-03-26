@@ -133,5 +133,27 @@
     "return": "Return",
     "maxDrawdown": "Max Drawdown",
     "noData": "No data available"
+  },
+  "pwa": {
+    "offline": "You are currently offline",
+    "online": "Online",
+    "reconnecting": "Reconnecting...",
+    "backOnline": "Connection restored",
+    "retry": "Retry",
+    "install": {
+      "title": "Install AlphaArena",
+      "description": "Add AlphaArena to your home screen for a better trading experience",
+      "benefitOffline": "Access cached data offline",
+      "benefitFast": "Faster startup",
+      "benefitNative": "Native-like experience",
+      "installNow": "Install Now",
+      "later": "Later",
+      "installed": "Installed"
+    },
+    "update": {
+      "available": "New version available",
+      "refresh": "Refresh to update",
+      "updated": "Updated to the latest version"
+    }
   }
 }

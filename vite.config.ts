@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { imagetools } from 'vite-imagetools';
 import { createStyleImportPlugin } from 'vite-plugin-style-import';
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 // https://vite.dev/config/
@@ -37,6 +38,75 @@ export default defineConfig({
           format: 'webp',
           quality: '80',
         };
+      },
+    }),
+    // PWA plugin - Issue #628: PWA 支持与离线能力
+    VitePWA({
+      registerType: 'autoUpdate',
+      includeAssets: ['favicon.svg', 'apple-touch-icon.svg', 'icon-192.png', 'icon-512.png'],
+      manifest: false, // We use public/manifest.json directly
+      workbox: {
+        // Cache static assets (JS, CSS, images)
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff}'],
+        // Runtime caching for API calls
+        runtimeCaching: [
+          {
+            // Cache API responses with network-first strategy
+            urlPattern: /^https?:\/\/.*\/api\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+              networkTimeoutSeconds: 10,
+            },
+          },
+          {
+            // Cache market data with stale-while-revalidate
+            urlPattern: /^https?:\/\/.*\/api\/(market|ticker|klines).*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'market-data-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 5, // 5 minutes
+              },
+            },
+          },
+          {
+            // Cache fonts from Google Fonts
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-fonts-stylesheets',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+          {
+            // Cache font files from Google Fonts
+            urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-webfonts',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+            },
+          },
+        ],
+        // Offline fallback page
+        offlineGoogleAnalytics: true,
+        skipWaiting: true,
+        clientsClaim: true,
+      },
+      devOptions: {
+        enabled: false, // Disable in development for faster builds
       },
     }),
   ],
@@ -134,7 +204,7 @@ export default defineConfig({
           }
           // Web vitals
           if (id.includes('web-vitals')) {
-            return 'web-vitals';
+            return 'web-vendors';
           }
           // PDF generation
           if (id.includes('pdfmake')) {
@@ -151,6 +221,10 @@ export default defineConfig({
           // Marked for markdown parsing
           if (id.includes('marked')) {
             return 'marked';
+          }
+          // Workbox for PWA
+          if (id.includes('workbox-')) {
+            return 'workbox';
           }
         },
       },
