@@ -94,6 +94,12 @@ export interface ReferralStats {
     pending: number;
     processed: number;
     total: number;
+    vipDaysEarned: number;
+  };
+  rewardRules?: {
+    inviteeBonusDays: number;
+    referrerBonusDays: number;
+    activationCriteria: string;
   };
 }
 
@@ -287,6 +293,8 @@ export class ReferralDAO {
     referralId?: string;
     referrerUserId?: string;
     inviteeBonus?: number;
+    inviteeBonusType?: string;
+    vipDaysGranted?: number;
     error?: string;
     message?: string;
   }> {
@@ -308,6 +316,8 @@ export class ReferralDAO {
       referral_id?: string;
       referrer_user_id?: string;
       invitee_bonus?: number;
+      invitee_bonus_type?: string;
+      vip_result?: { vip_days_granted?: number };
       error?: string;
       message?: string;
     };
@@ -317,6 +327,8 @@ export class ReferralDAO {
       referralId: mapped.referral_id,
       referrerUserId: mapped.referrer_user_id,
       inviteeBonus: mapped.invitee_bonus,
+      inviteeBonusType: mapped.invitee_bonus_type,
+      vipDaysGranted: mapped.invitee_bonus, // VIP days for invitee
       error: mapped.error,
       message: mapped.message,
     };
@@ -329,6 +341,7 @@ export class ReferralDAO {
     success: boolean;
     referralId?: string;
     rewardAmount?: number;
+    vipDaysGranted?: number;
     rewardScheduledAt?: Date;
     error?: string;
   }> {
@@ -346,6 +359,7 @@ export class ReferralDAO {
       success: boolean;
       referral_id?: string;
       reward_amount?: number;
+      vip_days_granted?: number;
       reward_scheduled_at?: string;
       error?: string;
     };
@@ -354,6 +368,7 @@ export class ReferralDAO {
       success: mapped.success,
       referralId: mapped.referral_id,
       rewardAmount: mapped.reward_amount,
+      vipDaysGranted: mapped.vip_days_granted,
       rewardScheduledAt: mapped.reward_scheduled_at ? new Date(mapped.reward_scheduled_at) : undefined,
       error: mapped.error,
     };
@@ -588,6 +603,7 @@ export class ReferralDAO {
       registeredAt: r.registered_at ? new Date(r.registered_at as string) : null,
       activatedAt: r.activated_at ? new Date(r.activated_at as string) : null,
     }));
+    const rewardRules = data.reward_rules as Record<string, unknown> || {};
 
     return {
       hasCode: data.has_code as boolean,
@@ -611,6 +627,12 @@ export class ReferralDAO {
         total: typeof earningsSummary.total === 'string' 
           ? parseFloat(earningsSummary.total) 
           : (earningsSummary.total as number) || 0,
+        vipDaysEarned: (earningsSummary.vip_days_earned as number) || 0,
+      },
+      rewardRules: {
+        inviteeBonusDays: (rewardRules.invitee_bonus_days as number) || 7,
+        referrerBonusDays: (rewardRules.referrer_bonus_days as number) || 30,
+        activationCriteria: (rewardRules.activation_criteria as string) || 'First subscription or trade',
       },
     };
   }
