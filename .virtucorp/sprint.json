@@ -1,67 +1,63 @@
 {
   "sprint": {
-    "number": 48,
-    "title": "Sprint 48: 性能优化",
-    "milestone": 49,
-    "status": "planning",
+    "number": 49,
+    "title": "Sprint 49: 国际化基础建设",
+    "milestone": 50,
+    "status": "completed",
     "period": {
-      "start": "2026-04-07",
-      "end": "2026-04-13"
+      "start": "2026-03-24",
+      "end": "2026-03-30"
     },
-    "goals": "系统性地优化产品性能，提升页面加载速度和用户体验，为后续国际化和移动端扩展打好基础",
+    "goals": "实现多语言支持，为产品全球化打下基础。包括：i18n 框架搭建、核心页面英文翻译、语言切换功能、交易策略页面翻译、本地化适配与测试",
     "issues": {
       "planned": [
         {
-          "number": 558,
-          "title": "前端性能分析与优化方案",
+          "number": 584,
+          "title": "i18n 框架搭建与国际化架构设计",
+          "priority": "P0",
+          "type": "feature",
+          "status": "completed"
+        },
+        {
+          "number": 585,
+          "title": "核心页面英文翻译",
+          "priority": "P0",
+          "type": "feature",
+          "status": "completed"
+        },
+        {
+          "number": 586,
+          "title": "语言切换功能实现",
           "priority": "P1",
           "type": "feature",
-          "status": "open"
+          "status": "completed"
         },
         {
-          "number": 559,
-          "title": "图片和静态资源优化",
+          "number": 587,
+          "title": "交易与策略功能页面翻译",
           "priority": "P1",
           "type": "feature",
-          "status": "open"
+          "status": "completed"
         },
         {
-          "number": 560,
-          "title": "API 响应时间优化",
+          "number": 588,
+          "title": "本地化适配与测试",
           "priority": "P2",
           "type": "feature",
-          "status": "open"
-        },
-        {
-          "number": 561,
-          "title": "前端打包体积优化",
-          "priority": "P2",
-          "type": "feature",
-          "status": "open"
-        },
-        {
-          "number": 562,
-          "title": "性能监控仪表板",
-          "priority": "P2",
-          "type": "feature",
-          "status": "open"
+          "status": "completed"
         }
       ],
       "total": 5,
-      "completed": 0
+      "completed": 5
     },
-    "prs": {
-      "total": 0,
-      "merged": []
-    },
-    "direction": "性能优化",
-    "rationale": "经过 Sprint 45-47 的功能迭代，产品已完成数据分析闭环和用户增长体系建设。下一阶段应聚焦性能优化，提升用户体验，为后续国际化和移动端扩展做准备。性能优化可量化（Lighthouse 分数、Core Web Vitals），且有明确的技术路径。",
+    "direction": "国际化 (i18n)",
+    "rationale": "经过 Sprint 44-48 的迭代，产品功能已完善（代码质量、用户反馈、数据驱动、用户增长、性能优化），UI/UX 也已完成商业化改版。下一步最合理的方向是国际化：1) Sprint 48 性能优化已为国际化打好基础；2) 当前代码硬编码中文 locale，需要支持多语言；3) 产品功能完善，可以面向国际市场扩大用户群体；4) 国际化是产品扩张的关键步骤。",
     "previous_sprint": {
-      "number": 47,
-      "summary": "完成 5 个 issues，实现用户推荐奖励系统、社交分享功能、用户关注与互动系统、信号评论与讨论功能、SEO 优化与站点地图",
+      "number": 48,
+      "summary": "完成 5 个 issues，实现前端性能分析与优化方案、图片和静态资源优化、API 响应时间优化、前端打包体积优化、性能监控仪表板。首页 JS 体积减少 30%，集成 Lighthouse CI，实现 Core Web Vitals 监控。",
       "test_status": "全部验收通过"
     },
-    "created_at": "2026-03-23"
+    "created_at": "2026-03-24"
   },
   "next_sprint": null
 }
