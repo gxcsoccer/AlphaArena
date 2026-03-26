@@ -3,7 +3,7 @@
  * API endpoints for reward rules, fraud detection, and reward processing
  */
 
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 import {
@@ -19,21 +19,42 @@ const log = createLogger('RewardRoutes');
 
 const router = Router();
 
+/**
+ * Admin middleware - checks if user has admin role
+ */
+const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user;
+
+  // Check if user has admin role
+  // This can be customized based on your auth system
+  const isAdmin = (user as any)?.role === 'admin' ||
+                  (user as any)?.user_metadata?.role === 'admin' ||
+                  process.env.ADMIN_EMAILS?.split(',').includes((user as any)?.email) ||
+                  (user as any)?.email?.endsWith('@alphaarena.io');
+
+  if (!isAdmin) {
+    return res.status(403).json({
+      success: false,
+      error: 'Admin access required',
+    });
+  }
+
+  next();
+};
+
 // ============================================
 // Reward Rules Management
 // ============================================
 
 /**
  * GET /api/reward/rules
- * Get all active reward rules
+ * Get all active reward rules (admin only)
  */
-router.get('/rules', authMiddleware, async (req: Request, res: Response) => {
+router.get('/rules', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
-
-    // TODO: Add admin check
     const rulesEngine = getRewardRulesEngine();
     const rules = await rulesEngine.getActiveRules();
 
@@ -67,13 +88,11 @@ router.get('/rules', authMiddleware, async (req: Request, res: Response) => {
  * POST /api/reward/rules
  * Create a new reward rule (admin only)
  */
-router.post('/rules', authMiddleware, async (req: Request, res: Response) => {
+router.post('/rules', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
-
-    // TODO: Add admin check
     const input: CreateRewardRuleInput = {
       name: req.body.name,
       description: req.body.description,
@@ -112,7 +131,7 @@ router.post('/rules', authMiddleware, async (req: Request, res: Response) => {
  * PUT /api/reward/rules/:ruleId
  * Update a reward rule (admin only)
  */
-router.put('/rules/:ruleId', authMiddleware, async (req: Request, res: Response) => {
+router.put('/rules/:ruleId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -136,7 +155,7 @@ router.put('/rules/:ruleId', authMiddleware, async (req: Request, res: Response)
  * DELETE /api/reward/rules/:ruleId
  * Delete a reward rule (admin only)
  */
-router.delete('/rules/:ruleId', authMiddleware, async (req: Request, res: Response) => {
+router.delete('/rules/:ruleId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -226,7 +245,7 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response) => {
  * GET /api/reward/fraud/flags
  * Get pending fraud flags for review (admin only)
  */
-router.get('/fraud/flags', authMiddleware, async (req: Request, res: Response) => {
+router.get('/fraud/flags', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -260,7 +279,7 @@ router.get('/fraud/flags', authMiddleware, async (req: Request, res: Response) =
  * GET /api/reward/fraud/stats
  * Get fraud statistics (admin only)
  */
-router.get('/fraud/stats', authMiddleware, async (req: Request, res: Response) => {
+router.get('/fraud/stats', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -283,7 +302,7 @@ router.get('/fraud/stats', authMiddleware, async (req: Request, res: Response) =
  * POST /api/reward/fraud/flags/:flagId/resolve
  * Resolve a fraud flag (admin only)
  */
-router.post('/fraud/flags/:flagId/resolve', authMiddleware, async (req: Request, res: Response) => {
+router.post('/fraud/flags/:flagId/resolve', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -345,7 +364,7 @@ router.post('/process-pending', async (req: Request, res: Response) => {
  * POST /api/reward/retry-failed
  * Retry failed rewards (admin only)
  */
-router.post('/retry-failed', authMiddleware, async (req: Request, res: Response) => {
+router.post('/retry-failed', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
@@ -368,7 +387,7 @@ router.post('/retry-failed', authMiddleware, async (req: Request, res: Response)
  * POST /api/reward/initialize-rules
  * Initialize default reward rules (admin only)
  */
-router.post('/initialize-rules', authMiddleware, async (req: Request, res: Response) => {
+router.post('/initialize-rules', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
   try {
     if (!req.user) {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
