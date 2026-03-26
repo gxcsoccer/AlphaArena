@@ -2,10 +2,12 @@
  * Application Performance Monitoring (APM) Service
  * 
  * Provides comprehensive frontend monitoring:
- * - Error tracking with context
+ * - Error tracking with context and deduplication
  * - Core Web Vitals collection
  * - API response time monitoring
  * - User experience metrics
+ * 
+ * Issue #663: Added error deduplication, memory optimization, and improved reporting
  */
 
 import { onCLS, onLCP, onFCP, onTTFB, onINP, CLSMetric, LCPMetric, FCPMetric, TTFBMetric, INPMetric } from 'web-vitals';
@@ -23,6 +25,8 @@ export interface ErrorEvent {
   url: string;
   userAgent: string;
   breadcrumbs: Breadcrumb[];
+  fingerprint?: string; // For deduplication
+  occurrenceCount?: number;
 }
 
 export interface ErrorContext {
@@ -87,6 +91,9 @@ interface APMConfig {
   enableErrorTracking: boolean;
   enableApiLatency: boolean;
   maxBreadcrumbs: number;
+  maxErrors: number; // Max errors to keep in memory
+  maxApiLatencies: number; // Max API latencies to keep in memory
+  deduplicationWindow: number; // Window for deduplication in ms
   environment: string;
 }
 
@@ -99,6 +106,9 @@ const defaultConfig: APMConfig = {
   enableErrorTracking: true,
   enableApiLatency: true,
   maxBreadcrumbs: 50,
+  maxErrors: 100,
+  maxApiLatencies: 200,
+  deduplicationWindow: 60000, // 1 minute
   environment: import.meta.env.MODE || 'production',
 };
 
@@ -128,17 +138,38 @@ function getConnectionInfo(): { connectionType?: string; effectiveType?: string 
 }
 
 /**
+ * Generate error fingerprint for deduplication
+ */
+function generateErrorFingerprint(error: Error | string, type: string): string {
+  const message = typeof error === 'string' ? error : error.message;
+  const name = typeof error === 'string' ? 'Error' : error.name;
+  
+  // Create a simple hash of error signature
+  const signature = `${name}:${message.substring(0, 100)}:${type}`;
+  let hash = 0;
+  for (let i = 0; i < signature.length; i++) {
+    const char = signature.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
+
+/**
  * APM Service Class
  */
 class APMService {
   private config: APMConfig;
   private breadcrumbs: Breadcrumb[] = [];
   private errors: ErrorEvent[] = [];
+  private errorFingerprints: Map<string, { count: number; lastSeen: number }> = new Map();
   private apiLatencies: ApiLatencyRecord[] = [];
   private performanceMetrics: Partial<PerformanceMetricReport> = {};
   private pendingReports: Array<() => Promise<void>> = [];
   private isInitialized = false;
   private reportTimer: ReturnType<typeof setInterval> | null = null;
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
+  private pendingErrorBatch: ErrorEvent[] = [];
 
   constructor() {
     this.config = { ...defaultConfig };
@@ -181,6 +212,9 @@ class APMService {
     // Start periodic reporting
     this.startPeriodicReporting();
 
+    // Start batch flush timer
+    this.startBatchFlush();
+
     this.isInitialized = true;
     console.log('[APM] Initialized with session:', this.config.sessionId);
   }
@@ -193,7 +227,7 @@ class APMService {
   }
 
   /**
-   * Track a JavaScript error
+   * Track a JavaScript error with deduplication
    */
   trackError(
     error: Error | string,
@@ -205,14 +239,46 @@ class APMService {
     } = {}
   ): void {
     const errorObj = error instanceof Error ? error : new Error(String(error));
+    const type = options.type || 'javascript';
+    const fingerprint = generateErrorFingerprint(error, type);
+    
+    // Check for deduplication
+    const now = Date.now();
+    const existingFingerprint = this.errorFingerprints.get(fingerprint);
+    
+    if (existingFingerprint) {
+      const timeSinceLastSeen = now - existingFingerprint.lastSeen;
+      
+      // If within deduplication window, just increment count
+      if (timeSinceLastSeen < this.config.deduplicationWindow) {
+        existingFingerprint.count++;
+        existingFingerprint.lastSeen = now;
+        
+        // Log but don't create new error event
+        if (this.config.environment === 'development') {
+          console.debug('[APM] Duplicate error suppressed:', fingerprint, 'count:', existingFingerprint.count);
+        }
+        return;
+      }
+    }
+    
+    // Create new fingerprint entry or update
+    this.errorFingerprints.set(fingerprint, { count: 1, lastSeen: now });
+    
+    // Cleanup old fingerprints (keep max 100)
+    if (this.errorFingerprints.size > 100) {
+      const entries = Array.from(this.errorFingerprints.entries());
+      const sorted = entries.sort((a, b) => b[1].lastSeen - a[1].lastSeen);
+      this.errorFingerprints = new Map(sorted.slice(0, 100));
+    }
     
     const errorEvent: ErrorEvent = {
       id: `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       message: errorObj.message,
       name: errorObj.name,
       stack: errorObj.stack,
-      type: options.type || 'javascript',
-      severity: options.severity || 'medium',
+      type,
+      severity: options.severity || this.determineSeverity(errorObj, type),
       context: {
         userId: this.config.userId,
         sessionId: this.config.sessionId,
@@ -221,19 +287,29 @@ class APMService {
         componentStack: options.componentStack,
         metadata: options.context,
       },
-      timestamp: Date.now(),
+      timestamp: now,
       url: window.location.href,
       userAgent: navigator.userAgent,
       breadcrumbs: [...this.breadcrumbs],
+      fingerprint,
     };
 
     this.errors.push(errorEvent);
+    
+    // Limit errors in memory
+    if (this.errors.length > this.config.maxErrors) {
+      this.errors = this.errors.slice(-this.config.maxErrors);
+    }
+    
     this.addBreadcrumb('error', `${errorObj.name}: ${errorObj.message}`);
     
     // Log to console in development
     if (this.config.environment === 'development') {
       console.error('[APM Error]', errorEvent);
     }
+
+    // Add to pending batch for reporting
+    this.pendingErrorBatch.push(errorEvent);
 
     // Immediately report critical errors
     if (errorEvent.severity === 'critical') {
@@ -242,12 +318,35 @@ class APMService {
   }
 
   /**
+   * Determine error severity based on error type and message
+   */
+  private determineSeverity(error: Error, type: string): ErrorEvent['severity'] {
+    // Network errors are usually less severe
+    if (type === 'resource') return 'low';
+    
+    // Promise rejections could be important
+    if (type === 'promise') return 'high';
+    
+    // React errors are usually critical
+    if (type === 'react') return 'critical';
+    
+    // Check for specific error messages
+    const message = error.message.toLowerCase();
+    if (message.includes('chunk') || message.includes('loading')) return 'medium';
+    if (message.includes('network') || message.includes('fetch')) return 'medium';
+    if (message.includes('unauthorized') || message.includes('forbidden')) return 'high';
+    if (message.includes('crash') || message.includes('fatal')) return 'critical';
+    
+    return 'medium';
+  }
+
+  /**
    * Track React error
    */
   trackReactError(error: Error, componentStack: string): void {
     this.trackError(error, {
       type: 'react',
-      severity: 'high',
+      severity: 'critical',
       componentStack,
     });
   }
@@ -272,6 +371,11 @@ class APMService {
     };
 
     this.apiLatencies.push(record);
+    
+    // Limit API latencies in memory
+    if (this.apiLatencies.length > this.config.maxApiLatencies) {
+      this.apiLatencies = this.apiLatencies.slice(-this.config.maxApiLatencies);
+    }
 
     // Update average API latency in metrics
     const recentLatencies = this.apiLatencies.slice(-10);
@@ -325,6 +429,22 @@ class APMService {
   private initErrorTracking(): void {
     // Global error handler
     window.addEventListener('error', (event) => {
+      // Check if it's a resource error
+      if (event.target !== window) {
+        const target = event.target as HTMLElement;
+        const src = target.getAttribute('src') || target.getAttribute('href') || 'unknown';
+        
+        this.trackError(new Error(`Resource failed to load: ${src}`), {
+          type: 'resource',
+          severity: 'low',
+          context: {
+            tagName: target.tagName,
+            src,
+          },
+        });
+        return;
+      }
+      
       this.trackError(event.error || event.message, {
         type: 'javascript',
         severity: 'high',
@@ -342,23 +462,6 @@ class APMService {
         severity: 'high',
       });
     });
-
-    // Resource loading errors
-    window.addEventListener('error', (event) => {
-      if (event.target !== window) {
-        const target = event.target as HTMLElement;
-        const src = target.getAttribute('src') || target.getAttribute('href') || 'unknown';
-        
-        this.trackError(new Error(`Resource failed to load: ${src}`), {
-          type: 'resource',
-          severity: 'low',
-          context: {
-            tagName: target.tagName,
-            src,
-          },
-        });
-      }
-    }, true); // Use capture phase
   }
 
   /**
@@ -497,12 +600,24 @@ class APMService {
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
         this.reportMetrics(true);
+        this.flushErrorBatch(true);
       }
     });
 
     window.addEventListener('beforeunload', () => {
       this.reportMetrics(true);
+      this.flushErrorBatch(true);
     });
+  }
+
+  /**
+   * Start batch flush timer
+   */
+  private startBatchFlush(): void {
+    // Flush error batch every 10 seconds
+    this.flushTimer = setInterval(() => {
+      this.flushErrorBatch();
+    }, 10000);
   }
 
   /**
@@ -578,6 +693,40 @@ class APMService {
   }
 
   /**
+   * Flush error batch to server
+   */
+  private async flushErrorBatch(useBeacon = false): Promise<void> {
+    if (this.pendingErrorBatch.length === 0) return;
+
+    const batch = [...this.pendingErrorBatch];
+    this.pendingErrorBatch = [];
+
+    const endpoint = '/api/apm/errors/batch';
+
+    try {
+      if (useBeacon && navigator.sendBeacon) {
+        navigator.sendBeacon(endpoint, JSON.stringify({ errors: batch }));
+      } else {
+        await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ errors: batch }),
+          keepalive: true,
+        });
+      }
+    } catch (e) {
+      // Re-add to pending batch on failure (with limit)
+      if (this.pendingErrorBatch.length < 50) {
+        this.pendingErrorBatch.unshift(...batch);
+      }
+      
+      if (this.config.environment === 'development') {
+        console.warn('[APM] Failed to flush error batch:', e);
+      }
+    }
+  }
+
+  /**
    * Get current metrics snapshot
    */
   getMetrics(): Partial<PerformanceMetricReport> {
@@ -589,6 +738,25 @@ class APMService {
    */
   getErrors(): ErrorEvent[] {
     return [...this.errors];
+  }
+
+  /**
+   * Get error statistics
+   */
+  getErrorStats(): { total: number; byType: Record<string, number>; bySeverity: Record<string, number> } {
+    const byType: Record<string, number> = {};
+    const bySeverity: Record<string, number> = {};
+
+    for (const error of this.errors) {
+      byType[error.type] = (byType[error.type] || 0) + 1;
+      bySeverity[error.severity] = (bySeverity[error.severity] || 0) + 1;
+    }
+
+    return {
+      total: this.errors.length,
+      byType,
+      bySeverity,
+    };
   }
 
   /**
@@ -613,6 +781,15 @@ class APMService {
       clearInterval(this.reportTimer);
       this.reportTimer = null;
     }
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
+    
+    // Final flush
+    this.reportMetrics(true);
+    this.flushErrorBatch(true);
+    
     this.isInitialized = false;
   }
 }
