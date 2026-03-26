@@ -92,12 +92,133 @@ describe('Audit Middleware', () => {
   });
 
   describe('auditMiddleware', () => {
-    // Note: The actual middleware is tested in audit.middleware.test.ts
-    // This is just a placeholder for additional integration tests
-    
-    it('should have skipAudit property on request', () => {
-      mockReq.skipAudit = true;
-      expect(mockReq.skipAudit).toBe(true);
+    it('should skip excluded paths', async () => {
+      mockReq.path = '/health';
+      
+      const { auditMiddleware } = await import('../audit.middleware');
+      const middleware = auditMiddleware();
+
+      middleware(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(mockNext).toHaveBeenCalled();
     });
+
+    it('should initialize audit context', async () => {
+      mockReq.path = '/api/users';
+      
+      const { auditMiddleware } = await import('../audit.middleware');
+      const middleware = auditMiddleware();
+
+      middleware(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(mockReq.auditContext).toBeDefined();
+      expect(mockReq.auditContext?.startTime).toBeDefined();
+    });
+
+    it('should register finish event listener', async () => {
+      mockReq.path = '/api/users';
+      
+      const { auditMiddleware } = await import('../audit.middleware');
+      const middleware = auditMiddleware();
+
+      middleware(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(mockRes.on).toHaveBeenCalledWith('finish', expect.any(Function));
+    });
+  });
+});
+
+describe('Security Headers Middleware', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let mockNext: jest.Mock;
+
+  beforeEach(() => {
+    mockReq = {
+      method: 'GET',
+      path: '/api/test',
+      headers: {},
+    };
+    mockRes = {
+      setHeader: jest.fn(),
+      removeHeader: jest.fn(),
+    };
+    mockNext = jest.fn();
+  });
+
+  it('should set security headers', async () => {
+    const { securityHeadersMiddleware } = await import('../security.middleware');
+    const middleware = securityHeadersMiddleware();
+
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-Content-Type-Options', 'nosniff');
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-Frame-Options', 'SAMEORIGIN');
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-XSS-Protection', '1; mode=block');
+  });
+
+  it('should set HSTS header', async () => {
+    const { securityHeadersMiddleware } = await import('../security.middleware');
+    const middleware = securityHeadersMiddleware();
+
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    expect(mockRes.setHeader).toHaveBeenCalledWith(
+      'Strict-Transport-Security',
+      expect.stringContaining('max-age=')
+    );
+  });
+});
+
+describe('Rate Limit Middleware', () => {
+  let mockReq: Partial<Request>;
+  let mockRes: Partial<Response>;
+  let mockNext: jest.Mock;
+
+  beforeEach(() => {
+    mockReq = {
+      method: 'GET',
+      path: '/api/test',
+      headers: {},
+      socket: { remoteAddress: '127.0.0.1' } as any,
+      user: { id: 'user-123', email: 'test@example.com' },
+    };
+    mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
+      setHeader: jest.fn(),
+      on: jest.fn(), // Add the on method mock
+    };
+    mockNext = jest.fn();
+  });
+
+  it('should allow requests under limit', async () => {
+    const { rateLimitMiddleware } = await import('../rateLimit.middleware');
+    const middleware = rateLimitMiddleware({ max: 10, windowMs: 60000 });
+
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    expect(mockNext).toHaveBeenCalled();
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', '10');
+  });
+
+  it('should include rate limit headers', async () => {
+    const { rateLimitMiddleware } = await import('../rateLimit.middleware');
+    const middleware = rateLimitMiddleware({ max: 10, windowMs: 60000 });
+
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', '10');
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', expect.any(String));
+    expect(mockRes.setHeader).toHaveBeenCalledWith('X-RateLimit-Reset', expect.any(String));
+  });
+
+  it('should register finish event listener', async () => {
+    const { rateLimitMiddleware } = await import('../rateLimit.middleware');
+    const middleware = rateLimitMiddleware({ max: 10, windowMs: 60000 });
+
+    middleware(mockReq as Request, mockRes as Response, mockNext);
+
+    expect(mockRes.on).toHaveBeenCalledWith('finish', expect.any(Function));
   });
 });
