@@ -8,7 +8,7 @@
  * ### Language Detection
  * - Browser language detection via i18next-browser-languagedetector
  * - Fallback language: zh-CN (Chinese Simplified)
- * - Supported languages: zh-CN, en-US, ja-JP
+ * - Supported languages: zh-CN, en-US, ja-JP, ko-KR
  * 
  * ### Namespace Strategy
  * Namespaces are organized by feature module for better code splitting and maintainability:
@@ -124,6 +124,34 @@ import backtestJaJP from '../locales/ja-JP/backtest.json';
 // Notification namespace
 import notificationJaJP from '../locales/ja-JP/notification.json';
 
+// Korean imports
+// Common namespace
+import commonKoKR from '../locales/ko-KR/common.json';
+// Navigation namespace
+import navigationKoKR from '../locales/ko-KR/navigation.json';
+// Auth namespace
+import authKoKR from '../locales/ko-KR/auth.json';
+// Trading namespace
+import tradingKoKR from '../locales/ko-KR/trading.json';
+// Portfolio namespace
+import portfolioKoKR from '../locales/ko-KR/portfolio.json';
+// Strategy namespace
+import strategyKoKR from '../locales/ko-KR/strategy.json';
+// Settings namespace
+import settingsKoKR from '../locales/ko-KR/settings.json';
+// Errors namespace
+import errorsKoKR from '../locales/ko-KR/errors.json';
+// Dashboard namespace
+import dashboardKoKR from '../locales/ko-KR/dashboard.json';
+// Leaderboard namespace
+import leaderboardKoKR from '../locales/ko-KR/leaderboard.json';
+// Backtest namespace
+import backtestKoKR from '../locales/ko-KR/backtest.json';
+// Notification namespace
+import notificationKoKR from '../locales/ko-KR/notification.json';
+// Landing namespace
+import landingKoKR from '../locales/ko-KR/landing.json';
+
 // Define supported languages
 export const SUPPORTED_LANGUAGES = {
   'zh-CN': {
@@ -140,6 +168,11 @@ export const SUPPORTED_LANGUAGES = {
     name: '日本語',
     nativeName: '日本語',
     arcoLocale: 'ja-JP',
+  },
+  'ko-KR': {
+    name: '한국어',
+    nativeName: '한국어',
+    arcoLocale: 'ko-KR',
   },
 } as const;
 
@@ -192,6 +225,21 @@ const resources = {
     backtest: backtestJaJP,
     notification: notificationJaJP,
     landing: landingJaJP,
+  },
+  'ko-KR': {
+    common: commonKoKR,
+    navigation: navigationKoKR,
+    auth: authKoKR,
+    trading: tradingKoKR,
+    portfolio: portfolioKoKR,
+    strategy: strategyKoKR,
+    settings: settingsKoKR,
+    errors: errorsKoKR,
+    dashboard: dashboardKoKR,
+    leaderboard: leaderboardKoKR,
+    backtest: backtestKoKR,
+    notification: notificationKoKR,
+    landing: landingKoKR,
   },
 };
 

@@ -1,0 +1,48 @@
+{
+  "title": "포트폴리오",
+  "subtitle": "자산 배분 및 포트폴리오 분석",
+  "balance": {
+    "title": "계정 잔액",
+    "available": "가용",
+    "frozen": "동결",
+    "total": "총 자산",
+    "profit": "총 수익",
+    "profitPercent": "수익률"
+  },
+  "asset": {
+    "title": "자산 목록",
+    "name": "자산명",
+    "amount": "수량",
+    "value": "가치",
+    "price": "현재 가격",
+    "change24h": "24시간 변동",
+    "allocation": "비중"
+  },
+  "allocation": {
+    "title": "자산 배분",
+    "chart": "배분 차트",
+    "rebalance": "리밸런싱",
+    "target": "목표 배분",
+    "current": "현재 배분",
+    "deviation": "편차"
+  },
+  "history": {
+    "title": "내역",
+    "deposit": "입금",
+    "withdraw": "출금",
+    "transfer": "이체",
+    "trade": "거래",
+    "dividend": "배당"
+  },
+  "holding": {
+    "title": "보유 상세",
+    "pair": "거래쌍",
+    "amount": "수량",
+    "avgPrice": "평균 가격",
+    "currentPrice": "현재 가격",
+    "pnl": "손익",
+    "pnlPercent": "손익률",
+    "value": "가치",
+    "actions": "작업"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "order": {
+    "title": "주문",
+    "create": "주문 생성",
+    "buy": "매수",
+    "sell": "매도",
+    "market": "시장가 주문",
+    "limit": "지정가 주문",
+    "stop": "스탑 주문",
+    "stopLimit": "스탑 리밋 주문",
+    "trailingStop": "트레일링 스톱 주문",
+    "iceberg": "아이스버그 주문",
+    "fillOrKill": "전량 체결 또는 취소",
+    "immediateOrCancel": "즉시 체결 또는 취소",
+    "price": "가격",
+    "amount": "수량",
+    "total": "합계",
+    "fee": "수수료",
+    "status": {
+      "pending": "대기 중",
+      "open": "미체결",
+      "partial": "부분 체결",
+      "filled": "체결 완료",
+      "cancelled": "취소됨",
+      "rejected": "거절됨",
+      "expired": "만료됨"
+    },
+    "confirm": "주문 확인",
+    "success": "주문이 접수되었습니다",
+    "error": "주문 접수 실패",
+    "cancel": "주문 취소",
+    "cancelAll": "전체 취소",
+    "cancelSuccess": "주문이 취소되었습니다",
+    "modify": "주문 수정",
+    "modifySuccess": "주문이 수정되었습니다"
+  },
+  "trade": {
+    "title": "거래 내역",
+    "pair": "거래쌍",
+    "side": "매수/매도",
+    "type": "유형",
+    "price": "가격",
+    "amount": "수량",
+    "total": "합계",
+    "fee": "수수료",
+    "time": "시간",
+    "buy": "매수",
+    "sell": "매도"
+  },
+  "orderbook": {
+    "title": "호가창",
+    "asks": "매도",
+    "bids": "매수",
+    "price": "가격",
+    "amount": "수량",
+    "total": "합계"
+  },
+  "pair": {
+    "title": "거래쌍",
+    "select": "거래쌍 선택",
+    "search": "거래쌍 검색",
+    "favorite": "즐겨찾기",
+    "volume": "24시간 거래량",
+    "change": "24시간 변동"
+  },
+  "position": {
+    "title": "포지션",
+    "open": "진입",
+    "closed": "청산",
+    "entryPrice": "진입 가격",
+    "exitPrice": "청산 가격",
+    "amount": "수량",
+    "pnl": "손익",
+    "pnlPercent": "손익률",
+    "margin": "마진",
+    "leverage": "레버리지",
+    "liquidationPrice": "청산 가격"
+  },
+  "conditional": {
+    "title": "조건부 주문",
+    "triggerPrice": "트리거 가격",
+    "triggerType": {
+      "above": "이상",
+      "below": "이하"
+    },
+    "action": {
+      "buy": "매수",
+      "sell": "매도",
+      "alert": "알림"
+    },
+    "status": {
+      "active": "모니터링 중",
+      "triggered": "트리거됨",
+      "cancelled": "취소됨",
+      "expired": "만료됨"
+    }
+  }
+}
