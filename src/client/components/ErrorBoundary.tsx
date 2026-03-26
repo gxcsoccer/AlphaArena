@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Result, Button, Alert, Typography, Spin } from '@arco-design/web-react';
 import { validateConfig, getConfigErrorMessage } from '../utils/config';
+import { trackReactError } from '../utils/apm'; // Issue #651: APM
 
 const { Text } = Typography;
 
@@ -117,6 +118,9 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('Component stack:', errorInfo.componentStack);
     console.error('Full error object:', error);
     console.error('========================================');
+    
+    // Issue #651: Track error with APM service
+    trackReactError(error, errorInfo.componentStack || '');
     
     // Store error globally for easy access from console
     (window as any).__LAST_ERROR__ = {

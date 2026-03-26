@@ -3,9 +3,11 @@
  * 
  * Handles storage and retrieval of mobile/web performance metrics
  * for the performance monitoring dashboard.
+ * 
+ * Uses admin client to bypass RLS for server-side queries.
  */
 
-import { getSupabaseClient } from './client';
+import { getSupabaseAdminClient } from './client';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 // Core Web Vitals and custom metrics
@@ -142,7 +144,9 @@ export class PerformanceMetricsDAO {
   private client: SupabaseClient;
 
   constructor() {
-    this.client = getSupabaseClient();
+    // Use admin client to bypass RLS for server-side queries
+    // This is necessary because server-side API calls don't have user JWT context
+    this.client = getSupabaseAdminClient();
   }
 
   /**

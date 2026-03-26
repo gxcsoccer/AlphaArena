@@ -37,10 +37,9 @@ import {
   IconCheckCircle,
   IconSettings,
   IconNotification,
-  IconCreditCard,
-  IconLine,
-  IconPieChart,
+  IconGift,
   IconHistory,
+  IconStorage,
 } from '@arco-design/web-react/icon';
 import {
   Line,
@@ -796,7 +795,7 @@ const PaymentMonitoringPage: React.FC = () => {
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <IconCreditCard style={{ fontSize: 28, color: '#165DFF' }} />
+            <IconGift style={{ fontSize: 28, color: '#165DFF' }} />
             <Title heading={3} style={{ margin: 0 }}>支付监控仪表盘</Title>
             {activeAlerts.filter(a => a.status === 'active').length > 0 && (
               <Badge count={activeAlerts.filter(a => a.status === 'active').length}>
@@ -840,14 +839,14 @@ const PaymentMonitoringPage: React.FC = () => {
                 title="总交易数"
                 value={metrics?.totalPayments || 0}
                 suffix="笔"
-                icon={<IconCreditCard style={{ fontSize: 24 }} />}
+                icon={<IconGift style={{ fontSize: 24 }} />}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>
               <MetricCard
                 title="总收入"
                 value={formatCurrency(metrics?.totalRevenue || 0)}
-                icon={<IconLine style={{ fontSize: 24 }} />}
+                icon={<IconStorage style={{ fontSize: 24 }} />}
               />
             </Col>
             <Col xs={24} sm={12} lg={6}>

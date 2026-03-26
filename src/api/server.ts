@@ -71,6 +71,7 @@ import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
 import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
+import apmRoutes from './apmRoutes'; // Issue #651: APM
 import userTrackingRoutes from './userTrackingRoutes';
 import userAnalyticsRoutes from './userAnalyticsRoutes';
 import referralRoutes from './referralRoutes';
@@ -1073,6 +1074,9 @@ export class APIServer extends EventEmitter {
 
     // Performance Monitoring routes
     this.app.use('/api/performance', performanceRoutes);
+
+    // APM routes (Issue #651)
+    this.app.use('/api/apm', apmRoutes);
 
     // User Tracking routes
     this.app.use('/api/tracking', userTrackingRoutes);

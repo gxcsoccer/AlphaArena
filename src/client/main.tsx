@@ -6,6 +6,7 @@ import { validateConfig, logConfigStatus } from './utils/config';
 import ToastContainer from './components/Toast';
 import { initCriticalPreloading } from './utils/resourcePreload';
 import { registerServiceWorker } from './utils/serviceWorker';
+import { initAPM } from './utils/apm'; // Issue #651: APM
 
 // i18n - Initialize internationalization (Issue #584)
 import { LocaleProvider } from './i18n/LocaleProvider';
@@ -35,6 +36,13 @@ if (import.meta.env.PROD) {
 // Validate configuration before rendering
 const config = validateConfig();
 logConfigStatus(config);
+
+// Issue #651: Initialize APM (Application Performance Monitoring)
+initAPM({
+  enablePerformanceMonitoring: true,
+  enableErrorTracking: true,
+  enableApiLatency: true,
+});
 
 if (!config.isConfigured) {
   console.error('[AlphaArena] Critical: Missing required environment variables!');
