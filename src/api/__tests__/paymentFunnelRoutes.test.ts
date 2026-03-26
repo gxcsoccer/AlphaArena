@@ -19,6 +19,10 @@ jest.mock('../authMiddleware', () => ({
     req.user = { id: 'test-user-id', role: 'admin' };
     next();
   },
+  requireAdmin: (req: any, res: any, next: any) => {
+    // Already set user as admin in authMiddleware mock
+    next();
+  },
 }));
 
 describe('Payment Funnel Routes', () => {

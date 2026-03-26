@@ -1,3 +1,30 @@
+// Mock Arco Design icons - create simple mock components
+jest.mock('@arco-design/web-react/icon', () => {
+  const React = require('react');
+  // Create mock icon components dynamically
+  const createIconComponent = (name: string) => {
+    const IconComponent = ({ style, children, className, ...props }: any) => 
+      React.createElement('span', { 
+        'data-icon': name, 
+        style, 
+        className,
+        ...props 
+      }, children);
+    IconComponent.displayName = name;
+    return IconComponent;
+  };
+
+  // Return a proxy that creates mock components for any Icon* export
+  return new Proxy({}, {
+    get: (target, prop) => {
+      if (typeof prop === 'string') {
+        return createIconComponent(prop);
+      }
+      return undefined;
+    },
+  });
+});
+
 // Polyfill for TextEncoder/TextDecoder
 import { TextEncoder, TextDecoder } from 'util';
 

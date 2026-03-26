@@ -171,9 +171,9 @@ describe('AIAssistantPanel', () => {
         );
       });
 
-      // Find the clear button by looking for the delete icon
+      // Find the clear button by looking for the delete icon (mocked as span with data-icon)
       const clearButtons = screen.getAllByRole('button');
-      const clearBtn = clearButtons.find(btn => btn.querySelector('.arco-icon-delete'));
+      const clearBtn = clearButtons.find(btn => btn.querySelector('[data-icon="IconDelete"]'));
       
       expect(clearBtn).toBeTruthy();
       fireEvent.click(clearBtn!);

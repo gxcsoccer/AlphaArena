@@ -54,7 +54,7 @@ describe('Subscription Middleware', () => {
   describe('requirePlan', () => {
     it('should allow access for user with required plan', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
-        plan: 'pro',
+        planId: 'pro',
         status: 'active',
       });
 
@@ -70,7 +70,7 @@ describe('Subscription Middleware', () => {
 
     it('should allow access for user with higher plan', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
-        plan: 'enterprise',
+        planId: 'enterprise',
         status: 'active',
       });
 
@@ -85,7 +85,7 @@ describe('Subscription Middleware', () => {
 
     it('should deny access for user with lower plan', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
-        plan: 'free',
+        planId: 'free',
         status: 'active',
       });
 
@@ -129,7 +129,7 @@ describe('Subscription Middleware', () => {
 
     it('should accept array of plans', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
-        plan: 'pro',
+        planId: 'pro',
         status: 'active',
       });
 
@@ -250,7 +250,7 @@ describe('Subscription Middleware', () => {
     it('should allow access for active subscription', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
         status: 'active',
-        plan: 'pro',
+        planId: 'pro',
       });
 
       const req = mockRequest();
@@ -266,7 +266,7 @@ describe('Subscription Middleware', () => {
     it('should deny access for canceled subscription', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
         status: 'canceled',
-        plan: 'pro',
+        planId: 'pro',
       });
 
       const req = mockRequest();
@@ -282,7 +282,7 @@ describe('Subscription Middleware', () => {
     it('should deny access for expired subscription', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
         status: 'expired',
-        plan: 'pro',
+        planId: 'pro',
       });
 
       const req = mockRequest();
@@ -313,7 +313,7 @@ describe('Subscription Middleware', () => {
   describe('attachSubscription', () => {
     it('should attach subscription to request', async () => {
       (SubscriptionDAO.getUserSubscription as jest.Mock).mockResolvedValue({
-        plan: 'pro',
+        planId: 'pro',
         status: 'active',
       });
 
