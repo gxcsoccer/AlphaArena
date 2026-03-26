@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Collapse } from '@arco-design/web-react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import { Typography, Card, Table, Tag, Select, Space, DatePicker, Grid, Button, Collapse, Message } from '@arco-design/web-react';
 const { Row, Col } = Grid;
 const CollapseItem = Collapse.Item;
 import {
@@ -16,6 +16,9 @@ import {
 } from 'recharts';
 import { useTrades, useStrategies } from '../hooks/useData';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { usePullToRefresh } from '../hooks/usePullToRefresh';
+import PullToRefreshIndicator from '../components/PullToRefreshIndicator';
+import MobileTableWrapper from '../components/MobileTableWrapper';
 import ExportModal from '../components/ExportModal';
 import MobileTableCard from '../components/MobileTableCard';
 import type { TableProps } from '@arco-design/web-react';
@@ -32,7 +35,7 @@ const TradesPage: React.FC = () => {
 
   // Memoize filters to prevent infinite re-renders
   const filters = useMemo(() => ({ symbol, side }), [symbol, side]);
-  const { trades, loading } = useTrades(filters, 100);
+  const { trades, loading, refresh: refreshTrades } = useTrades(filters, 100);
   const { strategies } = useStrategies();
 
   // Detect mobile on mount and resize
@@ -45,6 +48,19 @@ const TradesPage: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    await refreshTrades?.();
+    Message.success('数据已刷新');
+  }, [refreshTrades]);
+  
+  // Pull-to-refresh hook
+  const { isRefreshing, pullDistance, handlers } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+    enabled: isMobile,
+  });
 
   // Filter trades by date range if selected
   const filteredTrades = useMemo(() => {
@@ -350,9 +366,21 @@ const TradesPage: React.FC = () => {
   // Desktop layout
   return (
     <ErrorBoundary>
-      <div>
+      <div 
+        style={{ position: 'relative', overflow: 'hidden' }}
+        {...handlers}
+      >
+        {/* Pull-to-refresh indicator */}
+        {isMobile && (
+          <PullToRefreshIndicator
+            pullDistance={pullDistance}
+            threshold={80}
+            isRefreshing={isRefreshing}
+          />
+        )}
+        
         {/* Page Title */}
-        <Title heading={3} style={{ marginBottom: 24 }}>
+        <Title heading={3} style={{ marginBottom: isMobile ? 12 : 24, marginTop: pullDistance > 0 ? pullDistance : 0 }}>
           Trades
         </Title>
 
@@ -449,22 +477,21 @@ const TradesPage: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Trade Table - Scrollable on mobile */}
+        {/* Trade Table - Scrollable on mobile with pull-to-refresh */}
         <Card
           title="Trade History"
-          bodyStyle={isMobile ? { padding: 0, overflowX: 'auto' } : undefined}
+          bodyStyle={isMobile ? { padding: 0 } : undefined}
         >
-          <div className={isMobile ? 'mobile-table-container' : ''}>
+          <MobileTableWrapper fixedFirstColumn minWidth={1000}>
             <Table
               columns={tradeColumns}
               dataSource={filteredTrades}
               rowKey="id"
-              loading={loading}
+              loading={loading || isRefreshing}
               pagination={{ pageSize: 20, showSizeChanger: true }}
               size="small"
-              scroll={isMobile ? { x: 1000 } : undefined}
             />
-          </div>
+          </MobileTableWrapper>
         </Card>
 
         {/* Export Modal */}
