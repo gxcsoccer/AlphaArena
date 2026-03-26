@@ -1,0 +1,50 @@
+{
+  "general": {
+    "title": "エラー",
+    "unknown": "不明なエラーが発生しました",
+    "network": "ネットワークエラーです。接続を確認してください。",
+    "server": "サーバーエラーです。後でもう一度お試しください。",
+    "timeout": "リクエストがタイムアウトしました。再試行してください。",
+    "notFound": "リクエストされたリソースが見つかりません",
+    "forbidden": "このアクションを実行する権限がありません",
+    "unauthorized": "認証されていません。ログインして再試行してください。"
+  },
+  "validation": {
+    "required": "この項目は必須です",
+    "email": "有効なメールアドレスを入力してください",
+    "minLength": "最低{{min}}文字必要です",
+    "maxLength": "最大{{max}}文字までです",
+    "min": "最小値は{{min}}です",
+    "max": "最大値は{{max}}です",
+    "pattern": "無効な形式です",
+    "number": "有効な数値を入力してください",
+    "integer": "整数を入力してください",
+    "positiveNumber": "正の数値を入力してください",
+    "passwordMatch": "パスワードが一致しません"
+  },
+  "auth": {
+    "loginFailed": "ログインに失敗しました",
+    "invalidCredentials": "メールアドレスまたはパスワードが正しくありません",
+    "emailExists": "このメールアドレスは既に登録されています",
+    "tokenExpired": "セッションが期限切れです。再度ログインしてください。",
+    "unauthorized": "認証されていません",
+    "forbidden": "権限が不足しています"
+  },
+  "trading": {
+    "insufficientBalance": "残高が不足しています",
+    "insufficientMargin": "証拠金が不足しています",
+    "orderFailed": "注文の発注に失敗しました",
+    "cancelFailed": "注文の取消に失敗しました",
+    "modifyFailed": "注文の変更に失敗しました",
+    "invalidPrice": "無効な価格です",
+    "invalidAmount": "無効な数量です",
+    "marketClosed": "市場は閉鎖されています",
+    "rateLimited": "リクエストが多すぎます。後でもう一度お試しください。"
+  },
+  "api": {
+    "invalidKey": "無効なAPIキーです",
+    "keyExpired": "APIキーの有効期限が切れています",
+    "permissionDenied": "権限が拒否されました",
+    "rateLimited": "レート制限を超えました"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "order": {
+    "title": "注文",
+    "create": "注文作成",
+    "buy": "買い",
+    "sell": "売り",
+    "market": "成行注文",
+    "limit": "指値注文",
+    "stop": "ストップ注文",
+    "stopLimit": "ストップリミット注文",
+    "trailingStop": "トレーリングストップ注文",
+    "iceberg": "アイスバーグ注文",
+    "fillOrKill": "FOK（全数実行または取消）",
+    "immediateOrCancel": "IOC（即時実行または取消）",
+    "price": "価格",
+    "amount": "数量",
+    "total": "合計",
+    "fee": "手数料",
+    "status": {
+      "pending": "保留中",
+      "open": "未約定",
+      "partial": "部分約定",
+      "filled": "約定済み",
+      "cancelled": "取消済み",
+      "rejected": "拒否",
+      "expired": "期限切れ"
+    },
+    "confirm": "注文確認",
+    "success": "注文が正常に発注されました",
+    "error": "注文の発注に失敗しました",
+    "cancel": "注文取消",
+    "cancelAll": "全て取消",
+    "cancelSuccess": "注文が正常に取消されました",
+    "modify": "注文変更",
+    "modifySuccess": "注文が正常に変更されました"
+  },
+  "trade": {
+    "title": "取引履歴",
+    "pair": "ペア",
+    "side": "売買",
+    "type": "タイプ",
+    "price": "価格",
+    "amount": "数量",
+    "total": "合計",
+    "fee": "手数料",
+    "time": "時刻",
+    "buy": "買い",
+    "sell": "売り"
+  },
+  "orderbook": {
+    "title": "注文板",
+    "asks": "売り注文",
+    "bids": "買い注文",
+    "price": "価格",
+    "amount": "数量",
+    "total": "合計"
+  },
+  "pair": {
+    "title": "取引ペア",
+    "select": "ペアを選択",
+    "search": "ペアを検索",
+    "favorite": "お気に入り",
+    "volume": "24時間出来高",
+    "change": "24時間変動"
+  },
+  "position": {
+    "title": "ポジション",
+    "open": "建玉",
+    "closed": "決済済み",
+    "entryPrice": "参入価格",
+    "exitPrice": "決済価格",
+    "amount": "数量",
+    "pnl": "損益",
+    "pnlPercent": "損益率",
+    "margin": "証拠金",
+    "leverage": "レバレッジ",
+    "liquidationPrice": "清算価格"
+  },
+  "conditional": {
+    "title": "条件付き注文",
+    "triggerPrice": "トリガー価格",
+    "triggerType": {
+      "above": "上回った時",
+      "below": "下回った時"
+    },
+    "action": {
+      "buy": "買い",
+      "sell": "売り",
+      "alert": "アラート"
+    },
+    "status": {
+      "active": "監視中",
+      "triggered": "トリガー済み",
+      "cancelled": "取消済み",
+      "expired": "期限切れ"
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "menu": {
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "trading": "取引",
+    "strategies": "ストラテジー",
+    "portfolio": "ポートフォリオ",
+    "holdings": "保有資産",
+    "trades": "取引履歴",
+    "leaderboard": "リーダーボード",
+    "performance": "パフォーマンス",
+    "risk": "リスク",
+    "sentiment": "センチメント",
+    "copyTrading": "コピートレード",
+    "backtest": "バックテスト",
+    "journal": "トレードジャーナル",
+    "comparison": "ストラテジー比較",
+    "attribution": "アトリビューション",
+    "marketplace": "マーケットプレイス",
+    "advancedOrders": "高度な注文",
+    "scheduler": "スケジューラー",
+    "rebalance": "リバランス",
+    "subscription": "サブスクリプション",
+    "admin": "管理",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "apiDocs": "APIドキュメント",
+    "notifications": "通知",
+    "feedback": "フィードバック"
+  },
+  "page": {
+    "home": {
+      "title": "AlphaArena - アルゴリズム取引プラットフォーム",
+      "subtitle": "定量取引、未来を勝ち取る"
+    },
+    "dashboard": {
+      "title": "ダッシュボード",
+      "subtitle": "アカウント概要とリアルタイムデータ"
+    },
+    "trading": {
+      "title": "取引",
+      "subtitle": "リアルタイム取引と注文管理"
+    },
+    "strategies": {
+      "title": "ストラテジー",
+      "subtitle": "取引ストラテジーの作成と管理"
+    },
+    "portfolio": {
+      "title": "ポートフォリオ",
+      "subtitle": "資産配分とポートフォリオ分析"
+    },
+    "holdings": {
+      "title": "保有資産",
+      "subtitle": "現在の保有資産詳細"
+    },
+    "trades": {
+      "title": "取引履歴",
+      "subtitle": "取引履歴詳細"
+    },
+    "leaderboard": {
+      "title": "リーダーボード",
+      "subtitle": "ストラテジーパフォーマンスランキング"
+    },
+    "performance": {
+      "title": "パフォーマンス",
+      "subtitle": "詳細なパフォーマンス指標とチャート"
+    },
+    "risk": {
+      "title": "リスク管理",
+      "subtitle": "リスク指標とモニタリング"
+    },
+    "backtest": {
+      "title": "バックテスト",
+      "subtitle": "ストラテジーバックテストと最適化"
+    }
+  },
+  "breadcrumb": {
+    "home": "ホーム",
+    "settings": "設定",
+    "profile": "プロフィール"
+  }
+}
