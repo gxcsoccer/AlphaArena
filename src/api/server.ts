@@ -77,7 +77,7 @@ import userAnalyticsRoutes from './userAnalyticsRoutes';
 import referralRoutes from './referralRoutes';
 import rewardRoutes from './rewardRoutes'; // Issue #654: Reward Mechanism
 import { createFeedbackRouter } from './feedbackRoutes';
-import { createExperimentRouter } from './experimentRoutes';
+import experimentRoutes from './experimentRoutes';
 import analyticsExportRoutes from './analyticsExportRoutes';
 import shareRoutes from './shareRoutes';
 import insightRoutes from './insightRoutes';
@@ -1090,7 +1090,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/feedback', createFeedbackRouter());
 
     // A/B Testing Experiment routes
-    this.app.use('/api/experiments', createExperimentRouter());
+    this.app.use('/api/experiments', experimentRoutes);
 
     // Analytics Export routes
     this.app.use('/api/analytics-export', analyticsExportRoutes);

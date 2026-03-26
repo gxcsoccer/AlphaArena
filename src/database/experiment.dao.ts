@@ -1,47 +1,36 @@
 /**
- * Experiment DAO
- *
- * Data access layer for A/B testing experiment management
- *
- * @module database/experiment.dao
+ * Experiment System Data Access Object
+ * Handles database operations for A/B testing experiments
  */
 
-import { getSupabaseAdminClient } from './client';
+import { getSupabaseClient, getSupabaseAdminClient } from './client';
 import { createLogger } from '../utils/logger';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const log = createLogger('ExperimentDAO');
 
-// ============================================================
-// Types and Enums
-// ============================================================
+// ============================================
+// Type Definitions
+// ============================================
 
-export enum ExperimentStatus {
-  DRAFT = 'draft',
-  RUNNING = 'running',
-  PAUSED = 'paused',
-  COMPLETED = 'completed',
-  ARCHIVED = 'archived',
-}
-
-export enum EventType {
-  IMPRESSION = 'impression',
-  CLICK = 'click',
-  CONVERSION = 'conversion',
-  CUSTOM = 'custom',
-}
+export type ExperimentStatus = 'draft' | 'running' | 'paused' | 'completed' | 'archived';
+export type ExperimentType = 'referral' | 'ui' | 'feature' | 'pricing' | 'notification';
 
 export interface Experiment {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
+  experimentType: ExperimentType;
+  targetAudience: Record<string, unknown>;
   status: ExperimentStatus;
-  targetPage: string;
-  targetSelector?: string;
+  startDate: Date | null;
+  endDate: Date | null;
   trafficAllocation: number;
-  startAt?: Date;
-  endAt?: Date;
-  createdBy?: string;
-  metadata: Record<string, any>;
+  significanceLevel: number;
+  minimumSampleSize: number;
+  winningVariantId: string | null;
+  results: Record<string, unknown>;
+  createdBy: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,11 +39,13 @@ export interface ExperimentVariant {
   id: string;
   experimentId: string;
   name: string;
-  key: string;
-  description?: string;
-  trafficWeight: number;
+  description: string | null;
+  config: Record<string, unknown>;
+  trafficPercentage: number;
   isControl: boolean;
-  config: Record<string, any>;
+  participants: number;
+  conversions: number;
+  conversionRate: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -63,764 +54,772 @@ export interface ExperimentAssignment {
   id: string;
   experimentId: string;
   variantId: string;
-  userId?: string;
-  sessionId: string;
-  deviceId?: string;
+  userId: string;
   assignedAt: Date;
+  assignmentReason: 'random' | 'forced' | 'sticky';
+  context: Record<string, unknown>;
+  converted: boolean;
+  convertedAt: Date | null;
+  conversionValue: number | null;
+  createdAt: Date;
 }
 
 export interface ExperimentEvent {
   id: string;
   experimentId: string;
-  variantId: string;
-  userId?: string;
-  sessionId: string;
-  eventType: EventType;
-  eventName?: string;
-  eventValue?: number;
-  properties: Record<string, any>;
-  occurredAt: Date;
-}
-
-export interface ExperimentStatistics {
-  id: string;
-  experimentId: string;
-  variantId: string;
-  date: Date;
-  impressions: number;
-  clicks: number;
-  conversions: number;
-  uniqueVisitors: number;
-  conversionRate: number;
-  clickRate: number;
-  avgSessionDuration?: number;
-  bounceRate?: number;
-  chiSquare?: number;
-  pValue?: number;
-  confidenceIntervalLower?: number;
-  confidenceIntervalUpper?: number;
-  isSignificant: boolean;
+  variantId: string | null;
+  userId: string;
+  assignmentId: string | null;
+  eventType: string;
+  eventName: string | null;
+  eventData: Record<string, unknown>;
+  sessionId: string | null;
+  deviceType: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
   createdAt: Date;
-  updatedAt: Date;
 }
 
-export interface VariantResult {
-  variantId: string;
-  variantKey: string;
-  variantName: string;
-  isControl: boolean;
-  totalVisitors: number;
-  totalConversions: number;
-  conversionRate: number;
-  improvement: number;
-  pValue?: number;
-  confidenceLower?: number;
-  confidenceUpper?: number;
-  isSignificant: boolean;
-  recommendation: string;
-}
-
-// ============================================================
-// Input Types
-// ============================================================
-
-export interface CreateExperimentInput {
+export interface CreateExperimentData {
   name: string;
   description?: string;
-  targetPage: string;
-  targetSelector?: string;
+  experimentType?: ExperimentType;
+  targetAudience?: Record<string, unknown>;
   trafficAllocation?: number;
-  startAt?: Date;
-  endAt?: Date;
+  significanceLevel?: number;
+  minimumSampleSize?: number;
   createdBy?: string;
-  metadata?: Record<string, any>;
 }
 
-export interface UpdateExperimentInput {
-  name?: string;
-  description?: string;
-  status?: ExperimentStatus;
-  targetPage?: string;
-  targetSelector?: string;
-  trafficAllocation?: number;
-  startAt?: Date;
-  endAt?: Date;
-  metadata?: Record<string, any>;
-}
-
-export interface CreateVariantInput {
+export interface CreateVariantData {
   experimentId: string;
   name: string;
-  key: string;
   description?: string;
-  trafficWeight?: number;
+  config: Record<string, unknown>;
+  trafficPercentage: number;
   isControl?: boolean;
-  config?: Record<string, any>;
 }
 
-export interface UpdateVariantInput {
-  name?: string;
-  description?: string;
-  trafficWeight?: number;
-  config?: Record<string, any>;
-}
-
-export interface TrackEventInput {
+export interface ExperimentStats {
   experimentId: string;
-  variantId: string;
-  sessionId: string;
-  eventType: EventType;
-  eventName?: string;
-  eventValue?: number;
-  properties?: Record<string, any>;
-  userId?: string;
+  variants: Array<{
+    id: string;
+    name: string;
+    isControl: boolean;
+    participants: number;
+    conversions: number;
+    conversionRate: number;
+    config: Record<string, unknown>;
+  }>;
+  comparisons: Array<{
+    variant_id: string;
+    variant_name: string;
+    lift: number;
+    is_significant: boolean;
+    z_score: number;
+    p_value: number;
+  }>;
+  winningVariantId: string | null;
+  totalParticipants: number;
+  totalConversions: number;
 }
 
-// ============================================================
-// Query Options
-// ============================================================
+// ============================================
+// DAO Class
+// ============================================
 
-export interface ExperimentQueryOptions {
-  status?: ExperimentStatus;
-  targetPage?: string;
-  createdBy?: string;
-  search?: string;
-  startDate?: Date;
-  endDate?: Date;
-  limit?: number;
-  offset?: number;
-}
+export class ExperimentDAO {
+  private anonClient: SupabaseClient;
+  private adminClient: SupabaseClient;
 
-// ============================================================
-// Experiment DAO Class
-// ============================================================
+  constructor(anonClient: SupabaseClient, adminClient: SupabaseClient) {
+    this.anonClient = anonClient;
+    this.adminClient = adminClient;
+  }
 
-class ExperimentDAO {
-  // ============================================================
-  // Experiment CRUD
-  // ============================================================
+  // ============================================
+  // Experiment Operations
+  // ============================================
 
   /**
    * Create a new experiment
    */
-  async createExperiment(input: CreateExperimentInput): Promise<Experiment> {
-    const supabase = getSupabaseAdminClient();
-
-    const id = crypto.randomUUID();
-
-    const { data, error } = await supabase
+  async createExperiment(data: CreateExperimentData): Promise<Experiment> {
+    const { data: experiment, error } = await this.adminClient
       .from('experiments')
       .insert({
-        id,
-        name: input.name,
-        description: input.description || null,
-        status: ExperimentStatus.DRAFT,
-        target_page: input.targetPage,
-        target_selector: input.targetSelector || null,
-        traffic_allocation: input.trafficAllocation ?? 100,
-        start_at: input.startAt?.toISOString() || null,
-        end_at: input.endAt?.toISOString() || null,
-        created_by: input.createdBy || null,
-        metadata: input.metadata || {},
+        name: data.name,
+        description: data.description || null,
+        experiment_type: data.experimentType || 'referral',
+        target_audience: data.targetAudience || {},
+        traffic_allocation: data.trafficAllocation || 100,
+        significance_level: data.significanceLevel || 0.05,
+        minimum_sample_size: data.minimumSampleSize || 1000,
+        created_by: data.createdBy || null,
+        status: 'draft',
       })
       .select()
       .single();
 
     if (error) {
       log.error('Failed to create experiment:', error);
-      throw new Error(`Failed to create experiment: ${error.message}`);
+      throw error;
     }
 
-    return this.mapExperimentFromDb(data);
+    return this.mapExperimentRow(experiment);
   }
 
   /**
    * Get experiment by ID
    */
-  async getExperimentById(id: string): Promise<Experiment | null> {
-    const supabase = getSupabaseAdminClient();
-
-    const { data, error } = await supabase
+  async getExperimentById(experimentId: string): Promise<Experiment | null> {
+    const { data, error } = await this.anonClient
       .from('experiments')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('id', experimentId)
+      .maybeSingle();
 
     if (error) {
-      if (error.code === 'PGRST116') return null;
       log.error('Failed to get experiment:', error);
-      throw new Error(`Failed to get experiment: ${error.message}`);
+      throw error;
     }
 
-    return data ? this.mapExperimentFromDb(data) : null;
+    return data ? this.mapExperimentRow(data) : null;
   }
 
   /**
-   * Get experiments with filters
+   * Get experiment by name
    */
-  async getExperiments(options: ExperimentQueryOptions = {}): Promise<Experiment[]> {
-    const supabase = getSupabaseAdminClient();
-
-    let query = supabase
+  async getExperimentByName(name: string): Promise<Experiment | null> {
+    const { data, error } = await this.anonClient
       .from('experiments')
-      .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false });
+      .select('*')
+      .eq('name', name)
+      .maybeSingle();
 
-    if (options.status) {
+    if (error) {
+      log.error('Failed to get experiment by name:', error);
+      throw error;
+    }
+
+    return data ? this.mapExperimentRow(data) : null;
+  }
+
+  /**
+   * List experiments with filters
+   */
+  async listExperiments(options?: {
+    status?: ExperimentStatus;
+    type?: ExperimentType;
+    limit?: number;
+    offset?: number;
+  }): Promise<{ experiments: Experiment[]; total: number }> {
+    let query = this.anonClient
+      .from('experiments')
+      .select('*', { count: 'exact' });
+
+    if (options?.status) {
       query = query.eq('status', options.status);
     }
 
-    if (options.targetPage) {
-      query = query.eq('target_page', options.targetPage);
+    if (options?.type) {
+      query = query.eq('experiment_type', options.type);
     }
 
-    if (options.createdBy) {
-      query = query.eq('created_by', options.createdBy);
-    }
+    const limit = options?.limit ?? 50;
+    const offset = options?.offset ?? 0;
 
-    if (options.search) {
-      query = query.or(`name.ilike.%${options.search}%,description.ilike.%${options.search}%`);
-    }
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
 
-    if (options.startDate) {
-      query = query.gte('created_at', options.startDate.toISOString());
-    }
-
-    if (options.endDate) {
-      query = query.lte('created_at', options.endDate.toISOString());
-    }
-
-    const limit = options.limit || 50;
-    const offset = options.offset || 0;
-    query = query.range(offset, offset + limit - 1);
-
-    const { data, error } = await query;
+    const { data, error, count } = await query;
 
     if (error) {
-      log.error('Failed to get experiments:', error);
-      throw new Error(`Failed to get experiments: ${error.message}`);
+      log.error('Failed to list experiments:', error);
+      throw error;
     }
 
-    return (data || []).map(this.mapExperimentFromDb);
+    return {
+      experiments: (data || []).map(this.mapExperimentRow),
+      total: count || 0,
+    };
   }
 
   /**
    * Update experiment
    */
-  async updateExperiment(id: string, input: UpdateExperimentInput): Promise<Experiment> {
-    const supabase = getSupabaseAdminClient();
+  async updateExperiment(
+    experimentId: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      status: ExperimentStatus;
+      startDate: Date;
+      endDate: Date;
+      trafficAllocation: number;
+      winningVariantId: string;
+      results: Record<string, unknown>;
+    }>
+  ): Promise<Experiment> {
+    const updateData: Record<string, unknown> = {};
 
-    const updateData: any = {};
-    if (input.name !== undefined) updateData.name = input.name;
-    if (input.description !== undefined) updateData.description = input.description;
-    if (input.status !== undefined) updateData.status = input.status;
-    if (input.targetPage !== undefined) updateData.target_page = input.targetPage;
-    if (input.targetSelector !== undefined) updateData.target_selector = input.targetSelector;
-    if (input.trafficAllocation !== undefined) updateData.traffic_allocation = input.trafficAllocation;
-    if (input.startAt !== undefined) updateData.start_at = input.startAt?.toISOString() || null;
-    if (input.endAt !== undefined) updateData.end_at = input.endAt?.toISOString() || null;
-    if (input.metadata !== undefined) updateData.metadata = input.metadata;
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.startDate !== undefined) updateData.start_date = data.startDate;
+    if (data.endDate !== undefined) updateData.end_date = data.endDate;
+    if (data.trafficAllocation !== undefined) updateData.traffic_allocation = data.trafficAllocation;
+    if (data.winningVariantId !== undefined) updateData.winning_variant_id = data.winningVariantId;
+    if (data.results !== undefined) updateData.results = data.results;
 
-    const { data, error } = await supabase
+    const { data: experiment, error } = await this.adminClient
       .from('experiments')
       .update(updateData)
-      .eq('id', id)
+      .eq('id', experimentId)
       .select()
       .single();
 
     if (error) {
       log.error('Failed to update experiment:', error);
-      throw new Error(`Failed to update experiment: ${error.message}`);
+      throw error;
     }
 
-    return this.mapExperimentFromDb(data);
+    return this.mapExperimentRow(experiment);
   }
 
   /**
-   * Delete experiment
+   * Start an experiment
    */
-  async deleteExperiment(id: string): Promise<void> {
-    const supabase = getSupabaseAdminClient();
-
-    const { error } = await supabase.from('experiments').delete().eq('id', id);
-
-    if (error) {
-      log.error('Failed to delete experiment:', error);
-      throw new Error(`Failed to delete experiment: ${error.message}`);
-    }
+  async startExperiment(experimentId: string): Promise<Experiment> {
+    return this.updateExperiment(experimentId, {
+      status: 'running',
+      startDate: new Date(),
+    });
   }
 
-  // ============================================================
-  // Variant CRUD
-  // ============================================================
+  /**
+   * Pause an experiment
+   */
+  async pauseExperiment(experimentId: string): Promise<Experiment> {
+    return this.updateExperiment(experimentId, {
+      status: 'paused',
+    });
+  }
+
+  /**
+   * Complete an experiment
+   */
+  async completeExperiment(experimentId: string, winningVariantId?: string): Promise<Experiment> {
+    const updateData: Partial<{
+      status: ExperimentStatus;
+      endDate: Date;
+      winningVariantId: string;
+    }> = {
+      status: 'completed',
+      endDate: new Date(),
+    };
+
+    if (winningVariantId) {
+      updateData.winningVariantId = winningVariantId;
+    }
+
+    return this.updateExperiment(experimentId, updateData);
+  }
+
+  // ============================================
+  // Variant Operations
+  // ============================================
 
   /**
    * Create a variant
    */
-  async createVariant(input: CreateVariantInput): Promise<ExperimentVariant> {
-    const supabase = getSupabaseAdminClient();
-
-    const id = crypto.randomUUID();
-
-    const { data, error } = await supabase
+  async createVariant(data: CreateVariantData): Promise<ExperimentVariant> {
+    const { data: variant, error } = await this.adminClient
       .from('experiment_variants')
       .insert({
-        id,
-        experiment_id: input.experimentId,
-        name: input.name,
-        key: input.key,
-        description: input.description || null,
-        traffic_weight: input.trafficWeight ?? 50,
-        is_control: input.isControl ?? false,
-        config: input.config || {},
+        experiment_id: data.experimentId,
+        name: data.name,
+        description: data.description || null,
+        config: data.config,
+        traffic_percentage: data.trafficPercentage,
+        is_control: data.isControl || false,
       })
       .select()
       .single();
 
     if (error) {
       log.error('Failed to create variant:', error);
-      throw new Error(`Failed to create variant: ${error.message}`);
+      throw error;
     }
 
-    return this.mapVariantFromDb(data);
-  }
-
-  /**
-   * Get variant by ID
-   */
-  async getVariantById(id: string): Promise<ExperimentVariant | null> {
-    const supabase = getSupabaseAdminClient();
-
-    const { data, error } = await supabase
-      .from('experiment_variants')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      log.error('Failed to get variant:', error);
-      throw new Error(`Failed to get variant: ${error.message}`);
-    }
-
-    return data ? this.mapVariantFromDb(data) : null;
+    return this.mapVariantRow(variant);
   }
 
   /**
    * Get variants for an experiment
    */
   async getVariantsByExperimentId(experimentId: string): Promise<ExperimentVariant[]> {
-    const supabase = getSupabaseAdminClient();
-
-    const { data, error } = await supabase
+    const { data, error } = await this.anonClient
       .from('experiment_variants')
       .select('*')
       .eq('experiment_id', experimentId)
-      .order('key');
+      .order('is_control', { ascending: false })
+      .order('name');
 
     if (error) {
       log.error('Failed to get variants:', error);
-      throw new Error(`Failed to get variants: ${error.message}`);
+      throw error;
     }
 
-    return (data || []).map(this.mapVariantFromDb);
+    return (data || []).map(this.mapVariantRow);
+  }
+
+  /**
+   * Get variant by ID
+   */
+  async getVariantById(variantId: string): Promise<ExperimentVariant | null> {
+    const { data, error } = await this.anonClient
+      .from('experiment_variants')
+      .select('*')
+      .eq('id', variantId)
+      .maybeSingle();
+
+    if (error) {
+      log.error('Failed to get variant:', error);
+      throw error;
+    }
+
+    return data ? this.mapVariantRow(data) : null;
   }
 
   /**
    * Update variant
    */
-  async updateVariant(id: string, input: UpdateVariantInput): Promise<ExperimentVariant> {
-    const supabase = getSupabaseAdminClient();
+  async updateVariant(
+    variantId: string,
+    data: Partial<{
+      name: string;
+      description: string;
+      config: Record<string, unknown>;
+      trafficPercentage: number;
+    }>
+  ): Promise<ExperimentVariant> {
+    const updateData: Record<string, unknown> = {};
 
-    const updateData: any = {};
-    if (input.name !== undefined) updateData.name = input.name;
-    if (input.description !== undefined) updateData.description = input.description;
-    if (input.trafficWeight !== undefined) updateData.traffic_weight = input.trafficWeight;
-    if (input.config !== undefined) updateData.config = input.config;
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.description !== undefined) updateData.description = data.description;
+    if (data.config !== undefined) updateData.config = data.config;
+    if (data.trafficPercentage !== undefined) updateData.traffic_percentage = data.trafficPercentage;
 
-    const { data, error } = await supabase
+    const { data: variant, error } = await this.adminClient
       .from('experiment_variants')
       .update(updateData)
-      .eq('id', id)
+      .eq('id', variantId)
       .select()
       .single();
 
     if (error) {
       log.error('Failed to update variant:', error);
-      throw new Error(`Failed to update variant: ${error.message}`);
+      throw error;
     }
 
-    return this.mapVariantFromDb(data);
+    return this.mapVariantRow(variant);
   }
 
   /**
    * Delete variant
    */
-  async deleteVariant(id: string): Promise<void> {
-    const supabase = getSupabaseAdminClient();
-
-    const { error } = await supabase.from('experiment_variants').delete().eq('id', id);
+  async deleteVariant(variantId: string): Promise<void> {
+    const { error } = await this.adminClient
+      .from('experiment_variants')
+      .delete()
+      .eq('id', variantId);
 
     if (error) {
       log.error('Failed to delete variant:', error);
-      throw new Error(`Failed to delete variant: ${error.message}`);
+      throw error;
     }
   }
 
-  // ============================================================
-  // Assignment Management
-  // ============================================================
+  // ============================================
+  // Assignment Operations
+  // ============================================
 
   /**
-   * Assign a user/session to a variant
+   * Assign user to experiment variant
    */
-  async assignVariant(
+  async assignUserToExperiment(
     experimentId: string,
-    sessionId: string,
-    userId?: string,
-    deviceId?: string
-  ): Promise<ExperimentVariant | null> {
-    const supabase = getSupabaseAdminClient();
-
-    // Call the database function to get or create assignment
-    const { data, error } = await supabase.rpc('assign_experiment_variant', {
+    userId: string,
+    context?: Record<string, unknown>
+  ): Promise<{
+    success: boolean;
+    variant: ExperimentVariant | null;
+    assignmentId?: string;
+    alreadyAssigned?: boolean;
+    error?: string;
+  }> {
+    const { data: result, error } = await this.adminClient.rpc('assign_user_to_experiment', {
       p_experiment_id: experimentId,
-      p_session_id: sessionId,
-      p_user_id: userId || null,
-      p_device_id: deviceId || null,
+      p_user_id: userId,
+      p_context: context || {},
     });
 
     if (error) {
-      log.error('Failed to assign variant:', error);
-      throw new Error(`Failed to assign variant: ${error.message}`);
+      log.error('Failed to assign user to experiment:', error);
+      throw error;
     }
 
-    if (!data) {
-      return null;
-    }
+    const mapped = result as {
+      success: boolean;
+      variant?: {
+        id: string;
+        name: string;
+        config: Record<string, unknown>;
+        is_control: boolean;
+      };
+      assignment_id?: string;
+      already_assigned?: boolean;
+      error?: string;
+    };
 
-    // Get the variant details
-    return this.getVariantById(data);
-  }
-
-  /**
-   * Get assignment for a user/session
-   */
-  async getAssignment(
-    experimentId: string,
-    sessionId: string,
-    userId?: string
-  ): Promise<ExperimentAssignment | null> {
-    const supabase = getSupabaseAdminClient();
-
-    let query = supabase
-      .from('experiment_assignments')
-      .select('*')
-      .eq('experiment_id', experimentId);
-
-    if (userId) {
-      query = query.eq('user_id', userId);
-    } else {
-      query = query.eq('session_id', sessionId);
-    }
-
-    const { data, error } = await query.single();
-
-    if (error) {
-      if (error.code === 'PGRST116') return null;
-      log.error('Failed to get assignment:', error);
-      throw new Error(`Failed to get assignment: ${error.message}`);
-    }
-
-    return data ? this.mapAssignmentFromDb(data) : null;
-  }
-
-  // ============================================================
-  // Event Tracking
-  // ============================================================
-
-  /**
-   * Track an event
-   */
-  async trackEvent(input: TrackEventInput): Promise<ExperimentEvent> {
-    const supabase = getSupabaseAdminClient();
-
-    const { data, error } = await supabase.rpc('track_experiment_event', {
-      p_experiment_id: input.experimentId,
-      p_variant_id: input.variantId,
-      p_session_id: input.sessionId,
-      p_event_type: input.eventType,
-      p_event_name: input.eventName || null,
-      p_event_value: input.eventValue || null,
-      p_properties: input.properties || {},
-      p_user_id: input.userId || null,
-    });
-
-    if (error) {
-      log.error('Failed to track event:', error);
-      throw new Error(`Failed to track event: ${error.message}`);
-    }
-
-    // Get the created event
-    const { data: eventData, error: fetchError } = await supabase
-      .from('experiment_events')
-      .select('*')
-      .eq('id', data)
-      .single();
-
-    if (fetchError) {
-      log.error('Failed to fetch tracked event:', fetchError);
-      // Return minimal event data
+    if (!mapped.success || !mapped.variant) {
       return {
-        id: data,
-        experimentId: input.experimentId,
-        variantId: input.variantId,
-        sessionId: input.sessionId,
-        eventType: input.eventType,
-        eventName: input.eventName,
-        eventValue: input.eventValue,
-        properties: input.properties || {},
-        occurredAt: new Date(),
-        userId: input.userId,
+        success: mapped.success,
+        variant: null,
+        error: mapped.error,
       };
     }
 
-    return this.mapEventFromDb(eventData);
+    // Fetch full variant details
+    const variant = await this.getVariantById(mapped.variant.id);
+
+    return {
+      success: true,
+      variant,
+      assignmentId: mapped.assignment_id,
+      alreadyAssigned: mapped.already_assigned,
+    };
+  }
+
+  /**
+   * Get user's assignment for an experiment
+   */
+  async getUserAssignment(
+    experimentId: string,
+    userId: string
+  ): Promise<ExperimentAssignment | null> {
+    const { data, error } = await this.anonClient
+      .from('experiment_assignments')
+      .select('*')
+      .eq('experiment_id', experimentId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      log.error('Failed to get user assignment:', error);
+      throw error;
+    }
+
+    return data ? this.mapAssignmentRow(data) : null;
+  }
+
+  /**
+   * Get user's active experiments
+   */
+  async getUserActiveExperiments(userId: string): Promise<Array<{
+    experiment: Experiment;
+    variant: ExperimentVariant;
+    assignment: ExperimentAssignment;
+  }>> {
+    const { data, error } = await this.anonClient.rpc('get_user_active_experiments', {
+      p_user_id: userId,
+    });
+
+    if (error) {
+      log.error('Failed to get user active experiments:', error);
+      throw error;
+    }
+
+    const results = data as Array<{
+      experiment_id: string;
+      experiment_name: string;
+      experiment_type: string;
+      variant: {
+        id: string;
+        name: string;
+        config: Record<string, unknown>;
+        is_control: boolean;
+      };
+      assignment_id: string;
+      assigned_at: string;
+      converted: boolean;
+    }>;
+
+    const enriched = await Promise.all(
+      results.map(async (r) => {
+        const experiment = await this.getExperimentById(r.experiment_id);
+        const variant = await this.getVariantById(r.variant.id);
+
+        return {
+          experiment: experiment!,
+          variant: variant!,
+          assignment: {
+            id: r.assignment_id,
+            experimentId: r.experiment_id,
+            variantId: r.variant.id,
+            userId,
+            assignedAt: new Date(r.assigned_at),
+            assignmentReason: 'random' as const,
+            context: {},
+            converted: r.converted,
+            convertedAt: null,
+            conversionValue: null,
+            createdAt: new Date(r.assigned_at),
+          },
+        };
+      })
+    );
+
+    return enriched.filter((e) => e.experiment && e.variant);
+  }
+
+  // ============================================
+  // Event & Conversion Tracking
+  // ============================================
+
+  /**
+   * Track conversion event
+   */
+  async trackConversion(
+    experimentId: string,
+    userId: string,
+    eventName?: string,
+    eventData?: Record<string, unknown>,
+    conversionValue?: number
+  ): Promise<{
+    success: boolean;
+    alreadyConverted?: boolean;
+    error?: string;
+  }> {
+    const { data: result, error } = await this.adminClient.rpc('track_experiment_conversion', {
+      p_experiment_id: experimentId,
+      p_user_id: userId,
+      p_event_name: eventName || 'conversion',
+      p_event_data: eventData || {},
+      p_conversion_value: conversionValue || null,
+    });
+
+    if (error) {
+      log.error('Failed to track conversion:', error);
+      throw error;
+    }
+
+    return result as {
+      success: boolean;
+      already_converted?: boolean;
+      error?: string;
+    };
+  }
+
+  /**
+   * Track experiment event
+   */
+  async trackEvent(data: {
+    experimentId: string;
+    variantId?: string;
+    userId: string;
+    assignmentId?: string;
+    eventType: string;
+    eventName?: string;
+    eventData?: Record<string, unknown>;
+    sessionId?: string;
+    deviceType?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }): Promise<ExperimentEvent> {
+    const { data: event, error } = await this.adminClient
+      .from('experiment_events')
+      .insert({
+        experiment_id: data.experimentId,
+        variant_id: data.variantId || null,
+        user_id: data.userId,
+        assignment_id: data.assignmentId || null,
+        event_type: data.eventType,
+        event_name: data.eventName || null,
+        event_data: data.eventData || {},
+        session_id: data.sessionId || null,
+        device_type: data.deviceType || null,
+        ip_address: data.ipAddress || null,
+        user_agent: data.userAgent || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      log.error('Failed to track event:', error);
+      throw error;
+    }
+
+    return this.mapEventRow(event);
   }
 
   /**
    * Get events for an experiment
    */
-  async getEvents(
+  async getExperimentEvents(
     experimentId: string,
-    options: {
-      variantId?: string;
-      eventType?: EventType;
-      startDate?: Date;
-      endDate?: Date;
+    options?: {
+      eventType?: string;
+      eventName?: string;
+      userId?: string;
       limit?: number;
       offset?: number;
-    } = {}
-  ): Promise<ExperimentEvent[]> {
-    const supabase = getSupabaseAdminClient();
-
-    let query = supabase
-      .from('experiment_events')
-      .select('*')
-      .eq('experiment_id', experimentId)
-      .order('occurred_at', { ascending: false });
-
-    if (options.variantId) {
-      query = query.eq('variant_id', options.variantId);
     }
+  ): Promise<{ events: ExperimentEvent[]; total: number }> {
+    let query = this.anonClient
+      .from('experiment_events')
+      .select('*', { count: 'exact' })
+      .eq('experiment_id', experimentId);
 
-    if (options.eventType) {
+    if (options?.eventType) {
       query = query.eq('event_type', options.eventType);
     }
 
-    if (options.startDate) {
-      query = query.gte('occurred_at', options.startDate.toISOString());
+    if (options?.eventName) {
+      query = query.eq('event_name', options.eventName);
     }
 
-    if (options.endDate) {
-      query = query.lte('occurred_at', options.endDate.toISOString());
+    if (options?.userId) {
+      query = query.eq('user_id', options.userId);
     }
 
-    const limit = options.limit || 100;
-    const offset = options.offset || 0;
-    query = query.range(offset, offset + limit - 1);
+    const limit = options?.limit ?? 100;
+    const offset = options?.offset ?? 0;
 
-    const { data, error } = await query;
+    query = query
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    const { data, error, count } = await query;
 
     if (error) {
-      log.error('Failed to get events:', error);
-      throw new Error(`Failed to get events: ${error.message}`);
+      log.error('Failed to get experiment events:', error);
+      throw error;
     }
 
-    return (data || []).map(this.mapEventFromDb);
+    return {
+      events: (data || []).map(this.mapEventRow),
+      total: count || 0,
+    };
   }
 
-  // ============================================================
-  // Statistics and Analysis
-  // ============================================================
+  // ============================================
+  // Statistics
+  // ============================================
 
   /**
-   * Get experiment results with statistical analysis
+   * Calculate experiment statistics
    */
-  async getExperimentResults(experimentId: string): Promise<VariantResult[]> {
-    const supabase = getSupabaseAdminClient();
-
-    const { data, error } = await supabase.rpc('get_experiment_results', {
+  async calculateStatistics(experimentId: string): Promise<ExperimentStats> {
+    const { data, error } = await this.anonClient.rpc('calculate_experiment_statistics', {
       p_experiment_id: experimentId,
-    });
-
-    if (error) {
-      log.error('Failed to get experiment results:', error);
-      throw new Error(`Failed to get experiment results: ${error.message}`);
-    }
-
-    return (data || []).map((item: any) => ({
-      variantId: item.variant_id,
-      variantKey: item.variant_key,
-      variantName: item.variant_name,
-      isControl: item.is_control,
-      totalVisitors: item.total_visitors,
-      totalConversions: item.total_conversions,
-      conversionRate: item.conversion_rate,
-      improvement: item.improvement,
-      pValue: item.p_value,
-      confidenceLower: item.confidence_lower,
-      confidenceUpper: item.confidence_upper,
-      isSignificant: item.is_significant,
-      recommendation: item.recommendation,
-    }));
-  }
-
-  /**
-   * Calculate and store daily statistics
-   */
-  async calculateStatistics(experimentId: string, date?: Date): Promise<void> {
-    const supabase = getSupabaseAdminClient();
-
-    const { error } = await supabase.rpc('calculate_experiment_stats', {
-      p_experiment_id: experimentId,
-      p_date: date ? date.toISOString().split('T')[0] : undefined,
     });
 
     if (error) {
       log.error('Failed to calculate statistics:', error);
-      throw new Error(`Failed to calculate statistics: ${error.message}`);
+      throw error;
     }
+
+    return data as ExperimentStats;
   }
 
-  /**
-   * Get statistics for an experiment
-   */
-  async getStatistics(
-    experimentId: string,
-    options: { startDate?: Date; endDate?: Date } = {}
-  ): Promise<ExperimentStatistics[]> {
-    const supabase = getSupabaseAdminClient();
+  // ============================================
+  // Helper Methods
+  // ============================================
 
-    let query = supabase
-      .from('experiment_statistics')
-      .select('*')
-      .eq('experiment_id', experimentId)
-      .order('date', { ascending: false });
-
-    if (options.startDate) {
-      query = query.gte('date', options.startDate.toISOString().split('T')[0]);
-    }
-
-    if (options.endDate) {
-      query = query.lte('date', options.endDate.toISOString().split('T')[0]);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      log.error('Failed to get statistics:', error);
-      throw new Error(`Failed to get statistics: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapStatisticsFromDb);
-  }
-
-  // ============================================================
-  // Mapping Functions
-  // ============================================================
-
-  private mapExperimentFromDb(data: any): Experiment {
-    if (!data) {
-      throw new Error('Cannot map null or undefined data to Experiment');
-    }
+  private mapExperimentRow(row: Record<string, unknown>): Experiment {
     return {
-      id: data.id,
-      name: data.name,
-      description: data.description || undefined,
-      status: data.status as ExperimentStatus,
-      targetPage: data.target_page,
-      targetSelector: data.target_selector || undefined,
-      trafficAllocation: data.traffic_allocation,
-      startAt: data.start_at ? new Date(data.start_at) : undefined,
-      endAt: data.end_at ? new Date(data.end_at) : undefined,
-      createdBy: data.created_by || undefined,
-      metadata: data.metadata || {},
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: row.id as string,
+      name: row.name as string,
+      description: row.description as string | null,
+      experimentType: row.experiment_type as ExperimentType,
+      targetAudience: (row.target_audience as Record<string, unknown>) || {},
+      status: row.status as ExperimentStatus,
+      startDate: row.start_date ? new Date(row.start_date as string) : null,
+      endDate: row.end_date ? new Date(row.end_date as string) : null,
+      trafficAllocation: row.traffic_allocation as number,
+      significanceLevel: row.significance_level as number,
+      minimumSampleSize: row.minimum_sample_size as number,
+      winningVariantId: row.winning_variant_id as string | null,
+      results: (row.results as Record<string, unknown>) || {},
+      createdBy: row.created_by as string | null,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
     };
   }
 
-  private mapVariantFromDb(data: any): ExperimentVariant {
-    if (!data) {
-      throw new Error('Cannot map null or undefined data to ExperimentVariant');
-    }
+  private mapVariantRow(row: Record<string, unknown>): ExperimentVariant {
     return {
-      id: data.id,
-      experimentId: data.experiment_id,
-      name: data.name,
-      key: data.key,
-      description: data.description || undefined,
-      trafficWeight: data.traffic_weight,
-      isControl: data.is_control,
-      config: data.config || {},
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: row.id as string,
+      experimentId: row.experiment_id as string,
+      name: row.name as string,
+      description: row.description as string | null,
+      config: (row.config as Record<string, unknown>) || {},
+      trafficPercentage: row.traffic_percentage as number,
+      isControl: row.is_control as boolean,
+      participants: row.participants as number,
+      conversions: row.conversions as number,
+      conversionRate: row.conversion_rate as number,
+      createdAt: new Date(row.created_at as string),
+      updatedAt: new Date(row.updated_at as string),
     };
   }
 
-  private mapAssignmentFromDb(data: any): ExperimentAssignment {
+  private mapAssignmentRow(row: Record<string, unknown>): ExperimentAssignment {
     return {
-      id: data.id,
-      experimentId: data.experiment_id,
-      variantId: data.variant_id,
-      userId: data.user_id || undefined,
-      sessionId: data.session_id,
-      deviceId: data.device_id || undefined,
-      assignedAt: new Date(data.assigned_at),
+      id: row.id as string,
+      experimentId: row.experiment_id as string,
+      variantId: row.variant_id as string,
+      userId: row.user_id as string,
+      assignedAt: new Date(row.assigned_at as string),
+      assignmentReason: row.assignment_reason as ExperimentAssignment['assignmentReason'],
+      context: (row.context as Record<string, unknown>) || {},
+      converted: row.converted as boolean,
+      convertedAt: row.converted_at ? new Date(row.converted_at as string) : null,
+      conversionValue: row.conversion_value as number | null,
+      createdAt: new Date(row.created_at as string),
     };
   }
 
-  private mapEventFromDb(data: any): ExperimentEvent {
+  private mapEventRow(row: Record<string, unknown>): ExperimentEvent {
     return {
-      id: data.id,
-      experimentId: data.experiment_id,
-      variantId: data.variant_id,
-      userId: data.user_id || undefined,
-      sessionId: data.session_id,
-      eventType: data.event_type as EventType,
-      eventName: data.event_name || undefined,
-      eventValue: data.event_value || undefined,
-      properties: data.properties || {},
-      occurredAt: new Date(data.occurred_at),
-    };
-  }
-
-  private mapStatisticsFromDb(data: any): ExperimentStatistics {
-    return {
-      id: data.id,
-      experimentId: data.experiment_id,
-      variantId: data.variant_id,
-      date: new Date(data.date),
-      impressions: data.impressions,
-      clicks: data.clicks,
-      conversions: data.conversions,
-      uniqueVisitors: data.unique_visitors,
-      conversionRate: data.conversion_rate,
-      clickRate: data.click_rate,
-      avgSessionDuration: data.avg_session_duration_seconds || undefined,
-      bounceRate: data.bounce_rate || undefined,
-      chiSquare: data.chi_square || undefined,
-      pValue: data.p_value || undefined,
-      confidenceIntervalLower: data.confidence_interval_lower || undefined,
-      confidenceIntervalUpper: data.confidence_interval_upper || undefined,
-      isSignificant: data.is_significant || false,
-      createdAt: new Date(data.created_at),
-      updatedAt: new Date(data.updated_at),
+      id: row.id as string,
+      experimentId: row.experiment_id as string,
+      variantId: row.variant_id as string | null,
+      userId: row.user_id as string,
+      assignmentId: row.assignment_id as string | null,
+      eventType: row.event_type as string,
+      eventName: row.event_name as string | null,
+      eventData: (row.event_data as Record<string, unknown>) || {},
+      sessionId: row.session_id as string | null,
+      deviceType: row.device_type as string | null,
+      ipAddress: row.ip_address as string | null,
+      userAgent: row.user_agent as string | null,
+      createdAt: new Date(row.created_at as string),
     };
   }
 }
 
-// Singleton instance
-export const experimentDAO = new ExperimentDAO();
-export default experimentDAO;
+// Export singleton instance
+let experimentDAO: ExperimentDAO | null = null;
+
+export function getExperimentDAO(): ExperimentDAO {
+  if (!experimentDAO) {
+    experimentDAO = new ExperimentDAO(getSupabaseClient(), getSupabaseAdminClient());
+  }
+  return experimentDAO;
+}
+
+export default ExperimentDAO;

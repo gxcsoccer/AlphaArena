@@ -1,763 +1,646 @@
 /**
- * Experiment Routes
- *
- * REST endpoints for A/B testing experiment management
+ * Experiment System Routes
+ * Handles A/B testing experiment management and tracking
  */
 
-import { Router, Request, Response } from 'express';
-import {
-  experimentDAO,
-  ExperimentStatus,
-  EventType,
-  CreateExperimentInput,
-  UpdateExperimentInput,
-  CreateVariantInput,
-  UpdateVariantInput,
-  TrackEventInput,
-} from '../database/experiment.dao';
+import { Router, Request, Response, NextFunction } from 'express';
+import { getExperimentDAO } from '../database/experiment.dao';
+import { getExperimentService } from '../services/experiment/ExperimentService';
+import { authMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('ExperimentRoutes');
 
-// Helper function to safely get query parameter as string
-function getQueryParam(value: any): string | undefined {
-  if (Array.isArray(value)) {
-    return value[0] as string;
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  return undefined;
-}
+const router = Router();
 
-// Helper function to safely get route param as string
-function getParam(value: string | string[]): string {
-  return Array.isArray(value) ? value[0] : value;
-}
+// Admin middleware - check if user is admin
+const adminMiddleware = async (req: Request, res: Response, next: NextFunction) => {
+  const userRole = (req.user as any)?.role;
+  const userEmail = req.user?.email;
+
+  // Check if user is admin by role or by email domain
+  const isAdmin = userRole === 'admin' ||
+    userEmail?.endsWith('@alphaarena.io') ||
+    userEmail === process.env.ADMIN_EMAIL;
+
+  if (!isAdmin) {
+    return res.status(403).json({
+      success: false,
+      error: 'Admin access required',
+    });
+  }
+
+  next();
+};
+
+// ============================================
+// Public Endpoints (for client-side experiment participation)
+// ============================================
 
 /**
- * Create experiment router
+ * GET /api/experiments/variant/:experimentName
+ * Get the variant for the current user in an experiment
  */
-export function createExperimentRouter(): Router {
-  const router = Router();
-
-  // ============================================================
-  // Experiment CRUD
-  // ============================================================
-
-  /**
-   * POST /api/experiments
-   * Create a new experiment
-   *
-   * @body { name, description?, targetPage, targetSelector?, trafficAllocation?, startAt?, endAt?, metadata? }
-   */
-  router.post('/', async (req: Request, res: Response) => {
-    try {
-      const { name, description, targetPage, targetSelector, trafficAllocation, startAt, endAt, metadata } =
-        req.body;
-
-      // Validation
-      if (!name || typeof name !== 'string' || name.trim().length < 3) {
-        return res.status(400).json({
-          success: false,
-          error: 'Name is required and must be at least 3 characters',
-        });
-      }
-
-      if (!targetPage || typeof targetPage !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'Target page is required',
-        });
-      }
-
-      const userId = req.user?.id;
-
-      const input: CreateExperimentInput = {
-        name: name.trim(),
-        description: description?.trim(),
-        targetPage: targetPage.trim(),
-        targetSelector: targetSelector?.trim(),
-        trafficAllocation: trafficAllocation ?? 100,
-        startAt: startAt ? new Date(startAt) : undefined,
-        endAt: endAt ? new Date(endAt) : undefined,
-        createdBy: userId,
-        metadata: metadata || {},
-      };
-
-      const experiment = await experimentDAO.createExperiment(input);
-
-      log.info(`Created experiment: ${experiment.id} (${experiment.name})`);
-
-      res.status(201).json({
-        success: true,
-        data: experiment,
-      });
-    } catch (error: any) {
-      log.error('Failed to create experiment:', error);
-      res.status(500).json({
+router.get('/variant/:experimentName', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to create experiment',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * GET /api/experiments
-   * List all experiments
-   *
-   * @query status - Filter by status
-   * @query targetPage - Filter by target page
-   * @query search - Search by name/description
-   * @query limit - Number of results (default: 50)
-   * @query offset - Pagination offset (default: 0)
-   */
-  router.get('/', async (req: Request, res: Response) => {
-    try {
-      const status = getQueryParam(req.query.status) as ExperimentStatus | undefined;
-      const targetPage = getQueryParam(req.query.targetPage);
-      const createdBy = getQueryParam(req.query.createdBy);
-      const search = getQueryParam(req.query.search);
-      const startDateStr = getQueryParam(req.query.startDate);
-      const endDateStr = getQueryParam(req.query.endDate);
-      const startDate = startDateStr ? new Date(startDateStr) : undefined;
-      const endDate = endDateStr ? new Date(endDateStr) : undefined;
-      const limit = parseInt(getQueryParam(req.query.limit) || '50', 10);
-      const offset = parseInt(getQueryParam(req.query.offset) || '0', 10);
+    const experimentName = String(req.params.experimentName);
+    const experimentService = getExperimentService();
 
-      const experiments = await experimentDAO.getExperiments({
-        status,
-        targetPage,
-        createdBy,
-        search,
-        startDate,
-        endDate,
-        limit,
-        offset,
-      });
+    const { variant, experiment, isNewAssignment } = await experimentService.getVariant({
+      experimentName,
+      userId: req.user.id,
+      context: {
+        userAgent: req.headers['user-agent'],
+        ip: req.ip,
+      },
+    });
 
-      res.json({
-        success: true,
-        data: experiments,
-        limit,
-        offset,
-      });
-    } catch (error: any) {
-      log.error('Failed to list experiments:', error);
-      res.status(500).json({
+    res.json({
+      success: true,
+      data: {
+        inExperiment: variant !== null,
+        variant: variant ? {
+          name: variant.name,
+          config: variant.config,
+          isControl: variant.isControl,
+        } : null,
+        experiment: experiment ? {
+          name: experiment.name,
+          type: experiment.experimentType,
+        } : null,
+        isNewAssignment,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get variant:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get experiment variant',
+    });
+  }
+});
+
+/**
+ * POST /api/experiments/convert/:experimentName
+ * Track a conversion event for an experiment
+ */
+router.post('/convert/:experimentName', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to list experiments',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * GET /api/experiments/:id
-   * Get a specific experiment
-   */
-  router.get('/:id', async (req: Request, res: Response) => {
-    try {
-      const id = getParam(req.params.id);
+    const experimentName = String(req.params.experimentName);
+    const { eventName, eventData, conversionValue } = req.body;
 
-      const experiment = await experimentDAO.getExperimentById(id);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
+    const experimentService = getExperimentService();
 
-      // Also get variants
-      const variants = await experimentDAO.getVariantsByExperimentId(id);
+    const result = await experimentService.trackConversion({
+      experimentName,
+      userId: req.user.id,
+      eventName,
+      eventData,
+      conversionValue,
+    });
 
-      res.json({
-        success: true,
-        data: {
-          ...experiment,
-          variants,
+    res.json({
+      success: result.success,
+      data: {
+        alreadyConverted: result.alreadyConverted,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to track conversion:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to track conversion',
+    });
+  }
+});
+
+/**
+ * GET /api/experiments/active
+ * Get all active experiments for the current user
+ */
+router.get('/active', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const experimentService = getExperimentService();
+
+    const experiments = await experimentService.getUserActiveExperiments(req.user.id);
+
+    res.json({
+      success: true,
+      data: {
+        experiments: experiments.map(e => ({
+          experimentName: e.experimentName,
+          variantName: e.variantName,
+          config: e.config,
+          isControl: e.isControl,
+        })),
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get active experiments:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get active experiments',
+    });
+  }
+});
+
+// ============================================
+// Admin Endpoints (for managing experiments)
+// ============================================
+
+/**
+ * POST /api/experiments/admin
+ * Create a new experiment
+ */
+router.post('/admin', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const {
+      name,
+      description,
+      experimentType,
+      targetAudience,
+      trafficAllocation,
+      significanceLevel,
+      minimumSampleSize,
+      variants,
+    } = req.body;
+
+    if (!name || !variants || !Array.isArray(variants)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Missing required fields: name, variants',
+      });
+    }
+
+    const experimentService = getExperimentService();
+
+    const result = await experimentService.createExperiment({
+      name,
+      description,
+      experimentType,
+      targetAudience,
+      trafficAllocation,
+      significanceLevel,
+      minimumSampleSize,
+      variants,
+      createdBy: req.user.id,
+    });
+
+    res.status(201).json({
+      success: true,
+      data: {
+        experiment: {
+          id: result.experiment.id,
+          name: result.experiment.name,
+          description: result.experiment.description,
+          type: result.experiment.experimentType,
+          status: result.experiment.status,
+          createdAt: result.experiment.createdAt,
         },
-      });
-    } catch (error: any) {
-      log.error('Failed to get experiment:', error);
-      res.status(500).json({
+        variants: result.variants.map(v => ({
+          id: v.id,
+          name: v.name,
+          config: v.config,
+          trafficPercentage: v.trafficPercentage,
+          isControl: v.isControl,
+        })),
+      },
+    });
+  } catch (error) {
+    log.error('Failed to create experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to create experiment',
+    });
+  }
+});
+
+/**
+ * GET /api/experiments/admin
+ * List all experiments
+ */
+router.get('/admin', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to get experiment',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * PATCH /api/experiments/:id
-   * Update an experiment
-   */
-  router.patch('/:id', async (req: Request, res: Response) => {
-    try {
-      const id = getParam(req.params.id);
-      const { name, description, status, targetPage, targetSelector, trafficAllocation, startAt, endAt, metadata } =
-        req.body;
+    const status = typeof req.query.status === 'string' ? req.query.status as any : undefined;
+    const type = typeof req.query.type === 'string' ? req.query.type as any : undefined;
+    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 50;
+    const offset = typeof req.query.offset === 'string' ? parseInt(req.query.offset, 10) : 0;
 
-      // Validate status if provided
-      const validStatuses = ['draft', 'running', 'paused', 'completed', 'archived'];
-      if (status && !validStatuses.includes(status)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
-        });
-      }
+    const experimentService = getExperimentService();
 
-      const input: UpdateExperimentInput = {
-        name: name?.trim(),
-        description: description?.trim(),
-        status,
-        targetPage: targetPage?.trim(),
-        targetSelector: targetSelector?.trim(),
-        trafficAllocation,
-        startAt: startAt ? new Date(startAt) : undefined,
-        endAt: endAt ? new Date(endAt) : undefined,
-        metadata,
-      };
+    const result = await experimentService.listExperiments({
+      status,
+      type,
+      limit,
+      offset,
+    });
 
-      // Filter out undefined values
-      Object.keys(input).forEach((key) => {
-        if (input[key as keyof UpdateExperimentInput] === undefined) {
-          delete input[key as keyof UpdateExperimentInput];
-        }
-      });
+    res.json({
+      success: true,
+      data: {
+        experiments: result.experiments.map(e => ({
+          experiment: {
+            id: e.experiment.id,
+            name: e.experiment.name,
+            description: e.experiment.description,
+            type: e.experiment.experimentType,
+            status: e.experiment.status,
+            startDate: e.experiment.startDate,
+            endDate: e.experiment.endDate,
+            trafficAllocation: e.experiment.trafficAllocation,
+            createdAt: e.experiment.createdAt,
+          },
+          variants: e.variants.map(v => ({
+            id: v.id,
+            name: v.name,
+            participants: v.participants,
+            conversions: v.conversions,
+            conversionRate: v.conversionRate,
+            isControl: v.isControl,
+          })),
+        })),
+        total: result.total,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to list experiments:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to list experiments',
+    });
+  }
+});
 
-      const experiment = await experimentDAO.updateExperiment(id, input);
-
-      log.info(`Updated experiment: ${id} (status: ${experiment.status})`);
-
-      res.json({
-        success: true,
-        data: experiment,
-      });
-    } catch (error: any) {
-      log.error('Failed to update experiment:', error);
-      res.status(500).json({
+/**
+ * GET /api/experiments/admin/:experimentId
+ * Get experiment details
+ */
+router.get('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to update experiment',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * POST /api/experiments/:id/start
-   * Start an experiment
-   */
-  router.post('/:id/start', async (req: Request, res: Response) => {
-    try {
-      const id = getParam(req.params.id);
+    const experimentId = String(req.params.experimentId);
+    const experimentService = getExperimentService();
 
-      const experiment = await experimentDAO.getExperimentById(id);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
+    const result = await experimentService.getExperimentResults(experimentId);
 
-      if (experiment.status !== 'draft' && experiment.status !== 'paused') {
-        return res.status(400).json({
-          success: false,
-          error: `Cannot start experiment with status: ${experiment.status}`,
-        });
-      }
-
-      // Check if variants exist
-      const variants = await experimentDAO.getVariantsByExperimentId(id);
-      if (variants.length < 2) {
-        return res.status(400).json({
-          success: false,
-          error: 'Experiment must have at least 2 variants to start',
-        });
-      }
-
-      const updated = await experimentDAO.updateExperiment(id, {
-        status: ExperimentStatus.RUNNING,
-        startAt: experiment.startAt || new Date(),
-      });
-
-      log.info(`Started experiment: ${id}`);
-
-      res.json({
-        success: true,
-        data: updated,
-      });
-    } catch (error: any) {
-      log.error('Failed to start experiment:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to start experiment',
-      });
-    }
-  });
-
-  /**
-   * POST /api/experiments/:id/stop
-   * Stop an experiment
-   */
-  router.post('/:id/stop', async (req: Request, res: Response) => {
-    try {
-      const id = getParam(req.params.id);
-
-      const experiment = await experimentDAO.getExperimentById(id);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
-
-      if (experiment.status !== 'running') {
-        return res.status(400).json({
-          success: false,
-          error: `Cannot stop experiment with status: ${experiment.status}`,
-        });
-      }
-
-      const updated = await experimentDAO.updateExperiment(id, {
-        status: ExperimentStatus.COMPLETED,
-        endAt: new Date(),
-      });
-
-      // Calculate final statistics
-      await experimentDAO.calculateStatistics(id);
-
-      log.info(`Stopped experiment: ${id}`);
-
-      res.json({
-        success: true,
-        data: updated,
-      });
-    } catch (error: any) {
-      log.error('Failed to stop experiment:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to stop experiment',
-      });
-    }
-  });
-
-  /**
-   * DELETE /api/experiments/:id
-   * Delete an experiment
-   */
-  router.delete('/:id', async (req: Request, res: Response) => {
-    try {
-      const id = getParam(req.params.id);
-
-      await experimentDAO.deleteExperiment(id);
-
-      log.info(`Deleted experiment: ${id}`);
-
-      res.json({
-        success: true,
-        message: 'Experiment deleted successfully',
-      });
-    } catch (error: any) {
-      log.error('Failed to delete experiment:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to delete experiment',
-      });
-    }
-  });
-
-  // ============================================================
-  // Variant CRUD
-  // ============================================================
-
-  /**
-   * POST /api/experiments/:id/variants
-   * Create a variant for an experiment
-   */
-  router.post('/:id/variants', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-      const { name, key, description, trafficWeight, isControl, config } = req.body;
-
-      // Validation
-      if (!name || typeof name !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'Variant name is required',
-        });
-      }
-
-      if (!key || typeof key !== 'string') {
-        return res.status(400).json({
-          success: false,
-          error: 'Variant key is required',
-        });
-      }
-
-      // Check experiment exists
-      const experiment = await experimentDAO.getExperimentById(experimentId);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
-
-      // Cannot add variants to running experiment
-      if (experiment.status === 'running') {
-        return res.status(400).json({
-          success: false,
-          error: 'Cannot add variants to a running experiment',
-        });
-      }
-
-      const input: CreateVariantInput = {
-        experimentId,
-        name: name.trim(),
-        key: key.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
-        description: description?.trim(),
-        trafficWeight: trafficWeight ?? 50,
-        isControl: isControl ?? false,
-        config: config || {},
-      };
-
-      const variant = await experimentDAO.createVariant(input);
-
-      log.info(`Created variant: ${variant.id} for experiment: ${experimentId}`);
-
-      res.status(201).json({
-        success: true,
-        data: variant,
-      });
-    } catch (error: any) {
-      log.error('Failed to create variant:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to create variant',
-      });
-    }
-  });
-
-  /**
-   * GET /api/experiments/:id/variants
-   * Get all variants for an experiment
-   */
-  router.get('/:id/variants', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-
-      const variants = await experimentDAO.getVariantsByExperimentId(experimentId);
-
-      res.json({
-        success: true,
-        data: variants,
-      });
-    } catch (error: any) {
-      log.error('Failed to get variants:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to get variants',
-      });
-    }
-  });
-
-  /**
-   * PATCH /api/experiments/:id/variants/:variantId
-   * Update a variant
-   */
-  router.patch('/:id/variants/:variantId', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-      const variantId = getParam(req.params.variantId);
-      const { name, description, trafficWeight, config } = req.body;
-
-      const input: UpdateVariantInput = {
-        name: name?.trim(),
-        description: description?.trim(),
-        trafficWeight,
-        config,
-      };
-
-      const variant = await experimentDAO.updateVariant(variantId, input);
-
-      log.info(`Updated variant: ${variantId}`);
-
-      res.json({
-        success: true,
-        data: variant,
-      });
-    } catch (error: any) {
-      log.error('Failed to update variant:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to update variant',
-      });
-    }
-  });
-
-  /**
-   * DELETE /api/experiments/:id/variants/:variantId
-   * Delete a variant
-   */
-  router.delete('/:id/variants/:variantId', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-      const variantId = getParam(req.params.variantId);
-
-      // Check experiment exists and is not running
-      const experiment = await experimentDAO.getExperimentById(experimentId);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
-
-      if (experiment.status === 'running') {
-        return res.status(400).json({
-          success: false,
-          error: 'Cannot delete variants from a running experiment',
-        });
-      }
-
-      await experimentDAO.deleteVariant(variantId);
-
-      log.info(`Deleted variant: ${variantId}`);
-
-      res.json({
-        success: true,
-        message: 'Variant deleted successfully',
-      });
-    } catch (error: any) {
-      log.error('Failed to delete variant:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to delete variant',
-      });
-    }
-  });
-
-  // ============================================================
-  // Client API (for frontend SDK)
-  // ============================================================
-
-  /**
-   * POST /api/experiments/assign
-   * Assign a user/session to variants for active experiments
-   *
-   * @body { experiments: string[], sessionId, userId?, deviceId? }
-   */
-  router.post('/assign', async (req: Request, res: Response) => {
-    try {
-      const { experiments, sessionId, userId, deviceId } = req.body;
-
-      if (!sessionId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Session ID is required',
-        });
-      }
-
-      if (!Array.isArray(experiments) || experiments.length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'Experiments array is required',
-        });
-      }
-
-      const assignments: Record<string, any> = {};
-
-      for (const experimentId of experiments) {
-        try {
-          const variant = await experimentDAO.assignVariant(experimentId, sessionId, userId, deviceId);
-          if (variant) {
-            assignments[experimentId] = {
-              variantId: variant.id,
-              variantKey: variant.key,
-              config: variant.config,
-            };
-          }
-        } catch (e) {
-          // Log but continue with other experiments
-          log.warn(`Failed to assign experiment ${experimentId}:`, e);
-        }
-      }
-
-      res.json({
-        success: true,
-        data: assignments,
-      });
-    } catch (error: any) {
-      log.error('Failed to assign variants:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to assign variants',
-      });
-    }
-  });
-
-  /**
-   * POST /api/experiments/track
-   * Track an event for an experiment
-   *
-   * @body { experimentId, variantId, sessionId, eventType, eventName?, eventValue?, properties?, userId? }
-   */
-  router.post('/track', async (req: Request, res: Response) => {
-    try {
-      const { experimentId, variantId, sessionId, eventType, eventName, eventValue, properties, userId } = req.body;
-
-      // Validation
-      if (!experimentId || !variantId || !sessionId || !eventType) {
-        return res.status(400).json({
-          success: false,
-          error: 'Missing required fields: experimentId, variantId, sessionId, eventType',
-        });
-      }
-
-      const validEventTypes = ['impression', 'click', 'conversion', 'custom'];
-      if (!validEventTypes.includes(eventType)) {
-        return res.status(400).json({
-          success: false,
-          error: `Invalid event type. Must be one of: ${validEventTypes.join(', ')}`,
-        });
-      }
-
-      const input: TrackEventInput = {
-        experimentId,
-        variantId,
-        sessionId,
-        eventType: eventType as EventType,
-        eventName,
-        eventValue,
-        properties,
-        userId,
-      };
-
-      const event = await experimentDAO.trackEvent(input);
-
-      res.json({
-        success: true,
-        data: { eventId: event.id },
-      });
-    } catch (error: any) {
-      log.error('Failed to track event:', error);
-      res.status(500).json({
-        success: false,
-        error: 'Failed to track event',
-      });
-    }
-  });
-
-  // ============================================================
-  // Statistics and Results
-  // ============================================================
-
-  /**
-   * GET /api/experiments/:id/results
-   * Get experiment results with statistical analysis
-   */
-  router.get('/:id/results', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-
-      const experiment = await experimentDAO.getExperimentById(experimentId);
-      if (!experiment) {
-        return res.status(404).json({
-          success: false,
-          error: 'Experiment not found',
-        });
-      }
-
-      // Calculate latest statistics
-      await experimentDAO.calculateStatistics(experimentId);
-
-      const results = await experimentDAO.getExperimentResults(experimentId);
-
-      res.json({
-        success: true,
-        data: {
-          experiment,
-          results,
+    res.json({
+      success: true,
+      data: {
+        experiment: {
+          id: result.experiment.id,
+          name: result.experiment.name,
+          description: result.experiment.description,
+          type: result.experiment.experimentType,
+          status: result.experiment.status,
+          startDate: result.experiment.startDate,
+          endDate: result.experiment.endDate,
+          trafficAllocation: result.experiment.trafficAllocation,
+          significanceLevel: result.experiment.significanceLevel,
+          minimumSampleSize: result.experiment.minimumSampleSize,
+          winningVariantId: result.experiment.winningVariantId,
+          createdAt: result.experiment.createdAt,
         },
-      });
-    } catch (error: any) {
-      log.error('Failed to get experiment results:', error);
-      res.status(500).json({
+        variants: result.variants.map(v => ({
+          id: v.id,
+          name: v.name,
+          description: v.description,
+          config: v.config,
+          trafficPercentage: v.trafficPercentage,
+          participants: v.participants,
+          conversions: v.conversions,
+          conversionRate: v.conversionRate,
+          isControl: v.isControl,
+        })),
+        statistics: result.statistics,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to get experiment',
+    });
+  }
+});
+
+/**
+ * POST /api/experiments/admin/:experimentId/start
+ * Start an experiment
+ */
+router.post('/admin/:experimentId/start', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to get experiment results',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * GET /api/experiments/:id/statistics
-   * Get detailed statistics for an experiment
-   */
-  router.get('/:id/statistics', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-      const startDateStr = getQueryParam(req.query.startDate);
-      const endDateStr = getQueryParam(req.query.endDate);
-      const startDate = startDateStr ? new Date(startDateStr) : undefined;
-      const endDate = endDateStr ? new Date(endDateStr) : undefined;
+    const experimentId = String(req.params.experimentId);
+    const experimentService = getExperimentService();
 
-      const statistics = await experimentDAO.getStatistics(experimentId, { startDate, endDate });
+    const experiment = await experimentService.startExperiment(experimentId);
 
-      res.json({
-        success: true,
-        data: statistics,
-      });
-    } catch (error: any) {
-      log.error('Failed to get experiment statistics:', error);
-      res.status(500).json({
+    res.json({
+      success: true,
+      data: {
+        id: experiment.id,
+        name: experiment.name,
+        status: experiment.status,
+        startDate: experiment.startDate,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to start experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to start experiment',
+    });
+  }
+});
+
+/**
+ * POST /api/experiments/admin/:experimentId/pause
+ * Pause an experiment
+ */
+router.post('/admin/:experimentId/pause', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to get experiment statistics',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  /**
-   * GET /api/experiments/:id/events
-   * Get events for an experiment
-   */
-  router.get('/:id/events', async (req: Request, res: Response) => {
-    try {
-      const experimentId = getParam(req.params.id);
-      const variantId = getQueryParam(req.query.variantId);
-      const eventType = getQueryParam(req.query.eventType) as EventType | undefined;
-      const startDateStr = getQueryParam(req.query.startDate);
-      const endDateStr = getQueryParam(req.query.endDate);
-      const startDate = startDateStr ? new Date(startDateStr) : undefined;
-      const endDate = endDateStr ? new Date(endDateStr) : undefined;
-      const limit = parseInt(getQueryParam(req.query.limit) || '100', 10);
-      const offset = parseInt(getQueryParam(req.query.offset) || '0', 10);
+    const experimentId = String(req.params.experimentId);
+    const experimentService = getExperimentService();
 
-      const events = await experimentDAO.getEvents(experimentId, {
-        variantId,
-        eventType,
-        startDate,
-        endDate,
-        limit,
-        offset,
-      });
+    const experiment = await experimentService.pauseExperiment(experimentId);
 
-      res.json({
-        success: true,
-        data: events,
-        limit,
-        offset,
-      });
-    } catch (error: any) {
-      log.error('Failed to get experiment events:', error);
-      res.status(500).json({
+    res.json({
+      success: true,
+      data: {
+        id: experiment.id,
+        name: experiment.name,
+        status: experiment.status,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to pause experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to pause experiment',
+    });
+  }
+});
+
+/**
+ * POST /api/experiments/admin/:experimentId/complete
+ * Complete an experiment
+ */
+router.post('/admin/:experimentId/complete', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        error: 'Failed to get experiment events',
+        error: 'Not authenticated',
       });
     }
-  });
 
-  return router;
-}
+    const experimentId = String(req.params.experimentId);
+    const { winningVariantId } = req.body;
 
-// Export enums for external use
-export { ExperimentStatus, EventType };
+    const experimentService = getExperimentService();
 
-export default createExperimentRouter;
+    const experiment = await experimentService.completeExperiment(experimentId, winningVariantId);
+
+    res.json({
+      success: true,
+      data: {
+        id: experiment.id,
+        name: experiment.name,
+        status: experiment.status,
+        endDate: experiment.endDate,
+        winningVariantId: experiment.winningVariantId,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to complete experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to complete experiment',
+    });
+  }
+});
+
+/**
+ * PUT /api/experiments/admin/:experimentId
+ * Update experiment configuration
+ */
+router.put('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const experimentId = String(req.params.experimentId);
+    const { name, description, trafficAllocation } = req.body;
+
+    const experimentService = getExperimentService();
+
+    const experiment = await experimentService.updateExperiment(experimentId, {
+      name,
+      description,
+      trafficAllocation,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: experiment.id,
+        name: experiment.name,
+        description: experiment.description,
+        trafficAllocation: experiment.trafficAllocation,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to update experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update experiment',
+    });
+  }
+});
+
+/**
+ * PUT /api/experiments/admin/variants/:variantId
+ * Update variant configuration
+ */
+router.put('/admin/variants/:variantId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const variantId = String(req.params.variantId);
+    const { name, description, config, trafficPercentage } = req.body;
+
+    const experimentService = getExperimentService();
+
+    const variant = await experimentService.updateVariant(variantId, {
+      name,
+      description,
+      config,
+      trafficPercentage,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        id: variant.id,
+        name: variant.name,
+        description: variant.description,
+        config: variant.config,
+        trafficPercentage: variant.trafficPercentage,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to update variant:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update variant',
+    });
+  }
+});
+
+/**
+ * DELETE /api/experiments/admin/:experimentId
+ * Delete an experiment (draft only)
+ */
+router.delete('/admin/:experimentId', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const experimentId = String(req.params.experimentId);
+    const experimentService = getExperimentService();
+
+    await experimentService.deleteExperiment(experimentId);
+
+    res.json({
+      success: true,
+      data: {
+        message: 'Experiment deleted',
+      },
+    });
+  } catch (error) {
+    log.error('Failed to delete experiment:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to delete experiment',
+    });
+  }
+});
+
+/**
+ * GET /api/experiments/admin/:experimentId/events
+ * Get events for an experiment
+ */
+router.get('/admin/:experimentId/events', authMiddleware, adminMiddleware, async (req: Request, res: Response) => {
+  try {
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authenticated',
+      });
+    }
+
+    const experimentId = String(req.params.experimentId);
+    const eventType = typeof req.query.eventType === 'string' ? req.query.eventType : undefined;
+    const eventName = typeof req.query.eventName === 'string' ? req.query.eventName : undefined;
+    const limit = typeof req.query.limit === 'string' ? parseInt(req.query.limit, 10) : 100;
+    const offset = typeof req.query.offset === 'string' ? parseInt(req.query.offset, 10) : 0;
+
+    const experimentDAO = getExperimentDAO();
+
+    const result = await experimentDAO.getExperimentEvents(experimentId, {
+      eventType,
+      eventName,
+      limit,
+      offset,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        events: result.events.map(e => ({
+          id: e.id,
+          eventType: e.eventType,
+          eventName: e.eventName,
+          eventData: e.eventData,
+          createdAt: e.createdAt,
+        })),
+        total: result.total,
+      },
+    });
+  } catch (error) {
+    log.error('Failed to get experiment events:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get experiment events',
+    });
+  }
+});
+
+export default router;
