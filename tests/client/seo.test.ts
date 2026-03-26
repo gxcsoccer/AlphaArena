@@ -1,22 +1,28 @@
 /**
  * SEO Utilities Tests
+ * Issue #617: International SEO Optimization
  */
 
 import {
   updateSEO,
+  updateSEOMeta,
   generateShareUrl,
   copyShareUrl,
   generateWebsiteStructuredData,
   generateSoftwareStructuredData,
+  updateHreflangTags,
+  getUrlWithLang,
+  SITE_URL,
 } from '../../src/client/utils/seo';
 
 describe('SEO Utilities', () => {
   beforeEach(() => {
     // Clear document head
     document.head.innerHTML = '';
+    document.title = '';
   });
 
-  describe('updateSEO', () => {
+  describe('updateSEO (legacy)', () => {
     it('updates document title', () => {
       updateSEO({ title: 'Test Title' });
       expect(document.title).toBe('Test Title');
@@ -73,6 +79,41 @@ describe('SEO Utilities', () => {
     });
   });
 
+  describe('updateSEOMeta (i18n)', () => {
+    it('updates document title with language suffix for non-default languages', () => {
+      updateSEOMeta({
+        title: 'Test Title',
+        description: 'Test description',
+      }, 'en-US');
+      
+      expect(document.title).toContain('Test Title');
+      expect(document.title).toContain('English');
+    });
+
+    it('does not add language suffix for default language', () => {
+      updateSEOMeta({
+        title: 'Test Title',
+        description: 'Test description',
+      }, 'zh-CN');
+      
+      expect(document.title).toBe('Test Title');
+    });
+
+    it('creates hreflang tags when path is provided', () => {
+      updateSEOMeta({
+        title: 'Test',
+        description: 'Test',
+      }, 'zh-CN', '/test');
+      
+      const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+      expect(hreflangs.length).toBeGreaterThan(0);
+      
+      // Should have x-default
+      const xDefault = document.querySelector('link[hreflang="x-default"]');
+      expect(xDefault).not.toBeNull();
+    });
+  });
+
   describe('generateShareUrl', () => {
     it('generates URL with UTM parameters', () => {
       const url = generateShareUrl('twitter', 'social', 'landing');
@@ -105,11 +146,20 @@ describe('SEO Utilities', () => {
 
   describe('generateWebsiteStructuredData', () => {
     it('generates valid JSON-LD for WebSite', () => {
-      const data = generateWebsiteStructuredData();
+      const data = generateWebsiteStructuredData('zh-CN');
       expect(data).toHaveProperty('@context', 'https://schema.org');
       expect(data).toHaveProperty('@type', 'WebSite');
       expect(data).toHaveProperty('name', 'AlphaArena');
       expect(data).toHaveProperty('potentialAction');
+    });
+
+    it('generates language-specific descriptions', () => {
+      const zhData = generateWebsiteStructuredData('zh-CN');
+      const enData = generateWebsiteStructuredData('en-US');
+      
+      // Both should have descriptions
+      expect((zhData as any).description).toBeDefined();
+      expect((enData as any).description).toBeDefined();
     });
   });
 
@@ -121,6 +171,38 @@ describe('SEO Utilities', () => {
       expect(data).toHaveProperty('name', 'AlphaArena');
       expect(data).toHaveProperty('offers');
       expect(data).toHaveProperty('aggregateRating');
+    });
+  });
+
+  describe('getUrlWithLang', () => {
+    it('returns URL without lang parameter for default language', () => {
+      const url = getUrlWithLang('/test', 'zh-CN');
+      expect(url).toBe(`${SITE_URL}/test`);
+      expect(url).not.toContain('?lang=');
+    });
+
+    it('returns URL with lang parameter for non-default languages', () => {
+      const url = getUrlWithLang('/test', 'en-US');
+      expect(url).toBe(`${SITE_URL}/test?lang=en-US`);
+    });
+  });
+
+  describe('updateHreflangTags', () => {
+    it('creates hreflang tags for all supported languages', () => {
+      updateHreflangTags('/test', 'zh-CN');
+      
+      const hreflangs = document.querySelectorAll('link[rel="alternate"][hreflang]');
+      expect(hreflangs.length).toBe(5); // 4 languages + x-default
+      
+      // Check for x-default
+      const xDefault = document.querySelector('link[hreflang="x-default"]');
+      expect(xDefault).not.toBeNull();
+      
+      // Check for each language
+      ['zh-CN', 'en-US', 'ja-JP', 'ko-KR'].forEach(lang => {
+        const link = document.querySelector(`link[hreflang="${lang}"]`);
+        expect(link).not.toBeNull();
+      });
     });
   });
 });

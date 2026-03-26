@@ -12,6 +12,7 @@ import ConditionalOrdersPanel from '../components/ConditionalOrdersPanel';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useMarketData } from '../hooks/useMarketData';
 import { usePullToRefresh } from '../hooks/useTouchGestures';
+import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 
 // Lazy load KLineChart to reduce initial bundle size (saves ~50KB gzip)
 const KLineChart = lazy(() => import('../components/KLineChart'));
@@ -24,6 +25,9 @@ const HomePage: React.FC = () => {
   const [selectedSymbol, setSelectedSymbol] = useState('BTC/USD');
   const [isMobile, setIsMobile] = useState(false);
   const [mobileTab, setMobileTab] = useState<'chart' | 'orderbook' | 'order'>('chart');
+  
+  // Issue #617: SEO optimization
+  useSEO(PAGE_SEO_CONFIGS.home);
   
   // Get market data to resolve baseCurrency/quoteCurrency for selected symbol
   const { marketData, refresh: refreshMarketData } = useMarketData();

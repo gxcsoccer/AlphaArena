@@ -98,6 +98,12 @@ import landingZhCN from '../locales/zh-CN/landing.json';
 import landingEnUS from '../locales/en-US/landing.json';
 import landingJaJP from '../locales/ja-JP/landing.json';
 
+// SEO namespace (Issue #617: International SEO Optimization)
+import seoZhCN from '../locales/zh-CN/seo.json';
+import seoEnUS from '../locales/en-US/seo.json';
+import seoJaJP from '../locales/ja-JP/seo.json';
+import seoKoKR from '../locales/ko-KR/seo.json';
+
 // Japanese imports
 // Common namespace
 import commonJaJP from '../locales/ja-JP/common.json';
@@ -195,6 +201,7 @@ const resources = {
     backtest: backtestZhCN,
     notification: notificationZhCN,
     landing: landingZhCN,
+    seo: seoZhCN,
   },
   'en-US': {
     common: commonEnUS,
@@ -210,6 +217,7 @@ const resources = {
     backtest: backtestEnUS,
     notification: notificationEnUS,
     landing: landingEnUS,
+    seo: seoEnUS,
   },
   'ja-JP': {
     common: commonJaJP,
@@ -225,6 +233,7 @@ const resources = {
     backtest: backtestJaJP,
     notification: notificationJaJP,
     landing: landingJaJP,
+    seo: seoJaJP,
   },
   'ko-KR': {
     common: commonKoKR,
@@ -240,6 +249,7 @@ const resources = {
     backtest: backtestKoKR,
     notification: notificationKoKR,
     landing: landingKoKR,
+    seo: seoKoKR,
   },
 };
 

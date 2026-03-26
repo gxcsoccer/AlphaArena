@@ -1,16 +1,30 @@
 /**
  * SEO Component
  * Declarative SEO management for React pages
+ * 
+ * Issue #617: International SEO Optimization
  */
 
 import React from 'react';
-import { useSEO, SEOProps } from '../hooks/useSEO';
+import { useSEO, SEOConfig } from '../hooks/useSEO';
+
+/**
+ * Props for the SEO component
+ */
+export interface SEOProps extends SEOConfig {
+  /** Page key for automatic SEO from translations */
+  pageKey?: string;
+}
 
 /**
  * SEO component for declarative meta tag management
  * 
  * @example
  * ```tsx
+ * // Using page key (gets translations from seo.json)
+ * <SEO pageKey="home" />
+ * 
+ * // Using custom config
  * <SEO 
  *   title="Strategy Performance" 
  *   description="View your strategy performance"
@@ -19,6 +33,7 @@ import { useSEO, SEOProps } from '../hooks/useSEO';
  * ```
  */
 export function SEO({ 
+  pageKey,
   title, 
   description, 
   keywords, 
@@ -27,9 +42,10 @@ export function SEO({
   ogImage,
   ogImageAlt,
   twitterCard,
-  structuredData 
+  structuredData,
+  noIndex,
 }: SEOProps) {
-  useSEO({
+  useSEO(pageKey as any, {
     title,
     description,
     keywords,
@@ -39,6 +55,7 @@ export function SEO({
     ogImageAlt,
     twitterCard,
     structuredData,
+    noIndex,
   });
 
   // This component doesn't render anything
