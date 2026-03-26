@@ -1,7 +1,41 @@
 {
-  "current": 53,
-  "startDate": "2026-04-14",
-  "endDate": "2026-04-20",
-  "milestone": 54,
-  "status": "completed"
+  "current": 54,
+  "startDate": "2026-04-21",
+  "endDate": "2026-04-27",
+  "milestone": 55,
+  "status": "planning",
+  "theme": "策略交易深化",
+  "description": "聚焦策略交易核心功能增强，包括自动化执行、实盘回测对比、策略社区，为VIP用户提供更高价值。",
+  "issues": [
+    {
+      "number": 668,
+      "title": "策略自动化交易执行 - VIP 专属功能",
+      "priority": "p0"
+    },
+    {
+      "number": 669,
+      "title": "实盘与回测对比分析",
+      "priority": "p1"
+    },
+    {
+      "number": 670,
+      "title": "策略信号通知增强",
+      "priority": "p1"
+    },
+    {
+      "number": 671,
+      "title": "策略组合管理优化",
+      "priority": "p1"
+    },
+    {
+      "number": 672,
+      "title": "用户反馈系统",
+      "priority": "p2"
+    },
+    {
+      "number": 673,
+      "title": "策略分享与订阅社区",
+      "priority": "p2"
+    }
+  ]
 }
