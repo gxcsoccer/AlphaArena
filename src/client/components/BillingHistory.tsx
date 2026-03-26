@@ -30,7 +30,6 @@ import { useSubscription } from '../hooks/useSubscription';
 import { SubscriptionAction, SubscriptionPlan, PLAN_DISPLAY_NAMES } from '../../types/subscription.types';
 
 const { Title, Text } = Typography;
-const { Row, Col } = Grid;
 
 interface HistoryEntry {
   id: string;

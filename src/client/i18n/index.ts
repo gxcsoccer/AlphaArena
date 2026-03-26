@@ -100,6 +100,7 @@ export const ALL_NAMESPACES = [
   'notification',
   'landing',
   'seo',
+  'subscription',
 ] as const;
 
 export type Namespace = typeof ALL_NAMESPACES[number];

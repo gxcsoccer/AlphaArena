@@ -12,7 +12,6 @@ import {
   Tag,
   Grid,
   Spin,
-  Message,
   Modal,
   Radio,
   Divider,
@@ -29,7 +28,7 @@ import {
   IconQuestionCircle,
 } from '@arco-design/web-react/icon';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
+import { useSEO } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
 
 const { Title, Text, Paragraph } = Typography;

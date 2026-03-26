@@ -3,7 +3,7 @@
  * Displays user's current subscription status with upgrade/downgrade options
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
   Card,
   Typography,
@@ -11,26 +11,20 @@ import {
   Button,
   Space,
   Progress,
-  Modal,
   Spin,
   Message,
   Divider,
-  Tooltip,
 } from '@arco-design/web-react';
 import {
   IconStar,
   IconThunderbolt,
   IconTrophy,
-  IconCheck,
-  IconClose,
-  IconRefresh,
-  IconRight,
 } from '@arco-design/web-react/icon';
 import { useSubscription, usePlan } from '../hooks/useSubscription';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
 interface SubscriptionStatusProps {
   compact?: boolean;
@@ -43,8 +37,8 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
 }) => {
   const { t } = useTranslation('subscription');
   const navigate = useNavigate();
-  const { subscription, loading, refresh, daysUntilExpiry } = useSubscription();
-  const { plan, isFree, isPro, isEnterprise } = usePlan();
+  const { subscription, loading, daysUntilExpiry } = useSubscription();
+  const { plan, isFree, isPro } = usePlan();
 
   const getPlanIcon = () => {
     switch (plan) {
