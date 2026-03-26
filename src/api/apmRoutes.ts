@@ -5,7 +5,7 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { getSupabaseClient } from '../database/client';
+import { getSupabaseClient, getSupabaseAdminClient } from '../database/client';
 import authMiddleware, { optionalAuthMiddleware } from './authMiddleware';
 import { createLogger } from '../utils/logger';
 
@@ -202,7 +202,8 @@ router.get('/errors', authMiddleware, async (req: Request, res: Response) => {
   try {
     const { severity, type, page_filter, start_date, end_date, limit, offset } = req.query;
     
-    const client = getSupabaseClient();
+    // Use admin client to bypass RLS - this is an admin-only endpoint
+    const client = getSupabaseAdminClient();
     let query = client
       .from('frontend_errors')
       .select('*', { count: 'exact' });
@@ -286,7 +287,8 @@ router.get('/errors/summary', authMiddleware, async (req: Request, res: Response
   try {
     const { start_date, end_date } = req.query;
     
-    const client = getSupabaseClient();
+    // Use admin client to bypass RLS - this is an admin-only endpoint
+    const client = getSupabaseAdminClient();
     let query = client
       .from('frontend_errors')
       .select('severity, error_type, page, created_at');
@@ -375,7 +377,8 @@ router.get('/errors/:id', authMiddleware, async (req: Request, res: Response) =>
   try {
     const { id } = req.params;
     
-    const client = getSupabaseClient();
+    // Use admin client to bypass RLS - this is an admin-only endpoint
+    const client = getSupabaseAdminClient();
     const { data, error } = await client
       .from('frontend_errors')
       .select('*')
@@ -428,7 +431,8 @@ router.post('/errors/:id/resolve', authMiddleware, async (req: Request, res: Res
   try {
     const { id } = req.params;
     
-    const client = getSupabaseClient();
+    // Use admin client to bypass RLS - this is an admin-only endpoint
+    const client = getSupabaseAdminClient();
     const { error } = await client
       .from('frontend_errors')
       .update({
@@ -487,7 +491,8 @@ router.get('/api-latency', authMiddleware, async (req: Request, res: Response) =
   try {
     const { start_date, end_date } = req.query;
     
-    const client = getSupabaseClient();
+    // Use admin client to bypass RLS - this is an admin-only endpoint
+    const client = getSupabaseAdminClient();
     
     // Query performance_metrics table for API latency data
     let query = client
