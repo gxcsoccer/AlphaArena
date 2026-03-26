@@ -60,6 +60,30 @@ jobs:
           echo "nav_result=\$?" >> $GITHUB_OUTPUT
         continue-on-error: true
 
+      - name: Run E2E tests - Mobile Auth
+        id: test-mobile-auth
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/mobile/auth.test.ts
+        continue-on-error: true
+
+      - name: Run E2E tests - Mobile Trading
+        id: test-mobile-trading
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/mobile/trading.test.ts
+        continue-on-error: true
+
+      - name: Run E2E tests - Mobile Holdings
+        id: test-mobile-holdings
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/mobile/holdings.test.ts
+        continue-on-error: true
+
+      - name: Run E2E tests - Mobile Language Switch
+        id: test-mobile-lang
+        run: |
+          E2E_BASE_URL=http://localhost:3000 npx ts-node --transpile-only tests/e2e/mobile/language-switch.test.ts
+        continue-on-error: true
+
       - name: Upload test artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -73,16 +97,33 @@ jobs:
         run: |
           echo "## E2E Test Results Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Desktop Tests" >> $GITHUB_STEP_SUMMARY
           echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Trading Pair Switching | ${{ steps.test-trading.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Page Navigation | ${{ steps.test-nav.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Mobile Tests" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Suite | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile Auth | ${{ steps.test-mobile-auth.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile Trading | ${{ steps.test-mobile-trading.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile Holdings | ${{ steps.test-mobile-holdings.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Mobile Language Switch | ${{ steps.test-mobile-lang.outcome == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
           echo "Test artifacts (screenshots) are available in the workflow artifacts." >> $GITHUB_STEP_SUMMARY
 
       - name: Check overall test status
         run: |
-          if [[ "${{ steps.test-trading.outcome }}" != "success" || "${{ steps.test-nav.outcome }}" != "success" ]]; then
+          FAILED=0
+          if [[ "${{ steps.test-trading.outcome }}" != "success" ]]; then FAILED=1; fi
+          if [[ "${{ steps.test-nav.outcome }}" != "success" ]]; then FAILED=1; fi
+          if [[ "${{ steps.test-mobile-auth.outcome }}" != "success" ]]; then FAILED=1; fi
+          if [[ "${{ steps.test-mobile-trading.outcome }}" != "success" ]]; then FAILED=1; fi
+          if [[ "${{ steps.test-mobile-holdings.outcome }}" != "success" ]]; then FAILED=1; fi
+          if [[ "${{ steps.test-mobile-lang.outcome }}" != "success" ]]; then FAILED=1; fi
+          
+          if [[ $FAILED -eq 1 ]]; then
             echo "❌ One or more E2E test suites failed. Check artifacts for details."
             exit 1
           fi
