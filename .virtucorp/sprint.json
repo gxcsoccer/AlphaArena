@@ -1,64 +1,7 @@
 {
-  "sprint": {
-    "number": 50,
-    "title": "Sprint 50: 移动端优化与 PWA 支持",
-    "milestone": 51,
-    "status": "executing",
-    "period": {
-      "start": "2026-03-31",
-      "end": "2026-04-06"
-    },
-    "goals": "基于完成的国际化基础（中英日韩），实现移动端响应式优化和 PWA 支持，提升移动端用户体验，扩大全球用户覆盖。",
-    "issues": {
-      "planned": [
-        {
-          "number": 627,
-          "title": "移动端响应式优化 - 核心页面适配",
-          "priority": "P0",
-          "type": "feature",
-          "status": "ready-for-dev"
-        },
-        {
-          "number": 628,
-          "title": "PWA 支持与离线能力",
-          "priority": "P1",
-          "type": "feature",
-          "status": "ready-for-dev"
-        },
-        {
-          "number": 629,
-          "title": "移动端触控手势优化",
-          "priority": "P1",
-          "type": "feature",
-          "status": "ready-for-dev"
-        },
-        {
-          "number": 630,
-          "title": "移动端 E2E 测试覆盖",
-          "priority": "P1",
-          "type": "feature",
-          "status": "ready-for-dev"
-        },
-        {
-          "number": 631,
-          "title": "移动端性能优化与懒加载",
-          "priority": "P2",
-          "type": "feature",
-          "status": "ready-for-dev"
-        }
-      ],
-      "total": 5,
-      "completed": 0
-    },
-    "direction": "移动端优化 (Mobile Optimization)",
-    "rationale": "Sprint 49-50 提前完成了国际化工作（日韩语言、SEO、CI 检查、懒加载均已完成）。产品现已支持中英日韩四种语言。下一步关键是移动端体验，原因：1) 移动设备是全球化用户的的主要入口；2) 已有部分移动端支持（MobileBottomNav、响应式CSS）需完善；3) PWA 可提供类原生应用体验；4) 触控手势对量化交易平台至关重要。",
-    "previous_sprint": {
-      "number": 49,
-      "summary": "Sprint 49-50 国际化工作全部完成：i18n框架、中英日韩四语言、SEO优化、CI检查、命名空间懒加载。Milestone #51 原计划6个issue全部CLOSED。",
-      "test_status": "全部验收通过"
-    },
-    "created_at": "2026-03-26",
-    "updated_at": "2026-03-26"
-  },
-  "next_sprint": null
+  "current": 51,
+  "startDate": "2026-03-31",
+  "endDate": "2026-04-06",
+  "milestone": 51,
+  "status": "executing"
 }
