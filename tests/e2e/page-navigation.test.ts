@@ -11,6 +11,7 @@
  */
 
 import puppeteer from 'puppeteer';
+import { setupAuth, newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
 
@@ -89,7 +90,7 @@ async function runTests(): Promise<number> {
     console.log('📋 Test Suite 1: Core Page Loading\n');
 
     for (const pageInfo of PAGES) {
-      const page = await browser.newPage();
+      const page = await newAuthenticatedPage(browser);
       await page.setViewport({ width: 1280, height: 800 });
 
       const consoleErrors: string[] = [];
@@ -167,7 +168,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 2: URL Navigation\n');
 
-    const navPage = await browser.newPage();
+    const navPage = await newAuthenticatedPage(browser);
     await navPage.setViewport({ width: 1280, height: 800 });
 
     const navErrors: string[] = [];
@@ -226,7 +227,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 3: Core UI Elements\n');
 
-    const uiPage = await browser.newPage();
+    const uiPage = await newAuthenticatedPage(browser);
     await uiPage.setViewport({ width: 1280, height: 800 });
 
     await uiPage.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
@@ -302,7 +303,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 4: Error Handling\n');
 
-    const errorPage = await browser.newPage();
+    const errorPage = await newAuthenticatedPage(browser);
     await errorPage.setViewport({ width: 1280, height: 800 });
 
     // Test invalid route
@@ -339,7 +340,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 5: Performance\n');
 
-    const perfPage = await browser.newPage();
+    const perfPage = await newAuthenticatedPage(browser);
     await perfPage.setViewport({ width: 1280, height: 800 });
 
     console.log('  Test 5.1: Page load time');

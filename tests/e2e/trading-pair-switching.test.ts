@@ -11,6 +11,7 @@
  */
 
 import puppeteer from 'puppeteer';
+import { newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
 
@@ -87,7 +88,7 @@ async function runTests(): Promise<number> {
     // Test Suite 1: Basic Trading Pair Switching
     console.log('📋 Test Suite 1: Basic Trading Pair Switching\n');
 
-    const page1 = await browser.newPage();
+    const page1 = await newAuthenticatedPage(browser);
     await page1.setViewport({ width: 1280, height: 800 });
 
     const consoleErrors: string[] = [];
@@ -191,7 +192,7 @@ async function runTests(): Promise<number> {
     // Test Suite 2: Rapid Switching Stability
     console.log('📋 Test Suite 2: Rapid Switching Stability\n');
 
-    const page2 = await browser.newPage();
+    const page2 = await newAuthenticatedPage(browser);
     await page2.setViewport({ width: 1280, height: 800 });
     
     const rapidErrors: string[] = [];
@@ -256,7 +257,7 @@ async function runTests(): Promise<number> {
     // Test Suite 3: Data Consistency
     console.log('📋 Test Suite 3: Data Consistency\n');
 
-    const page3 = await browser.newPage();
+    const page3 = await newAuthenticatedPage(browser);
     await page3.setViewport({ width: 1280, height: 800 });
 
     await page3.goto(buildUrl('/'), { waitUntil: 'networkidle0', timeout: TIMEOUT });

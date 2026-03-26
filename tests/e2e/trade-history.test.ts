@@ -11,6 +11,7 @@
  */
 
 import puppeteer from 'puppeteer';
+import { newAuthenticatedPage } from './auth-helper';
 
 const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:3000';
 
@@ -47,7 +48,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 1: Trades Page Load\n');
 
-    const page1 = await browser.newPage();
+    const page1 = await newAuthenticatedPage(browser);
     await page1.setViewport({ width: 1280, height: 800 });
 
     const consoleErrors: string[] = [];
@@ -106,7 +107,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 2: Trade Data Display\n');
 
-    const page2 = await browser.newPage();
+    const page2 = await newAuthenticatedPage(browser);
     await page2.setViewport({ width: 1280, height: 800 });
 
     await page2.goto(buildUrl('/trades'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
@@ -176,7 +177,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 3: Filtering and Sorting\n');
 
-    const page3 = await browser.newPage();
+    const page3 = await newAuthenticatedPage(browser);
     await page3.setViewport({ width: 1280, height: 800 });
 
     await page3.goto(buildUrl('/trades'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
@@ -249,7 +250,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 4: Export Functionality\n');
 
-    const page4 = await browser.newPage();
+    const page4 = await newAuthenticatedPage(browser);
     await page4.setViewport({ width: 1280, height: 800 });
 
     await page4.goto(buildUrl('/trades'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
@@ -316,7 +317,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 5: Charts and Visualization\n');
 
-    const page5 = await browser.newPage();
+    const page5 = await newAuthenticatedPage(browser);
     await page5.setViewport({ width: 1280, height: 800 });
 
     await page5.goto(buildUrl('/trades'), { waitUntil: 'networkidle0', timeout: TIMEOUT });
@@ -381,7 +382,7 @@ async function runTests(): Promise<number> {
     // ========================================
     console.log('📋 Test Suite 6: Console Error Check\n');
 
-    const page6 = await browser.newPage();
+    const page6 = await newAuthenticatedPage(browser);
     await page6.setViewport({ width: 1280, height: 800 });
 
     const finalErrors: string[] = [];
