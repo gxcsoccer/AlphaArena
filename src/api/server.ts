@@ -48,6 +48,7 @@ import userPreferencesRoutes from './userPreferencesRoutes'; // Issue #586
 import { createRiskMonitorRouter } from './riskMonitorRoutes';
 import subscriptionRoutes from './subscriptionRoutes';
 import promoCodeRoutes from './promoCodeRoutes';
+import paymentRoutes from './paymentRoutes';
 import revenueRoutes from './revenueRoutes';
 import socialRoutes from './socialRoutes';
 import commentRoutes from './commentRoutes';
@@ -237,8 +238,12 @@ export class APIServer extends EventEmitter {
       credentials: true,
     }));
 
-    // JSON parsing
-    this.app.use(express.json());
+    // JSON parsing with raw body preservation for Stripe webhooks
+    this.app.use(express.json({
+      verify: (req: any, res, buf) => {
+        req.rawBody = buf;
+      },
+    }));
 
     // Request ID middleware - adds unique ID to each request for tracing
     this.app.use(requestIdMiddleware);
@@ -1007,6 +1012,7 @@ export class APIServer extends EventEmitter {
     this.app.use('/api/risk', createRiskMonitorRouter());
     this.app.use('/api/subscriptions', subscriptionRoutes);
     this.app.use('/api/promo-codes', promoCodeRoutes);
+    this.app.use('/api/payments', paymentRoutes);
     this.app.use('/api/revenue', revenueRoutes);
     this.app.use('/api/schedules', createSchedulerRouter());
     this.app.use('/api/alerts', alertRoutes);
