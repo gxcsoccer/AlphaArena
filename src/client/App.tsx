@@ -99,6 +99,7 @@ const PrivacySettingsPage = lazyWithRetry(() => import('./pages/PrivacySettingsP
 const BusinessMetricsPage = lazyWithRetry(() => import('./pages/BusinessMetricsPage')); // Issue #652: Business Metrics
 const ReferralPage = lazyWithRetry(() => import('./pages/ReferralPage')); // Issue #653: 邀请系统
 const UnifiedAdminMonitoringPage = lazyWithRetry(() => import('./pages/UnifiedAdminMonitoringPage')); // Issue #660: Admin 后台集成
+const LiveBacktestComparisonPage = lazyWithRetry(() => import('./pages/LiveBacktestComparisonPage')); // Issue #669: 实盘与回测对比分析
 
 // Loading component for lazy routes
 const PageLoader: React.FC = () => (
@@ -299,6 +300,9 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </MenuItem>
             <MenuItem key="/strategy-comparison" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略比较
+            </MenuItem>
+            <MenuItem key="/comparison/live-backtest" icon={<IconTrendingUp aria-hidden="true" />} role="menuitem">
+              实盘回测对比
             </MenuItem>
             <MenuItem key="/strategy-portfolio" icon={<IconApps aria-hidden="true" />} role="menuitem">
               策略组合
@@ -581,6 +585,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/admin/business-metrics" element={<BusinessMetricsPage />} /> {/* Issue #652: Business Metrics */}
         <Route path="/admin/monitoring" element={<UnifiedAdminMonitoringPage />} /> {/* Issue #660: Admin 后台集成 */}
         <Route path="/referral" element={<ReferralPage />} /> {/* Issue #653: 邀请系统 */}
+        <Route path="/comparison/live-backtest" element={<LiveBacktestComparisonPage />} /> {/* Issue #669: 实盘与回测对比 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
