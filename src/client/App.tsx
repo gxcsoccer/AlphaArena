@@ -91,6 +91,7 @@ const PortfolioDetailPage = lazyWithRetry(() => import('./pages/PortfolioDetailP
 const UserBehaviorAnalyticsPage = lazyWithRetry(() => import('./pages/UserBehaviorAnalyticsPage'));
 const ExchangeAccountsPage = lazyWithRetry(() => import('./pages/ExchangeAccountsPage'));
 const PerformanceMonitoringPage = lazyWithRetry(() => import('./pages/PerformanceMonitoringPage'));
+const PaymentMonitoringPage = lazyWithRetry(() => import('./pages/PaymentMonitoringPage'));
 const NotificationPreferencesPage = lazyWithRetry(() => import('./pages/NotificationPreferencesPage'));
 const NotificationHistoryPage = lazyWithRetry(() => import('./pages/NotificationHistoryPage'));
 const PrivacySettingsPage = lazyWithRetry(() => import('./pages/PrivacySettingsPage')); // Issue #642: GDPR
@@ -549,6 +550,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/settings/billing" element={<BillingPage />} />
         <Route path="/admin/revenue" element={<AdminDashboardPage />} />
         <Route path="/admin/performance" element={<PerformanceMonitoringPage />} />
+        <Route path="/admin/payment-monitoring" element={<PaymentMonitoringPage />} />
         <Route path="/admin/feedback" element={<FeedbackManagementPage />} />
         <Route path="/data-source" element={<DataSourceSettingsPage />} />
         <Route path="/virtual-account" element={<VirtualAccountPage />} />
