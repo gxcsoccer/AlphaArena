@@ -6,7 +6,22 @@
 
 import { Router, Request, Response } from 'express';
 import { strategyPortfolioService } from '../strategy-portfolio/strategyPortfolio.service';
-import { CreatePortfolioInput, UpdatePortfolioInput, SnapshotType } from '../strategy-portfolio/types';
+import { signalAggregationService } from '../strategy-portfolio/signalAggregation.service';
+import { riskControlService } from '../strategy-portfolio/riskControl.service';
+import { correlationAnalysisService } from '../strategy-portfolio/correlationAnalysis.service';
+import { portfolioOptimizationService } from '../strategy-portfolio/optimization.service';
+import { templateService } from '../strategy-portfolio/template.service';
+import { portfolioShareService } from '../strategy-portfolio/share.service';
+import { 
+  CreatePortfolioInput, 
+  UpdatePortfolioInput, 
+  SnapshotType,
+  StrategySignal,
+  SignalAggregationMethod,
+  RiskControlConfig,
+  CreateTemplateInput,
+  ShareConfig,
+} from '../strategy-portfolio/types';
 import { createLogger } from '../utils/logger';
 
 const log = createLogger('StrategyPortfolioRoutes');
@@ -708,6 +723,498 @@ export function createStrategyPortfolioRouter(): Router {
       res.json(risk);
     } catch (error) {
       log.error('Error calculating risk:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Signal Aggregation ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/signals/aggregate:
+   *   post:
+   *     summary: Aggregate signals from portfolio strategies
+   *     tags: [StrategyPortfolio]
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *     requestBody:
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               signals:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *               method:
+   *                 type: string
+   *                 enum: [voting, weighted_average, consensus, best_performer]
+   *     responses:
+   *       200:
+   *         description: Aggregated signal
+   */
+  router.post('/:id/signals/aggregate', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { signals, method } = req.body;
+
+      const portfolio = await strategyPortfolioService.getPortfolio(String(id));
+      if (!portfolio) {
+        return res.status(404).json({ error: 'Portfolio not found' });
+      }
+
+      // Build strategy weights map
+      const strategyWeights = new Map<string, number>();
+      (portfolio.strategies || []).forEach(s => {
+        strategyWeights.set(s.strategyId, s.weight);
+      });
+
+      const aggregated = signalAggregationService.aggregateSignals(
+        signals as StrategySignal[],
+        strategyWeights,
+        method as SignalAggregationMethod
+      );
+
+      res.json(aggregated);
+    } catch (error) {
+      log.error('Error aggregating signals:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/signals/config:
+   *   put:
+   *     summary: Update signal aggregation config
+   *     tags: [StrategyPortfolio]
+   */
+  router.put('/:id/signals/config', async (req: Request, res: Response) => {
+    try {
+      const config = req.body;
+      signalAggregationService.updateConfig(config);
+      res.json({ success: true, config: signalAggregationService.getConfig() });
+    } catch (error) {
+      log.error('Error updating signal config:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Risk Control ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/risk/check:
+   *   post:
+   *     summary: Check position limits and detect conflicts
+   *     tags: [StrategyPortfolio]
+   */
+  router.post('/:id/risk/check', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const portfolioId = String(id);
+      const { signals, positions } = req.body;
+
+      const portfolio = await strategyPortfolioService.getPortfolio(portfolioId);
+      if (!portfolio) {
+        return res.status(404).json({ error: 'Portfolio not found' });
+      }
+
+      // Check position limits
+      const positionCheck = riskControlService.checkPositionLimits({
+        currentTotalPosition: positions?.totalPosition || 0,
+        currentPositionByAsset: new Map(Object.entries(positions?.byAsset || {})),
+        currentPositionByStrategy: new Map(Object.entries(positions?.byStrategy || {})),
+      });
+
+      // Detect conflicts
+      const conflicts = riskControlService.detectConflicts(signals || []);
+
+      // Calculate risk score
+      const riskScore = riskControlService.calculateRiskScore({
+        totalPosition: positions?.totalPosition || 0,
+        positionByAsset: new Map(Object.entries(positions?.byAsset || {})),
+        positionByStrategy: new Map(Object.entries(positions?.byStrategy || {})),
+        conflictCount: conflicts.length,
+      });
+
+      res.json({
+        positionCheck,
+        conflicts,
+        riskScore,
+      });
+    } catch (error) {
+      log.error('Error checking risk:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/risk/resolve:
+   *   post:
+   *     summary: Resolve detected conflicts
+   *     tags: [StrategyPortfolio]
+   */
+  router.post('/:id/risk/resolve', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const { conflicts, signals } = req.body;
+
+      const portfolio = await strategyPortfolioService.getPortfolio(String(id));
+      if (!portfolio) {
+        return res.status(404).json({ error: 'Portfolio not found' });
+      }
+
+      const strategyWeights = new Map<string, number>();
+      (portfolio.strategies || []).forEach(s => {
+        strategyWeights.set(s.strategyId, s.weight);
+      });
+
+      const { resolvedSignals, resolutions } = riskControlService.resolveConflicts(
+        conflicts,
+        signals,
+        strategyWeights
+      );
+
+      res.json({ resolvedSignals, resolutions });
+    } catch (error) {
+      log.error('Error resolving conflicts:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/risk/config:
+   *   put:
+   *     summary: Update risk control config
+   *     tags: [StrategyPortfolio]
+   */
+  router.put('/:id/risk/config', async (req: Request, res: Response) => {
+    try {
+      const config = req.body as RiskControlConfig;
+      riskControlService.updateConfig(config);
+      res.json({ success: true, config: riskControlService.getConfig() });
+    } catch (error) {
+      log.error('Error updating risk config:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Correlation Analysis ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/correlation:
+   *   get:
+   *     summary: Get strategy correlation analysis
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/:id/correlation', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const portfolioId = String(id);
+
+      // Get performance history to calculate correlations
+      const history = await strategyPortfolioService.getPerformanceHistory(portfolioId);
+      
+      if (history.length < 2) {
+        return res.json({
+          matrix: { strategyIds: [], matrix: [], period: '30d', calculatedAt: new Date() },
+          highCorrelationPairs: [],
+          diversificationScore: 100,
+          recommendations: ['Not enough data to calculate correlations. Continue running strategies to generate history.'],
+        });
+      }
+
+      // Calculate returns from snapshots
+      const strategyReturns = correlationAnalysisService.calculateFromSnapshots(history);
+      
+      // Perform analysis
+      const analysis = correlationAnalysisService.analyzeCorrelations(strategyReturns);
+      
+      // Add summary
+      const summary = correlationAnalysisService.getCorrelationSummary(analysis);
+
+      res.json({ ...analysis, summary });
+    } catch (error) {
+      log.error('Error analyzing correlations:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Optimization ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/optimization:
+   *   get:
+   *     summary: Get optimization suggestions for portfolio
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/:id/optimization', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const portfolioId = String(id);
+
+      const portfolio = await strategyPortfolioService.getPortfolio(portfolioId);
+      if (!portfolio) {
+        return res.status(404).json({ error: 'Portfolio not found' });
+      }
+
+      // Get correlation analysis if available
+      const history = await strategyPortfolioService.getPerformanceHistory(portfolioId);
+      let correlationAnalysis;
+      if (history.length >= 2) {
+        const strategyReturns = correlationAnalysisService.calculateFromSnapshots(history);
+        correlationAnalysis = correlationAnalysisService.analyzeCorrelations(strategyReturns);
+      }
+
+      // Analyze portfolio
+      const optimization = portfolioOptimizationService.analyzePortfolio(
+        portfolio,
+        correlationAnalysis
+      );
+
+      res.json(optimization);
+    } catch (error) {
+      log.error('Error analyzing optimization:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Templates ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/templates:
+   *   get:
+   *     summary: Get available portfolio templates
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/templates', async (req: Request, res: Response) => {
+    try {
+      const { category, riskLevel, limit } = req.query;
+      const templates = await templateService.getTemplates({
+        category: category as string,
+        riskLevel: riskLevel as string,
+        limit: limit ? parseInt(String(limit), 10) : undefined,
+      });
+      res.json(templates);
+    } catch (error) {
+      log.error('Error fetching templates:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/templates/{templateId}:
+   *   get:
+   *     summary: Get template by ID
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { templateId } = req.params;
+      const template = await templateService.getTemplateById(String(templateId));
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+
+      res.json(template);
+    } catch (error) {
+      log.error('Error fetching template:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/templates:
+   *   post:
+   *     summary: Create custom template
+   *     tags: [StrategyPortfolio]
+   */
+  router.post('/templates', async (req: Request, res: Response) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: 'User ID required' });
+      }
+
+      const input = req.body as CreateTemplateInput;
+      const template = await templateService.createTemplate(userId, input);
+      
+      log.info(`Created template ${template.id} for user ${userId}`);
+      res.status(201).json(template);
+    } catch (error) {
+      log.error('Error creating template:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/templates/recommendations:
+   *   get:
+   *     summary: Get recommended templates based on preferences
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/templates/recommendations', async (req: Request, res: Response) => {
+    try {
+      const { riskTolerance, targetReturn, capitalAmount } = req.query;
+      
+      const recommendations = await templateService.getRecommendedTemplates({
+        riskTolerance: riskTolerance as 'low' | 'medium' | 'high',
+        targetReturn: targetReturn ? parseFloat(String(targetReturn)) : undefined,
+        capitalAmount: capitalAmount ? parseFloat(String(capitalAmount)) : undefined,
+      });
+
+      res.json(recommendations);
+    } catch (error) {
+      log.error('Error getting recommendations:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/templates/{templateId}/rate:
+   *   post:
+   *     summary: Rate a template
+   *     tags: [StrategyPortfolio]
+   */
+  router.post('/templates/:templateId/rate', async (req: Request, res: Response) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      const { templateId } = req.params;
+      const { rating } = req.body;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'User ID required' });
+      }
+
+      const success = await templateService.rateTemplate(String(templateId), userId, rating);
+      
+      if (!success) {
+        return res.status(400).json({ error: 'Failed to rate template' });
+      }
+
+      res.json({ success: true });
+    } catch (error) {
+      log.error('Error rating template:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  // ==================== Sharing ====================
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/share:
+   *   post:
+   *     summary: Create a share for portfolio
+   *     tags: [StrategyPortfolio]
+   */
+  router.post('/:id/share', async (req: Request, res: Response) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: 'User ID required' });
+      }
+
+      const { id } = req.params;
+      const config = req.body as ShareConfig;
+
+      const share = await portfolioShareService.createShare(String(id), userId, config);
+      
+      log.info(`Created share ${share.shareCode} for portfolio ${id}`);
+      res.status(201).json(share);
+    } catch (error) {
+      log.error('Error creating share:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/shared/{code}:
+   *   get:
+   *     summary: Get shared portfolio by code
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/shared/:code', async (req: Request, res: Response) => {
+    try {
+      const { code } = req.params;
+      const share = await portfolioShareService.getShareByCode(String(code));
+      
+      if (!share) {
+        return res.status(404).json({ error: 'Share not found or expired' });
+      }
+
+      // Increment view count
+      await portfolioShareService.incrementViewCount(String(code));
+
+      // Get portfolio
+      const portfolio = await strategyPortfolioService.getPortfolio(share.portfolioId);
+      
+      res.json({ share, portfolio });
+    } catch (error) {
+      log.error('Error fetching shared portfolio:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/{id}/shares:
+   *   get:
+   *     summary: Get all shares for a portfolio
+   *     tags: [StrategyPortfolio]
+   */
+  router.get('/:id/shares', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const shares = await portfolioShareService.getPortfolioShares(String(id));
+      res.json(shares);
+    } catch (error) {
+      log.error('Error fetching shares:', error);
+      res.status(400).json({ error: (error as Error).message });
+    }
+  });
+
+  /**
+   * @openapi
+   * /api/strategy-portfolios/shares/{shareId}:
+   *   delete:
+   *     summary: Revoke a share
+   *     tags: [StrategyPortfolio]
+   */
+  router.delete('/shares/:shareId', async (req: Request, res: Response) => {
+    try {
+      const userId = req.headers['x-user-id'] as string;
+      if (!userId) {
+        return res.status(401).json({ error: 'User ID required' });
+      }
+
+      const { shareId } = req.params;
+      const success = await portfolioShareService.revokeShare(String(shareId), userId);
+      
+      if (!success) {
+        return res.status(400).json({ error: 'Failed to revoke share' });
+      }
+
+      res.status(204).send();
+    } catch (error) {
+      log.error('Error revoking share:', error);
       res.status(400).json({ error: (error as Error).message });
     }
   });
