@@ -297,9 +297,9 @@ export class RiskControlService {
           {
             const firstSignal = signals.find(s => conflict.strategyIds.includes(s.strategyId));
             if (firstSignal) {
-              // Remove other signals for this symbol
+              // Remove other signals for this symbol (compare by object reference)
               const toRemove = resolvedSignals.filter(
-                s => conflict.strategyIds.includes(s.strategyId) && s.id !== firstSignal.id
+                s => conflict.strategyIds.includes(s.strategyId) && s !== firstSignal
               );
               for (const s of toRemove) {
                 const index = resolvedSignals.indexOf(s);
@@ -321,8 +321,9 @@ export class RiskControlService {
               const best = relevantSignals.reduce((a, b) =>
                 a.confidence > b.confidence ? a : b
               );
+              // Remove other signals (compare by object reference)
               const toRemove = resolvedSignals.filter(
-                s => conflict.strategyIds.includes(s.strategyId) && s.id !== best.id
+                s => conflict.strategyIds.includes(s.strategyId) && s !== best
               );
               for (const s of toRemove) {
                 const index = resolvedSignals.indexOf(s);

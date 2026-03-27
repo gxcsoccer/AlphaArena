@@ -6473,6 +6473,52 @@
         ]
       }
     },
+    "/api/strategy-portfolios/templates": {
+      "get": {
+        "summary": "Get available portfolio templates",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      },
+      "post": {
+        "summary": "Create custom template",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/templates/recommendations": {
+      "get": {
+        "summary": "Get recommended templates based on preferences",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/templates/{templateId}": {
+      "get": {
+        "summary": "Get template by ID",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/templates/{templateId}/rate": {
+      "post": {
+        "summary": "Rate a template",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/shared/{code}": {
+      "get": {
+        "summary": "Get shared portfolio by code (public access)",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
     "/api/strategy-portfolios": {
       "post": {
         "summary": "Create a new strategy portfolio",
@@ -7099,6 +7145,127 @@
             "description": "Risk metrics"
           }
         }
+      }
+    },
+    "/api/strategy-portfolios/{id}/signals/aggregate": {
+      "post": {
+        "summary": "Aggregate signals from portfolio strategies",
+        "tags": [
+          "StrategyPortfolio"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "signals": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "voting",
+                      "weighted_average",
+                      "consensus",
+                      "best_performer"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Aggregated signal"
+          }
+        }
+      }
+    },
+    "/api/strategy-portfolios/{id}/signals/config": {
+      "put": {
+        "summary": "Update signal aggregation config",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/risk/check": {
+      "post": {
+        "summary": "Check position limits and detect conflicts",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/risk/resolve": {
+      "post": {
+        "summary": "Resolve detected conflicts",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/risk/config": {
+      "put": {
+        "summary": "Update risk control config",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/correlation": {
+      "get": {
+        "summary": "Get strategy correlation analysis",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/optimization": {
+      "get": {
+        "summary": "Get optimization suggestions for portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/share": {
+      "post": {
+        "summary": "Create a share for portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/{id}/shares": {
+      "get": {
+        "summary": "Get all shares for a portfolio",
+        "tags": [
+          "StrategyPortfolio"
+        ]
+      }
+    },
+    "/api/strategy-portfolios/shares/{shareId}": {
+      "delete": {
+        "summary": "Revoke a share",
+        "tags": [
+          "StrategyPortfolio"
+        ]
       }
     },
     "/api/account": {

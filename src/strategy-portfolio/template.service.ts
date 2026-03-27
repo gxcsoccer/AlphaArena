@@ -472,7 +472,7 @@ export class TemplateService {
         .eq('template_id', templateId);
 
       if (data && data.length > 0) {
-        const avgRating = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+        const avgRating = data.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / data.length;
 
         await this.supabase
           .from('portfolio_templates')
