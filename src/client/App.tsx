@@ -24,6 +24,7 @@ import {
   IconCompass,
   IconNotification,
   IconUserGroup,
+  IconArrowRise as IconTrendingUp,
 } from '@arco-design/web-react/icon';
 import BalanceDisplay from './components/BalanceDisplay';
 import ThemeToggle from './components/ThemeToggle';

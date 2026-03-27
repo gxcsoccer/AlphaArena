@@ -30,8 +30,8 @@ import {
   IconArrowUp,
   IconCheckCircle,
   IconCloseCircle,
-  IconTrendingUp,
-  IconTrendingDown,
+  IconArrowRise as IconTrendingUp,
+  IconArrowFall as IconTrendingDown,
   IconInfoCircle,
 } from '@arco-design/web-react/icon';
 import dayjs from 'dayjs';

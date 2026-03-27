@@ -23,8 +23,8 @@ import {
   Tooltip,
 } from '@arco-design/web-react';
 import {
-  IconTrendingUp,
-  IconTrendingDown,
+  IconArrowRise as IconTrendingUp,
+  IconArrowFall as IconTrendingDown,
   IconCheckCircle,
   IconCloseCircle,
   IconMinusCircle,

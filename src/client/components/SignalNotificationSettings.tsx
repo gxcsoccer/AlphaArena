@@ -27,7 +27,7 @@ import {
 import {
   IconNotification,
   IconBulb,
-  IconTrendingUp,
+  IconArrowRise as IconTrendingUp,
   IconMoon,
   IconCheck,
   IconClose,
