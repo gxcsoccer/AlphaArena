@@ -78,17 +78,13 @@
     {
       "source": "/socket.io/(.*)",
       "destination": "/socket.io/$1"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ],
+  
   "headers": [
     {
       "source": "/api/(.*)",
