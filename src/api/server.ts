@@ -70,6 +70,7 @@ import comparisonRoutes from './comparisonRoutes'; // Issue #669: 实盘与回�
 import riskAlertsRoutes from './risk-alerts';
 import { createRecommendationRouter } from './recommendationRoutes';
 import { createStrategyMarketplaceRouter } from './strategyMarketplaceRoutes';
+import { createStrategyCommunityRouter } from './strategyCommunityRoutes'; // Issue #673: Strategy Community
 import { createExchangeAccountsRouter } from './exchangeAccountsRoutes';
 import { createPublicApiRouter } from './publicApiRoutes';
 import performanceRoutes from './performanceRoutes';
@@ -1072,6 +1073,9 @@ export class APIServer extends EventEmitter {
 
     // Strategy Marketplace routes
     this.app.use('/api/marketplace', createStrategyMarketplaceRouter());
+
+    // Strategy Community routes (Issue #673)
+    this.app.use('/api/community', createStrategyCommunityRouter());
 
     // AI Strategy Recommendation routes
     this.app.use('/api', createRecommendationRouter());
