@@ -108,9 +108,9 @@ export class SignalNotificationTemplates {
         }
         // Use default templates
         this.loadDefaultTemplates();
-      } else {
+      } else if (data && data.length > 0) {
         // Load from database
-        for (const row of data ?? []) {
+        for (const row of data) {
           const key = `${row.template_key}.${row.language}`;
           this.templates.set(key, {
             id: row.id,
@@ -123,6 +123,9 @@ export class SignalNotificationTemplates {
           });
         }
         log.info(`Loaded ${this.templates.size} templates from database`);
+      } else {
+        // Database returned empty, use default templates
+        this.loadDefaultTemplates();
       }
 
       this.initialized = true;
@@ -138,7 +141,10 @@ export class SignalNotificationTemplates {
    */
   private loadDefaultTemplates(): void {
     for (const [key, template] of Object.entries(DEFAULT_TEMPLATES)) {
-      const [templateKey, language] = key.split('.');
+      // Key format: 'template.subtype.language', e.g., 'signal.new.zh'
+      const parts = key.split('.');
+      const language = parts.pop() || 'zh'; // Last part is language
+      const templateKey = parts.join('.'); // Rest is template key (e.g., 'signal.new')
       this.templates.set(key, {
         id: `default-${key}`,
         templateKey: templateKey,
