@@ -1,0 +1,22 @@
+web:
+  url: "https://alphaarena-eeal6f6vm-gxcsoccer-s-team.vercel.app"
+
+tasks:
+  - name: "首页可访问性测试"
+    flow:
+      - ai: "打开首页"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示了 AlphaArena 的标题或品牌标识"
+      - aiAssert: "页面布局正常，没有显示错误信息"
+  - name: "策略列表页面测试"
+    flow:
+      - ai: "导航到策略列表页面"
+      - aiWaitFor: "策略列表加载完成"
+      - aiAssert: "页面显示了策略列表或相关内容"
+      - aiAssert: "页面没有显示错误信息或加载失败提示"
+  - name: "实盘与回测对比页面测试"
+    flow:
+      - ai: "导航到实盘与回测对比页面"
+      - aiWaitFor: "对比页面加载完成"
+      - aiAssert: "页面显示了对比图表或数据"
+      - aiAssert: "页面没有显示错误信息或加载失败提示"
