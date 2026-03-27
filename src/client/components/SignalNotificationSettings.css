@@ -1,0 +1,123 @@
+/**
+ * Signal Notification Settings Styles
+ * Issue #670: 策略信号通知增强
+ */
+
+.signal-notification-settings {
+  padding: 16px;
+}
+
+.signal-notification-settings .notification-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.signal-notification-settings .stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background: var(--color-fill-1);
+  border-radius: 8px;
+}
+
+.signal-notification-settings .stat-item .arco-typography {
+  margin-bottom: 8px;
+}
+
+/* Strategy table styling */
+.signal-notification-settings .arco-table {
+  margin-top: 16px;
+}
+
+.signal-notification-settings .arco-table .arco-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.signal-notification-settings .arco-table .arco-tag:hover {
+  transform: scale(1.05);
+}
+
+/* Quiet hours time picker */
+.signal-notification-settings .arco-input-number {
+  width: 100%;
+}
+
+/* Collapse customization */
+.signal-notification-settings .arco-collapse-item {
+  margin-bottom: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.signal-notification-settings .arco-collapse-item-header {
+  background: var(--color-fill-1);
+}
+
+/* Form styling */
+.signal-notification-settings .arco-form-item {
+  margin-bottom: 16px;
+}
+
+.signal-notification-settings .arco-divider {
+  margin: 24px 0;
+}
+
+/* Alert styling */
+.signal-notification-settings .arco-alert {
+  border-radius: 8px;
+}
+
+/* Slider marks */
+.signal-notification-settings .arco-slider-marks {
+  font-size: 12px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .signal-notification-settings .notification-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .signal-notification-settings .arco-table {
+    overflow-x: auto;
+  }
+
+  .signal-notification-settings .arco-form-item-label {
+    text-align: left;
+  }
+}
+
+/* Dark mode support */
+body[arco-theme='dark'] .signal-notification-settings .stat-item {
+  background: var(--color-fill-2);
+}
+
+body[arco-theme='dark'] .signal-notification-settings .arco-collapse-item-header {
+  background: var(--color-fill-2);
+}
+
+/* Animation for switches */
+.signal-notification-settings .arco-switch {
+  transition: all 0.3s ease;
+}
+
+/* Tag colors for different channels */
+.signal-notification-settings .arco-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+}
+
+/* Stats number animation */
+.signal-notification-settings .stat-item .arco-typography-bold {
+  transition: color 0.3s ease;
+}
+
+/* Tooltip styling */
+.signal-notification-settings .arco-tooltip-content {
+  max-width: 300px;
+}

@@ -4,7 +4,10 @@
  */
 
 export { NotificationService, default as notificationService } from './NotificationService.js';
-export { NotificationTemplates, default as notificationTemplates } from './NotificationTemplates.js';
+export { 
+  getSignalNotificationTemplates,
+  SignalNotificationTemplates,
+} from './NotificationTemplates.js';
 
 // Email Service exports
 export { 
