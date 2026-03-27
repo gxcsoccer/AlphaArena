@@ -294,3 +294,260 @@ export interface PerformanceHistoryQuery {
   snapshotType?: SnapshotType;
   limit?: number;
 }
+
+// ==================== Signal Aggregation Types ====================
+
+/**
+ * Signal aggregation method
+ */
+export type SignalAggregationMethod = 'voting' | 'weighted_average' | 'consensus' | 'best_performer';
+
+/**
+ * Trading signal from a strategy
+ */
+export interface StrategySignal {
+  strategyId: string;
+  symbol: string;
+  side: 'buy' | 'sell' | 'hold';
+  confidence: number;  // 0-1
+  quantity?: number;
+  price?: number;
+  reason?: string;
+  timestamp: Date;
+}
+
+/**
+ * Aggregated portfolio signal
+ */
+export interface AggregatedSignal {
+  symbol: string;
+  side: 'buy' | 'sell' | 'hold';
+  confidence: number;
+  quantity: number;
+  price?: number;
+  aggregationMethod: SignalAggregationMethod;
+  contributingStrategies: Array<{
+    strategyId: string;
+    signal: StrategySignal;
+    weight: number;
+  }>;
+  timestamp: Date;
+}
+
+/**
+ * Signal aggregation configuration
+ */
+export interface SignalAggregationConfig {
+  method: SignalAggregationMethod;
+  minConfidence: number;  // Minimum confidence to include signal
+  consensusThreshold: number;  // For consensus method (0.5 = 50% agreement)
+  requireMajority: boolean;  // For voting method
+}
+
+// ==================== Risk Control Types ====================
+
+/**
+ * Position limit configuration
+ */
+export interface PositionLimits {
+  maxTotalPosition: number;  // Maximum total position value
+  maxSingleAssetPosition: number;  // Maximum position for single asset
+  maxSingleStrategyPosition: number;  // Maximum position for single strategy
+  maxLeverage: number;  // Maximum leverage ratio
+}
+
+/**
+ * Strategy conflict type
+ */
+export type ConflictType = 'same_direction' | 'opposite_direction' | 'resource_contention';
+
+/**
+ * Strategy conflict detection result
+ */
+export interface StrategyConflict {
+  id: string;
+  type: ConflictType;
+  strategyIds: string[];
+  symbol: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  suggestedResolution?: string;
+  detectedAt: Date;
+}
+
+/**
+ * Conflict resolution strategy
+ */
+export type ConflictResolution = 'first_come' | 'highest_confidence' | 'weighted_vote' | 'manual';
+
+/**
+ * Risk control configuration
+ */
+export interface RiskControlConfig {
+  positionLimits: PositionLimits;
+  conflictResolution: ConflictResolution;
+  enableConflictDetection: boolean;
+  autoResolveConflicts: boolean;
+}
+
+// ==================== Correlation Analysis Types ====================
+
+/**
+ * Strategy correlation data
+ */
+export interface StrategyCorrelation {
+  strategyId1: string;
+  strategyId2: string;
+  correlation: number;  // -1 to 1
+  period: string;  // e.g., '30d', '90d'
+  calculatedAt: Date;
+}
+
+/**
+ * Correlation matrix
+ */
+export interface CorrelationMatrix {
+  strategyIds: string[];
+  matrix: number[][];  // 2D array of correlations
+  period: string;
+  calculatedAt: Date;
+}
+
+/**
+ * Correlation analysis result
+ */
+export interface CorrelationAnalysis {
+  matrix: CorrelationMatrix;
+  highCorrelationPairs: Array<{
+    strategyId1: string;
+    strategyId2: string;
+    correlation: number;
+  }>;
+  diversificationScore: number;  // 0-100, higher is better
+  recommendations: string[];
+}
+
+// ==================== Optimization Types ====================
+
+/**
+ * Portfolio optimization suggestion
+ */
+export interface OptimizationSuggestion {
+  id: string;
+  type: 'rebalance' | 'add_strategy' | 'remove_strategy' | 'adjust_weight' | 'risk_reduction';
+  priority: 'low' | 'medium' | 'high';
+  title: string;
+  description: string;
+  impact: {
+    expectedReturnChange?: number;
+    riskReduction?: number;
+    diversificationImprovement?: number;
+  };
+  actions: Array<{
+    type: string;
+    strategyId?: string;
+    currentValue?: number;
+    suggestedValue?: number;
+  }>;
+  createdAt: Date;
+}
+
+/**
+ * Optimization analysis result
+ */
+export interface OptimizationAnalysis {
+  currentScore: number;  // 0-100
+  suggestions: OptimizationSuggestion[];
+  riskReturnProfile: {
+    expectedReturn: number;
+    risk: number;
+    sharpeRatio: number;
+  };
+  lastAnalyzed: Date;
+}
+
+// ==================== Template Types ====================
+
+/**
+ * Portfolio template
+ */
+export interface PortfolioTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: 'conservative' | 'balanced' | 'aggressive' | 'custom';
+  riskLevel: 'low' | 'medium' | 'high';
+  targetReturn: number;  // Annual target return %
+  allocations: Array<{
+    strategyType: string;  // e.g., 'momentum', 'mean_reversion', 'arbitrage'
+    weight: number;
+    description?: string;
+  }>;
+  rebalanceConfig: RebalanceConfig;
+  riskControlConfig: RiskControlConfig;
+  signalAggregationConfig: SignalAggregationConfig;
+  tags: string[];
+  usageCount: number;
+  rating: number;  // Average rating 1-5
+  createdBy: string;  // User ID or 'system'
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Template creation input
+ */
+export interface CreateTemplateInput {
+  name: string;
+  description: string;
+  category: 'conservative' | 'balanced' | 'aggressive' | 'custom';
+  riskLevel: 'low' | 'medium' | 'high';
+  targetReturn?: number;
+  allocations: Array<{
+    strategyType: string;
+    weight: number;
+    description?: string;
+  }>;
+  rebalanceConfig?: Partial<RebalanceConfig>;
+  riskControlConfig?: Partial<RiskControlConfig>;
+  signalAggregationConfig?: Partial<SignalAggregationConfig>;
+  tags?: string[];
+  isPublic?: boolean;
+}
+
+// ==================== Share Types ====================
+
+/**
+ * Shared portfolio
+ */
+export interface SharedPortfolio {
+  id: string;
+  portfolioId: string;
+  shareCode: string;  // Unique share code
+  ownerUserId: string;
+  sharedWith: Array<{
+    userId: string;
+    permission: 'view' | 'copy';
+    sharedAt: Date;
+  }>;
+  isPublic: boolean;
+  expiresAt?: Date;
+  createdAt: Date;
+  viewCount: number;
+  copyCount: number;
+}
+
+/**
+ * Share permission
+ */
+export type SharePermission = 'view' | 'copy' | 'edit';
+
+/**
+ * Share configuration
+ */
+export interface ShareConfig {
+  isPublic: boolean;
+  expiresIn?: number;  // Days until expiration
+  permissions: SharePermission[];
+}
