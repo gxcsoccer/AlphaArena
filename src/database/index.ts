@@ -340,11 +340,15 @@ export {
   feedbackDAO, 
   FeedbackType, 
   FeedbackStatus,
-  FeedbackPriority,
-  type Feedback,
+  SentimentType,
+  type UserFeedback,
+  type FeedbackStatusHistory,
+  type FeedbackStatistics,
+  type HotTopic,
   type CreateFeedbackInput,
   type UpdateFeedbackInput,
-  type FeedbackQueryOptions,
+  type AdminUpdateFeedbackInput,
+  type FeedbackListOptions,
 } from './feedback.dao';
 
 // Experiment DAO (A/B Testing)
