@@ -1,9 +1,23 @@
 /**
  * Feedback DAO - User Feedback Data Access Layer
  * Handles database operations for user feedback, status tracking, and analytics
+ * 
+ * NOTE: Uses admin client to bypass RLS because:
+ * 1. DAO performs application-level authorization checks (user_id validation)
+ * 2. Express auth middleware provides user context, not Supabase Auth
+ * 3. RLS policies using auth.uid() would fail without Supabase Auth context
  */
 
-import { getSupabaseClient } from './client';
+import { getSupabaseAdminClient } from './client';
+
+/**
+ * Get admin client for all operations
+ * Uses admin client to bypass RLS because:
+ * 1. DAO performs application-level authorization checks (user_id validation)
+ * 2. Express auth middleware provides user context, not Supabase Auth
+ * 3. RLS policies using auth.uid() would fail without Supabase Auth context
+ */
+const getClient = () => getSupabaseAdminClient();
 
 /**
  * FeedbackType - 反馈类型
@@ -145,7 +159,7 @@ export class FeedbackDAO {
    * Create a new feedback
    */
   async createFeedback(input: CreateFeedbackInput): Promise<UserFeedback> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
     
     // Perform simple sentiment analysis
     const { sentiment, sentimentScore } = this.analyzeSentiment(input.content + ' ' + input.title);
@@ -179,7 +193,7 @@ export class FeedbackDAO {
    * Get feedback by ID
    */
   async getFeedbackById(id: string, userId?: string, isAdmin: boolean = false): Promise<UserFeedback | null> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     let query = supabase
       .from('user_feedback')
@@ -207,7 +221,7 @@ export class FeedbackDAO {
    * Get feedback list
    */
   async getFeedbacks(options: FeedbackListOptions): Promise<{ feedbacks: UserFeedback[]; total: number }> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
     const {
       userId,
       type,
@@ -283,7 +297,7 @@ export class FeedbackDAO {
    * Update feedback (user can only update title/content before admin reply)
    */
   async updateFeedback(id: string, userId: string, input: UpdateFeedbackInput): Promise<UserFeedback> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     // Check if feedback exists and belongs to user
     const { data: existing, error: fetchError } = await supabase
@@ -345,7 +359,7 @@ export class FeedbackDAO {
     adminId: string,
     input: AdminUpdateFeedbackInput
   ): Promise<UserFeedback> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const updates: Record<string, any> = {};
 
@@ -398,7 +412,7 @@ export class FeedbackDAO {
    * Delete feedback (user can only delete pending feedback)
    */
   async deleteFeedback(id: string, userId: string): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data: existing, error: fetchError } = await supabase
       .from('user_feedback')
@@ -431,7 +445,7 @@ export class FeedbackDAO {
    * Get status history for a feedback
    */
   async getStatusHistory(feedbackId: string): Promise<FeedbackStatusHistory[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data, error } = await supabase
       .from('feedback_status_history')
@@ -447,7 +461,7 @@ export class FeedbackDAO {
    * Get feedback statistics
    */
   async getStatistics(): Promise<FeedbackStatistics> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data, error } = await supabase
       .from('feedback_statistics')
@@ -477,7 +491,7 @@ export class FeedbackDAO {
    * Get hot topics
    */
   async getHotTopics(): Promise<HotTopic[]> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data, error } = await supabase
       .from('feedback_hot_topics')
@@ -497,7 +511,7 @@ export class FeedbackDAO {
    * Mark feedback as read by admin
    */
   async markAsReadByAdmin(id: string): Promise<void> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { error } = await supabase
       .from('user_feedback')
@@ -511,7 +525,7 @@ export class FeedbackDAO {
    * Get unread count for admin
    */
   async getUnreadCountForAdmin(): Promise<number> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { count, error } = await supabase
       .from('user_feedback')
@@ -532,7 +546,7 @@ export class FeedbackDAO {
     resolved: number;
     closed: number;
   }> {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data, error } = await supabase
       .from('user_feedback')

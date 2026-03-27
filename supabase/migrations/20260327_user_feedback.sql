@@ -123,6 +123,20 @@ CREATE POLICY "Admins can update all feedback" ON user_feedback
     )
   );
 
+-- Users can delete their own pending feedback
+CREATE POLICY "Users can delete their own pending feedback" ON user_feedback
+  FOR DELETE USING (auth.uid() = user_id AND status = 'pending');
+
+-- Admins can delete all feedback
+CREATE POLICY "Admins can delete all feedback" ON user_feedback
+  FOR DELETE USING (
+    EXISTS (
+      SELECT 1 FROM app_users 
+      WHERE app_users.id = auth.uid() 
+      AND app_users.role = 'admin'
+    )
+  );
+
 -- Status history policies
 CREATE POLICY "Users can view status history for their feedback" ON feedback_status_history
   FOR SELECT USING (
