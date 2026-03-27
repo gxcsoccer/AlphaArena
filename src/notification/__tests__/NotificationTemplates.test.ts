@@ -291,7 +291,7 @@ describe('SignalNotificationTemplates', () => {
     it('should have correct Chinese new signal template', () => {
       const template = templates.getTemplate('signal.new', 'zh');
       
-      expect(template?.titleTemplate).toBe('【{strategy_name}】{side}信号');
+      expect(template?.titleTemplate).toBe('【{strategy_name}】{symbol} {side}信号');
       expect(template?.bodyTemplate).toContain('入场价: {entry_price}');
       expect(template?.bodyTemplate).toContain('目标价: {target_price}');
       expect(template?.bodyTemplate).toContain('止损价: {stop_loss}');
@@ -301,7 +301,7 @@ describe('SignalNotificationTemplates', () => {
     it('should have correct English new signal template', () => {
       const template = templates.getTemplate('signal.new', 'en');
       
-      expect(template?.titleTemplate).toBe('[{strategy_name}] {side} Signal');
+      expect(template?.titleTemplate).toBe('[{strategy_name}] {symbol} {side} Signal');
       expect(template?.bodyTemplate).toContain('Entry: {entry_price}');
       expect(template?.bodyTemplate).toContain('Target: {target_price}');
       expect(template?.bodyTemplate).toContain('Stop Loss: {stop_loss}');

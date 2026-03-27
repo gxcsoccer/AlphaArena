@@ -52,7 +52,7 @@ export interface MarketContext {
 
 const DEFAULT_TEMPLATES: Record<string, { title: string; body: string }> = {
   'signal.new.zh': {
-    title: '【{strategy_name}】{side}信号',
+    title: '【{strategy_name}】{symbol} {side}信号',
     body: '{symbol} {side}信号\n入场价: {entry_price}\n目标价: {target_price}\n止损价: {stop_loss}\n置信度: {confidence}%\n\n{analysis}\n\n{market_context}\n\n{quick_actions}',
   },
   'signal.update.zh': {
@@ -68,7 +68,7 @@ const DEFAULT_TEMPLATES: Record<string, { title: string; body: string }> = {
     body: '{symbol} 价格提醒\n{alert_type}: {message}\n当前价: {current_price}\n\n{market_context}',
   },
   'signal.new.en': {
-    title: '[{strategy_name}] {side} Signal',
+    title: '[{strategy_name}] {symbol} {side} Signal',
     body: '{symbol} {side} Signal\nEntry: {entry_price}\nTarget: {target_price}\nStop Loss: {stop_loss}\nConfidence: {confidence}%\n\n{analysis}\n\n{market_context}\n\n{quick_actions}',
   },
   'signal.update.en': {
