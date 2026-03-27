@@ -1,0 +1,22 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "首页可访问性测试"
+    flow:
+      - ai: "访问首页"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面显示 AlphaArena 品牌标识"
+      - aiAssert: "页面布局正常，无错误提示"
+  - name: "策略列表页面测试"
+    flow:
+      - ai: "导航到策略列表页面"
+      - aiWaitFor: "策略列表加载完成"
+      - aiAssert: "显示策略列表或空状态提示"
+      - aiAssert: "页面无错误信息"
+  - name: "实盘与回测对比页面测试"
+    flow:
+      - ai: "导航到实盘与回测对比页面"
+      - aiWaitFor: "对比页面加载完成"
+      - aiAssert: "页面显示对比功能相关内容"
+      - aiAssert: "页面无错误信息"
