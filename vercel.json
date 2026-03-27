@@ -36,6 +36,46 @@
       "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/marketplace/:path*"
     },
     {
+      "source": "/api/strategies",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-strategies"
+    },
+    {
+      "source": "/api/strategies/:id",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-strategies"
+    },
+    {
+      "source": "/api/trades",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-trades"
+    },
+    {
+      "source": "/api/orders",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-orders"
+    },
+    {
+      "source": "/api/portfolios",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-portfolios"
+    },
+    {
+      "source": "/api/leaderboard",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-leaderboard"
+    },
+    {
+      "source": "/api/stats",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-stats"
+    },
+    {
+      "source": "/api/orderbook",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-orderbook"
+    },
+    {
+      "source": "/api/market/tickers",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-market-tickers"
+    },
+    {
+      "source": "/api/market/kline",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/get-market-kline"
+    },
+    {
       "source": "/socket.io/(.*)",
       "destination": "/socket.io/$1"
     }
