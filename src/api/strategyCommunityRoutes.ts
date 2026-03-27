@@ -6,6 +6,7 @@ import { Router, Request, Response } from 'express';
 import { getStrategyCommunityService } from '../strategy-community';
 import { LeaderboardType } from '../database/strategy-community.dao';
 import { createLogger } from '../utils/logger';
+import authMiddleware, { optionalAuthMiddleware, requireAdmin } from './authMiddleware';
 
 const log = createLogger('StrategyCommunityRoutes');
 
@@ -31,18 +32,6 @@ function parseIntParam(value: unknown, defaultValue?: number): number | undefine
   if (str === undefined) return defaultValue;
   const parsed = parseInt(str, 10);
   return isNaN(parsed) ? defaultValue : parsed;
-}
-
-// Helper to get user ID from request
-function getUserId(req: Request): string {
-  const headerUserId = req.headers['x-user-id'];
-  const queryUserId = req.query.userId;
-
-  if (typeof headerUserId === 'string') return headerUserId;
-  if (typeof queryUserId === 'string') return queryUserId;
-  if (Array.isArray(queryUserId) && typeof queryUserId[0] === 'string') return queryUserId[0];
-
-  return 'anonymous';
 }
 
 // Validate leaderboard type
@@ -109,12 +98,17 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Share a strategy to the community
    *     tags: [Community]
    */
-  router.post('/share', async (req: Request, res: Response) => {
+  router.post('/share', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const input = {
         ...req.body,
-        publisherId: req.body.publisherId || userId,
+        // Always use authenticated user's ID as publisherId - never trust client input
+        publisherId: userId,
       };
 
       const strategy = await service.shareStrategy(input);
@@ -138,9 +132,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Publish a strategy to the community
    *     tags: [Community]
    */
-  router.post('/strategies/:id/publish', async (req: Request, res: Response) => {
+  router.post('/strategies/:id/publish', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const strategyId = getParam(req.params.id) || '';
 
       const strategy = await service.publishToCommunity(strategyId, userId);
@@ -164,9 +162,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Update strategy sharing settings
    *     tags: [Community]
    */
-  router.patch('/strategies/:id/settings', async (req: Request, res: Response) => {
+  router.patch('/strategies/:id/settings', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const strategyId = getParam(req.params.id) || '';
 
       const strategy = await service.updateSharingSettings(strategyId, userId, req.body);
@@ -388,9 +390,9 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Get full strategy details with community data
    *     tags: [Community]
    */
-  router.get('/strategies/:id', async (req: Request, res: Response) => {
+  router.get('/strategies/:id', optionalAuthMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id || 'anonymous';
       const strategyId = getParam(req.params.id) || '';
 
       const details = await service.getStrategyDetails(strategyId, userId);
@@ -422,12 +424,17 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Subscribe to a strategy
    *     tags: [Community]
    */
-  router.post('/subscribe', async (req: Request, res: Response) => {
+  router.post('/subscribe', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const input = {
         ...req.body,
-        subscriberId: req.body.subscriberId || userId,
+        // Always use authenticated user's ID as subscriberId
+        subscriberId: userId,
       };
 
       const result = await service.subscribeToStrategy(input);
@@ -451,9 +458,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Get user's subscriptions
    *     tags: [Community]
    */
-  router.get('/subscriptions', async (req: Request, res: Response) => {
+  router.get('/subscriptions', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const result = await service.getMySubscriptions(userId);
 
       res.json({
@@ -474,9 +485,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Update subscription settings
    *     tags: [Community]
    */
-  router.patch('/subscriptions/:id', async (req: Request, res: Response) => {
+  router.patch('/subscriptions/:id', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const subscriptionId = getParam(req.params.id) || '';
 
       const subscription = await service.updateSubscription(subscriptionId, userId, req.body);
@@ -499,9 +514,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Unsubscribe from a strategy
    *     tags: [Community]
    */
-  router.delete('/subscriptions/:id', async (req: Request, res: Response) => {
+  router.delete('/subscriptions/:id', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const subscriptionId = getParam(req.params.id) || '';
 
       await service.unsubscribeFromStrategy(subscriptionId, userId);
@@ -552,9 +571,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Submit a review for a strategy
    *     tags: [Community]
    */
-  router.post('/strategies/:id/reviews', async (req: Request, res: Response) => {
+  router.post('/strategies/:id/reviews', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const strategyId = getParam(req.params.id) || '';
 
       const review = await service.reviewStrategy({
@@ -582,9 +605,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Update a review
    *     tags: [Community]
    */
-  router.patch('/reviews/:id', async (req: Request, res: Response) => {
+  router.patch('/reviews/:id', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const reviewId = getParam(req.params.id) || '';
 
       const review = await service.updateReview(reviewId, userId, req.body);
@@ -609,9 +636,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Report a strategy
    *     tags: [Community]
    */
-  router.post('/strategies/:id/report', async (req: Request, res: Response) => {
+  router.post('/strategies/:id/report', authMiddleware, async (req: Request, res: Response) => {
     try {
-      const userId = getUserId(req);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const strategyId = getParam(req.params.id) || '';
 
       const report = await service.reportStrategy({
@@ -639,7 +670,7 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Get reports (admin only)
    *     tags: [Community]
    */
-  router.get('/reports', async (req: Request, res: Response) => {
+  router.get('/reports', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
     try {
       const status = getQueryParam(req.query.status) as ReportStatus | undefined;
       const reportType = getQueryParam(req.query.reportType) as ReportType | undefined;
@@ -671,9 +702,13 @@ export function createStrategyCommunityRouter(): Router {
    *     summary: Resolve a report (admin only)
    *     tags: [Community]
    */
-  router.post('/reports/:id/resolve', async (req: Request, res: Response) => {
+  router.post('/reports/:id/resolve', authMiddleware, requireAdmin, async (req: Request, res: Response) => {
     try {
-      const adminId = getUserId(req);
+      const adminId = req.user?.id;
+      if (!adminId) {
+        return res.status(401).json({ success: false, error: 'Authentication required' });
+      }
+
       const reportId = getParam(req.params.id) || '';
       const { resolution, action } = req.body;
 
