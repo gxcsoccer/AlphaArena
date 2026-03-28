@@ -129,6 +129,7 @@
       "register": "注册",
       "login": "登录",
       "apiDocs": "API 文档",
+      "strategies": "策略列表",
       "leaderboard": "排行榜",
       "subscription": "订阅方案"
     }
