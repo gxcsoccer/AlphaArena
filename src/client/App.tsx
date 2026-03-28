@@ -39,7 +39,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { HeaderLogo } from './components/brand/Logo';
 import { NotFoundPage } from './components/brand/ErrorPages';
 import { SettingsProvider } from './store/settingsStore';
-import { AuthProvider, useAuth } from './hooks/useAuth';
+import { AuthProvider, useAuth, ProtectedRoute } from './hooks/useAuth';
 import { SubscriptionProvider } from './hooks/useSubscription';
 import { ConnectionProvider } from './store/connectionStore';
 import { useRealtimeConnection } from './hooks/useRealtimeConnection';
@@ -536,57 +536,82 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
+/**
+ * AppRoutes - Route definitions with authentication protection
+ * 
+ * Issue #683: P0 - /strategies 页面无法访问
+ * Root cause: Private routes (strategies, dashboard, etc.) were not protected.
+ * Unauthenticated users could access them but data failed to load.
+ * 
+ * Fix: Wrap private routes with ProtectedRoute component to redirect
+ * unauthenticated users to login page.
+ * 
+ * Public routes (no auth required):
+ * - /, /landing, /login, /register - Landing and auth pages
+ * - /leaderboard, /docs/api, /marketplace, /pricing, /subscription - Public content
+ * - /user/:username - Public user profiles
+ * 
+ * Protected routes (auth required):
+ * - All dashboard, trading, strategy, and admin pages
+ */
 const AppRoutes: React.FC = () => {
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
+        {/* Public routes - no authentication required */}
         <Route path="/" element={<IndexPage />} />
         <Route path="/landing" element={<LandingPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/performance" element={<PerformancePage />} />
-        <Route path="/risk" element={<RiskPage />} />
-        <Route path="/sentiment" element={<SentimentPage />} />
-        <Route path="/strategies" element={<StrategiesPage />} />
-        <Route path="/trades" element={<TradesPage />} />
-        <Route path="/holdings" element={<HoldingsPage />} />
-        <Route path="/copy-trading" element={<CopyTradingPage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/backtest" element={<BacktestVisualizationPage />} />
-        <Route path="/journal" element={<TradingJournalPage />} />
-        <Route path="/attribution" element={<AttributionPage />} />
-        <Route path="/strategy-comparison" element={<StrategyComparisonPage />} />
-        <Route path="/marketplace" element={<StrategyMarketplacePage />} />
-        <Route path="/advanced-orders" element={<AdvancedOrdersPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/user-dashboard" element={<UserDashboardPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/docs/api" element={<ApiDocsPage />} />
-        <Route path="/rebalance" element={<RebalancePage />} />
-        <Route path="/user/:username" element={<UserProfilePage />} />
-        <Route path="/scheduler" element={<SchedulerPage />} />
+        <Route path="/marketplace" element={<StrategyMarketplacePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
-        <Route path="/settings/billing" element={<BillingPage />} />
-        <Route path="/admin/revenue" element={<AdminDashboardPage />} />
-        <Route path="/admin/performance" element={<PerformanceMonitoringPage />} />
-        <Route path="/admin/apm" element={<APMDashboardPage />} /> {/* Issue #651: APM */}
-        <Route path="/admin/payment-monitoring" element={<PaymentMonitoringPage />} />
-        <Route path="/admin/feedback" element={<FeedbackManagementPage />} />
-        <Route path="/data-source" element={<DataSourceSettingsPage />} />
-        <Route path="/virtual-account" element={<VirtualAccountPage />} />
-        <Route path="/exchange-accounts" element={<ExchangeAccountsPage />} />
-        <Route path="/strategy-portfolio" element={<StrategyPortfolioPage />} />
-        <Route path="/strategy-portfolio/:portfolioId" element={<PortfolioDetailPage />} />
-        <Route path="/notification-preferences" element={<NotificationPreferencesPage />} />
-        <Route path="/notifications" element={<NotificationHistoryPage />} />
-        <Route path="/privacy" element={<PrivacySettingsPage />} /> {/* Issue #642: GDPR */}
-        <Route path="/user-analytics" element={<UserBehaviorAnalyticsPage />} />
-        <Route path="/admin/business-metrics" element={<BusinessMetricsPage />} /> {/* Issue #652: Business Metrics */}
-        <Route path="/admin/monitoring" element={<UnifiedAdminMonitoringPage />} /> {/* Issue #660: Admin 后台集成 */}
-        <Route path="/referral" element={<ReferralPage />} /> {/* Issue #653: 邀请系统 */}
-        <Route path="/comparison/live-backtest" element={<LiveBacktestComparisonPage />} /> {/* Issue #669: 实盘与回测对比 */}
+        <Route path="/user/:username" element={<UserProfilePage />} />
+
+        {/* Protected routes - authentication required */}
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/strategies" element={<ProtectedRoute><StrategiesPage /></ProtectedRoute>} />
+        <Route path="/trades" element={<ProtectedRoute><TradesPage /></ProtectedRoute>} />
+        <Route path="/holdings" element={<ProtectedRoute><HoldingsPage /></ProtectedRoute>} />
+        <Route path="/performance" element={<ProtectedRoute><PerformancePage /></ProtectedRoute>} />
+        <Route path="/risk" element={<ProtectedRoute><RiskPage /></ProtectedRoute>} />
+        <Route path="/sentiment" element={<ProtectedRoute><SentimentPage /></ProtectedRoute>} />
+        <Route path="/copy-trading" element={<ProtectedRoute><CopyTradingPage /></ProtectedRoute>} />
+        <Route path="/backtest" element={<ProtectedRoute><BacktestVisualizationPage /></ProtectedRoute>} />
+        <Route path="/journal" element={<ProtectedRoute><TradingJournalPage /></ProtectedRoute>} />
+        <Route path="/attribution" element={<ProtectedRoute><AttributionPage /></ProtectedRoute>} />
+        <Route path="/strategy-comparison" element={<ProtectedRoute><StrategyComparisonPage /></ProtectedRoute>} />
+        <Route path="/advanced-orders" element={<ProtectedRoute><AdvancedOrdersPage /></ProtectedRoute>} />
+        <Route path="/user-dashboard" element={<ProtectedRoute><UserDashboardPage /></ProtectedRoute>} />
+        <Route path="/rebalance" element={<ProtectedRoute><RebalancePage /></ProtectedRoute>} />
+        <Route path="/scheduler" element={<ProtectedRoute><SchedulerPage /></ProtectedRoute>} />
+        <Route path="/settings/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
+        <Route path="/data-source" element={<ProtectedRoute><DataSourceSettingsPage /></ProtectedRoute>} />
+        <Route path="/virtual-account" element={<ProtectedRoute><VirtualAccountPage /></ProtectedRoute>} />
+        <Route path="/exchange-accounts" element={<ProtectedRoute><ExchangeAccountsPage /></ProtectedRoute>} />
+        <Route path="/strategy-portfolio" element={<ProtectedRoute><StrategyPortfolioPage /></ProtectedRoute>} />
+        <Route path="/strategy-portfolio/:portfolioId" element={<ProtectedRoute><PortfolioDetailPage /></ProtectedRoute>} />
+        <Route path="/notification-preferences" element={<ProtectedRoute><NotificationPreferencesPage /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationHistoryPage /></ProtectedRoute>} />
+        <Route path="/privacy" element={<ProtectedRoute><PrivacySettingsPage /></ProtectedRoute>} />
+        <Route path="/user-analytics" element={<ProtectedRoute><UserBehaviorAnalyticsPage /></ProtectedRoute>} />
+        <Route path="/referral" element={<ProtectedRoute><ReferralPage /></ProtectedRoute>} />
+        <Route path="/comparison/live-backtest" element={<ProtectedRoute><LiveBacktestComparisonPage /></ProtectedRoute>} />
+
+        {/* Admin routes - authentication required */}
+        <Route path="/admin/revenue" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
+        <Route path="/admin/performance" element={<ProtectedRoute><PerformanceMonitoringPage /></ProtectedRoute>} />
+        <Route path="/admin/apm" element={<ProtectedRoute><APMDashboardPage /></ProtectedRoute>} />
+        <Route path="/admin/payment-monitoring" element={<ProtectedRoute><PaymentMonitoringPage /></ProtectedRoute>} />
+        <Route path="/admin/feedback" element={<ProtectedRoute><FeedbackManagementPage /></ProtectedRoute>} />
+        <Route path="/admin/business-metrics" element={<ProtectedRoute><BusinessMetricsPage /></ProtectedRoute>} />
+        <Route path="/admin/monitoring" element={<ProtectedRoute><UnifiedAdminMonitoringPage /></ProtectedRoute>} />
+
+        {/* Catch-all route */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
