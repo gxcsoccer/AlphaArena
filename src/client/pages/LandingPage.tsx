@@ -679,6 +679,7 @@ const LandingPage: React.FC = () => {
           <Col xs={12} sm={4} className="footer-links">
             <Text strong>{t('footer.resources')}</Text>
             <div className="footer-link-list">
+              <a href="/strategies">{t('footer.links.strategies')}</a>
               <a href="/leaderboard">{t('footer.links.leaderboard')}</a>
               <a href="/subscription">{t('footer.links.subscription')}</a>
             </div>

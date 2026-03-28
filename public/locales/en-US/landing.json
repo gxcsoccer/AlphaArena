@@ -129,6 +129,7 @@
       "register": "Sign Up",
       "login": "Sign In",
       "apiDocs": "API Docs",
+      "strategies": "Strategies",
       "leaderboard": "Leaderboard",
       "subscription": "Pricing"
     }
