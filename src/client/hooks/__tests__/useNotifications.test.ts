@@ -5,11 +5,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useNotifications } from '../useNotifications';
-import { getSupabaseClient } from '../../../database/client';
+import { getFrontendSupabaseClient } from '../../utils/supabaseClient';
 
 // Mock supabase
-vi.mock('../../../database/client', () => ({
-  getSupabaseClient: vi.fn(),
+vi.mock('../../utils/supabaseClient', () => ({
+  getFrontendSupabaseClient: vi.fn(),
 }));
 
 // Mock fetch
@@ -27,7 +27,7 @@ const mockSupabase = {
 };
 
 // Setup mock
-vi.mocked(getSupabaseClient).mockReturnValue(mockSupabase as any);
+vi.mocked(getFrontendSupabaseClient).mockReturnValue(mockSupabase as any);
 
 describe('useNotifications Hook', () => {
   const mockUserId = 'user-123';

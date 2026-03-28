@@ -4,9 +4,9 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { getSupabaseClient } from '../../database/client.js';
+import { getFrontendSupabaseClient } from '../utils/supabaseClient';
 
-const supabase = getSupabaseClient();
+const supabase = getFrontendSupabaseClient();
 
 export type NotificationType = 'SIGNAL' | 'RISK' | 'PERFORMANCE' | 'SYSTEM';
 export type NotificationPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
