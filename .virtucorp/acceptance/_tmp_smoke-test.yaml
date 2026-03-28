@@ -1,0 +1,36 @@
+web:
+  # Production URL for automated smoke tests
+  # For local testing, run: npm run build && npm run preview
+  # Then override with: url: "http://localhost:4173"
+  url: "https://alphaarena-eight.vercel.app"
+  # Network idle configuration for apps with WebSocket connections
+  # The production site has WebSocket connections (Supabase Realtime) for real-time market data
+  # These keep the network active, so we need a longer timeout and continue on network idle errors
+  waitForNetworkIdle:
+    timeout: 10000
+    continueOnNetworkIdleError: true
+
+tasks:
+  - name: "Landing Page - Basic Checks"
+    flow:
+      - sleep: 2000
+      - aiAssert: "页面标题包含 AlphaArena 或专业级算法交易相关文字"
+      - aiAssert: "页面有'免费注册'或 'Sign Up' 按钮"
+      - aiAssert: "页面没有显示红色错误弹窗或白屏"
+
+  - name: "Navigation - Sign Up"
+    flow:
+      - ai: "点击'免费注册'或 'Sign Up' 按钮"
+      - sleep: 1500
+      - aiAssert: "页面显示注册表单"
+
+  - name: "Language Switcher"
+    flow:
+      - ai: "返回首页"
+      - sleep: 1500
+      - aiAssert: "页面显示语言切换按钮"
+      - ai: "点击语言切换按钮"
+      - sleep: 500
+      - ai: "点击'English'选项"
+      - sleep: 1000
+      - aiAssert: "页面内容切换为英文"
