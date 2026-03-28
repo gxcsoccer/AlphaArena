@@ -1,0 +1,15 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Registration page loads"
+    flow:
+      - ai: "Open the registration page"
+      - aiWaitFor: "Registration form is visible"
+      - aiAssert: "Registration form shows email and password input fields"
+      - aiAssert: "Page does not show 'Registration is currently disabled' error"
+  - name: "Registration form is functional"
+    flow:
+      - ai: "Enter a test email like test123@example.com in the email field"
+      - ai: "Enter a test password like Test123!@# in the password field"
+      - aiAssert: "Register/Sign Up button is visible and enabled"
