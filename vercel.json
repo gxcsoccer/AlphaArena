@@ -80,7 +80,7 @@
       "destination": "/socket.io/$1"
     },
     {
-      "source": "/:path*",
+      "source": "/((?!api|socket.io|assets|docs|public).*)",
       "destination": "/index.html"
     }
   ],
