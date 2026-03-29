@@ -1,0 +1,23 @@
+web:
+  url: "https://alphaarena-git-fix-issue-688-registrati-2bb45e-gxcsoccer-s-team.vercel.app"
+
+tasks:
+  - name: "Verify registration button visibility on desktop viewport"
+    flow:
+      - ai: "Navigate to /register page"
+      - aiWaitFor: "Registration form is visible with email, username, password, and confirm password fields"
+      - aiAssert: "The submit/register button is fully visible in the viewport without needing to scroll"
+      - ai: "Take a screenshot to capture the registration page layout"
+  - name: "Verify registration button visibility on mobile viewport"
+    flow:
+      - ai: "Set viewport to mobile size (375x667 - iPhone SE)"
+      - ai: "Navigate to /register page"
+      - aiWaitFor: "Registration form is visible"
+      - aiAssert: "The submit/register button is fully visible or easily accessible with minimal scrolling"
+      - ai: "Take a screenshot to capture the mobile registration page layout"
+  - name: "Verify registration button at bottom of long form"
+    flow:
+      - ai: "Navigate to /register page"
+      - ai: "Scroll to the bottom of the page"
+      - aiAssert: "The register/submit button is visible and not cut off"
+      - ai: "Take a screenshot showing the button at bottom with proper padding"

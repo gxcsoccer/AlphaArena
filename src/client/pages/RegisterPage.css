@@ -91,4 +91,12 @@
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border-1);
   }
+
+  /* Fallback for browsers that don't support svh unit */
+  @supports not (min-height: 1svh) {
+    /* Use -webkit-fill-available as fallback */
+    .register-page-container-mobile {
+      min-height: -webkit-fill-available;
+    }
+  }
 }
