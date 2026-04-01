@@ -1,8 +1,8 @@
 {
   "lastDispatch": {
-    "digestHash": "notify_investor_approval|prs:0|ready:0|approval:694|complete",
-    "timestamp": 1775085175494,
-    "consecutiveCount": 5
+    "digestHash": "spawn_qa_smoke|prs:0|ready:0|complete",
+    "timestamp": 1775087161964,
+    "consecutiveCount": 1
   },
   "highWaterMark": 54,
   "paused": false,
