@@ -6668,6 +6668,224 @@
         }
       }
     },
+    "/community/overview": {
+      "get": {
+        "summary": "Get community overview with highlights",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/stats": {
+      "get": {
+        "summary": "Get community statistics",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/share": {
+      "post": {
+        "summary": "Share a strategy to the community",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/strategies/{id}/publish": {
+      "post": {
+        "summary": "Publish a strategy to the community",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/strategies/{id}/settings": {
+      "patch": {
+        "summary": "Update strategy sharing settings",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/leaderboard": {
+      "get": {
+        "summary": "Get strategy leaderboard",
+        "tags": [
+          "Community"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "returns",
+                "popularity",
+                "stability",
+                "win_rate",
+                "recent"
+              ],
+              "default": "returns"
+            }
+          },
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "daily",
+                "weekly",
+                "monthly",
+                "all_time"
+              ],
+              "default": "all_time"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/community/categories": {
+      "get": {
+        "summary": "Get available categories with counts",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/categories/{category}/strategies": {
+      "get": {
+        "summary": "Browse strategies by category",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/tags": {
+      "get": {
+        "summary": "Get popular tags",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/search": {
+      "get": {
+        "summary": "Search strategies",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/trending": {
+      "get": {
+        "summary": "Get trending strategies",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/strategies/{id}": {
+      "get": {
+        "summary": "Get full strategy details with community data",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/subscribe": {
+      "post": {
+        "summary": "Subscribe to a strategy",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/subscriptions": {
+      "get": {
+        "summary": "Get user's subscriptions",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/subscriptions/{id}": {
+      "patch": {
+        "summary": "Update subscription settings",
+        "tags": [
+          "Community"
+        ]
+      },
+      "delete": {
+        "summary": "Unsubscribe from a strategy",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/strategies/{id}/reviews": {
+      "get": {
+        "summary": "Get reviews for a strategy",
+        "tags": [
+          "Community"
+        ]
+      },
+      "post": {
+        "summary": "Submit a review for a strategy",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/reviews/{id}": {
+      "patch": {
+        "summary": "Update a review",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/strategies/{id}/report": {
+      "post": {
+        "summary": "Report a strategy",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/reports": {
+      "get": {
+        "summary": "Get reports (admin only)",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
+    "/community/reports/{id}/resolve": {
+      "post": {
+        "summary": "Resolve a report (admin only)",
+        "tags": [
+          "Community"
+        ]
+      }
+    },
     "/marketplace/strategies": {
       "get": {
         "summary": "List strategies in the marketplace",

@@ -131,7 +131,8 @@
       "apiDocs": "API 문서",
       "strategies": "전략",
       "leaderboard": "리더보드",
-      "subscription": "요금제"
+      "pricing": "가격",
+      "subscription": "구독"
     }
   },
   "share": {

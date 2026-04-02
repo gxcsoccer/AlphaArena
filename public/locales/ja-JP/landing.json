@@ -131,7 +131,8 @@
       "apiDocs": "APIドキュメント",
       "strategies": "ストラテジー",
       "leaderboard": "リーダーボード",
-      "subscription": "料金プラン"
+      "pricing": "料金",
+      "subscription": "サブスクリプション"
     }
   },
   "share": {
