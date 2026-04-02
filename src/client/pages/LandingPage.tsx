@@ -681,6 +681,7 @@ const LandingPage: React.FC = () => {
             <div className="footer-link-list">
               <a href="/strategies">{t('footer.links.strategies')}</a>
               <a href="/leaderboard">{t('footer.links.leaderboard')}</a>
+              <a href="/pricing">{t('footer.links.pricing')}</a>
               <a href="/subscription">{t('footer.links.subscription')}</a>
             </div>
           </Col>

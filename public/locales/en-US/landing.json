@@ -131,7 +131,8 @@
       "apiDocs": "API Docs",
       "strategies": "Strategies",
       "leaderboard": "Leaderboard",
-      "subscription": "Pricing"
+      "pricing": "Pricing",
+      "subscription": "Subscription"
     }
   },
   "share": {
