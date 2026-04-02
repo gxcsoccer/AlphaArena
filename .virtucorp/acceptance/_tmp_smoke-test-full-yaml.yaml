@@ -1,0 +1,31 @@
+web:
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "Language Switch - Japanese"
+    flow:
+      - sleep: 2000
+      - ai: "点击语言切换按钮"
+      - sleep: 500
+      - ai: "点击'日本語'或日语选项"
+      - sleep: 1000
+      - aiAssert: "页面内容切换为日语"
+  - name: "Language Switch - Korean"
+    flow:
+      - ai: "点击语言切换按钮"
+      - sleep: 500
+      - ai: "点击'한국어'或韩语选项"
+      - sleep: 1000
+      - aiAssert: "页面内容切换为韩语"
+  - name: "Pricing Page"
+    flow:
+      - ai: "导航到价格页面或点击 Pricing 链接"
+      - sleep: 2000
+      - aiAssert: "页面显示订阅计划或价格信息"
+      - aiAssert: "页面显示至少一个价格选项或套餐"
+  - name: "Mobile Responsive Design"
+    flow:
+      - ai: "将浏览器窗口调整为手机尺寸（宽度 375px）"
+      - sleep: 1000
+      - aiAssert: "页面布局适配移动设备，没有水平滚动条"
+      - aiAssert: "导航菜单在移动端可以正常展开或折叠"
