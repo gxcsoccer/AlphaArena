@@ -4,6 +4,22 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/subscription",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscription"
+    },
+    {
+      "source": "/api/subscription/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscription/:path*"
+    },
+    {
+      "source": "/api/subscriptions",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscriptions"
+    },
+    {
+      "source": "/api/subscriptions/:path*",
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscriptions/:path*"
+    },
+    {
       "source": "/api/auth",
       "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/auth"
     },
