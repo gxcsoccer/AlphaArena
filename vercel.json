@@ -13,11 +13,11 @@
     },
     {
       "source": "/api/subscriptions",
-      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscriptions"
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscription"
     },
     {
       "source": "/api/subscriptions/:path*",
-      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscriptions/:path*"
+      "destination": "https://plnylmnckssnfpwznpwf.supabase.co/functions/v1/subscription/:path*"
     },
     {
       "source": "/api/auth",
