@@ -30,6 +30,7 @@ import {
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useSEO } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
+import { validateConfig } from '../utils/config';
 
 const { Title, Text, Paragraph } = Typography;
 const { Row, Col } = Grid;
@@ -49,7 +50,8 @@ interface SubscriptionPlan {
 
 const PricingPage: React.FC = () => {
   const { t } = useTranslation('subscription');
-  
+  const config = validateConfig();
+
   // SEO: Update meta tags for pricing page
   useSEO({
     title: t('pricing.seo.title', '定价 - AlphaArena'),
@@ -78,7 +80,9 @@ const PricingPage: React.FC = () => {
   const fetchPlans = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/subscription/plans');
+      // Use Supabase Edge Function URL directly (Vercel rewrites don't work for external URLs)
+      const apiUrl = config.apiUrl || 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1';
+      const response = await fetch(`${apiUrl}/subscription/plans`);
       if (response.ok) {
         const data = await response.json();
         setPlans(data.plans || []);

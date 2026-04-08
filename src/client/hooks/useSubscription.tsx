@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, useContext, createContext } from 'react';
+import { validateConfig } from '../utils/config';
 import {
   SubscriptionPlan,
   UserSubscription,
@@ -47,6 +48,8 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [subscription, setSubscription] = useState<SubscriptionWithPlan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const config = validateConfig();
+  const apiUrl = config.apiUrl || 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1';
 
   // Fetch subscription data
   const refresh = useCallback(async () => {
@@ -54,7 +57,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/subscription/current', {
+      const response = await fetch(`${apiUrl}/subscription/current`, {
         credentials: 'include',
       });
       
@@ -75,7 +78,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [apiUrl]);
 
   // Fetch on mount
   useEffect(() => {
@@ -85,7 +88,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   // Check feature access
   const checkFeatureAccess = useCallback(async (featureKey: string): Promise<boolean> => {
     try {
-      const response = await fetch(`/api/subscription/features/${featureKey}/check`, {
+      const response = await fetch(`${apiUrl}/subscription/features/${featureKey}/check`, {
         credentials: 'include',
       });
       
@@ -97,14 +100,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       console.error('Error checking feature access:', err);
       return false;
     }
-  }, []);
+  }, [apiUrl]);
 
   // Check multiple features
   const checkMultipleFeatures = useCallback(async (
     featureKeys: string[]
   ): Promise<Record<string, boolean>> => {
     try {
-      const response = await fetch('/api/subscription/features/check-batch', {
+      const response = await fetch(`${apiUrl}/subscription/features/check-batch`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -119,14 +122,14 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       console.error('Error checking multiple features:', err);
       return {};
     }
-  }, []);
+  }, [apiUrl]);
 
   // Check feature limit
   const checkFeatureLimit = useCallback(async (
     featureKey: string
   ): Promise<{ allowed: boolean; current: number; limit: number }> => {
     try {
-      const response = await fetch(`/api/subscription/features/${featureKey}/limit`, {
+      const response = await fetch(`${apiUrl}/subscription/features/${featureKey}/limit`, {
         credentials: 'include',
       });
       
@@ -144,12 +147,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       console.error('Error checking feature limit:', err);
       return { allowed: false, current: 0, limit: 0 };
     }
-  }, []);
+  }, [apiUrl]);
 
   // Increment feature usage
   const incrementFeatureUsage = useCallback(async (featureKey: string): Promise<number> => {
     try {
-      const response = await fetch(`/api/subscription/features/${featureKey}/usage`, {
+      const response = await fetch(`${apiUrl}/subscription/features/${featureKey}/usage`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -162,7 +165,7 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
       console.error('Error incrementing feature usage:', err);
       return 0;
     }
-  }, []);
+  }, [apiUrl]);
 
   // Derived values
   const plan: SubscriptionPlan = subscription?.plan || 'free';

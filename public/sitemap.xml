@@ -3,7 +3,7 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://alphaarena.app/</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/"/>
@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/landing</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/landing"/>
@@ -25,7 +25,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/register</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/register"/>
@@ -36,7 +36,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/login</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/login"/>
@@ -47,7 +47,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/leaderboard</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/leaderboard"/>
@@ -58,7 +58,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/subscription</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/subscription"/>
@@ -69,7 +69,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/docs/api</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/docs/api"/>
@@ -80,7 +80,7 @@
   </url>
   <url>
     <loc>https://alphaarena.app/marketplace</loc>
-    <lastmod>2026-04-02</lastmod>
+    <lastmod>2026-04-08</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://alphaarena.app/marketplace"/>
