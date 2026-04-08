@@ -490,3 +490,8 @@ entrypoint = "./functions/marketplace/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/auth/index.ts"
+
+[functions.subscription]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/subscription/index.ts"
