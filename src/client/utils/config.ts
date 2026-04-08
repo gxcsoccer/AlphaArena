@@ -42,10 +42,15 @@ export function validateConfig(): AppConfig {
   // API URL is optional (has fallback)
   // WebSocket URL is optional (has fallback)
   
+  // Default API URL to Supabase Edge Functions (not localhost!)
+  // This ensures production builds work even if VITE_API_URL is missing
+  const defaultSupabaseUrl = 'https://plnylmnckssnfpwznpwf.supabase.co';
+  const defaultApiUrl = `${defaultSupabaseUrl}/functions/v1`;
+  
   return {
-    apiUrl: apiUrl || 'http://localhost:3001',
+    apiUrl: apiUrl || defaultApiUrl,
     wsUrl: wsUrl || 'ws://localhost:3001',
-    supabaseUrl: supabaseUrl || 'https://plnylmnckssnfpwznpwf.supabase.co',
+    supabaseUrl: supabaseUrl || defaultSupabaseUrl,
     supabaseAnonKey,
     isConfigured: missingVars.length === 0,
     missingVars,
