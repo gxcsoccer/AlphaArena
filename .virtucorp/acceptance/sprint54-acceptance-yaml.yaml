@@ -1,5 +1,5 @@
 web:
-  url: "https://alphaarena-eeal6f6vm-gxcsoccer-s-team.vercel.app"
+  url: "https://alphaarena.app"
 
 tasks:
   - name: "首页可访问性测试"
