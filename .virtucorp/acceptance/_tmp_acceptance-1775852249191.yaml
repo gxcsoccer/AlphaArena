@@ -1,9 +1,0 @@
-web:
-  url: "http://localhost:3000/pricing"
-
-tasks:
-  - name: "Pricing Page Test"
-    flow:
-      - aiWaitFor: "页面加载完成"
-      - aiAssert: "页面显示订阅方案（免费版或专业版）"
-      - aiAssert: "页面显示价格信息（¥99或免费）"
