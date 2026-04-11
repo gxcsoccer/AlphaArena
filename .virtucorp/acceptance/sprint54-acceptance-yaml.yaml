@@ -1,5 +1,5 @@
 web:
-  url: "https://alphaarena.app"
+  url: "https://alphaarena-eight.vercel.app"
 
 tasks:
   - name: "首页可访问性测试"
