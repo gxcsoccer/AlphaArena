@@ -2,7 +2,7 @@ web:
   # Production URL for automated smoke tests
   # For local testing, run: npm run build && npm run preview
   # Then override with: url: "http://localhost:4173"
-  url: "https://alphaarena.app"
+  url: "https://alphaarena-eight.vercel.app"
   # Network idle configuration for apps with WebSocket connections
   # The production site has WebSocket connections (Supabase Realtime) for real-time market data
   # These keep the network active, so we need a longer timeout and continue on network idle errors
