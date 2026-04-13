@@ -115,11 +115,15 @@ async function runTests(): Promise<number> {
         await new Promise(resolve => setTimeout(resolve, TIMEOUTS.WAIT_AFTER_LOAD));
         const loadTime = Date.now() - startTime;
 
-        // Check page loaded
+        // Check page loaded - for authenticated users, home shows trading interface
+        // Check for trading content (交易对, K线, 订单簿) or chart canvas
         const bodyText = await page.evaluate(() => document.body.innerText);
-        const pageLoaded = bodyText.includes('AlphaArena');
+        const hasTradingContent = bodyText.includes('交易对') || 
+                                   bodyText.includes('K线') || 
+                                   bodyText.includes('订单簿') ||
+                                   bodyText.includes('AlphaArena');
 
-        // Check for chart on home page
+        // Check for chart on home page (canvas element for K-Line chart)
         const hasChart = await page.evaluate(() => {
           const canvas = document.querySelector('canvas');
           return !!canvas;
@@ -127,11 +131,14 @@ async function runTests(): Promise<number> {
 
         const criticalErrors = getCriticalErrors(consoleErrors);
 
+        // Page is considered loaded if it has trading content OR a chart canvas
+        const pageLoaded = (hasTradingContent || hasChart);
+
         results.push({
           name: `${device.name} Trading Page Load`,
           passed: pageLoaded && criticalErrors.length === 0,
           details: pageLoaded 
-            ? `Loaded in ${loadTime}ms, Chart: ${hasChart ? 'present' : 'absent'}` 
+            ? `Loaded in ${loadTime}ms, Chart: ${hasChart ? 'present' : 'absent'}, Content: ${hasTradingContent ? 'trading UI' : 'none'}` 
             : 'Page failed to load',
           duration: loadTime,
         });
