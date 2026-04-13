@@ -218,7 +218,22 @@ const RegisterPage: React.FC = () => {
               field="email"
               rules={[
                 { required: true, message: 'Please enter your email' },
-                { type: 'email', message: 'Please enter a valid email' },
+                {
+                  validator: (value, callback) => {
+                    // Trim the email before validation
+                    const trimmedEmail = (value || '').trim();
+                    // Simple email regex: something@something.something
+                    // This is more lenient than the strict RFC regex but catches obvious invalid formats
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!trimmedEmail) {
+                      callback('Please enter your email');
+                    } else if (!emailRegex.test(trimmedEmail)) {
+                      callback('Please enter a valid email address');
+                    } else {
+                      callback();
+                    }
+                  },
+                },
               ]}
             >
               <Input
