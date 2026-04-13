@@ -95,6 +95,7 @@ function validatePasswordStrength(password: string): { valid: boolean; errors: s
 
 /**
  * Validate email format
+ * Note: This function expects a trimmed email. The caller should trim before calling.
  */
 function validateEmail(email: string): boolean {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -176,7 +177,11 @@ function sanitizeUser(user: User): Partial<User> {
  */
 router.post('/register', async (req: Request, res: Response) => {
   try {
-    const { email, username, password, ref } = req.body; // ref is the referral token or code
+    const { email: rawEmail, username: rawUsername, password, ref } = req.body; // ref is the referral token or code
+
+    // Trim email and username to avoid validation issues with accidental whitespace
+    const email = (rawEmail || '').trim().toLowerCase();
+    const username = rawUsername ? rawUsername.trim() : undefined;
 
     // Validate required fields
     if (!email || !password) {
@@ -186,7 +191,7 @@ router.post('/register', async (req: Request, res: Response) => {
       });
     }
 
-    // Validate email
+    // Validate email (already trimmed)
     if (!validateEmail(email)) {
       return res.status(400).json({
         success: false,
@@ -194,7 +199,7 @@ router.post('/register', async (req: Request, res: Response) => {
       });
     }
 
-    // Validate username if provided
+    // Validate username if provided (already trimmed)
     if (username) {
       const usernameValidation = validateUsername(username);
       if (!usernameValidation.valid) {
@@ -344,7 +349,10 @@ router.post('/register', async (req: Request, res: Response) => {
  */
 router.post('/login', async (req: Request, res: Response) => {
   try {
-    const { identifier, password } = req.body; // identifier can be email or username
+    const { identifier: rawIdentifier, password } = req.body; // identifier can be email or username
+
+    // Trim and lowercase identifier to handle accidental whitespace
+    const identifier = (rawIdentifier || '').trim().toLowerCase();
 
     // Validate required fields
     if (!identifier || !password) {

@@ -99,6 +99,76 @@ describe('Auth Routes', () => {
       expect(response.status).toBe(400);
       expect(response.body.error).toBe('Invalid email format');
     });
+
+    it('should accept valid email with leading/trailing whitespace', async () => {
+      const mockUser = {
+        id: 'user-id',
+        email: 'test@example.com',
+        username: null,
+        password_hash: 'hashedpassword',
+        email_verified: false,
+        is_active: true,
+        role: 'user',
+        login_count: 0,
+        failed_login_attempts: 0,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      (AuthDAO.getUserByEmail as jest.Mock).mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedpassword');
+      (AuthDAO.createUser as jest.Mock).mockResolvedValue(mockUser);
+      (AuthDAO.createSession as jest.Mock).mockResolvedValue({});
+
+      // Email with leading/trailing whitespace should be trimmed and accepted
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: '  test@example.com  ',
+          password: 'Password123',
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      // Verify that AuthDAO.createUser was called with trimmed email
+      expect(AuthDAO.createUser).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'test@example.com',
+        })
+      );
+    });
+
+    it('should accept valid email like nihao@nihao.com', async () => {
+      const mockUser = {
+        id: 'user-id',
+        email: 'nihao@nihao.com',
+        username: null,
+        password_hash: 'hashedpassword',
+        email_verified: false,
+        is_active: true,
+        role: 'user',
+        login_count: 0,
+        failed_login_attempts: 0,
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      (AuthDAO.getUserByEmail as jest.Mock).mockResolvedValue(null);
+      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedpassword');
+      (AuthDAO.createUser as jest.Mock).mockResolvedValue(mockUser);
+      (AuthDAO.createSession as jest.Mock).mockResolvedValue({});
+
+      // This is the exact email reported in the bug
+      const response = await request(app)
+        .post('/api/auth/register')
+        .send({
+          email: 'nihao@nihao.com',
+          password: 'Password123',
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+    });
   });
 
   describe('POST /api/auth/login', () => {
