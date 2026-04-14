@@ -1,5 +1,5 @@
 web:
-  url: "https://alphaarena-eight.vercel.app"
+  url: "https://alphaarena.app"
 
 tasks:
   - name: "首页验证"
