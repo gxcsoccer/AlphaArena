@@ -4,7 +4,7 @@
  * Features: Real-time password validation, proper tab order, enhanced focus styles
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Form, Input, Button, Message, Typography, Space, Link, Grid, Tag, Alert } from '@arco-design/web-react';
 import { IconUser, IconLock, IconEmail, IconCheck, IconClose, IconGift } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
@@ -38,25 +38,18 @@ const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('auth');
   const [searchParams] = useSearchParams();
+  const [form] = Form.useForm<RegisterFormValues>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<string[]>([]);
   const [isMobile, setIsMobile] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [referralCode, setReferralCode] = useState<string | null>(null);
   const [referralValid, setReferralValid] = useState<boolean | null>(null);
 
-  // Password change handler with explicit value extraction
-  const handlePasswordChange = (value: string) => {
-    setPassword(value);
-  };
-
-  // Confirm password change handler
-  const handleConfirmPasswordChange = (value: string) => {
-    setConfirmPassword(value);
-  };
+  // Watch password and confirmPassword values from form
+  const password = Form.useWatch('password', form) || '';
+  const confirmPassword = Form.useWatch('confirmPassword', form) || '';
 
   // SEO: Update meta tags for register page
   useSEO(PAGE_SEO_CONFIGS.register);
@@ -107,6 +100,10 @@ const RegisterPage: React.FC = () => {
   }, [password, confirmPassword]);
 
   const handleSubmit = async (values: RegisterFormValues) => {
+    // Get current values from form instance to ensure we have latest state
+    const currentPassword = values.password || password;
+    const currentConfirmPassword = values.confirmPassword || confirmPassword;
+
     // Check password validation
     if (!passwordValidation.isValid) {
       setError(t('register.passwordRequirements.title'));
@@ -114,7 +111,7 @@ const RegisterPage: React.FC = () => {
     }
 
     // Check password confirmation
-    if (values.password !== values.confirmPassword) {
+    if (currentPassword !== currentConfirmPassword) {
       setError(t('register.passwordMismatch'));
       return;
     }
@@ -127,7 +124,7 @@ const RegisterPage: React.FC = () => {
       await register({
         email: values.email,
         username: values.username || undefined,
-        password: values.password,
+        password: currentPassword,
         ref: referralCode || undefined,
       });
       navigate('/dashboard');
@@ -208,6 +205,7 @@ const RegisterPage: React.FC = () => {
           )}
 
           <Form
+            form={form}
             layout="vertical"
             autoComplete="off"
             onSubmit={handleSubmit as any}
@@ -280,8 +278,8 @@ const RegisterPage: React.FC = () => {
               rules={[
                 { required: true, message: 'Please enter your password' },
                 {
-                  validator: (_, callback) => {
-                    if (password && !passwordValidation.isValid) {
+                  validator: (value, callback) => {
+                    if (value && !passwordValidation.isValid) {
                       callback('Password does not meet all requirements');
                     } else {
                       callback();
@@ -290,47 +288,47 @@ const RegisterPage: React.FC = () => {
                 },
               ]}
             >
-              <div>
-                <Input.Password
-                  prefix={<IconLock />}
-                  placeholder="Create a password"
-                  size="large"
-                  tabIndex={3}
-                  value={password}
-                  onChange={handlePasswordChange}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
-                  autoComplete="new-password"
-                  className={`register-form-input ${password && !passwordValidation.isValid ? 'error' : ''}`}
-                  style={{
-                    ...styles.inputFocus,
-                    ...(password && !passwordValidation.isValid ? styles.inputError : {}),
-                  }}
-                />
-                {/* Password requirements panel - shows on focus or when there's an error */}
-                {(passwordFocused || (password && !passwordValidation.isValid)) && (
-                  <div style={styles.passwordRequirements} className="password-requirements-panel">
-                    <Text style={{ fontSize: '12px', fontWeight: 500, marginBottom: '8px', display: 'block' }}>
-                      {t('register.passwordRequirements.title')}
-                    </Text>
-                    {renderRequirement(t('register.passwordRequirements.minLength'), passwordValidation.hasMinLength)}
-                    {renderRequirement(t('register.passwordRequirements.uppercase'), passwordValidation.hasUppercase)}
-                    {renderRequirement(t('register.passwordRequirements.lowercase'), passwordValidation.hasLowercase)}
-                    {renderRequirement(t('register.passwordRequirements.number'), passwordValidation.hasNumber)}
-                  </div>
-                )}
-              </div>
+              <Input.Password
+                prefix={<IconLock />}
+                placeholder="Create a password"
+                size="large"
+                tabIndex={3}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+                autoComplete="new-password"
+                className={`register-form-input ${password && !passwordValidation.isValid ? 'error' : ''}`}
+                style={{
+                  ...styles.inputFocus,
+                  ...(password && !passwordValidation.isValid ? styles.inputError : {}),
+                }}
+              />
             </FormItem>
+            {/* Password requirements panel - shows on focus or when there's an error */}
+            {(passwordFocused || (password && !passwordValidation.isValid)) && (
+              <div style={{ marginTop: '-12px', marginBottom: '16px' }}>
+                <div style={styles.passwordRequirements} className="password-requirements-panel">
+                  <Text style={{ fontSize: '12px', fontWeight: 500, marginBottom: '8px', display: 'block' }}>
+                    {t('register.passwordRequirements.title')}
+                  </Text>
+                  {renderRequirement(t('register.passwordRequirements.minLength'), passwordValidation.hasMinLength)}
+                  {renderRequirement(t('register.passwordRequirements.uppercase'), passwordValidation.hasUppercase)}
+                  {renderRequirement(t('register.passwordRequirements.lowercase'), passwordValidation.hasLowercase)}
+                  {renderRequirement(t('register.passwordRequirements.number'), passwordValidation.hasNumber)}
+                </div>
+              </div>
+            )}
 
             <FormItem
               label={t('register.confirmPassword')}
               field="confirmPassword"
               required
+              dependencies={['password']}
               rules={[
                 { required: true, message: 'Please confirm your password' },
                 {
-                  validator: (_, callback) => {
-                    if (confirmPassword && passwordsMatch === false) {
+                  validator: (value, callback) => {
+                    const currentPassword = form.getFieldValue('password');
+                    if (value && currentPassword && value !== currentPassword) {
                       callback(t('register.passwordMismatch'));
                     } else {
                       callback();
@@ -339,32 +337,29 @@ const RegisterPage: React.FC = () => {
                 },
               ]}
             >
-              <div>
-                <Input.Password
-                  prefix={<IconLock />}
-                  placeholder="Confirm your password"
-                  size="large"
-                  tabIndex={4}
-                  value={confirmPassword}
-                  onChange={handleConfirmPasswordChange}
-                  autoComplete="new-password"
-                  className={`register-form-input ${passwordsMatch === false ? 'error' : passwordsMatch === true ? 'success' : ''}`}
-                  style={{
-                    ...styles.inputFocus,
-                    ...(passwordsMatch === false ? styles.inputError : {}),
-                    ...(passwordsMatch === true ? styles.inputSuccess : {}),
-                  }}
-                />
-                {passwordsMatch === true && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
-                    <IconCheck style={{ color: 'var(--color-success)', fontSize: '14px' }} />
-                    <Text style={{ fontSize: '12px', color: 'var(--color-success)' }}>
-                      Passwords match
-                    </Text>
-                  </div>
-                )}
-              </div>
+              <Input.Password
+                prefix={<IconLock />}
+                placeholder="Confirm your password"
+                size="large"
+                tabIndex={4}
+                autoComplete="new-password"
+                className={`register-form-input ${passwordsMatch === false ? 'error' : passwordsMatch === true ? 'success' : ''}`}
+                style={{
+                  ...styles.inputFocus,
+                  ...(passwordsMatch === false ? styles.inputError : {}),
+                  ...(passwordsMatch === true ? styles.inputSuccess : {}),
+                }}
+              />
             </FormItem>
+            {/* Password match indicator */}
+            {passwordsMatch === true && (
+              <div style={{ marginTop: '-12px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <IconCheck style={{ color: 'var(--color-success)', fontSize: '14px' }} />
+                <Text style={{ fontSize: '12px', color: 'var(--color-success)' }}>
+                  Passwords match
+                </Text>
+              </div>
+            )}
 
             <FormItem>
               <Button
