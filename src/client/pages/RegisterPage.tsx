@@ -99,7 +99,7 @@ const RegisterPage: React.FC = () => {
     return password === confirmPassword;
   }, [password, confirmPassword]);
 
-  const handleSubmit = async (values: RegisterFormValues) => {
+  const handleSubmit = useCallback(async (values: RegisterFormValues) => {
     // Get current values from form instance to ensure we have latest state
     const currentPassword = values.password || password;
     const currentConfirmPassword = values.confirmPassword || confirmPassword;
@@ -138,7 +138,7 @@ const RegisterPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [password, confirmPassword, passwordValidation, t, register, referralCode, navigate]);
 
   // Render password requirement item with validation status
   const renderRequirement = (text: string, isValid: boolean) => (

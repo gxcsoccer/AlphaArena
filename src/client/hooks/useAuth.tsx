@@ -33,6 +33,7 @@ interface RegisterData {
   email: string;
   username?: string;
   password: string;
+  ref?: string; // Referral code for invite rewards
 }
 
 interface AuthContextType extends AuthState {
