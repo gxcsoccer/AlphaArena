@@ -161,7 +161,11 @@ Deno.serve(async (req: Request) => {
     // POST /auth/register
     if (method === 'POST' && (path === '/auth/register' || path === '/api/auth/register')) {
       const body = await req.json();
-      const { email, username, password, ref } = body;
+      const { email: rawEmail, username: rawUsername, password, ref } = body;
+
+      // Trim email and username to avoid validation issues with accidental whitespace
+      const email = (rawEmail || '').trim().toLowerCase();
+      const username = rawUsername ? rawUsername.trim() : undefined;
 
       // Validate required fields
       if (!email || !password) {
@@ -171,7 +175,7 @@ Deno.serve(async (req: Request) => {
         }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Validate email
+      // Validate email (already trimmed)
       if (!validateEmail(email)) {
         return new Response(JSON.stringify({
           success: false,
@@ -179,7 +183,7 @@ Deno.serve(async (req: Request) => {
         }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Validate username if provided
+      // Validate username if provided (already trimmed)
       if (username) {
         const usernameValidation = validateUsername(username);
         if (!usernameValidation.valid) {
@@ -237,8 +241,8 @@ Deno.serve(async (req: Request) => {
       const { data: user, error: createError } = await supabase
         .from('app_users')
         .insert({
-          email: email.toLowerCase(),
-          username: username?.toLowerCase(),
+          email: email, // Already trimmed and lowercased
+          username: username?.toLowerCase(), // Only lowercase username
           password_hash: passwordHash,
           role: 'user',
           email_verified: false,
@@ -308,7 +312,10 @@ Deno.serve(async (req: Request) => {
     // POST /auth/login
     if (method === 'POST' && (path === '/auth/login' || path === '/api/auth/login')) {
       const body = await req.json();
-      const { identifier, password } = body;
+      const { identifier: rawIdentifier, password } = body;
+
+      // Trim and lowercase identifier to handle accidental whitespace
+      const identifier = (rawIdentifier || '').trim().toLowerCase();
 
       // Validate required fields
       if (!identifier || !password) {
@@ -318,11 +325,11 @@ Deno.serve(async (req: Request) => {
         }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
 
-      // Find user by email or username
+      // Find user by email or username (already trimmed and lowercased)
       const { data: user } = await supabase
         .from('app_users')
         .select('*')
-        .or(`email.eq.${identifier.toLowerCase()},username.eq.${identifier.toLowerCase()}`)
+        .or(`email.eq.${identifier},username.eq.${identifier}`)
         .single();
 
       if (!user) {
