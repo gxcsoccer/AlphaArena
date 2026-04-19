@@ -127,7 +127,9 @@ const RegisterPage: React.FC = () => {
         password: currentPassword,
         ref: referralCode || undefined,
       });
-      navigate('/dashboard');
+      // Redirect to home page where onboarding elements exist
+      // New users should see the trading interface first for the guided onboarding
+      navigate('/');
     } catch (err) {
       const message = err instanceof Error ? err.message : t('register.error');
       setError(message);

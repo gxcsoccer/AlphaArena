@@ -201,7 +201,7 @@ describe('RegisterPage', () => {
     });
   });
 
-  it('should navigate to dashboard after successful registration', async () => {
+  it('should navigate to home page after successful registration', async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter>
@@ -226,9 +226,9 @@ describe('RegisterPage', () => {
       await user.click(submitButton);
     });
 
-    // Wait for navigation
+    // Wait for navigation - redirect to home page where onboarding elements exist
     await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/');
     });
   });
 

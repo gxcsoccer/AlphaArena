@@ -58,6 +58,7 @@ interface SmartOnboardingProps {
 
 /**
  * Convert our step definition to driver.js step
+ * Handles missing elements gracefully by showing as modal-style popover
  */
 function toDriverStep(step: OnboardingStep, isLast: boolean): DriveStep {
   const baseStep: DriveStep = {
@@ -71,13 +72,28 @@ function toDriverStep(step: OnboardingStep, isLast: boolean): DriveStep {
     },
   };
 
+  // Only set element if the selector exists on the current page
+  // If element doesn't exist, driver.js will show popover centered (modal-style)
   if (step.targetSelector) {
-    baseStep.element = step.targetSelector;
-    baseStep.popover!.side = step.side || 'bottom';
-    baseStep.popover!.align = step.align || 'start';
+    // Check if element exists before setting it
+    const element = document.querySelector(step.targetSelector);
+    if (element) {
+      baseStep.element = step.targetSelector;
+      baseStep.popover!.side = step.side || 'bottom';
+      baseStep.popover!.align = step.align || 'start';
+    }
+    // If element doesn't exist, we still create the step but without an element
+    // driver.js will show it as a centered popover (modal-style)
   }
 
   return baseStep;
+}
+
+/**
+ * Check if an element selector exists on the page
+ */
+function elementExists(selector: string): boolean {
+  return !!document.querySelector(selector);
 }
 
 /**
@@ -112,15 +128,43 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
 
   /**
    * Initialize driver.js
+   * Filters steps to only include those whose elements exist (or modal steps)
    */
   const initDriver = useCallback(() => {
     if (driverRef.current) {
       driverRef.current.destroy();
     }
 
-    const driverSteps = flow.steps.map((step, index) =>
-      toDriverStep(step, index === flow.steps.length - 1)
-    );
+    // Create driver steps, handling missing elements gracefully
+    const driverSteps: DriveStep[] = [];
+    const stepMapping: Map<number, number> = new Map(); // Maps driver step index to flow step index
+
+    flow.steps.forEach((step, index) => {
+      // Modal steps (no target) or steps with existing elements are included
+      if (!step.targetSelector || elementExists(step.targetSelector)) {
+        const driverStep = toDriverStep(step, driverSteps.length === flow.steps.filter(s => !s.targetSelector || elementExists(s.targetSelector)).length - 1);
+        stepMapping.set(driverSteps.length, index);
+        driverSteps.push(driverStep);
+      }
+      // Steps with missing target elements are skipped silently
+      // This allows onboarding to continue even when not on the target page
+    });
+
+    // If all element-targeted steps are missing, show only modal steps
+    if (driverSteps.length === 0) {
+      // At least show the welcome and completion steps (modal type)
+      const welcomeStep = flow.steps.find(s => s.type === 'modal' && !s.targetSelector && s.order === 1);
+      const completeStep = flow.steps.find(s => s.type === 'modal' && !s.targetSelector && s.order === flow.steps.length);
+      
+      if (welcomeStep) {
+        driverSteps.push(toDriverStep(welcomeStep, !completeStep));
+        stepMapping.set(0, 0);
+      }
+      if (completeStep) {
+        driverSteps.push(toDriverStep(completeStep, true));
+        stepMapping.set(driverSteps.length - 1, flow.steps.length - 1);
+      }
+    }
 
     driverRef.current = driver({
       showProgress,
@@ -129,37 +173,46 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
       stageColor: theme === 'dark' ? '#1a1a1a' : '#ffffff',
       popoverClass: `smart-onboarding-popover ${theme}`,
       onHighlightStarted: (element, step, opts) => {
-        const stepIndex = opts?.step?.popover ? driverSteps.indexOf(step) : -1;
-        if (stepIndex >= 0) {
-          setCurrentStep(stepIndex);
+        // Find the flow step index from our mapping
+        const driverStepIndex = driverSteps.indexOf(step);
+        const flowStepIndex = stepMapping.get(driverStepIndex) ?? -1;
+        
+        if (flowStepIndex >= 0) {
+          setCurrentStep(flowStepIndex);
           stepStartTimeRef.current = Date.now();
 
           // Track step viewed
           if (user?.id) {
-            const flowStep = flow.steps[stepIndex];
-            onboardingService.trackStepViewed(
-              user.id,
-              flowStep.id,
-              sessionIdRef.current
-            ).catch(console.error);
+            const flowStep = flow.steps[flowStepIndex];
+            if (flowStep) {
+              onboardingService.trackStepViewed(
+                user.id,
+                flowStep.id,
+                sessionIdRef.current
+              ).catch(console.error);
+            }
           }
         }
       },
       onNextClick: (element, step, opts) => {
-        const stepIndex = driverSteps.indexOf(step);
-        if (stepIndex >= 0 && user?.id) {
-          const flowStep = flow.steps[stepIndex];
-          const timeOnStep = Date.now() - stepStartTimeRef.current;
+        const driverStepIndex = driverSteps.indexOf(step);
+        const flowStepIndex = stepMapping.get(driverStepIndex) ?? -1;
+        
+        if (flowStepIndex >= 0 && user?.id) {
+          const flowStep = flow.steps[flowStepIndex];
+          if (flowStep) {
+            const timeOnStep = Date.now() - stepStartTimeRef.current;
 
-          // Track step completed
-          onboardingService.completeStep(
-            user.id,
-            flowStep.id,
-            sessionIdRef.current,
-            timeOnStep
-          ).catch(console.error);
+            // Track step completed
+            onboardingService.completeStep(
+              user.id,
+              flowStep.id,
+              sessionIdRef.current,
+              timeOnStep
+            ).catch(console.error);
 
-          setCompletedSteps(prev => [...prev, flowStep.id]);
+            setCompletedSteps(prev => [...prev, flowStep.id]);
+          }
         }
 
         driverRef.current?.moveNext();
@@ -211,7 +264,7 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
 
     // Show welcome modal first if first step is modal type
     const firstStep = flow.steps[0];
-    if (firstStep.type === 'modal' && !firstStep.targetSelector) {
+    if (firstStep?.type === 'modal' && !firstStep.targetSelector) {
       setShowWelcome(true);
     } else {
       driverRef.current?.drive();
@@ -224,7 +277,7 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
   const handleWelcomeContinue = useCallback(() => {
     setShowWelcome(false);
     setCurrentStep(1);
-    driverRef.current?.drive(1);
+    driverRef.current?.drive(0); // Start at first driver step
   }, []);
 
   /**
@@ -264,7 +317,7 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
       try {
         await onboardingService.completeStep(
           user.id,
-          flow.steps[flow.steps.length - 1].id,
+          flow.steps[flow.steps.length - 1]?.id || 'complete',
           sessionIdRef.current,
           Date.now() - stepStartTimeRef.current
         );
@@ -301,6 +354,8 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
   useEffect(() => {
     if (!autoShow) return;
 
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
     const checkAndShow = async () => {
       // Check local storage first
       const hasCompleted = localStorage.getItem('alphaarena_onboarding_completed');
@@ -323,15 +378,20 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
       }
 
       // Show after delay
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setVisible(true);
         startOnboarding();
       }, showDelay);
-
-      return () => clearTimeout(timer);
     };
 
     checkAndShow();
+
+    // Cleanup function
+    return () => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
   }, [autoShow, showDelay, user?.id, startOnboarding]);
 
   /**
@@ -358,6 +418,11 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
    */
   const renderWelcomeModal = () => {
     const firstStep = flow.steps[0];
+
+    // Safety check: if firstStep doesn't exist, don't render
+    if (!firstStep) {
+      return null;
+    }
 
     return (
       <Modal
@@ -393,18 +458,20 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
 
           {/* Title and description */}
           <Title heading={4} className="onboarding-title">
-            {firstStep.title}
+            {firstStep.title || 'Welcome to AlphaArena'}
           </Title>
           <Paragraph className="onboarding-description">
-            {firstStep.description}
+            {firstStep.description || 'Let us guide you through the core features.'}
           </Paragraph>
 
           {/* Feature highlights */}
           <div className="onboarding-features">
             {flow.steps.slice(1, 5).map((step, index) => (
-              <Tag key={step.id} className="onboarding-feature-tag">
-                {step.title}
-              </Tag>
+              step?.title ? (
+                <Tag key={step.id || index} className="onboarding-feature-tag">
+                  {step.title}
+                </Tag>
+              ) : null
             ))}
           </div>
 
@@ -439,6 +506,11 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
   const renderCompletionModal = () => {
     const lastStep = flow.steps[flow.steps.length - 1];
 
+    // Safety check: if lastStep doesn't exist, don't render
+    if (!lastStep) {
+      return null;
+    }
+
     return (
       <Modal
         visible={isCompleted}
@@ -454,8 +526,8 @@ const SmartOnboarding: React.FC<SmartOnboardingProps> = ({
             <IconCheck className="onboarding-icon" />
           </div>
 
-          <Title heading={4}>{lastStep.title}</Title>
-          <Paragraph type="secondary">{lastStep.description}</Paragraph>
+          <Title heading={4}>{lastStep.title || 'Ready to Start!'}</Title>
+          <Paragraph type="secondary">{lastStep.description || 'You are ready to explore AlphaArena.'}</Paragraph>
 
           {/* Stats */}
           <div className="onboarding-stats">
