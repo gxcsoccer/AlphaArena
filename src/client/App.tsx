@@ -82,6 +82,7 @@ const SubscriptionPage = lazyWithRetry(() => import('./pages/SubscriptionPage'))
 const SubscriptionSuccessPage = lazyWithRetry(() => import('./pages/SubscriptionSuccessPage'));
 const SubscriptionCancelPage = lazyWithRetry(() => import('./pages/SubscriptionCancelPage'));
 const PricingPage = lazyWithRetry(() => import('./pages/PricingPage'));
+const SettingsPage = lazyWithRetry(() => import('./pages/SettingsPage')); // Issue #732: Settings page
 const BillingPage = lazyWithRetry(() => import('./pages/BillingPage'));
 const AdminDashboardPage = lazyWithRetry(() => import('./pages/AdminDashboardPage'));
 const FeedbackManagementPage = lazyWithRetry(() => import('./pages/FeedbackManagementPage'));
@@ -567,6 +568,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/docs/api" element={<ApiDocsPage />} />
         <Route path="/marketplace" element={<StrategyMarketplacePage />} />
         <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/subscription" element={<SubscriptionPage />} />
         <Route path="/subscription/success" element={<SubscriptionSuccessPage />} />
         <Route path="/subscription/cancel" element={<SubscriptionCancelPage />} />
@@ -651,7 +653,20 @@ function RouteRestorer() {
 }
 
 // Routes that don't need MainLayout (public pages)
-const PUBLIC_ROUTES = ['/', '/landing', '/login', '/register'];
+// Issue #731, #732: Pricing and Settings pages should be public routes
+const PUBLIC_ROUTES = [
+  '/',
+  '/landing',
+  '/login',
+  '/register',
+  '/leaderboard',
+  '/docs/api',
+  '/marketplace',
+  '/pricing',
+  '/settings',  // Issue #732: Settings hub page
+  '/subscription',
+  '/user',  // User profile pages (e.g., /user/:username)
+];
 
 // Conditional layout wrapper
 function AppLayout({ children }: { children: React.ReactNode }) {
