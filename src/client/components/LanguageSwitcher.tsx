@@ -12,10 +12,11 @@
  * 
  * Issue #586: 语言切换功能实现
  * Issue #598: Fixed dropdown click handling by using Arco Menu component
+ * Issue #728: Removed Tooltip to fix click interference causing test timeout
  */
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { Dropdown, Button, Space, Tooltip, Menu } from '@arco-design/web-react';
+import { Dropdown, Button, Space, Menu } from '@arco-design/web-react';
 import {
   IconLanguage,
   IconCheck,
@@ -83,6 +84,7 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
 
   // Build dropdown menu using Arco Design Menu component
   // Issue #598: Using proper Menu component for reliable click handling
+  // Issue #728: Added data-testid for language options for test targeting
   const menuDroplist = (
     <Menu
       className="language-dropdown-menu"
@@ -92,7 +94,11 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
       }}
     >
       {supportedLanguages.map(lang => (
-        <Menu.Item key={lang.code} className="language-menu-item">
+        <Menu.Item 
+          key={lang.code} 
+          className="language-menu-item"
+          data-testid={`language-option-${lang.code}`}
+        >
           <div className="language-option">
             <span className="language-option__name">{lang.nativeName}</span>
             {currentLanguage === lang.code && (
@@ -119,6 +125,9 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
     </Space>
   );
 
+  // Issue #728: Removed Tooltip to prevent click event interference
+  // Tooltip wrapping Dropdown causes unreliable click handling in automated tests
+  // Button has aria-label for accessibility, visual icon makes purpose clear
   return (
     <Dropdown
       trigger="click"
@@ -128,17 +137,16 @@ export function LanguageSwitcher({ compact = false, iconOnly = false }: Language
       // caused by backdrop-filter on parent containers (e.g., landing-header)
       getPopupContainer={() => document.body}
     >
-      <Tooltip content={t('language.switchTo')} position="bottom">
-        <Button
-          type="text"
-          className={`language-switcher ${isChanging ? 'language-switcher--changing' : ''}`}
-          loading={isChanging}
-          aria-label={t('language.switchTo')}
-          aria-haspopup="listbox"
-        >
-          {buttonContent}
-        </Button>
-      </Tooltip>
+      <Button
+        type="text"
+        className={`language-switcher ${isChanging ? 'language-switcher--changing' : ''}`}
+        loading={isChanging}
+        aria-label={t('language.switchTo')}
+        aria-haspopup="listbox"
+        data-testid="language-selector"
+      >
+        {buttonContent}
+      </Button>
     </Dropdown>
   );
 }
