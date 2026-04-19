@@ -1,0 +1,18 @@
+web:
+  url: "https://alphaarena.com"
+
+tasks:
+  - name: "注册流程端到端验证"
+    flow:
+      - aiWaitFor: "页面加载完成"
+      - ai: "如果有登录按钮，点击它进入登录页"
+      - aiWaitFor: "登录页面加载完成"
+      - ai: "点击注册链接或注册按钮，进入注册页面"
+      - aiWaitFor: "注册页面加载完成，页面显示创建账户的表单"
+      - ai: "在邮箱输入框中输入 testqa@example.com"
+      - ai: "在用户名输入框中输入 testqa"
+      - ai: "在密码输入框中输入 TestPass123!@#"
+      - ai: "在确认密码输入框中再次输入 TestPass123!@#"
+      - ai: "点击注册按钮提交表单"
+      - sleep: 3000
+      - aiAssert: "注册成功 - 页面显示成功消息，或跳转到登录页面，或跳转到首页，不再显示创建账户表单"
