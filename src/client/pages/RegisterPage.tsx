@@ -100,19 +100,10 @@ const RegisterPage: React.FC = () => {
   }, [password, confirmPassword]);
 
   const handleSubmit = useCallback(async (values: RegisterFormValues) => {
-    // DEBUG: Log form submission start
-    console.log('[RegisterPage] ========== handleSubmit STARTED ==========');
-    console.log('[RegisterPage] values received:', values);
-    
     // Always get values directly from form instance (most reliable)
     const formValues = form.getFieldsValue();
-    console.log('[RegisterPage] form.getFieldsValue():', formValues);
-    
     const currentPassword = formValues.password || values.password || '';
     const currentConfirmPassword = formValues.confirmPassword || values.confirmPassword || '';
-    
-    console.log('[RegisterPage] Final password to use:', currentPassword);
-    console.log('[RegisterPage] Final confirmPassword to use:', currentConfirmPassword);
 
     // Validate password requirements
     const hasMinLength = currentPassword.length >= 8;
@@ -120,29 +111,18 @@ const RegisterPage: React.FC = () => {
     const hasLowercase = /[a-z]/.test(currentPassword);
     const hasNumber = /[0-9]/.test(currentPassword);
     const passwordIsValid = hasMinLength && hasUppercase && hasLowercase && hasNumber;
-    
-    console.log('[RegisterPage] Password validation:', {
-      hasMinLength,
-      hasUppercase,
-      hasLowercase,
-      hasNumber,
-      passwordIsValid
-    });
 
     if (!passwordIsValid) {
-      console.log('[RegisterPage] Password validation FAILED - aborting');
       setError(t('register.passwordRequirements.title'));
       return;
     }
 
     // Check password confirmation
     if (currentPassword !== currentConfirmPassword) {
-      console.log('[RegisterPage] Password mismatch - aborting');
       setError(t('register.passwordMismatch'));
       return;
     }
 
-    console.log('[RegisterPage] All validations passed - proceeding with registration');
     setLoading(true);
     setError(null);
     setErrors([]);
@@ -153,26 +133,20 @@ const RegisterPage: React.FC = () => {
       password: currentPassword,
       ref: referralCode || undefined,
     };
-    
-    console.log('[RegisterPage] Calling register with:', registerData);
 
     try {
       await register(registerData);
-      console.log('[RegisterPage] ========== register SUCCESS ==========');
       // Redirect to home page where onboarding elements exist
       navigate('/');
     } catch (err) {
-      console.error('[RegisterPage] ========== register FAILED ==========');
-      console.error('[RegisterPage] Error:', err);
       const message = err instanceof Error ? err.message : t('register.error');
       setError(message);
-      
+
       if ((err as any).details) {
         setErrors((err as any).details);
       }
     } finally {
       setLoading(false);
-      console.log('[RegisterPage] ========== handleSubmit FINISHED ==========');
     }
   }, [form, passwordValidation, t, register, referralCode, navigate]);
 
@@ -246,7 +220,6 @@ const RegisterPage: React.FC = () => {
             autoComplete="off"
             onSubmit={handleSubmit as any}
             onSubmitFailed={(errors) => {
-              console.log('[RegisterPage] onSubmitFailed called with errors:', errors);
               // Show first error message
               const firstErrorKey = Object.keys(errors)[0];
               if (firstErrorKey && errors[firstErrorKey]) {
