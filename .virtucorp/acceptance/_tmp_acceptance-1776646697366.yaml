@@ -1,0 +1,13 @@
+web:
+  url: "https://alphaarena-eight.vercel.app/register"
+
+tasks:
+  - name: "Test registration flow"
+    flow:
+      - ai: "Fill email input with 'testuser456@test.com'"
+      - ai: "Fill password input with 'TestPass123'"
+      - ai: "Fill confirm password input with 'TestPass123'"
+      - aiAssert: "Submit button is enabled"
+      - ai: "Click the submit button"
+      - aiWaitFor: "Page navigates or shows error message"
+      - aiAssert: "Page is not still on registration form OR error message is displayed"
