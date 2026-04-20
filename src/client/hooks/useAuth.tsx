@@ -86,7 +86,7 @@ async function authFetch<T>(
   options: RequestInit = {}
 ): Promise<{ data?: T; error?: string; details?: string[] }> {
   const accessToken = tokenStorage.getAccessToken();
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
@@ -97,14 +97,15 @@ async function authFetch<T>(
   // - If API_BASE_URL is set (e.g., Supabase Edge Function URL): use /auth${endpoint}
   // - If API_BASE_URL is empty: use /api/auth${endpoint} (will be rewritten by Vercel)
   const authPath = API_BASE_URL ? `/auth${endpoint}` : `/api/auth${endpoint}`;
-  
-  const response = await fetch(`${API_BASE_URL}${authPath}`, {
+  const url = `${API_BASE_URL}${authPath}`;
+
+  const response = await fetch(url, {
     ...options,
     headers,
   });
 
   const result = await response.json();
-  
+
   if (!response.ok) {
     return { error: result.error, details: result.details };
   }

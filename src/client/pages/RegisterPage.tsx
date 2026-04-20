@@ -100,12 +100,19 @@ const RegisterPage: React.FC = () => {
   }, [password, confirmPassword]);
 
   const handleSubmit = useCallback(async (values: RegisterFormValues) => {
-    // Get current values from form instance to ensure we have latest state
-    const currentPassword = values.password || password;
-    const currentConfirmPassword = values.confirmPassword || confirmPassword;
+    // Always get values directly from form instance (most reliable)
+    const formValues = form.getFieldsValue();
+    const currentPassword = formValues.password || values.password || '';
+    const currentConfirmPassword = formValues.confirmPassword || values.confirmPassword || '';
 
-    // Check password validation
-    if (!passwordValidation.isValid) {
+    // Validate password requirements
+    const hasMinLength = currentPassword.length >= 8;
+    const hasUppercase = /[A-Z]/.test(currentPassword);
+    const hasLowercase = /[a-z]/.test(currentPassword);
+    const hasNumber = /[0-9]/.test(currentPassword);
+    const passwordIsValid = hasMinLength && hasUppercase && hasLowercase && hasNumber;
+
+    if (!passwordIsValid) {
       setError(t('register.passwordRequirements.title'));
       return;
     }
@@ -120,27 +127,28 @@ const RegisterPage: React.FC = () => {
     setError(null);
     setErrors([]);
 
+    const registerData = {
+      email: (values.email || formValues.email || '').trim(),
+      username: values.username || formValues.username || undefined,
+      password: currentPassword,
+      ref: referralCode || undefined,
+    };
+
     try {
-      await register({
-        email: values.email,
-        username: values.username || undefined,
-        password: currentPassword,
-        ref: referralCode || undefined,
-      });
+      await register(registerData);
       // Redirect to home page where onboarding elements exist
-      // New users should see the trading interface first for the guided onboarding
       navigate('/');
     } catch (err) {
       const message = err instanceof Error ? err.message : t('register.error');
       setError(message);
-      
+
       if ((err as any).details) {
         setErrors((err as any).details);
       }
     } finally {
       setLoading(false);
     }
-  }, [password, confirmPassword, passwordValidation, t, register, referralCode, navigate]);
+  }, [form, passwordValidation, t, register, referralCode, navigate]);
 
   // Render password requirement item with validation status
   const renderRequirement = (text: string, isValid: boolean) => (
@@ -211,6 +219,13 @@ const RegisterPage: React.FC = () => {
             layout="vertical"
             autoComplete="off"
             onSubmit={handleSubmit as any}
+            onSubmitFailed={(errors) => {
+              // Show first error message
+              const firstErrorKey = Object.keys(errors)[0];
+              if (firstErrorKey && errors[firstErrorKey]) {
+                setError(errors[firstErrorKey].message || 'Validation failed');
+              }
+            }}
             style={{ width: '100%' }}
           >
             <FormItem
