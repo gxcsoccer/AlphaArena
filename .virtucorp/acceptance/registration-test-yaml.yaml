@@ -1,5 +1,8 @@
 web:
-  url: "https://alphaarena.com"
+  # NOTE: alphaarena.com and alphaarena.app domains are not configured to point to Vercel
+  # They currently show GoDaddy/Squarespace "under construction" pages
+  # Using Vercel preview deployment URL for testing until DNS is fixed
+  url: "https://alphaarena-eight.vercel.app"
 
 tasks:
   - name: "Registration page loads"
