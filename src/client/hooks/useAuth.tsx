@@ -97,13 +97,23 @@ async function authFetch<T>(
   // - If API_BASE_URL is set (e.g., Supabase Edge Function URL): use /auth${endpoint}
   // - If API_BASE_URL is empty: use /api/auth${endpoint} (will be rewritten by Vercel)
   const authPath = API_BASE_URL ? `/auth${endpoint}` : `/api/auth${endpoint}`;
+  const url = `${API_BASE_URL}${authPath}`;
   
-  const response = await fetch(`${API_BASE_URL}${authPath}`, {
+  console.log('[authFetch] Making request to:', url);
+  console.log('[authFetch] Options:', options);
+  console.log('[authFetch] Headers:', headers);
+  console.log('[authFetch] API_BASE_URL:', API_BASE_URL);
+  
+  const response = await fetch(url, {
     ...options,
     headers,
   });
 
+  console.log('[authFetch] Response status:', response.status);
+  console.log('[authFetch] Response ok:', response.ok);
+
   const result = await response.json();
+  console.log('[authFetch] Result:', result);
   
   if (!response.ok) {
     return { error: result.error, details: result.details };
@@ -206,18 +216,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, []);
 
   const register = useCallback(async (data: RegisterData) => {
+    console.log('[useAuth] register called with data:', data);
     const result = await authFetch<{ user: User; accessToken: string; refreshToken: string }>('/register', {
       method: 'POST',
       body: JSON.stringify(data),
     });
 
+    console.log('[useAuth] authFetch result:', result);
+
     if (result.error) {
+      console.error('[useAuth] register error:', result.error, result.details);
       const error = new Error(result.error);
       (error as any).details = result.details;
       throw error;
     }
 
     const { user, accessToken, refreshToken } = result.data!;
+    console.log('[useAuth] register success, user:', user);
     tokenStorage.setTokens(accessToken, refreshToken, user);
 
     setState({

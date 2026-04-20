@@ -100,37 +100,70 @@ const RegisterPage: React.FC = () => {
   }, [password, confirmPassword]);
 
   const handleSubmit = useCallback(async (values: RegisterFormValues) => {
-    // Get current values from form instance to ensure we have latest state
-    const currentPassword = values.password || password;
-    const currentConfirmPassword = values.confirmPassword || confirmPassword;
+    // DEBUG: Log form submission start
+    console.log('[RegisterPage] ========== handleSubmit STARTED ==========');
+    console.log('[RegisterPage] values received:', values);
+    
+    // Always get values directly from form instance (most reliable)
+    const formValues = form.getFieldsValue();
+    console.log('[RegisterPage] form.getFieldsValue():', formValues);
+    
+    const currentPassword = formValues.password || values.password || '';
+    const currentConfirmPassword = formValues.confirmPassword || values.confirmPassword || '';
+    
+    console.log('[RegisterPage] Final password to use:', currentPassword);
+    console.log('[RegisterPage] Final confirmPassword to use:', currentConfirmPassword);
 
-    // Check password validation
-    if (!passwordValidation.isValid) {
+    // Validate password requirements
+    const hasMinLength = currentPassword.length >= 8;
+    const hasUppercase = /[A-Z]/.test(currentPassword);
+    const hasLowercase = /[a-z]/.test(currentPassword);
+    const hasNumber = /[0-9]/.test(currentPassword);
+    const passwordIsValid = hasMinLength && hasUppercase && hasLowercase && hasNumber;
+    
+    console.log('[RegisterPage] Password validation:', {
+      hasMinLength,
+      hasUppercase,
+      hasLowercase,
+      hasNumber,
+      passwordIsValid
+    });
+
+    if (!passwordIsValid) {
+      console.log('[RegisterPage] Password validation FAILED - aborting');
       setError(t('register.passwordRequirements.title'));
       return;
     }
 
     // Check password confirmation
     if (currentPassword !== currentConfirmPassword) {
+      console.log('[RegisterPage] Password mismatch - aborting');
       setError(t('register.passwordMismatch'));
       return;
     }
 
+    console.log('[RegisterPage] All validations passed - proceeding with registration');
     setLoading(true);
     setError(null);
     setErrors([]);
 
+    const registerData = {
+      email: (values.email || formValues.email || '').trim(),
+      username: values.username || formValues.username || undefined,
+      password: currentPassword,
+      ref: referralCode || undefined,
+    };
+    
+    console.log('[RegisterPage] Calling register with:', registerData);
+
     try {
-      await register({
-        email: values.email,
-        username: values.username || undefined,
-        password: currentPassword,
-        ref: referralCode || undefined,
-      });
+      await register(registerData);
+      console.log('[RegisterPage] ========== register SUCCESS ==========');
       // Redirect to home page where onboarding elements exist
-      // New users should see the trading interface first for the guided onboarding
       navigate('/');
     } catch (err) {
+      console.error('[RegisterPage] ========== register FAILED ==========');
+      console.error('[RegisterPage] Error:', err);
       const message = err instanceof Error ? err.message : t('register.error');
       setError(message);
       
@@ -139,8 +172,9 @@ const RegisterPage: React.FC = () => {
       }
     } finally {
       setLoading(false);
+      console.log('[RegisterPage] ========== handleSubmit FINISHED ==========');
     }
-  }, [password, confirmPassword, passwordValidation, t, register, referralCode, navigate]);
+  }, [form, passwordValidation, t, register, referralCode, navigate]);
 
   // Render password requirement item with validation status
   const renderRequirement = (text: string, isValid: boolean) => (
@@ -211,6 +245,14 @@ const RegisterPage: React.FC = () => {
             layout="vertical"
             autoComplete="off"
             onSubmit={handleSubmit as any}
+            onSubmitFailed={(errors) => {
+              console.log('[RegisterPage] onSubmitFailed called with errors:', errors);
+              // Show first error message
+              const firstErrorKey = Object.keys(errors)[0];
+              if (firstErrorKey && errors[firstErrorKey]) {
+                setError(errors[firstErrorKey].message || 'Validation failed');
+              }
+            }}
             style={{ width: '100%' }}
           >
             <FormItem
