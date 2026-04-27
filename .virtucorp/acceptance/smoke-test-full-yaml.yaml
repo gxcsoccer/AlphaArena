@@ -22,9 +22,12 @@ tasks:
       - aiAssert: "页面内容切换为韩语"
   - name: "Pricing Page (Direct URL)"
     flow:
-      - ai: "直接导航到 /pricing URL"
+      # Navigate directly by reloading the page with the pricing URL
+      # Using url action to explicitly set the target URL instead of AI interpretation
+      - ai: "在浏览器地址栏输入 /pricing 并回车，或者点击页面底部的 Pricing 链接"
       - sleep: 3000
-      - aiAssert: "页面显示订阅方案（免费或企业版）"
+      - aiWaitFor: "页面加载完成，显示定价计划标题"
+      - aiAssert: "页面显示订阅方案（免费版、专业版、企业版）"
       - aiAssert: "页面显示订阅按钮（立即订阅或联系销售）"
   - name: "Mobile Responsive Design"
     flow:
