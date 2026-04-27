@@ -1,9 +1,9 @@
 # Sprint 4 UI Acceptance Tests - OrderBook Component Verification
-# Test against production: https://alphaarena-eight.vercel.app
+# Test against production: https://alphaarena.vercel.app
 # Ops has forced redeployed production environment and cleared cache
 
 web:
-  url: https://alphaarena-eight.vercel.app
+  url: https://alphaarena.vercel.app
   viewport:
     width: 1920
     height: 1080
