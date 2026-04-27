@@ -1,8 +1,8 @@
 web:
   # NOTE: alphaarena.com and alphaarena.app domains are not configured to point to Vercel
-  # They currently show GoDaddy/Squarespace "under construction" pages
-  # Using Vercel preview deployment URL for testing until DNS is fixed
-  url: "https://alphaarena-eight.vercel.app"
+  # Using Vercel project URL for testing. Network connectivity issues in China may cause failures.
+  # For DNS resolution, investor needs to configure Squarespace to proxy to Vercel.
+  url: "https://alphaarena.vercel.app"
 
 tasks:
   - name: "Language Switch - Japanese"

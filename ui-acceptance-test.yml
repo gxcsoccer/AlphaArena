@@ -1,9 +1,9 @@
 # P0 Bug #75 Verification - Production Deployment
-# Test against production: https://alphaarena-eight.vercel.app
+# Test against production: https://alphaarena.vercel.app
 # Verifying config validation fix from PR #77
 
 web:
-  url: https://alphaarena-eight.vercel.app
+  url: https://alphaarena.vercel.app
   viewport:
     width: 1920
     height: 1080

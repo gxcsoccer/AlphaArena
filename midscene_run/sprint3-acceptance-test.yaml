@@ -1,8 +1,8 @@
 # Sprint 3 UI Acceptance Tests - Supabase Realtime Migration
-# Test against production: https://alphaarena-eight.vercel.app
+# Test against production: https://alphaarena.vercel.app
 
 web:
-  url: https://alphaarena-1010tcrkv-gxcsoccer-s-team.vercel.app
+  url: https://alphaarena.vercel.app
   viewport:
     width: 1920
     height: 1080

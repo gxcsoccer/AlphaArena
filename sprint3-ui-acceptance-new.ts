@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import fs from 'fs';
 import path from 'path';
 
-const TARGET_URL = 'https://alphaarena-eight.vercel.app';
+const TARGET_URL = 'https://alphaarena.vercel.app';
 const REPORT_DIR = './midscene_run';
 
 interface TestResult {
