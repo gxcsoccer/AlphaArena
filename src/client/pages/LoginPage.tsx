@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, Message, Typography, Space, Link, Grid } from '@arco-design/web-react';
 import { IconUser, IconLock } from '@arco-design/web-react/icon';
 import { useAuth } from '../hooks/useAuth';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
+import { useNavigate, useLocation, Link as RouterLink } from 'react-router-dom';
 import { useSEO, PAGE_SEO_CONFIGS } from '../hooks/useSEO';
 import { useTranslation } from 'react-i18next';
 import { Logo } from '../components/brand/Logo';
@@ -24,11 +24,15 @@ interface LoginFormValues {
 const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation('auth');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Get the redirect path from location state (set by ProtectedRoute)
+  const redirectPath = (location.state as any)?.from || '/dashboard';
 
   // SEO: Update meta tags for login page
   useSEO(PAGE_SEO_CONFIGS.login);
@@ -51,7 +55,8 @@ const LoginPage: React.FC = () => {
 
     try {
       await login(values);
-      navigate('/dashboard');
+      // Navigate to the originally intended page or dashboard
+      navigate(redirectPath, { replace: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : t('login.error');
       setError(message);
@@ -76,6 +81,13 @@ const LoginPage: React.FC = () => {
             </Title>
             <Text type="secondary">{t('login.loginSubtitle')}</Text>
           </div>
+
+          {/* Show message if redirected from a protected page */}
+          {redirectPath !== '/dashboard' && (
+            <Message type="warning">
+              请登录以访问您请求的页面
+            </Message>
+          )}
 
           {error && (
             <Message type="error">

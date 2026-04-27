@@ -5,6 +5,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Spin } from '@arco-design/web-react';
+import { Navigate, useLocation } from 'react-router-dom';
 
 // Types
 interface User {
@@ -343,6 +344,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   const { isAuthenticated, isLoading } = useAuth();
+  const location = useLocation();
 
   if (isLoading) {
     return (
@@ -353,24 +355,12 @@ export function ProtectedRoute({ children, fallback }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <>{fallback || <NavigateToLogin />}</>;
+    // Use React Router's Navigate component for smooth redirection
+    // Pass the current path as redirect param so user returns after login
+    return fallback ? <>{fallback}</> : <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;
-}
-
-// Helper component to navigate to login
-function NavigateToLogin() {
-  const [navigated, setNavigated] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!navigated) {
-      setNavigated(true);
-      window.location.href = '/login';
-    }
-  }, [navigated]);
-
-  return null;
 }
 
 export default useAuth;
