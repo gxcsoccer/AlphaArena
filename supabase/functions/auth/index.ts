@@ -39,7 +39,7 @@ function base64UrlEncode(str: string): string {
   return btoa(str).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 }
 
-function generateJWT(payload: any, secret: string, expiresIn: string): string {
+async function generateJWT(payload: any, secret: string, expiresIn: string): Promise<string> {
   const header = { alg: 'HS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
   const exp = now + parseExpiresIn(expiresIn);
@@ -49,7 +49,7 @@ function generateJWT(payload: any, secret: string, expiresIn: string): string {
   const encodedHeader = base64UrlEncode(JSON.stringify(header));
   const encodedPayload = base64UrlEncode(JSON.stringify(jwtPayload));
   
-  const signature = hmacSha256(`${encodedHeader}.${encodedPayload}`, secret);
+  const signature = await hmacSha256(`${encodedHeader}.${encodedPayload}`, secret);
   
   return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
@@ -264,7 +264,7 @@ Deno.serve(async (req: Request) => {
       console.log(`User registered: ${user.email}`);
 
       // Generate tokens
-      const accessToken = generateJWT(
+      const accessToken = await generateJWT(
         { userId: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         JWT_EXPIRES_IN
@@ -399,7 +399,7 @@ Deno.serve(async (req: Request) => {
         .eq('id', user.id);
 
       // Generate tokens
-      const accessToken = generateJWT(
+      const accessToken = await generateJWT(
         { userId: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         JWT_EXPIRES_IN
@@ -498,7 +498,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // Generate new access token
-      const accessToken = generateJWT(
+      const accessToken = await generateJWT(
         { userId: user.id, email: user.email, role: user.role },
         JWT_SECRET,
         JWT_EXPIRES_IN
