@@ -6,7 +6,8 @@
     "create": "ストラテジー作成",
     "search": "ストラテジーを検索",
     "filter": "フィルター",
-    "noResults": "ストラテジーが見つかりません"
+    "noResults": "ストラテジーが見つかりません",
+    "loadError": "読み込みエラー"
   },
   "detail": {
     "title": "ストラテジー詳細",
