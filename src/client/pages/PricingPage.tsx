@@ -85,7 +85,7 @@ const PricingPage: React.FC = () => {
       const apiUrl = config.apiUrl;
       if (!apiUrl) {
         console.error('[PricingPage] VITE_API_URL not configured');
-        N(false);
+        setLoading(false);
         return;
       }
       const response = await fetch(`${apiUrl}/subscription/plans`);

@@ -51,13 +51,17 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const config = validateConfig();
   // Use config.apiUrl - no hardcoded fallbacks
   const apiUrl = config.apiUrl;
-  if (!apiUrl) {
-    console.error('[useSubscription] VITE_API_URL not configured');
-    return null;
-  }
 
   // Fetch subscription data
   const refresh = useCallback(async () => {
+    // Handle missing API URL gracefully
+    if (!apiUrl) {
+      console.error('[useSubscription] VITE_API_URL not configured');
+      setError(new Error('API URL not configured. Please set VITE_API_URL environment variable.'));
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
