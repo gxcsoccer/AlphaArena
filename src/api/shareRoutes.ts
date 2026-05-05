@@ -97,7 +97,11 @@ router.post('/referral', authMiddleware, async (req: Request, res: Response) => 
     const referralCode = await referralDAO.getOrCreateReferralCode(req.user.id);
 
     // Generate share URL with referral code
-    const baseUrl = process.env.BASE_URL || 'https://alphaarena.app';
+    // Get base URL from environment - no hardcoded fallbacks
+    const baseUrl = process.env.BASE_URL || process.env.FRONTEND_URL || '';
+    if (!baseUrl) {
+      return res.status(500).json({ error: 'BASE_URL or FRONTEND_URL not configured' });
+    }
     const shareUrl = `${baseUrl}/register?ref=${referralCode.code}&utm_source=${platform}&utm_medium=referral&utm_campaign=share`;
 
     // Record the share event

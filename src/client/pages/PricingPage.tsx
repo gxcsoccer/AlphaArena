@@ -81,7 +81,13 @@ const PricingPage: React.FC = () => {
     setLoading(true);
     try {
       // Use Supabase Edge Function URL directly (Vercel rewrites don't work for external URLs)
-      const apiUrl = config.apiUrl || 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1';
+      // Use config.apiUrl - no hardcoded fallbacks
+      const apiUrl = config.apiUrl;
+      if (!apiUrl) {
+        console.error('[PricingPage] VITE_API_URL not configured');
+        setLoading(false);
+        return;
+      }
       const response = await fetch(`${apiUrl}/subscription/plans`);
       if (response.ok) {
         const data = await response.json();

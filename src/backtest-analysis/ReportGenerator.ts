@@ -90,7 +90,11 @@ export class ReportGenerator {
     // 3. Return the shareable URL
 
     // For now, we'll generate a mock share link
-    const baseUrl = process.env.BASE_URL || 'https://alphaarena.app';
+    // Get base URL from environment - no hardcoded fallbacks
+    const baseUrl = process.env.BASE_URL || process.env.FRONTEND_URL || '';
+    if (!baseUrl) {
+      console.warn('[ReportGenerator] BASE_URL not configured, using relative URLs');
+    }
     const link = `${baseUrl}/share/${shareId}`;
 
     return {
