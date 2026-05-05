@@ -6,7 +6,8 @@
     "create": "Create Strategy",
     "search": "Search strategies",
     "filter": "Filter",
-    "noResults": "No strategies found"
+    "noResults": "No strategies found",
+    "loadError": "Failed to load"
   },
   "detail": {
     "title": "Strategy Detail",

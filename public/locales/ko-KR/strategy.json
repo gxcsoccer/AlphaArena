@@ -6,7 +6,8 @@
     "create": "전략 생성",
     "search": "전략 검색",
     "filter": "필터",
-    "noResults": "전략을 찾을 수 없습니다"
+    "noResults": "전략을 찾을 수 없습니다",
+    "loadError": "로드 실패"
   },
   "detail": {
     "title": "전략 상세",

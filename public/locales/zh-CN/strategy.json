@@ -6,7 +6,8 @@
     "create": "创建策略",
     "search": "搜索策略",
     "filter": "筛选",
-    "noResults": "暂无策略"
+    "noResults": "暂无策略",
+    "loadError": "加载失败"
   },
   "detail": {
     "title": "策略详情",
