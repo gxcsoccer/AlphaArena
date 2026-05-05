@@ -3,6 +3,10 @@
  * 
  * Validates required environment variables at app startup
  * and provides helpful error messages if they're missing.
+ * 
+ * IMPORTANT: All URLs must be configured via environment variables.
+ * NO hardcoded fallback URLs allowed - this prevents deployment issues
+ * where different environments need different URLs.
  */
 
 export interface AppConfig {
@@ -20,6 +24,10 @@ export interface AppConfig {
  * Note: Vite replaces import.meta.env.VITE_* at build time.
  * If these are empty in production, it means the environment
  * variables were not set during the Vercel build.
+ * 
+ * IMPORTANT: We do NOT provide hardcoded fallback URLs.
+ * All URLs MUST be configured via environment variables to prevent
+ * cross-environment connection issues.
  */
 export function validateConfig(): AppConfig {
   const missingVars: string[] = [];
@@ -30,7 +38,7 @@ export function validateConfig(): AppConfig {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
   
-  // Check required variables
+  // ALL variables are now required - no hardcoded fallbacks
   if (!supabaseUrl) {
     missingVars.push('VITE_SUPABASE_URL');
   }
@@ -39,19 +47,20 @@ export function validateConfig(): AppConfig {
     missingVars.push('VITE_SUPABASE_ANON_KEY');
   }
   
-  // API URL is optional (has fallback)
-  // WebSocket URL is optional (has fallback)
+  if (!apiUrl) {
+    missingVars.push('VITE_API_URL');
+  }
   
-  // Default API URL to Supabase Edge Functions (not localhost!)
-  // This ensures production builds work even if VITE_API_URL is missing
-  const defaultSupabaseUrl = 'https://plnylmnckssnfpwznpwf.supabase.co';
-  const defaultApiUrl = `${defaultSupabaseUrl}/functions/v1`;
+  // WebSocket URL is optional (only needed for legacy WebSocket features)
+  
+  // Construct API URL from Supabase URL if not provided separately
+  const finalApiUrl = apiUrl || (supabaseUrl ? `${supabaseUrl}/functions/v1` : '');
   
   return {
-    apiUrl: apiUrl || defaultApiUrl,
-    wsUrl: wsUrl || 'ws://localhost:3001',
-    supabaseUrl: supabaseUrl || defaultSupabaseUrl,
-    supabaseAnonKey,
+    apiUrl: finalApiUrl,
+    wsUrl: wsUrl,  // Empty if not configured - features will gracefully degrade
+    supabaseUrl: supabaseUrl,
+    supabaseAnonKey: supabaseAnonKey,
     isConfigured: missingVars.length === 0,
     missingVars,
   };

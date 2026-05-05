@@ -12,10 +12,11 @@
 
 import { SupportedLanguage, DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '../i18n';
 
-// Site configuration
+// Site configuration - MUST use environment variable or actual origin
+// NO hardcoded fallback URLs to prevent cross-environment issues
 export const SITE_URL = typeof window !== 'undefined' 
-  ? window.location.origin 
-  : (import.meta.env.VITE_SITE_URL || 'https://alphaarena.app');
+  ? window.location.origin  // Use actual origin in browser
+  : (import.meta.env.VITE_SITE_URL || '');  // Empty in SSR - will be set at runtime
 
 // Supported languages for hreflang
 const HREFLANG_MAP: Record<string, string> = {

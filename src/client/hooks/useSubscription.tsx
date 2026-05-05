@@ -49,7 +49,12 @@ export function SubscriptionProvider({ children }: { children: React.ReactNode }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const config = validateConfig();
-  const apiUrl = config.apiUrl || 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1';
+  // Use config.apiUrl - no hardcoded fallbacks
+  const apiUrl = config.apiUrl;
+  if (!apiUrl) {
+    console.error('[useSubscription] VITE_API_URL not configured');
+    return null;
+  }
 
   // Fetch subscription data
   const refresh = useCallback(async () => {

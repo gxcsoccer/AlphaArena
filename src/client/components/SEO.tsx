@@ -7,6 +7,7 @@
 
 import React from 'react';
 import { useSEO, SEOConfig } from '../hooks/useSEO';
+import { SITE_URL } from '../utils/seo';
 
 /**
  * Props for the SEO component
@@ -66,6 +67,7 @@ export function SEO({
  * Breadcrumb structured data generator
  */
 export function generateBreadcrumbStructuredData(items: { name: string; url: string }[]): object {
+  const baseUrl = SITE_URL || window.location.origin;
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -73,7 +75,7 @@ export function generateBreadcrumbStructuredData(items: { name: string; url: str
       '@type': 'ListItem',
       position: index + 1,
       name: item.name,
-      item: `https://alphaarena.app${item.url}`,
+      item: `${baseUrl}${item.url}`,
     })),
   };
 }
@@ -164,6 +166,7 @@ export function generateArticleStructuredData(data: {
   dateModified?: string;
   image?: string;
 }): object {
+  const baseUrl = SITE_URL || window.location.origin;
   return {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -179,7 +182,7 @@ export function generateArticleStructuredData(data: {
     publisher: {
       '@type': 'Organization',
       name: 'AlphaArena',
-      url: 'https://alphaarena.app',
+      url: baseUrl,
     },
   };
 }
