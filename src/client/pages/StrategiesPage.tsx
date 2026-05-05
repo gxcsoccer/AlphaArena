@@ -24,7 +24,7 @@ interface StrategyFormValues {
 }
 
 const StrategiesPage: React.FC = () => {
-  const { strategies, loading, refresh } = useStrategies();
+  const { strategies, loading, error, refresh } = useStrategies();
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
@@ -258,6 +258,19 @@ const StrategiesPage: React.FC = () => {
             {loading ? (
               <Card style={{ textAlign: 'center', padding: 24 }} className="chart-card">
                 <Text type="secondary">{t('common:button.loading')}</Text>
+              </Card>
+            ) : error ? (
+              <Card style={{ textAlign: 'center', padding: 24 }} className="chart-card">
+                <Text type="error">{t('list.loadError')}: {error}</Text>
+                <Button 
+                  type="primary" 
+                  icon={<IconRefresh />} 
+                  onClick={refresh}
+                  size="small"
+                  style={{ marginTop: 12 }}
+                >
+                  {t('common:button.retry')}
+                </Button>
               </Card>
             ) : filteredStrategies.length === 0 ? (
               <Card style={{ textAlign: 'center', padding: 24 }} className="chart-card">
@@ -498,16 +511,31 @@ const StrategiesPage: React.FC = () => {
           bodyStyle={isTablet ? { padding: 12 } : undefined}
           className="chart-card"
         >
-          <div className={isTablet ? 'mobile-table-container' : ''}>
-            <Table
-              columns={strategyColumns}
-              dataSource={filteredStrategies}
-              rowKey="id"
-              loading={loading}
-              pagination={{ pageSize: isTablet ? 10 : 20 }}
-              scroll={isTablet ? { x: 1000 } : undefined}
-            />
-          </div>
+          {error ? (
+            <div style={{ textAlign: 'center', padding: 24 }}>
+              <Text type="error">{t('list.loadError')}: {error}</Text>
+              <Button 
+                type="primary" 
+                icon={<IconRefresh />} 
+                onClick={refresh}
+                size="small"
+                style={{ marginTop: 12 }}
+              >
+                {t('common:button.retry')}
+              </Button>
+            </div>
+          ) : (
+            <div className={isTablet ? 'mobile-table-container' : ''}>
+              <Table
+                columns={strategyColumns}
+                dataSource={filteredStrategies}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: isTablet ? 10 : 20 }}
+                scroll={isTablet ? { x: 1000 } : undefined}
+              />
+            </div>
+          )}
         </Card>
 
         {/* Strategy Details Drawer */}
