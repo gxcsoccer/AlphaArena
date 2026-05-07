@@ -1,0 +1,18 @@
+web:
+  # NOTE: alphaarena.com and alphaarena.app domains are not configured to point to Vercel
+  # Using Vercel project URL for testing. Network connectivity issues in China may cause failures.
+  # Updated to correct production URL (verified via vercel project ls)
+  url: "https://alphaarena-eight.vercel.app"
+
+tasks:
+  - name: "首页验证"
+    flow:
+      - aiAssert: "页面显示了 AlphaArena 品牌名称或 logo"
+  - name: "策略列表页面验证"
+    flow:
+      - ai: "导航到 /strategies 页面"
+      - aiAssert: "策略列表页面正常加载，没有报错信息"
+  - name: "实盘回测对比页面验证"
+    flow:
+      - ai: "导航到 /comparison/live-backtest 页面"
+      - aiAssert: "实盘回测对比页面正常加载，没有报错信息"
