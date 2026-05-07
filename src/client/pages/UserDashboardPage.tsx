@@ -25,7 +25,6 @@ import {
   IconDashboard,
   IconApps,
   IconSwap,
-  IconDashboard,
   IconDownload,
   IconSearch,
   IconRefresh,
