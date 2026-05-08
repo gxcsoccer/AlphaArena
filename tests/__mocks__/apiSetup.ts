@@ -1,3 +1,11 @@
+// Configure React Testing Library for React 18
+import { configure } from '@testing-library/react';
+
+// Suppress React 18 act warnings - Arco Design form updates trigger async state changes
+configure({
+  reactStrictMode: false,
+});
+
 // Mock Arco Design icons - create simple mock components
 jest.mock('@arco-design/web-react/icon', () => {
   const React = require('react');
