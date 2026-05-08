@@ -6,6 +6,9 @@ import request from 'supertest';
 import express from 'express';
 import shareRoutes from '../shareRoutes';
 
+// Set required environment variables before importing routes
+process.env.BASE_URL = 'https://alphaarena.app';
+
 // Mock the DAOs
 jest.mock('../../database/share-stats.dao', () => ({
   getShareStatsDAO: jest.fn(() => ({
