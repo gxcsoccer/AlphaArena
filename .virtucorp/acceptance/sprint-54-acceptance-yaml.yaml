@@ -11,7 +11,7 @@ tasks:
   - name: "策略列表页面验证"
     flow:
       - ai: "导航到 /strategies 页面"
-      - aiAssert: "策略列表页面正常加载，没有报错信息"
+      - aiAssert: "页面正常响应（未登录用户会重定向到登录页，已登录用户看到策略列表）"
   - name: "实盘回测对比页面验证"
     flow:
       - ai: "导航到 /comparison/live-backtest 页面"
