@@ -11,7 +11,7 @@ tasks:
   - name: "Landing Page - Basic Checks"
     flow:
       - sleep: 2000
-      - aiAssert: "页面标题包含 AlphaArena 或专业级算法交易相关文字"
+      - aiAssert: "页面标题包含 APL 或专业级算法交易相关文字"
       - aiAssert: "页面有'免费注册'或 'Sign Up' 按钮"
       - aiAssert: "页面没有显示红色错误弹窗或白屏"
 

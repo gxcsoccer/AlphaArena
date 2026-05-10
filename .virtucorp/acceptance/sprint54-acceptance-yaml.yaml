@@ -8,7 +8,7 @@ tasks:
     flow:
       - ai: "打开首页"
       - aiWaitFor: "页面加载完成"
-      - aiAssert: "页面显示了 AlphaArena 的标题或品牌标识"
+      - aiAssert: "页面显示了 APL 的标题或品牌标识"
       - aiAssert: "页面布局正常，没有显示错误信息"
   - name: "策略列表页面测试"
     flow:
