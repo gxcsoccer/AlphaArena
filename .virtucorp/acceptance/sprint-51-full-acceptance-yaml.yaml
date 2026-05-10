@@ -7,7 +7,7 @@ tasks:
   - name: "1. Homepage Basic"
     flow:
       - sleep: 2000
-      - aiAssert: "Homepage shows AlphaArena logo and navigation"
+      - aiAssert: "Homepage shows APL logo and navigation"
   - name: "2. i18n Switch to English"
     flow:
       - sleep: 2000
