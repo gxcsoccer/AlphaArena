@@ -12,12 +12,12 @@ tasks:
     flow:
       - sleep: 2000
       - aiAssert: "页面标题包含 APL 或专业级算法交易相关文字"
-      - aiAssert: "页面有'免费注册'或 'Sign Up' 按钮"
+      - aiAssert: "页面有注册按钮（可能是'免费注册'、'Sign Up Free'、'Sign Up' 或 'Get Started'）"
       - aiAssert: "页面没有显示红色错误弹窗或白屏"
 
   - name: "Navigation - Sign Up"
     flow:
-      - ai: "点击'免费注册'或 'Sign Up' 按钮"
+      - ai: "点击注册按钮（'免费注册'、'Sign Up Free'、'Sign Up' 或 'Get Started'）"
       - sleep: 1500
       - aiAssert: "页面显示注册表单"
 
