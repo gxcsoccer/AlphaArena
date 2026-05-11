@@ -31,6 +31,7 @@ import ThemeToggle from './components/ThemeToggle';
 import SettingsPanel from './components/SettingsPanel';
 import NotificationCenter from './components/NotificationCenter';
 import { LanguageSwitcher } from './components/LanguageSwitcher'; // Issue #586
+import { LocaleProvider } from './i18n/LocaleProvider'; // Issue #768: P0 fix - wrap app with LocaleProvider
 import OfflineIndicator from './components/OfflineIndicator';
 import InstallPrompt from './components/InstallPrompt'; // Issue #628: PWA 安装提示
 import MobileBottomNav from './components/MobileBottomNav';
@@ -698,22 +699,25 @@ function App() {
     <SettingsProvider>
       <ConnectionProvider>
         <RealtimeConnectionSync />
-        <BrowserRouter>
-          <RouteRestorer />
-          <AppLayout>
-            <AppRoutes />
-          </AppLayout>
-          {/* Error reporter panel - shown when errors are captured */}
-          {hasErrors && (
-            <Suspense fallback={null}>
-              <ErrorReporterPanel
-                errors={errors}
-                onClear={clearErrors}
-                visible={process.env.NODE_ENV === 'development'}
-              />
-            </Suspense>
-          )}
-        </BrowserRouter>
+        {/* Issue #768: P0 fix - LocaleProvider wraps the entire app so LanguageSwitcher works on all pages */}
+        <LocaleProvider>
+          <BrowserRouter>
+            <RouteRestorer />
+            <AppLayout>
+              <AppRoutes />
+            </AppLayout>
+            {/* Error reporter panel - shown when errors are captured */}
+            {hasErrors && (
+              <Suspense fallback={null}>
+                <ErrorReporterPanel
+                  errors={errors}
+                  onClear={clearErrors}
+                  visible={process.env.NODE_ENV === 'development'}
+                />
+              </Suspense>
+            )}
+          </BrowserRouter>
+        </LocaleProvider>
       </ConnectionProvider>
     </SettingsProvider>
     </SubscriptionProvider>
