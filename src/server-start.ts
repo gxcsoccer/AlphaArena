@@ -18,13 +18,16 @@ console.log(`[Startup] Starting AlphaArena API server on port ${PORT}...`);
 const server = new APIServer({
   port: PORT,
   corsOrigin: [
-    'https://alphaarena-production.up.railway.app',
-    'https://alphaarena.vercel.app',
-    'https://alphaarena-eight.vercel.app',
-    'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app',
-    'https://*.vercel.app',
-    'http://localhost:3000',
-    'http://localhost:5173',
+    'https://alphaarena.app', // Production domain (when DNS is fixed)
+    'https://alphaarena.com', // Alternative production domain
+    'https://www.alphaarena.com', // Production domain with www
+    'https://alphaarena.vercel.app', // Vercel production
+    'https://alphaarena-eight.vercel.app', // Vercel production deployment
+    'https://alphaarena-gxcsoccer-s-team.vercel.app', // Vercel team deployment
+    'https://alphaarena-git-main-gxcsoccer-s-team.vercel.app', // Vercel main branch deployment
+    'https://*.vercel.app', // Wildcard for all Vercel deployments
+    'http://localhost:3000', // Local development
+    'http://localhost:5173', // Vite dev server
   ],
 });
 

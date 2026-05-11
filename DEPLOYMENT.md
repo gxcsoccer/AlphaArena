@@ -35,7 +35,10 @@ Supabase Edge Functions 基于 Deno，不支持长时间运行的 Node.js 服务
 | Variable Name | Development | Production |
 |--------------|-------------|------------|
 | `VITE_API_URL` | `http://localhost:3001` | `https://plnylmnckssnfpwznpwf.supabase.co/functions/v1` |
-| `VITE_WS_URL` | `ws://localhost:3001` | `wss://alphaarena-production.up.railway.app` |
+| `VITE_SUPABASE_URL` | `https://plnylmnckssnfpwznpwf.supabase.co` | `https://plnylmnckssnfpwznpwf.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | (从 Supabase Dashboard) | (从 Supabase Dashboard) |
+
+**注意**：WebSocket 功能已迁移至 Supabase Realtime，无需配置独立的 WebSocket URL。
 
 ### Supabase 环境变量
 
