@@ -982,16 +982,21 @@ export class RealtimeClient {
       
       // Check for Cloudflare/infrastructure error patterns in response body
       // Cloudflare errors like "error code: 1101" can be returned with HTTP 200
+      // Use precise patterns to avoid false positives (e.g., timestamps, JSON numbers)
       const isInfraErrorInBody = responseText.includes('error code: 1101') ||
                                   responseText.includes('Worker threw exception') ||
                                   responseText.includes('Cloudflare') ||
                                   responseText.includes('Error 1101') ||
+                                  responseText.includes('Error 520') ||
+                                  responseText.includes('Error 521') ||
                                   responseText.includes('Error 522') ||
+                                  responseText.includes('Error 523') ||
                                   responseText.includes('Error 524') ||
-                                  responseText.includes('520') ||
-                                  responseText.includes('521') ||
-                                  responseText.includes('523') ||
-                                  responseText.includes('524');
+                                  responseText.includes('520 Web server') ||
+                                  responseText.includes('521 Web server') ||
+                                  responseText.includes('522 Connection timed out') ||
+                                  responseText.includes('523 Origin is unreachable') ||
+                                  responseText.includes('524 A timeout');
       
       if (response.ok && !isInfraErrorInBody) {
         this.serviceHealth.status = 'healthy';
@@ -1004,8 +1009,7 @@ export class RealtimeClient {
         };
       } else {
         // It's an infrastructure error (either HTTP error or error in body)
-        const isInfraError = isInfraErrorInBody || 
-                            responseText.includes('Cloudflare') || 
+        const isInfraError = isInfraErrorInBody ||
                             response.status >= 520;
         
         const message = isInfraError
