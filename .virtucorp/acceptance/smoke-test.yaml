@@ -1,7 +1,9 @@
 web:
   # NOTE: alphaarena.com and alphaarena.app domains are not configured to point to Vercel
-  # Using Vercel project URL for testing. Network connectivity issues in China may cause failures.
-  url: "https://alphaarena.vercel.app"
+  # Using the correct Vercel project URL for testing. Network connectivity issues in China may cause failures.
+  # Issue #778: Fixed URL - the correct AlphaArena project URL is alphaarena-eight.vercel.app
+  # alphaarena.vercel.app points to a different project (APL/BLACKROSE)
+  url: "https://alphaarena-eight.vercel.app"
   # waitForNetworkIdle configuration for apps with WebSocket connections
   waitForNetworkIdle:
     timeout: 10000
@@ -11,7 +13,7 @@ tasks:
   - name: "Landing Page - Basic Checks"
     flow:
       - sleep: 2000
-      - aiAssert: "页面标题包含 APL 或专业级算法交易相关文字"
+      - aiAssert: "页面标题包含 AlphaArena 或专业级算法交易相关文字"
       - aiAssert: "页面有注册按钮（可能是'免费注册'、'Sign Up Free'、'Sign Up' 或 'Get Started'）"
       - aiAssert: "页面没有显示红色错误弹窗或白屏"
 

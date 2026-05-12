@@ -1,7 +1,8 @@
 web:
   # NOTE: alphaarena.com and alphaarena.app domains are not configured to point to Vercel
-  # Using Vercel project URL for testing. Network connectivity issues in China may cause failures.
-  url: "https://alphaarena.vercel.app"
+  # Using the correct Vercel project URL for testing. Network connectivity issues in China may cause failures.
+  # Issue #778: Fixed URL - alphaarena.vercel.app points to a different project
+  url: "https://alphaarena-eight.vercel.app"
 
 tasks:
   - name: "首页验证"
