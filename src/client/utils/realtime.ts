@@ -977,7 +977,28 @@ export class RealtimeClient {
         },
       });
 
-      if (response.ok) {
+      // Read response body to detect Cloudflare errors (can be HTTP 200 with error body)
+      const responseText = await response.text().catch(() => '');
+      
+      // Check for Cloudflare/infrastructure error patterns in response body
+      // Cloudflare errors like "error code: 1101" can be returned with HTTP 200
+      // Use precise patterns to avoid false positives (e.g., timestamps, JSON numbers)
+      const isInfraErrorInBody = responseText.includes('error code: 1101') ||
+                                  responseText.includes('Worker threw exception') ||
+                                  responseText.includes('Cloudflare') ||
+                                  responseText.includes('Error 1101') ||
+                                  responseText.includes('Error 520') ||
+                                  responseText.includes('Error 521') ||
+                                  responseText.includes('Error 522') ||
+                                  responseText.includes('Error 523') ||
+                                  responseText.includes('Error 524') ||
+                                  responseText.includes('520 Web server') ||
+                                  responseText.includes('521 Web server') ||
+                                  responseText.includes('522 Connection timed out') ||
+                                  responseText.includes('523 Origin is unreachable') ||
+                                  responseText.includes('524 A timeout');
+      
+      if (response.ok && !isInfraErrorInBody) {
         this.serviceHealth.status = 'healthy';
         this.serviceHealth.errorMessage = null;
         this.notifyHealthListeners();
@@ -987,10 +1008,8 @@ export class RealtimeClient {
           message: 'Realtime service is healthy',
         };
       } else {
-        // Check if it's a Cloudflare/infrastructure error
-        const responseText = await response.text().catch(() => '');
-        const isInfraError = responseText.includes('Cloudflare') || 
-                            responseText.includes('Worker threw exception') ||
+        // It's an infrastructure error (either HTTP error or error in body)
+        const isInfraError = isInfraErrorInBody ||
                             response.status >= 520;
         
         const message = isInfraError
@@ -1002,6 +1021,11 @@ export class RealtimeClient {
         this.serviceHealth.status = 'down';
         this.serviceHealth.errorMessage = message;
         this.notifyHealthListeners();
+        
+        console.warn('[RealtimeClient] Realtime health check failed:', message);
+        if (isInfraErrorInBody) {
+          console.warn('[RealtimeClient] Response body:', responseText.trim());
+        }
         
         return {
           healthy: false,
