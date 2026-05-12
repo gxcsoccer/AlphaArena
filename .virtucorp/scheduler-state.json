@@ -1,8 +1,8 @@
 {
   "lastDispatch": {
-    "digestHash": "spawn_dev_bugfix|bug:771|prs:0|ready:1|complete",
-    "timestamp": 1778542996793,
-    "consecutiveCount": 7
+    "digestHash": "spawn_qa|prs:1|ready:1|complete",
+    "timestamp": 1778593997548,
+    "consecutiveCount": 1
   },
   "highWaterMark": 54,
   "paused": false,
