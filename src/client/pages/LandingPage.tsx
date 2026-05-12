@@ -333,26 +333,22 @@ const LandingPage: React.FC = () => {
         <div className="landing-header__actions">
           <LanguageSwitcher compact={isMobile} />
           <ThemeToggle compact={isMobile} />
-          {!isMobile && (
-            <>
-              <Button
-                type="text"
-                size="small"
-                onClick={() => navigate('/login')}
-                className="landing-header__login"
-              >
-                {t('common:button.login')}
-              </Button>
-              <Button
-                type="primary"
-                size="small"
-                onClick={handleRegister}
-                className="landing-header__register"
-              >
-                {t('common:button.register')}
-              </Button>
-            </>
-          )}
+          <Button
+            type="text"
+            size="small"
+            onClick={() => navigate('/login')}
+            className="landing-header__login"
+          >
+            {t('common:button.login')}
+          </Button>
+          <Button
+            type="primary"
+            size="small"
+            onClick={handleRegister}
+            className="landing-header__register"
+          >
+            {t('common:button.register')}
+          </Button>
         </div>
       </header>
 
