@@ -77,8 +77,8 @@ All errors follow a consistent format:
         description: 'Current server (relative path)',
       },
       {
-        url: 'https://alphaarena-production.up.railway.app/api',
-        description: 'Production server',
+        url: 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1',
+        description: 'Production server (Supabase Edge Functions)',
       },
       {
         url: 'http://localhost:3001/api',

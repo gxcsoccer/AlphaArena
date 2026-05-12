@@ -11,7 +11,7 @@
  *   
  *   const client = new AlphaArenaClient({
  *     apiKey: 'aa_live_xxxxx',
- *     baseUrl: 'https://alphaarena-production.up.railway.app'
+ *     baseUrl: 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1'
  *   });
  *   
  *   // Get account info
@@ -262,7 +262,7 @@ export class AlphaArenaClient {
     this.apiKey = config.apiKey;
     
     const axiosConfig: AxiosRequestConfig = {
-      baseURL: config.baseUrl || 'https://alphaarena-production.up.railway.app',
+      baseURL: config.baseUrl || 'https://plnylmnckssnfpwznpwf.supabase.co/functions/v1',
       timeout: config.timeout || 30000,
       headers: {
         'X-API-Key': this.apiKey,

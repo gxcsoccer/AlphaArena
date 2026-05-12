@@ -125,15 +125,18 @@ export interface APIServerConfig {
 }
 
 // Allowed origins for CORS
+// Note: Railway backend has been decommissioned - using Vercel + Supabase Edge Functions
 const ALLOWED_ORIGINS = [
-  'https://alphaarena-production.up.railway.app', // Backend itself
+  'https://alphaarena.app', // Production domain (when DNS is fixed)
+  'https://alphaarena.com', // Alternative production domain
+  'https://www.alphaarena.com', // Production domain with www
   'https://alphaarena.vercel.app', // Vercel production
   'https://alphaarena-eight.vercel.app', // Vercel production deployment
-  'https://alphaarena-hymr9xflt-gxcsoccer-s-team.vercel.app', // Vercel preview deployments
+  'https://alphaarena-gxcsoccer-s-team.vercel.app', // Vercel team deployment
+  'https://alphaarena-git-main-gxcsoccer-s-team.vercel.app', // Vercel main branch deployment
   'http://localhost:3000', // Local development
   'http://localhost:5173', // Vite dev server
   'https://*.vercel.app', // Wildcard for all Vercel deployments
-  'https://alpha-arena-*.vercel.app', // Wildcard for alpha-arena-* Vercel deployments
 ];
 
 /**
