@@ -12,11 +12,12 @@
 在 Vercel Dashboard → Settings → Environment Variables 中确认：
 
 - [ ] `VITE_API_URL` = `https://plnylmnckssnfpwznpwf.supabase.co/functions/v1`
-- [ ] `VITE_WS_URL` = `wss://alphaarena-production.up.railway.app`
 - [ ] `VITE_SUPABASE_URL` = `https://plnylmnckssnfpwznpwf.supabase.co`
 - [ ] `VITE_SUPABASE_ANON_KEY` = (从 Supabase Dashboard 获取)
 
 **重要**：确保这些变量在 **Production** 环境中设置，并且标记为 **Build** 变量。
+
+**注意**：WebSocket 功能已迁移至 Supabase Realtime，不再需要独立的 WebSocket 服务器。
 
 ### 3. Supabase 服务状态
 - [ ] Supabase 项目状态正常
@@ -24,10 +25,10 @@
 - [ ] 数据库迁移已应用
 - [ ] RLS (Row Level Security) 策略已配置
 
-### 4. Railway WebSocket 服务
-- [ ] WebSocket 服务正在运行
-- [ ] 健康检查端点响应正常
-- [ ] 连接数和资源使用在正常范围
+### 4. Supabase Realtime 服务
+- [ ] Supabase Realtime 正常工作
+- [ ] Broadcast channels 配置正确
+- [ ] Presence 功能正常
 
 ### 5. 依赖项检查
 - [ ] `package-lock.json` 已更新
