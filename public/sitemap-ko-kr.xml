@@ -2,49 +2,49 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://alphaarena.app/?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/landing?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/register?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/login?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/leaderboard?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/subscription?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/docs/api?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://alphaarena.app/marketplace?lang=ko-KR</loc>
-    <lastmod>2026-05-12</lastmod>
+    <lastmod>2026-05-13</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>

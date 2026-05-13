@@ -269,7 +269,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               情绪
             </MenuItem>
             <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem" data-onboarding="strategies-nav">
-              Strategies
+              策略列表
             </MenuItem>
             <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
               Trades
@@ -445,7 +445,7 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             情绪
           </MenuItem>
           <MenuItem key="/strategies" icon={<IconApps aria-hidden="true" />} role="menuitem" data-onboarding="strategies-nav">
-            Strategies
+            策略列表
           </MenuItem>
           <MenuItem key="/trades" icon={<IconSwap aria-hidden="true" />} role="menuitem">
             Trades
