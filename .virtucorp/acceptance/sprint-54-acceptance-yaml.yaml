@@ -7,7 +7,7 @@ web:
 tasks:
   - name: "首页验证"
     flow:
-      - aiAssert: "页面显示了 APL 品牌名称或 logo"
+      - aiAssert: "页面显示了 AlphaArena 品牌名称或 logo"
   - name: "策略列表页面验证"
     flow:
       - ai: "导航到 /strategies 页面"
