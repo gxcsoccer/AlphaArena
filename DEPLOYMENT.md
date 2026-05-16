@@ -73,6 +73,14 @@ vercel --prod
 2. 查看 Console 中的错误信息
 3. 检查 Network 标签中的 API 请求是否成功
 
+### DNS 配置问题（页面显示占位页）
+
+如果页面显示 "We're under construction" 或其他占位内容：
+
+1. 检查 DNS 解析：`dig alphaarena.app +short`
+2. 如果返回 Squarespace IP（198.49.23.* 或 198.185.159.*），说明 DNS 指向错误
+3. 参考详细解决方案：[DNS_CONFIGURATION.md](./docs/deployment/DNS_CONFIGURATION.md)
+
 ### API 请求失败
 
 - 确认 `VITE_API_URL` 配置正确（应为 Supabase Functions URL）

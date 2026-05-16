@@ -44,6 +44,13 @@ npm run build
 - [ ] Bundle 大小合理（主要 chunks < 1MB）
 - [ ] 无意外的敏感信息泄露
 
+### 7. DNS 配置验证
+- [ ] DNS 解析指向 Vercel IP：`dig alphaarena.app +short` 应返回 76.76.21.21
+- [ ] Vercel Dashboard → Domains 显示绿色状态（DNS 配置正确）
+- [ ] 如果 DNS 配置不正确，参考 [DNS_CONFIGURATION.md](./DNS_CONFIGURATION.md)
+
+**重要**: DNS 配置错误会导致用户看到占位页而非应用，详见 Issue #790。
+
 ---
 
 ## 部署执行 (Deployment)
