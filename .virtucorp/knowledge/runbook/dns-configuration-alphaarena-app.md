@@ -1,35 +1,51 @@
 # dns-configuration-alphaarena-app
 
-_Saved: 2026-05-14_
+_Saved: 2026-05-19_
 
-# DNS Configuration Issue - alphaarena.app
+# DNS Configuration for alphaarena.app
 
-## Problem
-访问 https://alphaarena.app 显示 Squarespace "Coming Soon" 占位页面，应用完全不可用。
+## Issue (May 2026)
+
+The domain `alphaarena.app` was showing a Squarespace "Under Construction" page instead of the AlphaArena application.
 
 ## Root Cause
-DNS A 记录指向 Squarespace IP，而非 Vercel。
 
-## Diagnosis Steps
-1. 检查 HTTP 响应头: `curl -sI https://alphaarena.app` → `server: Squarespace`
-2. 检查 DNS A 记录: `dig alphaarena.app +short` → 返回 Squarespace IPs
-3. 验证 Vercel 部署: `vercel list --prod` → 部署正常
-4. 测试 Vercel 原始域名: `curl https://alphaarena-gxcsoccer-s-team.vercel.app` → 返回正确内容
+DNS was pointing to Squarespace instead of Vercel:
+- **Current A records**: `198.185.159.144`, `198.49.23.145` (Squarespace IPs)
+- **Expected A record**: `76.76.21.21` (Vercel IP)
+- **Current Nameservers**: `ns-cloud-a*.googledomains.com` (Google Domains)
+- **Expected Nameservers**: `ns1.vercel-dns.com`, `ns2.vercel-dns.com` (Vercel)
 
-## Solution
-在 Google Domains 控制面板更新 DNS A 记录：
+## Solution Options
 
+### Option A (Recommended - Faster)
+Update DNS at Google Domains:
+1. Add A record: `@ → 76.76.21.21`
+2. Add CNAME: `www → cname.vercel-dns.com`
+
+### Option B
+Change nameservers at Google Domains to:
+- `ns1.vercel-dns.com`
+- `ns2.vercel-dns.com`
+
+## Verification
+
+After DNS update:
+```bash
+dig alphaarena.app +short
+# Should return: 76.76.21.21
+
+curl -I https://alphaarena.app
+# Should return Vercel headers, not Squarespace
 ```
-删除: 所有指向 Squarespace 的 A 记录 (198.185.159.*, 198.49.23.*)
-添加: A 记录 → 76.76.21.21 (Vercel)
-```
 
-## Important Notes
-- 此问题无法通过代码仓库自动修复
-- 需要域名所有者在 Google Domains 手动操作
-- DNS 更改后几分钟到几小时生效
+## Vercel Project Details
 
-## Related
-- Issue #785
-- Domain added to Vercel: 2026-03-27
-- DNS was never correctly configured
+- Project ID: `prj_QfKnQpqG5OcARmx6TLUTUWiOkVc6`
+- Project Name: `alphaarena`
+- Team: `gxcsoccer-s-team`
+- Domain is correctly linked in Vercel dashboard
+
+## Related Issue
+
+- GitHub Issue #796
