@@ -4,6 +4,12 @@
   "endDate": "2026-04-27",
   "milestone": 55,
   "status": "complete",
+  "p0_blocker": {
+    "issue": 802,
+    "reason": "DNS misconfiguration - requires manual DNS update",
+    "waiting_for": "Investor to update DNS A record to 76.76.21.21",
+    "updated": "2026-05-24"
+  },
   "theme": "策略交易深化",
   "description": "聚焦策略交易核心功能增强，包括自动化执行、实盘回测对比、策略社区，为VIP用户提供更高价值。",
   "issues": [
