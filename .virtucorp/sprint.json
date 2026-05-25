@@ -6,10 +6,41 @@
   "status": "complete",
   "p0_blocker": {
     "issue": 803,
-    "reason": "DNS A record points to Squarespace instead of Vercel",
-    "solution": "Update DNS: A record @ → 76.76.21.21, CNAME www → cname.vercel-dns.com",
-    "waiting_for": "Investor to update DNS in Google Domains console",
-    "updated": "2026-05-25"
+    "reason": "Production domains DNS point to Squarespace instead of Vercel",
+    "root_cause_found": "2026-05-25T23:11:12+08:00",
+    "domains_affected": [
+      {
+        "domain": "alphaarena.app",
+        "status": "IN VERCEL PROJECT but DNS points to Squarespace",
+        "current_dns": ["198.185.159.145", "198.49.23.145", "198.49.23.144", "198.185.159.144"],
+        "action_needed": "Update A record to 76.76.21.21"
+      },
+      {
+        "domain": "alphaarena.xyz",
+        "status": "ADDED TO VERCEL (just fixed) but DNS points to Squarespace",
+        "current_dns": ["198.49.23.144", "198.185.159.144", "198.185.159.145", "198.49.23.145"],
+        "action_needed": "Update A record to 76.76.21.21"
+      }
+    ],
+    "fixed_by_dev": [
+      "Verified alphaarena.app is already in Vercel project",
+      "Added alphaarena.xyz to Vercel project",
+      "Added www.alphaarena.xyz to Vercel project"
+    ],
+    "dns_fix_instructions": {
+      "provider": "Google Domains",
+      "steps": [
+        "1. Go to https://domains.google.com",
+        "2. Select each domain (alphaarena.app, alphaarena.xyz)",
+        "3. Go to DNS > Custom resource records",
+        "4. Delete existing A records pointing to Squarespace IPs",
+        "5. Add new A record: @ → 76.76.21.21",
+        "6. Add new A record: www → 76.76.21.21 (or CNAME www → cname.vercel-dns.com)",
+        "7. Wait for DNS propagation (5-30 minutes)"
+      ]
+    },
+    "waiting_for": "Investor to update DNS records in Google Domains",
+    "updated": "2026-05-25T23:15:00+08:00"
   },
   "theme": "策略交易深化",
   "description": "聚焦策略交易核心功能增强，包括自动化执行、实盘回测对比、策略社区，为VIP用户提供更高价值。",
