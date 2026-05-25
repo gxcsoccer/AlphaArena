@@ -254,3 +254,30 @@ AlphaArena 支持中文和英文两种语言。
 如需添加或修改翻译，请参阅：
 - [i18n 开发指南](docs/i18n-development-guide.md) - 开发实践和最佳实践
 - [i18n 命名规范](docs/i18n-naming-convention.md) - 翻译 key 命名规范
+
+## 部署与故障排查
+
+### DNS 配置检查
+
+如果生产环境显示占位页而非 AlphaArena 应用，可能是 DNS 配置问题：
+
+```bash
+# 检查 DNS 配置
+npm run dns:check
+```
+
+如果检测到问题，请参考 [DNS 修复指南](docs/DNS_FIX_GUIDE.md) 进行修复。
+
+### 常见问题
+
+1. **网站显示 "Coming Soon" 页面**
+   - 运行 `npm run dns:check` 检查 DNS 配置
+   - 确保 DNS 指向 Vercel（76.76.21.21 或 Vercel nameservers）
+
+2. **部署成功但网站无法访问**
+   - 检查 Vercel 项目配置
+   - 确认 `vercel.json` 中的输出目录设置正确（`dist/client`）
+
+3. **API 请求失败**
+   - 检查 `.env.production` 中的 API 配置
+   - 确认 Supabase Edge Functions 正常运行
