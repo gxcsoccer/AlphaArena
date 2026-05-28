@@ -1,68 +1,62 @@
 # dns-misconfiguration-troubleshooting
 
-_Saved: 2026-05-16_
+_Saved: 2026-05-28_
 
-# DNS Misconfiguration Troubleshooting
+# DNS 配置错误排查手册
 
-## Issue
-Production site showing "Under Construction" or placeholder page instead of the actual application.
+## 症状
 
-## Root Cause Analysis Steps
+- 访问自定义域名（如 alphaarena.app）显示 "Under Construction" 占位页面
+- 页面没有应用功能，只有域名显示
 
-1. **Check what the production site serves**:
-   ```bash
-   curl -s https://alphaarena.app | head -50
-   ```
-   If it returns Squarespace, Wix, or other hosting provider content, DNS is pointing to wrong provider.
+## 排查步骤
 
-2. **Check DNS resolution**:
-   ```bash
-   dig alphaarena.app +short
-   ```
-   - Vercel IPs: `76.76.21.21`
-   - Squarespace IPs: `198.185.159.144`, `198.49.23.145`, etc.
-   - Cloudflare IPs: `104.x.x.x`
+### 1. 检查 DNS 解析
 
-3. **Check nameservers**:
-   ```bash
-   vercel domains inspect alphaarena.app
-   ```
-   - Intended nameservers for Vercel: `ns1.vercel-dns.com`, `ns2.vercel-dns.com`
-   - If showing Google Domains nameservers (`ns-cloud-a*.googledomains.com`), DNS needs update
+```bash
+nslookup alphaarena.app
+# 或
+dig alphaarena.app +short
+```
 
-4. **Verify Vercel deployment status**:
-   ```bash
-   vercel ls --prod
-   ```
-   Check if deployments are "Ready" and have correct aliases configured.
+**正确结果**: 应返回 Vercel IP `76.76.21.21`
+**错误结果**: 返回 `198.49.23.*` 或 `198.185.159.*` (Squarespace)
 
-5. **Test local build**:
-   ```bash
-   npm run build:client
-   npm run preview
-   curl -s http://localhost:3001 | head -50
-   ```
-   Verify the application works locally.
+### 2. 检查 HTTP 响应头
 
-## Fix Options
+```bash
+curl -sI https://alphaarena.app/ | grep -i server
+```
 
-### Option A (Quick Fix - Recommended)
-At your DNS provider (Google Domains, Cloudflare, etc.), add A record:
-- Host: `@`
-- Type: A
-- Value: `76.76.21.21` (Vercel's IP)
-- TTL: 3600 (or default)
+**正确结果**: `server: Vercel` 或类似
+**错误结果**: `server: Squarespace`
 
-### Option B (Complete Fix)
-Change domain nameservers to Vercel's:
-- `ns1.vercel-dns.com`
-- `ns2.vercel-dns.com`
+### 3. 验证 Vercel 部署
 
-## DNS Propagation
-After updating DNS:
-- Wait 5-60 minutes for propagation
-- Use `dig alphaarena.app +short` to verify new IPs
-- Test with `curl https://alphaarena.app`
+```bash
+# 检查 Vercel 默认域名
+nslookup alpha-arena.vercel.app
+curl -sI https://alpha-arena.vercel.app/
+```
 
-## Related Issue
-Issue #789: Production site showing Under Construction placeholder (resolved as DNS misconfiguration)
+如果 Vercel 默认域名正常，但自定义域名异常 → DNS 配置问题
+
+## 修复方案
+
+在域名 Registrar（Google Domains/Squarespace）更新 DNS：
+
+1. 删除指向 Squarespace 的 A 记录
+2. 添加 A 记录: `@ → 76.76.21.21`
+3. 添加 CNAME 记录: `www → cname.vercel-dns.com`
+4. 等待 DNS 传播（5-30 分钟）
+
+## 相关 Issues
+
+- #803, #805, #806, #807, #809 - 重复报告同一 DNS 问题
+- 文档: docs/deployment/DNS_CONFIGURATION.md
+
+## 教训
+
+- 多个 P0 Issues 可能是同一问题的重复报告
+- 检查 DNS 解析应该是第一排查步骤
+- 标记 `needs-investor-action` 表示需要域名所有者操作
