@@ -1,33 +1,44 @@
 # dns-misconfiguration-fix
 
-_Saved: 2026-05-16_
+_Saved: 2026-06-02_
 
-# DNS Misconfiguration Fix - alphaarena.app
+# DNS Misconfiguration Fix for alphaarena.app
 
-## Issue
-Production site shows "Under Construction" placeholder instead of the app.
-
-## Diagnosis Steps
-1. Check if DNS resolves to Vercel: `curl -s -I https://alphaarena.app` → look for `server: Vercel`
-2. If `server: Squarespace`, DNS is misconfigured
-3. Check nameservers: `vercel domain inspect alphaarena.app`
-4. Look for `✘` in the nameserver comparison
+## Problem
+Production site https://alphaarena.app shows Squarespace "Under Construction" placeholder instead of AlphaArena app.
 
 ## Root Cause
-Domain registered with Google Domains (now Squarespace) but nameservers never updated to Vercel.
+DNS is misconfigured to point to Squarespace instead of Vercel:
+- A records: 198.185.159.145, 198.49.23.145 (Squarespace) instead of 76.76.21.21 (Vercel)
+- CNAME for www: ext-sq.squarespace.com instead of cname.vercel-dns.com
+- Nameservers: Google Domains (ns-cloud-a1.googledomains.com) instead of Vercel (ns1.vercel-dns.com)
 
-## Solution
-1. Log into Squarespace Domains: https://domains.squarespace.com
-2. Navigate to alphaarena.app → DNS Settings
-3. Either:
-   - **Option A (Recommended):** Change nameservers to `ns1.vercel-dns.com`, `ns2.vercel-dns.com`
-   - **Option B:** Update A records to `76.76.21.21`
+## Fix Instructions (for domain owner)
+Access Google Domains DNS management and:
 
-## Prevention
-After any domain transfer or new domain setup, verify:
-1. Nameservers point to Vercel (or A records point to 76.76.21.21)
-2. Wait for DNS propagation
-3. Run smoke test against production URL
+**Option A - Update DNS records:**
+1. Change A record for `alphaarena.app` to point to `76.76.21.21`
+2. Change CNAME record for `www.alphaarena.app` to point to `cname.vercel-dns.com`
 
-## Related Issue
-#789
+**Option B - Change nameservers:**
+- Update nameservers to: `ns1.vercel-dns.com` and `ns2.vercel-dns.com`
+
+## Verification
+After DNS changes propagate (may take up to 48 hours):
+- `dig alphaarena.app +short` should show 76.76.21.21
+- `curl https://alphaarena.app` should show AlphaArena app (not Squarespace placeholder)
+- Server header should show Vercel, not Squarespace
+
+## Related Commands
+```bash
+# Check current DNS
+dig alphaarena.app +short
+dig alphaarena.app NS +short
+dig www.alphaarena.app CNAME +short
+
+# Check Vercel domain config
+vercel domains inspect alphaarena.app
+
+# Check production site
+curl -I https://alphaarena.app
+```
