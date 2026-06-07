@@ -9,17 +9,19 @@ tasks:
     flow:
       - ai: "打开首页"
       - aiWaitFor: "页面加载完成"
-      - aiAssert: "页面显示了 APL 的标题或品牌标识"
+      - aiAssert: "页面显示了 AlphaArena 品牌名称或 logo"
       - aiAssert: "页面布局正常，没有显示错误信息"
   - name: "策略列表页面测试"
     flow:
-      - ai: "导航到策略列表页面"
-      - aiWaitFor: "策略列表加载完成"
-      - aiAssert: "页面显示了策略列表或相关内容"
+      # IMPORTANT: Use relative URL to stay on configured domain. AI agent must NOT navigate to other domains.
+      - ai: "在当前域名上导航到 /strategies 页面（使用相对路径，不要切换到其他域名）"
+      - aiWaitFor: "页面加载完成"
+      - aiAssert: "页面正常响应（未登录用户会重定向到登录页，已登录用户看到策略列表）"
       - aiAssert: "页面没有显示错误信息或加载失败提示"
   - name: "实盘与回测对比页面测试"
     flow:
-      - ai: "导航到实盘与回测对比页面"
+      # IMPORTANT: Use relative URL to stay on configured domain
+      - ai: "在当前域名上导航到 /compare 页面（使用相对路径，不要切换到其他域名）"
       - aiWaitFor: "对比页面加载完成"
       - aiAssert: "页面显示了对比图表或数据"
       - aiAssert: "页面没有显示错误信息或加载失败提示"
