@@ -2,60 +2,59 @@
 
 _Saved: 2026-06-07_
 
-# DNS 配置问题处理指南
+# DNS 配置修复指南
 
-## 问题特征
+## 问题诊断
 
-当生产环境显示 "Under Construction" 占位页，且：
-- Vercel 部署状态正常
-- 域名已绑定到 Vercel 项目
-- `curl -sI https://alphaarena.app | grep -i server` 返回 `Squarespace`
+域名 `alphaarena.app` 和 `alphaarena.xyz` 的 DNS 记录指向 Squarespace，导致访问时显示 "Under Construction" 占位页。
 
-这是 **DNS 配置问题**，不是代码问题。
+**根因**：DNS A 记录指向错误的 IP 地址。
 
-## 根本原因
-
-域名 DNS A 记录指向 Squarespace IP（198.49.23.xxx），而非 Vercel IP（76.76.21.21）。
-
-## 解决方案
-
-**需要 investor 在 Google Domains 手动操作**：
-
-1. 登录 https://domains.google.com
-2. 选择域名 alphaarena.app
-3. 进入 DNS → Custom resource records
-4. 删除指向 Squarespace 的 A 记录
-5. 添加新 A 记录：
-   - 类型: A
-   - 名称: @
-   - 值: 76.76.21.21
-6. 添加 CNAME：
-   - 类型: CNAME
-   - 名称: www
-   - 值: cname.vercel-dns.com
-7. 对 alphaarena.xyz 重复相同步骤
-8. 等待 DNS 传播（5-30 分钟）
-
-## 验证命令
-
-```bash
-dig +short alphaarena.app A
-# 应返回: 76.76.21.21
-
-curl -sI https://alphaarena.app | grep -i server
-# 应返回: server: Vercel
+```
+当前状态:
+  alphaarena.app A → 198.49.23.144 (Squarespace)  ❌
+  
+应为:
+  alphaarena.app A → 76.76.21.21 (Vercel)  ✅
 ```
 
-## 系统处理规则
+## 修复步骤
 
-**重要**：标记 `needs-investor-action` 的 Issue：
-- ❌ 不要派发 Dev（Dev 无法修复外部配置）
-- ❌ 不要创建重复 Issue
-- ✅ 向 investor 发送操作指引
-- ✅ 等待 investor 确认完成后再验证
+### 1. 登录域名管理面板
 
-## 历史记录
+访问 https://domains.google.com 或你的域名注册商后台。
 
-- 2026-05-15 ~ 2026-06-07：系统创建 15+ 个重复 Issue (#820, #815, #814, #813...)
-- Dev 多次诊断确认是 DNS 问题
-- 问题仍未解决，等待 investor 操作
+### 2. 修改 DNS 记录
+
+对 `alphaarena.app` 和 `alphaarena.xyz` 分别执行：
+
+| 操作 | 记录类型 | 名称 | 值 |
+|------|---------|------|-----|
+| 删除 | A | @ | 198.49.23.xxx / 198.185.159.xxx |
+| 删除 | CNAME | www | ext-sq.squarespace.com |
+| **添加** | A | @ | `76.76.21.21` |
+| **添加** | CNAME | www | `cname.vercel-dns.com` |
+
+### 3. 等待 DNS 传播
+
+- 通常需要 5-30 分钟
+- 可用以下命令验证：
+  ```bash
+  dig +short alphaarena.app A
+  # 应返回: 76.76.21.21
+  
+  curl -sI https://alphaarena.app | grep -i server
+  # 应返回: server: Vercel
+  ```
+
+## 临时访问
+
+DNS 修复前可通过 Vercel 预览 URL 访问：
+- https://alphaarena-gxcsoccer-s-team.vercel.app
+- https://alphaarena-eight.vercel.app
+
+## 状态
+
+- Issue: #820
+- Labels: `status/blocked`, `needs-investor-action`, `blocked/dns-config`
+- 等待 investor 操作
