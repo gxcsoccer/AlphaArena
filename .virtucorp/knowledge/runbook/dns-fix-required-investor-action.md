@@ -2,59 +2,90 @@
 
 _Saved: 2026-06-07_
 
-# DNS 配置修复指南
+# DNS Fix Required - Investor Action Needed
 
-## 问题诊断
+## Problem
 
-域名 `alphaarena.app` 和 `alphaarena.xyz` 的 DNS 记录指向 Squarespace，导致访问时显示 "Under Construction" 占位页。
+The domain `alphaarena.app` is showing "Under Construction" placeholder instead of the AlphaArena application.
 
-**根因**：DNS A 记录指向错误的 IP 地址。
+## Root Cause
 
+**DNS configuration error** - NOT a code bug.
+
+The domain's A records point to Squarespace servers instead of Vercel:
+- **Current**: 198.185.159.145, 198.49.23.145 (Squarespace)
+- **Expected**: 76.76.21.21 (Vercel)
+
+## Evidence
+
+```bash
+$ dig alphaarena.app +short
+198.185.159.145  # ← Squarespace (WRONG)
+198.49.23.145    # ← Squarespace (WRONG)
+
+$ curl -sI https://alphaarena.app | grep -i server
+server: Squarespace  # ← Should be "Vercel"
+
+$ vercel domains inspect alphaarena.app
+WARNING! This Domain is not configured properly.
 ```
-当前状态:
-  alphaarena.app A → 198.49.23.144 (Squarespace)  ❌
-  
-应为:
-  alphaarena.app A → 76.76.21.21 (Vercel)  ✅
+
+## Fix Required (Investor Action)
+
+### Option A: Update A Record at Google Domains (Recommended - Faster)
+
+1. Login to Google Domains: https://domains.google.com
+2. Select `alphaarena.app`
+3. Go to DNS → Custom resource records
+4. **Delete** existing A records pointing to Squarespace IPs
+5. **Add** new A record:
+   - Host: `@`
+   - Type: `A`
+   - Value: `76.76.21.21`
+   - TTL: `3600` (or default)
+6. Add CNAME for www:
+   - Host: `www`
+   - Type: `CNAME`
+   - Value: `cname.vercel-dns.com`
+7. Wait 5-30 minutes for DNS propagation
+
+### Option B: Change Nameservers to Vercel (Takes Longer)
+
+1. At Google Domains, change nameservers to:
+   - `ns1.vercel-dns.com`
+   - `ns2.vercel-dns.com`
+2. Wait up to 48 hours for propagation
+
+## Verification
+
+After DNS changes, run:
+```bash
+npm run dns:check
 ```
 
-## 修复步骤
+Or manually:
+```bash
+dig alphaarena.app +short
+# Should return: 76.76.21.21
 
-### 1. 登录域名管理面板
+curl -sI https://alphaarena.app | grep -i server
+# Should show: server: Vercel
+```
 
-访问 https://domains.google.com 或你的域名注册商后台。
+## Temporary Access
 
-### 2. 修改 DNS 记录
-
-对 `alphaarena.app` 和 `alphaarena.xyz` 分别执行：
-
-| 操作 | 记录类型 | 名称 | 值 |
-|------|---------|------|-----|
-| 删除 | A | @ | 198.49.23.xxx / 198.185.159.xxx |
-| 删除 | CNAME | www | ext-sq.squarespace.com |
-| **添加** | A | @ | `76.76.21.21` |
-| **添加** | CNAME | www | `cname.vercel-dns.com` |
-
-### 3. 等待 DNS 传播
-
-- 通常需要 5-30 分钟
-- 可用以下命令验证：
-  ```bash
-  dig +short alphaarena.app A
-  # 应返回: 76.76.21.21
-  
-  curl -sI https://alphaarena.app | grep -i server
-  # 应返回: server: Vercel
-  ```
-
-## 临时访问
-
-DNS 修复前可通过 Vercel 预览 URL 访问：
-- https://alphaarena-gxcsoccer-s-team.vercel.app
+Until DNS is fixed, use Vercel preview URLs:
 - https://alphaarena-eight.vercel.app
+- https://alphaarena-gxcsoccer-s-team.vercel.app
 
-## 状态
+## Timeline
 
-- Issue: #820
-- Labels: `status/blocked`, `needs-investor-action`, `blocked/dns-config`
-- 等待 investor 操作
+- **2026-05-25**: Issue first diagnosed
+- **2026-06-07**: Still waiting for investor action (13+ days)
+- **Issue #820**: Blocking production access
+
+## Related
+
+- Issue #820, #807, #803 (duplicate issues, same root cause)
+- docs/deployment/DNS_FIX_GUIDE.md
+- scripts/check-dns.sh
