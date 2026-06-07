@@ -1,43 +1,48 @@
 # dns-configuration-alphaarena
 
-_Saved: 2026-05-22_
+_Saved: 2026-06-07_
 
-# DNS Configuration for AlphaArena
+# DNS Configuration for alphaarena.app
 
-## Domain: alphaarena.app
+## Issue History
+- Issue #820: Production showed "Under Construction" placeholder
+- Issue #803: Same issue (DNS pointing to Squarespace)
 
-### Correct DNS Settings (Vercel)
+## Root Cause
+Domain registered with Google Domains, but DNS was pointing to Squarespace instead of Vercel.
 
-| Record | Type | Value |
-|--------|------|-------|
-| `alphaarena.app` | A | `76.76.21.21` |
-| `www.alphaarena.app` | CNAME | `cname.vercel-dns.com` |
-
-### Alternative: Nameservers
-
-- `ns1.vercel-dns.com`
-- `ns2.vercel-dns.com`
-
-## Troubleshooting
-
-### Symptoms
-- Site shows "Under Construction" placeholder
-- `curl https://alphaarena.app` returns Squarespace HTML
-
-### Diagnosis Commands
+## Diagnosis Steps
 ```bash
+# Run the DNS check script
+bash scripts/check-dns.sh
+
 # Check DNS resolution
-dig alphaarena.app
+dig alphaarena.app +short
 
-# Check what's serving
-curl -I https://alphaarena.app
-
-# Verify Vercel domain config
+# Check Vercel deployment
+vercel project ls
 vercel domains inspect alphaarena.app
+vercel dns list alphaarena.app
 ```
 
-### Root Cause
-If DNS points to Squarespace IPs (198.49.23.144, etc.), the domain registrar's DNS needs to be updated to point to Vercel.
+## Solution
+Requires manual intervention at Google Domains:
 
-## Related Issue
-- #801: P0 DNS misconfiguration causing production outage
+**Option A (Recommended - Update A Records):**
+1. Go to Google Domains → alphaarena.app → DNS
+2. Update A record `@` → `76.76.21.21`
+3. Update A record `www` → `76.76.21.21`
+
+**Option B (Change Nameservers):**
+1. Go to Google Domains → alphaarena.app → Name servers
+2. Switch to custom name servers
+3. Add: `ns1.vercel-dns.com` and `ns2.vercel-dns.com`
+
+## Vercel Configuration (Already Correct)
+- Project: `alphaarena` (prj_QfKnQpqG5OcARmx6TLUTUWiOkVc6)
+- Team: `gxcsoccer-s-team`
+- Production URL: `alphaarena-gxcsoccer-s-team.vercel.app`
+- DNS records in Vercel: A records correctly pointing to `76.76.21.21`
+
+## Cannot Be Fixed via Code
+This is a DNS configuration issue that requires the domain owner to manually update DNS settings at the registrar (Google Domains). No code changes can fix this.
