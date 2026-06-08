@@ -1,51 +1,50 @@
 # dns-configuration-alphaarena-app
 
-_Saved: 2026-05-19_
+_Saved: 2026-06-08_
 
 # DNS Configuration for alphaarena.app
 
-## Issue (May 2026)
-
-The domain `alphaarena.app` was showing a Squarespace "Under Construction" page instead of the AlphaArena application.
+## Issue
+Production environment (alphaarena.app) shows Squarespace parking page instead of Vercel deployment.
 
 ## Root Cause
+DNS records at Google Domains point to Squarespace IPs instead of Vercel.
 
-DNS was pointing to Squarespace instead of Vercel:
-- **Current A records**: `198.185.159.144`, `198.49.23.145` (Squarespace IPs)
-- **Expected A record**: `76.76.21.21` (Vercel IP)
-- **Current Nameservers**: `ns-cloud-a*.googledomains.com` (Google Domains)
-- **Expected Nameservers**: `ns1.vercel-dns.com`, `ns2.vercel-dns.com` (Vercel)
+## Current DNS State (as of 2026-06-08)
+```
+alphaarena.app → 198.49.23.144/145, 198.185.159.144/145 (Squarespace)
+Nameservers: ns-cloud-a*.googledomains.com
+```
 
-## Solution Options
+## Expected DNS State
+```
+alphaarena.app → 76.76.21.21 (Vercel)
+www.alphaarena.app → CNAME cname.vercel-dns.com
+```
 
-### Option A (Recommended - Faster)
-Update DNS at Google Domains:
-1. Add A record: `@ → 76.76.21.21`
-2. Add CNAME: `www → cname.vercel-dns.com`
-
-### Option B
-Change nameservers at Google Domains to:
-- `ns1.vercel-dns.com`
-- `ns2.vercel-dns.com`
+## Fix Steps (Requires Domain Owner Access)
+1. Log into https://domains.google.com
+2. Navigate to alphaarena.app → DNS → Custom resource records
+3. Delete all A records pointing to Squarespace IPs
+4. Add A record: Host `@`, Value `76.76.21.21`
+5. Add CNAME: Host `www`, Value `cname.vercel-dns.com`
+6. Wait 5-30 min for DNS propagation
 
 ## Verification
-
-After DNS update:
 ```bash
+# Check DNS resolution
 dig alphaarena.app +short
 # Should return: 76.76.21.21
 
-curl -I https://alphaarena.app
-# Should return Vercel headers, not Squarespace
+# Check HTTP response
+curl -sI https://alphaarena.app | grep -i server
+# Should NOT show "Squarespace"
 ```
 
-## Vercel Project Details
+## Related Issues
+- Issue #823: [P0] 生产环境显示维护占位页而非实际应用
 
-- Project ID: `prj_QfKnQpqG5OcARmx6TLUTUWiOkVc6`
-- Project Name: `alphaarena`
-- Team: `gxcsoccer-s-team`
-- Domain is correctly linked in Vercel dashboard
-
-## Related Issue
-
-- GitHub Issue #796
+## Notes
+- This is NOT a code fix - requires manual DNS configuration
+- Vercel deployment is healthy and correctly configured
+- Only domain owner can update DNS records at registrar
