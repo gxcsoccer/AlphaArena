@@ -1,60 +1,51 @@
 # dns-misconfiguration-diagnosis
 
-_Saved: 2026-05-17_
+_Saved: 2026-06-08_
 
 # DNS 配置错误诊断流程
 
-## 症状
-- 生产环境显示 "Under Construction" 或其他非预期页面
-- 域名解析到错误的服务器
+## 问题症状
+- 域名访问显示 Squarespace "Under Construction" 页面
+- Vercel 部署正常，但自定义域名无法访问
 
 ## 诊断步骤
 
-### 1. 检查 DNS 解析
+### 1. 检查 HTTP 响应
 ```bash
-dig alphaarena.app +short
-nslookup alphaarena.app
+curl -sI https://yourdomain.app
+# 查看 Server 头，如果是 Squarespace 说明 DNS 指向错误
 ```
 
-### 2. 检查 HTTP 响应头
+### 2. 检查 DNS 记录
 ```bash
-curl -I https://alphaarena.app
+dig +short yourdomain.app A
+dig +short www.yourdomain.app CNAME
 ```
-查找 `Server:` 头判断服务提供商。
 
 ### 3. 检查 Vercel 域名配置
 ```bash
-npx vercel domain inspect alphaarena.app
+vercel domains inspect yourdomain.app
 ```
-检查 Nameservers 是否匹配。
 
-### 4. 检查 Vercel 部署状态
+### 4. 验证 Vercel 部署是否正常
 ```bash
-npx vercel ls --prod
-npx vercel project ls
+# 直接访问 Vercel 部署 URL
+curl -sI https://your-project-hash.vercel.app
 ```
 
 ## 常见问题
 
-### Squarespace 占位页
-- **症状**: DNS 解析到 `198.185.159.*` 或 `198.49.23.*`
-- **原因**: 域名之前在 Squarespace 注册，DNS 未更新
-- **修复**: 在域名注册商修改 DNS 记录
+### DNS 指向 Squarespace
+- **原因**: 域名之前在 Squarespace 注册，DNS 记录未更新
+- **修复**: 在域名注册商修改 DNS 记录指向 Vercel
 
-## 修复方案
+### Vercel 要求的 DNS 配置
+- A 记录: `@` → `76.76.21.21`
+- CNAME: `www` → `cname.vercel-dns.com`
 
-### 方案 A: 添加 A 记录（推荐）
-在 DNS 管理界面添加：
-- 主机: `@`
-- 类型: `A`
-- 值: `76.76.21.21` (Vercel IP)
-
-### 方案 B: 修改 Nameservers
-将 nameservers 改为 Vercel DNS：
+或者使用 Vercel nameservers:
 - `ns1.vercel-dns.com`
 - `ns2.vercel-dns.com`
 
-## 注意事项
-- DNS 修改后需要 5-30 分钟生效
-- 修改 nameservers 可能需要 24-48 小时传播
-- 这类问题无法通过代码修复，需要域名所有者操作
+## 相关 Issue
+- #823: 生产环境显示维护占位页 (2026-06-08)
