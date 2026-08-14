@@ -1,0 +1,18 @@
+{
+  "name": "AlphaArena",
+  "install": "npm install && npm run build",
+  "terminals": [
+    {
+      "name": "api",
+      "command": "SUPABASE_URL=\"${SUPABASE_URL:-https://placeholder.supabase.co}\" SUPABASE_ANON_KEY=\"${SUPABASE_ANON_KEY:-placeholder-anon-key}\" JWT_SECRET=\"${JWT_SECRET:-dev-local-jwt-secret-change-me}\" PORT=8080 node dist/server-start.js"
+    },
+    {
+      "name": "web",
+      "command": "npm run dev"
+    }
+  ],
+  "ports": [
+    { "name": "web", "port": 3000 },
+    { "name": "api", "port": 8080 }
+  ]
+}
